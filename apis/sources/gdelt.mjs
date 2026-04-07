@@ -115,14 +115,16 @@ export async function briefing() {
 
   // Broad query for global events — retry up to 3 times if rate-limited
   let all;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) await delay(6000); // GDELT rate limit: 1 req per 5s
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await delay(7000); // GDELT rate limit: 1 req per 5s + buffer
     all = await searchEvents(
       'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
       { maxRecords: 75, timespan: '24h' }
     );
-    // If we got articles or a real error (not rate-limit text), stop retrying
-    if (all?.articles?.length > 0 || all?.error) break;
+    // If we got articles, stop retrying
+    if (all?.articles?.length > 0) break;
+    // If it's a real error (not rate-limit), stop retrying
+    if (all?.error && !all.error.includes('429') && !all.error.includes('Please limit requests')) break;
     // rawText means we got a non-JSON response (likely rate limit message)
     if (all?.rawText && !all.rawText.includes('Please limit requests')) break;
   }
