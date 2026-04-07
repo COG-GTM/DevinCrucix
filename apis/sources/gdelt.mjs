@@ -65,7 +65,6 @@ function compactArticle(a) {
     domain: a.domain,
     language: a.language,
     country: a.sourcecountry,
-    tone: a.tone != null ? parseFloat(a.tone) : null,
   };
 }
 
@@ -132,27 +131,22 @@ export async function briefing() {
     keywords.some(k => a.title?.toLowerCase().includes(k))
   );
 
-  // Regional tone scoring — derived from article-level tone data (no extra API calls)
-  const toneScores = [];
-  for (const region of MONITORED_REGIONS) {
+  // Regional article coverage — count articles per monitored region
+  // Note: GDELT ArtList mode doesn't include tone scores; regional coverage
+  // is tracked by article count instead.
+  const toneScores = MONITORED_REGIONS.map(region => {
     const regionArticles = articles.filter(a =>
       region.query.split(' OR ').some(kw => a.title?.toLowerCase().includes(kw.toLowerCase()))
     );
-    if (regionArticles.length >= 3) {
-      const tones = regionArticles.filter(a => a.tone != null).map(a => a.tone);
-      if (tones.length > 0) {
-        const avgTone = tones.reduce((s, t) => s + t, 0) / tones.length;
-        toneScores.push({
-          region: region.name,
-          currentTone: parseFloat(avgTone.toFixed(2)),
-          previousTone: 0, // no historical baseline from single sweep
-          shift: parseFloat(avgTone.toFixed(2)),
-          dataPoints: tones.length,
-          articleCount: regionArticles.length,
-        });
-      }
-    }
-  }
+    return {
+      region: region.name,
+      articleCount: regionArticles.length,
+      currentTone: 0, // ArtList doesn't include tone
+      previousTone: 0,
+      shift: 0,
+      dataPoints: 0,
+    };
+  }).filter(r => r.articleCount > 0);
 
   // Geo events — get mapped event locations
   await delay(6000); // respect GDELT 5s rate limit
@@ -171,13 +165,13 @@ export async function briefing() {
   // Geographic event clustering
   const geoClusters = clusterGeoPoints(geoPoints);
 
-  // PRIORITY alerts: sharp tone drops in monitored regions
+  // PRIORITY alerts: high volume coverage in monitored regions
   const priorityAlerts = toneScores
-    .filter(t => t.shift < -2.0) // significant negative shift
+    .filter(t => t.articleCount >= 10) // significant coverage spike
     .map(t => ({
       tier: 'PRIORITY',
-      headline: `TONE DETERIORATION: ${t.region} tone dropped ${Math.abs(t.shift).toFixed(1)} points`,
-      detail: `Current: ${t.currentTone}, Previous: ${t.previousTone} (${t.dataPoints} data points over 7 days)`,
+      headline: `HIGH COVERAGE: ${t.region} — ${t.articleCount} articles in last 24h`,
+      detail: `Region is generating significant news coverage`,
     }));
 
   return {
