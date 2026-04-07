@@ -18,9 +18,12 @@ export async function searchEvents(query = '', opts = {}) {
   } = opts;
 
   // If no query, use broad geopolitical terms
-  const q = query || 'conflict OR crisis OR military OR sanctions OR war OR economy';
+  // GDELT requires OR'd terms to be wrapped in parentheses
+  const q = query || '(conflict OR crisis OR military OR sanctions OR war OR economy)';
+  // Ensure OR queries are parenthesized
+  const finalQ = (q.includes(' OR ') && !q.startsWith('(')) ? `(${q})` : q;
   const params = new URLSearchParams({
-    query: q,
+    query: finalQ,
     mode,
     maxrecords: String(maxRecords),
     timespan,
@@ -40,7 +43,8 @@ export async function geoEvents(query = '', opts = {}) {
     maxPoints = 500,
   } = opts;
 
-  const q = query || 'conflict OR military OR protest OR explosion';
+  const raw = query || '(conflict OR military OR protest OR explosion)';
+  const q = (raw.includes(' OR ') && !raw.startsWith('(')) ? `(${raw})` : raw;
   const params = new URLSearchParams({
     query: q,
     mode,
