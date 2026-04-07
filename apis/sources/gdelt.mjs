@@ -142,11 +142,11 @@ export async function briefing() {
     keywords.some(k => a.title?.toLowerCase().includes(k))
   );
 
-  // Regional tone scoring — get tone trends for top 3 monitored regions
+  // Regional tone scoring — get tone trends for top 2 monitored regions
   // (limited to avoid 30s source timeout; GDELT rate limit is ~1 req/5s)
   const toneScores = [];
-  for (const region of MONITORED_REGIONS.slice(0, 3)) {
-    await delay(3000); // shorter delay — GDELT is lenient on light usage
+  for (const region of MONITORED_REGIONS.slice(0, 2)) {
+    await delay(2000); // short delay — GDELT is lenient on light usage
     try {
       const toneData = await toneTrend(region.query, '7d');
       const timeline = toneData?.timeline || [];
@@ -168,7 +168,7 @@ export async function briefing() {
   }
 
   // Geo events — get mapped event locations
-  await delay(3000);
+  await delay(2000);
   let geoPoints = [];
   try {
     const geo = await geoEvents('conflict OR military OR protest OR crisis OR explosion', { maxPoints: 50, timespan: '24h' });

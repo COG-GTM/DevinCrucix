@@ -10,7 +10,7 @@ const SF_BASE = process.env.SPIDERFOOT_URL || 'http://localhost:5001';
 // Check if SpiderFoot is running
 export async function isRunning() {
   try {
-    const data = await safeFetch(`${SF_BASE}/api?func=scanlist`, { timeout: 5000 });
+    const data = await safeFetch(`${SF_BASE}/scanlist`, { timeout: 5000 });
     return !data?.error;
   } catch {
     return false;
@@ -19,7 +19,7 @@ export async function isRunning() {
 
 // List all scans
 export async function listScans() {
-  return safeFetch(`${SF_BASE}/api?func=scanlist`, { timeout: 10000 });
+  return safeFetch(`${SF_BASE}/scanlist`, { timeout: 10000 });
 }
 
 // Start a new scan
@@ -55,19 +55,19 @@ export async function startScan(target, opts = {}) {
 // Get scan results
 export async function getScanResults(scanId, opts = {}) {
   const { eventType } = opts;
-  const params = new URLSearchParams({ func: 'scanresults', id: scanId });
+  const params = new URLSearchParams({ id: scanId });
   if (eventType) params.set('type', eventType);
-  return safeFetch(`${SF_BASE}/api?${params}`, { timeout: 15000 });
+  return safeFetch(`${SF_BASE}/scaneventresults?${params}`, { timeout: 15000 });
 }
 
 // Get scan status
 export async function getScanStatus(scanId) {
-  return safeFetch(`${SF_BASE}/api?func=scanstatus&id=${scanId}`, { timeout: 10000 });
+  return safeFetch(`${SF_BASE}/scanstatus?id=${scanId}`, { timeout: 10000 });
 }
 
 // Get scan summary (event types and counts)
 export async function getScanSummary(scanId) {
-  return safeFetch(`${SF_BASE}/api?func=scansummary&id=${scanId}`, { timeout: 10000 });
+  return safeFetch(`${SF_BASE}/scansummary?id=${scanId}`, { timeout: 10000 });
 }
 
 // Briefing — check SpiderFoot status, list recent scans, surface key findings
