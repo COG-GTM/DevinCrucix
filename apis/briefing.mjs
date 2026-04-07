@@ -40,6 +40,10 @@ import { briefing as kiwisdr } from './sources/kiwisdr.mjs';
 // === Tier 4: Space & Satellites ===
 import { briefing as space } from './sources/space.mjs';
 
+// === Tier 7: Phase 2A Sources ===
+import { briefing as spiderfoot } from './sources/spiderfoot.mjs';
+import { briefing as insightcrime } from './sources/insightcrime.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -111,6 +115,10 @@ export async function fullBriefing() {
     // Tier 6: Cyber & Infrastructure
     runSource('CISA-KEV', cisaKev),
     runSource('Cloudflare-Radar', cloudflareRadar),
+
+    // Tier 7: Phase 2A Sources
+    runSource('SpiderFoot', spiderfoot),
+    runSource('InSightCrime', insightcrime),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve

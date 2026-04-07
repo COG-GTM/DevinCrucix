@@ -1,16 +1,17 @@
 // ACLED — Armed Conflict Location & Event Data
 // Auth strategy (tries in order):
-//   1. Cookie-based session: POST /user/login?_format=json → session cookie
-//   2. OAuth Bearer token:   POST /oauth/token → Authorization header
-// Set ACLED_EMAIL and ACLED_PASSWORD in .env (your myACLED login credentials).
-// Data endpoint: GET https://acleddata.com/api/acled/read
+//   1. API key: ACLED_API_KEY query param (modern ACLED API — recommended)
+//   2. Cookie-based session: POST /user/login?_format=json → session cookie
+//   3. OAuth Bearer token:   POST /oauth/token → Authorization header
+// Set ACLED_EMAIL + ACLED_API_KEY in .env (preferred), or ACLED_EMAIL + ACLED_PASSWORD.
+// Data endpoint: GET https://api.acleddata.com/acled/read
 
 import { daysAgo } from '../utils/fetch.mjs';
 import '../utils/env.mjs';
 
 const LOGIN_URL = 'https://acleddata.com/user/login?_format=json';
 const TOKEN_URL = 'https://acleddata.com/oauth/token';
-const API_BASE  = 'https://acleddata.com/api/acled/read';
+const API_BASE  = 'https://api.acleddata.com/acled/read';
 
 // Session cache
 let sessionCache = { cookies: null, token: null, method: null, expires: 0 };
@@ -89,12 +90,19 @@ async function loginOAuth(email, password) {
   }
 }
 
-// Try both auth strategies
+// Try all auth strategies
 async function authenticate() {
   const email    = process.env.ACLED_EMAIL;
+  const apiKey   = process.env.ACLED_API_KEY;
   const password = process.env.ACLED_PASSWORD;
+
+  // Prefer API key auth (modern ACLED API)
+  if (email && apiKey) {
+    return { method: 'apikey', email, apiKey, cookies: null, token: null, expires: Infinity };
+  }
+
   if (!email || !password) {
-    return { error: 'No ACLED credentials. Set ACLED_EMAIL and ACLED_PASSWORD in .env.' };
+    return { error: 'No ACLED credentials. Set ACLED_EMAIL + ACLED_API_KEY (or ACLED_PASSWORD) in .env.' };
   }
 
   // Return cached session if still valid
@@ -162,7 +170,14 @@ export async function getEvents(opts = {}) {
   const session = await authenticate();
   if (session.error) return { error: session.error };
 
-  const params = new URLSearchParams({ _format: 'json', limit: String(limit) });
+  const params = new URLSearchParams({ limit: String(limit) });
+
+  // API key auth: pass email + key as query params
+  if (session.method === 'apikey') {
+    params.set('key', session.apiKey);
+    params.set('email', session.email);
+  }
+
   if (eventDateStart && eventDateEnd) {
     params.set('event_date', `${eventDateStart}|${eventDateEnd}`);
     params.set('event_date_where', 'BETWEEN');
@@ -174,7 +189,7 @@ export async function getEvents(opts = {}) {
   const debug = process.argv.includes('--debug');
   try {
     const url = `${API_BASE}?${params}`;
-    const hdrs = authHeaders(session);
+    const hdrs = session.method === 'apikey' ? { 'User-Agent': 'Crucix/1.0' } : authHeaders(session);
     if (debug) {
       console.error(`[ACLED DEBUG] Data request: GET ${url}`);
       console.error(`[ACLED DEBUG] Headers: ${JSON.stringify(hdrs)}`);
@@ -237,12 +252,12 @@ function groupBy(events, field) {
 
 // Briefing — last 7 days of global conflict events
 export async function briefing() {
-  if (!process.env.ACLED_EMAIL || !process.env.ACLED_PASSWORD) {
+  if ((!process.env.ACLED_EMAIL || !process.env.ACLED_API_KEY) && (!process.env.ACLED_EMAIL || !process.env.ACLED_PASSWORD)) {
     return {
       source: 'ACLED',
       timestamp: new Date().toISOString(),
       status: 'no_credentials',
-      message: 'Set ACLED_EMAIL and ACLED_PASSWORD in .env. Register at https://acleddata.com/user/register',
+      message: 'Set ACLED_EMAIL + ACLED_API_KEY in .env. Register at https://developer.acleddata.com/',
     };
   }
 
@@ -297,6 +312,16 @@ export async function briefing() {
       notes:      e.notes?.slice(0, 200),
     }));
 
+  // FLASH alert: any single event with fatalities > 50
+  const flashAlerts = deadliestEvents
+    .filter(e => e.fatalities > 50)
+    .map(e => ({
+      tier: 'FLASH',
+      headline: `MASS CASUALTY EVENT: ${e.fatalities} fatalities in ${e.country}`,
+      detail: `${e.type} — ${e.location}, ${e.country} (${e.date})`,
+      lat: e.lat, lon: e.lon,
+    }));
+
   return {
     source: 'ACLED',
     timestamp: new Date().toISOString(),
@@ -307,6 +332,7 @@ export async function briefing() {
     byType,
     topCountries,
     deadliestEvents,
+    flashAlerts,
   };
 }
 

@@ -83,18 +83,56 @@ function compactArticle(a) {
     domain: a.domain,
     language: a.language,
     country: a.sourcecountry,
+    tone: a.tone != null ? parseFloat(a.tone) : null,
   };
+}
+
+// Monitored regions for tone scoring
+const MONITORED_REGIONS = [
+  { name: 'Ukraine/Russia', query: 'Ukraine OR Russia OR Kyiv OR Moscow' },
+  { name: 'Middle East', query: 'Iran OR Israel OR Gaza OR Syria OR Iraq OR Yemen' },
+  { name: 'East Asia', query: 'China OR Taiwan OR North Korea OR South China Sea' },
+  { name: 'Africa', query: 'Sudan OR Ethiopia OR Somalia OR Congo OR Sahel' },
+  { name: 'Latin America', query: 'Venezuela OR Colombia OR Mexico cartel OR Central America' },
+];
+
+// Geographic clustering — group events by proximity
+function clusterGeoPoints(points, radiusDeg = 2) {
+  const clusters = [];
+  const used = new Set();
+  for (let i = 0; i < points.length; i++) {
+    if (used.has(i)) continue;
+    const cluster = { lat: points[i].lat, lon: points[i].lon, count: points[i].count || 1, names: [points[i].name], points: [points[i]] };
+    used.add(i);
+    for (let j = i + 1; j < points.length; j++) {
+      if (used.has(j)) continue;
+      const dLat = Math.abs(points[j].lat - cluster.lat);
+      const dLon = Math.abs(points[j].lon - cluster.lon);
+      if (dLat < radiusDeg && dLon < radiusDeg) {
+        cluster.count += points[j].count || 1;
+        cluster.names.push(points[j].name);
+        cluster.points.push(points[j]);
+        // Update centroid
+        cluster.lat = (cluster.lat + points[j].lat) / 2;
+        cluster.lon = (cluster.lon + points[j].lon) / 2;
+        used.add(j);
+      }
+    }
+    cluster.label = cluster.names.filter(Boolean).slice(0, 3).join(', ') || 'Event cluster';
+    clusters.push(cluster);
+  }
+  return clusters.sort((a, b) => b.count - a.count);
 }
 
 // GDELT rate limit: 1 request per 5 seconds
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Briefing mode — get top global events summary (sequential due to rate limit)
+// Briefing mode — full integration with tone scoring + geographic clustering
 export async function briefing() {
-  // Single broad query to stay within rate limits
+  // Broad query for global events
   const all = await searchEvents(
     'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
-    { maxRecords: 50, timespan: '24h' }
+    { maxRecords: 75, timespan: '24h' }
   );
 
   const articles = (all?.articles || []).map(compactArticle);
@@ -104,11 +142,35 @@ export async function briefing() {
     keywords.some(k => a.title?.toLowerCase().includes(k))
   );
 
-  // Geo events — get mapped event locations (separate API, respects rate limit)
+  // Regional tone scoring — get tone trends for monitored regions
+  const toneScores = [];
+  for (const region of MONITORED_REGIONS) {
+    await delay(5500); // GDELT rate limit: 1 req per 5s
+    try {
+      const toneData = await toneTrend(region.query, '7d');
+      const timeline = toneData?.timeline || [];
+      if (timeline.length >= 2) {
+        const recent = timeline.slice(-3);
+        const older = timeline.slice(0, Math.min(3, timeline.length - 3));
+        const recentAvg = recent.reduce((s, t) => s + (t.value || t.tone || 0), 0) / recent.length;
+        const olderAvg = older.length > 0 ? older.reduce((s, t) => s + (t.value || t.tone || 0), 0) / older.length : recentAvg;
+        const shift = recentAvg - olderAvg;
+        toneScores.push({
+          region: region.name,
+          currentTone: parseFloat(recentAvg.toFixed(2)),
+          previousTone: parseFloat(olderAvg.toFixed(2)),
+          shift: parseFloat(shift.toFixed(2)),
+          dataPoints: timeline.length,
+        });
+      }
+    } catch (e) { /* tone endpoint optional */ }
+  }
+
+  // Geo events — get mapped event locations
   await delay(5500);
   let geoPoints = [];
   try {
-    const geo = await geoEvents('conflict OR military OR protest OR crisis', { maxPoints: 30, timespan: '24h' });
+    const geo = await geoEvents('conflict OR military OR protest OR crisis OR explosion', { maxPoints: 50, timespan: '24h' });
     geoPoints = (geo?.features || []).filter(f => f.geometry?.coordinates).map(f => ({
       lat: f.geometry.coordinates[1],
       lon: f.geometry.coordinates[0],
@@ -116,7 +178,19 @@ export async function briefing() {
       count: f.properties?.count || 1,
       type: f.properties?.type || 'event',
     }));
-  } catch (e) { /* geo endpoint optional — don't break briefing */ }
+  } catch (e) { /* geo endpoint optional */ }
+
+  // Geographic event clustering
+  const geoClusters = clusterGeoPoints(geoPoints);
+
+  // PRIORITY alerts: sharp tone drops in monitored regions
+  const priorityAlerts = toneScores
+    .filter(t => t.shift < -2.0) // significant negative shift
+    .map(t => ({
+      tier: 'PRIORITY',
+      headline: `TONE DETERIORATION: ${t.region} tone dropped ${Math.abs(t.shift).toFixed(1)} points`,
+      detail: `Current: ${t.currentTone}, Previous: ${t.previousTone} (${t.dataPoints} data points over 7 days)`,
+    }));
 
   return {
     source: 'GDELT',
@@ -124,10 +198,13 @@ export async function briefing() {
     totalArticles: articles.length,
     allArticles: articles,
     geoPoints,
+    geoClusters: geoClusters.slice(0, 20),
+    toneScores,
     conflicts: categorize(['military', 'conflict', 'war', 'strike', 'missile', 'attack', 'bomb', 'troops']),
     economy: categorize(['economy', 'recession', 'inflation', 'market', 'sanctions', 'tariff', 'trade', 'gdp']),
     health: categorize(['pandemic', 'outbreak', 'epidemic', 'disease', 'virus', 'health']),
     crisis: categorize(['crisis', 'disaster', 'emergency', 'refugee', 'famine']),
+    priorityAlerts,
   };
 }
 

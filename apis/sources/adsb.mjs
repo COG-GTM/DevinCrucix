@@ -1,19 +1,33 @@
 // ADS-B Exchange — Unfiltered Flight Tracking (including Military)
 // Unlike FlightRadar24/FlightAware, ADS-B Exchange does NOT filter military aircraft.
-// Public feed access varies; RapidAPI tier available for programmatic use.
-// This module attempts the public endpoints and falls back to a documented stub.
+// Primary: opendata.adsb.fi (free, no key required, community-run)
+// Fallback: RapidAPI tier for programmatic use (requires ADSB_API_KEY)
 
 import { safeFetch } from '../utils/fetch.mjs';
 
-// Known endpoints (availability may change)
+// Known endpoints
 const ENDPOINTS = {
+  // opendata.adsb.fi — free, no key, community-run ADS-B aggregator
+  adsbFi: 'https://opendata.adsb.fi/api/v2',
   // v2 API via RapidAPI (requires ADSB_API_KEY)
   rapidApi: 'https://adsbexchange-com1.p.rapidapi.com/v2',
   // Public globe feed (may be rate-limited or blocked for automated access)
   publicFeed: 'https://globe.adsbexchange.com/data/aircraft.json',
-  // Alternative: aircraft within bounding box
-  publicTrace: 'https://globe.adsbexchange.com/data/traces',
 };
+
+// Watchlist countries for PRIORITY alerts over sensitive regions
+const WATCHLIST_COUNTRIES = ['Russia', 'China', 'Iran', 'North Korea', 'US Military', 'UK Military', 'France Military', 'Germany Military'];
+
+// Sensitive regions — bounding boxes [minLat, maxLat, minLon, maxLon, name]
+const SENSITIVE_REGIONS = [
+  [44, 52, 28, 42, 'Ukraine/Black Sea'],
+  [20, 28, 118, 124, 'Taiwan Strait'],
+  [10, 22, 108, 118, 'South China Sea'],
+  [24, 40, 44, 60, 'Persian Gulf'],
+  [54, 60, 20, 30, 'Baltic Region'],
+  [33, 42, 124, 132, 'Korean Peninsula'],
+  [60, 72, 25, 45, 'Arctic/Barents Sea'],
+];
 
 // Known military aircraft types and ICAO type designators
 const MILITARY_TYPES = {
@@ -133,11 +147,27 @@ function classifyAircraft(ac) {
   };
 }
 
-// Attempt to fetch from RapidAPI (requires ADSB_API_KEY)
+// Fetch military aircraft from opendata.adsb.fi (free, no key)
+async function fetchFromAdsbFi() {
+  // /mil endpoint returns only military-flagged aircraft
+  const data = await safeFetch(`${ENDPOINTS.adsbFi}/mil`, { timeout: 20000 });
+  if (data && !data.error && Array.isArray(data.ac)) return data;
+
+  // Fallback: try specific military type codes
+  const milTypes = ['RC135', 'E3CF', 'E6B', 'P8A', 'KC135', 'KC46', 'C17', 'B52', 'E4B'];
+  for (const t of milTypes.slice(0, 3)) {
+    const typeData = await safeFetch(`${ENDPOINTS.adsbFi}/type/${t}`, { timeout: 10000 });
+    if (typeData && !typeData.error && Array.isArray(typeData.ac) && typeData.ac.length > 0) {
+      return typeData;
+    }
+  }
+
+  return null;
+}
+
+// Fetch military aircraft via RapidAPI (requires ADSB_API_KEY)
 async function fetchViaRapidApi(apiKey) {
   if (!apiKey) return null;
-
-  // Get all military aircraft
   const data = await safeFetch(`${ENDPOINTS.rapidApi}/mil`, {
     timeout: 20000,
     headers: {
@@ -145,19 +175,30 @@ async function fetchViaRapidApi(apiKey) {
       'X-RapidAPI-Host': 'adsbexchange-com1.p.rapidapi.com',
     },
   });
-
   return data;
 }
 
-// Attempt to fetch from public feed
-async function fetchPublicFeed() {
-  const data = await safeFetch(ENDPOINTS.publicFeed, { timeout: 15000 });
-  return data;
+// Check if aircraft is in a sensitive region
+function findSensitiveRegion(lat, lon) {
+  if (lat == null || lon == null) return null;
+  for (const [minLat, maxLat, minLon, maxLon, name] of SENSITIVE_REGIONS) {
+    if (lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon) return name;
+  }
+  return null;
 }
 
 // Get military aircraft from available sources
 export async function getMilitaryAircraft(apiKey) {
-  // Try RapidAPI first if key available
+  // Try opendata.adsb.fi first (free, no key needed)
+  const adsbFiData = await fetchFromAdsbFi();
+  if (adsbFiData && !adsbFiData.error) {
+    const aircraft = adsbFiData.ac || adsbFiData.aircraft || [];
+    if (Array.isArray(aircraft) && aircraft.length > 0) {
+      return aircraft.map(classifyAircraft).filter(a => a.isMilitary);
+    }
+  }
+
+  // Fallback to RapidAPI if key available
   if (apiKey) {
     const data = await fetchViaRapidApi(apiKey);
     if (data && !data.error) {
@@ -165,15 +206,6 @@ export async function getMilitaryAircraft(apiKey) {
       if (Array.isArray(aircraft)) {
         return aircraft.map(classifyAircraft).filter(a => a.isMilitary);
       }
-    }
-  }
-
-  // Try public feed
-  const pubData = await fetchPublicFeed();
-  if (pubData && !pubData.error) {
-    const aircraft = pubData.ac || pubData.aircraft || pubData.states || [];
-    if (Array.isArray(aircraft)) {
-      return aircraft.map(classifyAircraft).filter(a => a.isMilitary);
     }
   }
 
@@ -251,10 +283,26 @@ export async function briefing() {
       signals.push(`VIP AIRCRAFT: ${vipTransport.length} VIP/continuity-of-government aircraft airborne`);
     }
 
+    // PRIORITY alerts: watchlist country military aircraft over sensitive regions
+    const priorityAlerts = [];
+    for (const ac of militaryAircraft) {
+      if (!ac.latitude || !ac.longitude) continue;
+      const region = findSensitiveRegion(ac.latitude, ac.longitude);
+      if (region && WATCHLIST_COUNTRIES.some(w => (ac.militaryMatch || '').includes(w.split(' ')[0]))) {
+        priorityAlerts.push({
+          tier: 'PRIORITY',
+          headline: `MILITARY AIRCRAFT: ${ac.militaryMatch || 'Unknown'} over ${region}`,
+          detail: `${ac.callsign || ac.hex} — ${ac.typeDescription || ac.type || 'Unknown type'} at FL${Math.round((ac.altitude || 0) / 100)}`,
+          lat: ac.latitude, lon: ac.longitude,
+        });
+      }
+    }
+
     return {
       source: 'ADS-B Exchange',
       timestamp: new Date().toISOString(),
       status: 'live',
+      dataSource: 'opendata.adsb.fi',
       totalMilitary: militaryAircraft.length,
       byCountry,
       categories: {
@@ -263,35 +311,22 @@ export async function briefing() {
         tankers: tankers.slice(0, 10),
         vipTransport: vipTransport.slice(0, 5),
       },
-      militaryAircraft: militaryAircraft.slice(0, 50), // cap for briefing size
+      militaryAircraft: militaryAircraft.slice(0, 50),
       signals: signals.length > 0 ? signals : ['Military flight activity within normal patterns'],
+      priorityAlerts: priorityAlerts.slice(0, 10),
     };
   }
 
-  // No data available — return stub with integration documentation
+  // No data available — return stub
   return {
     source: 'ADS-B Exchange',
     timestamp: new Date().toISOString(),
-    status: apiKey ? 'error' : 'no_key',
+    status: 'no_data',
+    dataSource: 'opendata.adsb.fi',
     militaryAircraft: [],
-    message: apiKey
-      ? 'ADS-B Exchange API returned no data. The endpoint may be temporarily unavailable.'
-      : 'No ADS-B Exchange API key configured. Set ADSB_API_KEY for military flight tracking.',
+    message: 'ADS-B military feed returned no data. The opendata.adsb.fi endpoint may be temporarily unavailable.',
     signals: ['ADS-B data unavailable — cannot assess military flight activity'],
-    integrationGuide: {
-      step1: 'Sign up at https://rapidapi.com/adsbexchange/api/adsbexchange-com1',
-      step2: 'Subscribe to the free tier (500 requests/month)',
-      step3: 'Set ADSB_API_KEY=<your-rapidapi-key> in .env',
-      features: [
-        'Unfiltered military aircraft tracking (unlike FlightRadar24)',
-        'Real-time position, altitude, speed, heading',
-        'ICAO hex code identification for military registrations',
-        'Geographic area search within radius',
-        'Dedicated /mil endpoint for military-only feed',
-      ],
-    },
-    complementarySource: 'OpenSky (opensky.mjs) provides partial military coverage for free',
-    knownMilitaryTypes: MILITARY_TYPES,
+    priorityAlerts: [],
   };
 }
 

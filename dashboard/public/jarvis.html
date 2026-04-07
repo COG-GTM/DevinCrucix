@@ -973,6 +973,62 @@ function plotMarkers(){
     });
   });
 
+  // === GDELT geographic clusters (brighter blue, larger) ===
+  (D.gdelt?.geoClusters||[]).forEach(c=>{
+    if(c.count>=3) points.push({
+      lat:c.lat, lng:c.lon, size:0.2+Math.min(c.count/30,0.4), alt:0.012,
+      color:'rgba(65,105,225,0.8)', type:'gdelt-cluster', priority:2,
+      popHead:'GDELT Cluster', popMeta:c.count+' events',
+      popText:c.label||'Event cluster'
+    });
+  });
+
+  // === ADS-B Military Aircraft (bright yellow-green, distinct markers) ===
+  const milCategories = D.adsbMilitary?.categories || {};
+  // Reconnaissance (bright cyan)
+  (milCategories.reconnaissance||[]).forEach(a=>{
+    if(!a.lat||!a.lon) return;
+    points.push({
+      lat:a.lat, lng:a.lon, size:0.35, alt:0.025,
+      color:'rgba(0,255,200,0.9)', type:'military-isr', priority:1,
+      popHead:(a.callsign||'UNKNOWN')+' ISR', popMeta:'ADS-B Military · '+a.country,
+      popText:`${a.type||'Unknown'}<br>Alt: ${a.altitude||'?'}ft<br>Speed: ${a.speed||'?'}kts`
+    });
+    labels.push({lat:a.lat, lng:a.lon+2, text:a.callsign||'MIL', size:0.3, color:'rgba(0,255,200,0.7)'});
+  });
+  // Bombers (bright red)
+  (milCategories.bombers||[]).forEach(a=>{
+    if(!a.lat||!a.lon) return;
+    points.push({
+      lat:a.lat, lng:a.lon, size:0.4, alt:0.03,
+      color:'rgba(255,50,50,0.9)', type:'military-bomber', priority:1,
+      popHead:(a.callsign||'UNKNOWN')+' BOMBER', popMeta:'ADS-B Military · '+a.country,
+      popText:`${a.type||'Strategic Bomber'}<br>Alt: ${a.altitude||'?'}ft`
+    });
+    labels.push({lat:a.lat, lng:a.lon+2, text:a.callsign||'BOMBER', size:0.35, color:'rgba(255,50,50,0.8)'});
+  });
+  // Tankers (amber)
+  (milCategories.tankers||[]).forEach(a=>{
+    if(!a.lat||!a.lon) return;
+    points.push({
+      lat:a.lat, lng:a.lon, size:0.3, alt:0.02,
+      color:'rgba(255,191,0,0.8)', type:'military-tanker', priority:2,
+      popHead:(a.callsign||'UNKNOWN')+' TANKER', popMeta:'ADS-B Military · '+a.country,
+      popText:`${a.type||'Aerial Refueling'}<br>Alt: ${a.altitude||'?'}ft`
+    });
+  });
+  // VIP/Transport (white-gold)
+  (milCategories.vipTransport||[]).forEach(a=>{
+    if(!a.lat||!a.lon) return;
+    points.push({
+      lat:a.lat, lng:a.lon, size:0.45, alt:0.035,
+      color:'rgba(255,215,0,0.95)', type:'military-vip', priority:1,
+      popHead:(a.callsign||'VIP')+' TRANSPORT', popMeta:'ADS-B Military · '+a.country,
+      popText:`${a.type||'VIP/Government Aircraft'}<br>Alt: ${a.altitude||'?'}ft`
+    });
+    labels.push({lat:a.lat, lng:a.lon+2, text:a.callsign||'VIP', size:0.4, color:'rgba(255,215,0,0.9)'});
+  });
+
   // Set points on globe
   globe.pointsData(points);
   globe.labelsData(labels);

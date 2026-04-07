@@ -1,10 +1,18 @@
 // OpenSanctions — Global Sanctions & PEP Aggregator
-// No auth required for basic queries. Aggregates sanctions data from
-// OFAC, EU, UN, and 30+ other sources into a unified searchable dataset.
+// Aggregates sanctions data from OFAC, EU, UN, and 30+ other sources.
+// Optional: OPENSANCTIONS_API_KEY for higher rate limits.
+// Cross-references entity names from other live feeds against sanctions database.
 
 import { safeFetch } from '../utils/fetch.mjs';
 
 const BASE = 'https://api.opensanctions.org';
+
+function apiHeaders() {
+  const headers = {};
+  const key = process.env.OPENSANCTIONS_API_KEY;
+  if (key) headers['Authorization'] = `ApiKey ${key}`;
+  return headers;
+}
 
 // Search sanctioned entities by name/keyword
 export async function searchEntities(query, opts = {}) {
@@ -14,10 +22,48 @@ export async function searchEntities(query, opts = {}) {
     q: query,
     limit: String(limit),
   });
-  if (schema) params.set('schema', schema);    // e.g. "Person", "Company", "Organization"
-  if (topics) params.set('topics', topics);     // e.g. "sanction", "crime", "poi"
+  if (schema) params.set('schema', schema);
+  if (topics) params.set('topics', topics);
 
-  return safeFetch(`${BASE}/search/default?${params}`, { timeout: 15000 });
+  return safeFetch(`${BASE}/search/default?${params}`, { timeout: 15000, headers: apiHeaders() });
+}
+
+// Match an entity name against sanctions database (returns match score)
+export async function matchEntity(name, opts = {}) {
+  const { schema = 'Thing', topics } = opts;
+  const params = new URLSearchParams({ q: name, limit: '5' });
+  if (schema) params.set('schema', schema);
+  if (topics) params.set('topics', topics);
+  const result = await safeFetch(`${BASE}/search/default?${params}`, { timeout: 10000, headers: apiHeaders() });
+  if (!result || result.error) return null;
+  const matches = (result.results || []).filter(r => {
+    const score = r.score || 0;
+    return score > 0.7; // high confidence match
+  });
+  return matches.length > 0 ? matches : null;
+}
+
+// Cross-reference a list of entity names against sanctions database
+export async function crossReference(names) {
+  const hits = [];
+  // Batch in parallel, max 10 concurrent
+  const batches = [];
+  for (let i = 0; i < names.length; i += 10) {
+    batches.push(names.slice(i, i + 10));
+  }
+  for (const batch of batches) {
+    const results = await Promise.all(
+      batch.map(async (name) => {
+        const matches = await matchEntity(name, { topics: 'sanction' });
+        if (matches && matches.length > 0) {
+          return { name, matches: matches.map(m => ({ id: m.id, caption: m.caption, score: m.score, datasets: m.datasets, topics: m.topics })) };
+        }
+        return null;
+      })
+    );
+    hits.push(...results.filter(Boolean));
+  }
+  return hits;
 }
 
 // Get available datasets/collections
@@ -46,6 +92,7 @@ function compactEntity(e) {
     countries: e.properties?.country || [],
     lastSeen: e.last_seen,
     firstSeen: e.first_seen,
+    score: e.score || null,
   };
 }
 
@@ -98,10 +145,12 @@ export async function briefing() {
   return {
     source: 'OpenSanctions',
     timestamp: new Date().toISOString(),
+    hasApiKey: !!process.env.OPENSANCTIONS_API_KEY,
     recentSearches: results,
     totalSanctionedEntities,
     datasets: datasetSummary,
     monitoringTargets: BRIEFING_QUERIES,
+    crossRefAvailable: true,
   };
 }
 

@@ -514,7 +514,7 @@ export async function synthesize(data) {
 
   // ACLED conflict events
   const acledData = data.sources.ACLED || {};
-  const acled = acledData.error ? { totalEvents: 0, totalFatalities: 0, byRegion: {}, byType: {}, deadliestEvents: [] } : {
+  const acled = acledData.error ? { totalEvents: 0, totalFatalities: 0, byRegion: {}, byType: {}, deadliestEvents: [], flashAlerts: [] } : {
     totalEvents: acledData.totalEvents || 0,
     totalFatalities: acledData.totalFatalities || 0,
     byRegion: acledData.byRegion || {},
@@ -522,10 +522,11 @@ export async function synthesize(data) {
     deadliestEvents: (acledData.deadliestEvents || []).slice(0, 15).map(e => ({
       date: e.date, type: e.type, country: e.country, location: e.location,
       fatalities: e.fatalities || 0, lat: e.lat || null, lon: e.lon || null
-    }))
+    })),
+    flashAlerts: (acledData.flashAlerts || []).slice(0, 5),
   };
 
-  // GDELT news articles + geo events
+  // GDELT news articles + geo events + tone scoring + clustering
   const gdeltData = data.sources.GDELT || {};
   const gdelt = {
     totalArticles: gdeltData.totalArticles || 0,
@@ -534,9 +535,16 @@ export async function synthesize(data) {
     health: (gdeltData.health || []).length,
     crisis: (gdeltData.crisis || []).length,
     topTitles: (gdeltData.allArticles || []).slice(0, 5).map(a => a.title?.substring(0, 80)),
-    geoPoints: (gdeltData.geoPoints || []).slice(0, 20).map(p => ({
+    geoPoints: (gdeltData.geoPoints || []).slice(0, 30).map(p => ({
       lat: p.lat, lon: p.lon, name: (p.name || '').substring(0, 80), count: p.count || 1
-    }))
+    })),
+    geoClusters: (gdeltData.geoClusters || []).slice(0, 15).map(c => ({
+      lat: c.lat, lon: c.lon, count: c.count, label: (c.label || '').substring(0, 80)
+    })),
+    toneScores: (gdeltData.toneScores || []).map(t => ({
+      region: t.region, currentTone: t.currentTone, previousTone: t.previousTone, shift: t.shift
+    })),
+    priorityAlerts: (gdeltData.priorityAlerts || []).slice(0, 5),
   };
 
   const health = Object.entries(data.sources).map(([name, src]) => ({
@@ -610,16 +618,85 @@ export async function synthesize(data) {
     tg: { posts: tgData.totalPosts || 0, urgent: tgUrgent, topPosts: tgTop },
     who, fred, energy, metals, bls, treasury, gscpi, defense, noaa, epa, acled, gdelt, space, health, news,
     markets, // Live Yahoo Finance market data
+    // Phase 2A: ADS-B military aircraft data
+    adsbMilitary: (() => {
+      const adsbData = data.sources['ADS-B'] || {};
+      return {
+        status: adsbData.status || 'unknown',
+        dataSource: adsbData.dataSource || 'unknown',
+        totalMilitary: adsbData.totalMilitary || 0,
+        byCountry: adsbData.byCountry || {},
+        categories: {
+          reconnaissance: (adsbData.categories?.reconnaissance || []).slice(0, 10).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            altitude: a.altitude, speed: a.speed, country: a.militaryMatch
+          })),
+          bombers: (adsbData.categories?.bombers || []).slice(0, 5).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            altitude: a.altitude, country: a.militaryMatch
+          })),
+          tankers: (adsbData.categories?.tankers || []).slice(0, 5).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            country: a.militaryMatch
+          })),
+          vipTransport: (adsbData.categories?.vipTransport || []).slice(0, 3).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            country: a.militaryMatch
+          })),
+        },
+        signals: adsbData.signals || [],
+        priorityAlerts: (adsbData.priorityAlerts || []).slice(0, 5),
+      };
+    })(),
+    // Phase 2A: SpiderFoot OSINT results
+    spiderfoot: (() => {
+      const sfData = data.sources.SpiderFoot || {};
+      return {
+        status: sfData.status || 'offline',
+        sfUrl: sfData.sfUrl || null,
+        totalScans: sfData.totalScans || 0,
+        recentScans: (sfData.recentScans || []).slice(0, 5).map(s => ({
+          name: s.name, target: s.target, status: s.status, started: s.started,
+          summaryCount: (s.summary || []).reduce((sum, e) => sum + (e.count || 0), 0)
+        })),
+        findings: (sfData.findings || []).slice(0, 10),
+      };
+    })(),
+    // Phase 2A: InSight Crime intelligence
+    insightCrime: (() => {
+      const icData = data.sources.InSightCrime || {};
+      return {
+        totalArticles: icData.totalArticles || 0,
+        feeds: icData.feeds || [],
+        articles: (icData.articles || []).slice(0, 15).map(a => ({
+          title: (a.title || '').substring(0, 100), date: a.date, feed: a.feed,
+          entities: (a.entities || []).slice(0, 5), categories: (a.categories || []).slice(0, 3),
+          link: a.link
+        })),
+        sanctionsHits: (icData.sanctionsHits || []).slice(0, 10),
+        priorityAlerts: (icData.priorityAlerts || []).slice(0, 5),
+      };
+    })(),
+    // Phase 2A: OpenSanctions cross-referencing
+    sanctionsCrossRef: (() => {
+      const osData = data.sources.OpenSanctions || {};
+      return {
+        hasApiKey: osData.hasApiKey || false,
+        crossRefAvailable: osData.crossRefAvailable || false,
+        totalSanctionedEntities: osData.totalSanctionedEntities || 0,
+        monitoringTargets: osData.monitoringTargets || [],
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
-    // newsFeed for ticker (merged RSS + GDELT + Telegram)
-    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop),
+    // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
+    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
   };
 
   return V2;
 }
 
 // === Unified News Feed for Ticker ===
-function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop) {
+function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData) {
   const feed = [];
 
   // RSS news
@@ -657,6 +734,19 @@ function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop) {
       headline: text.substring(0, 100), source: p.channel?.toUpperCase() || 'TELEGRAM',
       type: 'telegram', timestamp: p.date, region: 'OSINT', urgent: false
     });
+  }
+
+  // InSight Crime articles
+  if (insightCrimeData) {
+    for (const a of (insightCrimeData.articles || []).slice(0, 10)) {
+      if (a.title) {
+        feed.push({
+          headline: a.title.substring(0, 100), source: 'INSIGHT CRIME',
+          type: 'insightcrime', timestamp: a.date || a.pubDate, region: 'Latin America',
+          urgent: false, url: a.link
+        });
+      }
+    }
   }
 
   // Filter to last 30 days, sort by timestamp descending, limit to 50
