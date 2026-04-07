@@ -108,11 +108,14 @@ function clusterGeoPoints(points, radiusDeg = 2) {
 // GDELT rate limit: 1 request per 5 seconds
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Briefing mode — full integration with tone scoring + geographic clustering
+// Briefing mode — full integration with regional coverage + geographic clustering
 export async function briefing() {
-  // Broad query for global events — retry once if rate-limited
+  // Stagger start to avoid rate-limit collisions with other concurrent sources
+  await delay(3000);
+
+  // Broad query for global events — retry up to 3 times if rate-limited
   let all;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) await delay(6000); // GDELT rate limit: 1 req per 5s
     all = await searchEvents(
       'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
