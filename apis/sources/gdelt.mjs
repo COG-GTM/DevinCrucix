@@ -28,29 +28,7 @@ export async function searchEvents(query = '', opts = {}) {
     sort: sortBy,
   });
 
-  return safeFetch(`${BASE}/doc/doc?${params}`);
-}
-
-// Get tone/sentiment timeline for a topic
-export async function toneTrend(query, timespan = '7d') {
-  const params = new URLSearchParams({
-    query,
-    mode: 'TimelineTone',
-    timespan,
-    format: 'json',
-  });
-  return safeFetch(`${BASE}/doc/doc?${params}`);
-}
-
-// Get volume timeline for a topic (how much coverage)
-export async function volumeTrend(query, timespan = '7d') {
-  const params = new URLSearchParams({
-    query,
-    mode: 'TimelineVol',
-    timespan,
-    format: 'json',
-  });
-  return safeFetch(`${BASE}/doc/doc?${params}`);
+  return safeFetch(`${BASE}/doc/doc?${params}`, { timeout: 20000, retries: 0 });
 }
 
 // GEO API — geographic event mapping
@@ -71,7 +49,7 @@ export async function geoEvents(query = '', opts = {}) {
     maxpoints: String(maxPoints),
   });
 
-  return safeFetch(`${BASE}/geo/geo?${params}`);
+  return safeFetch(`${BASE}/geo/geo?${params}`, { timeout: 15000, retries: 0 });
 }
 
 // Compact article for briefing
@@ -165,7 +143,7 @@ export async function briefing() {
   }
 
   // Geo events — get mapped event locations
-  await delay(1500);
+  await delay(500);
   let geoPoints = [];
   try {
     const geo = await geoEvents('conflict OR military OR protest OR crisis OR explosion', { maxPoints: 50, timespan: '24h' });
