@@ -118,6 +118,25 @@ const BRIEFING_QUERIES = [
 
 // Briefing — search for notable sanctioned entities across key targets
 export async function briefing() {
+  const hasKey = !!process.env.OPENSANCTIONS_API_KEY;
+
+  // Without an API key the search endpoint returns 401;
+  // still report status so the dashboard knows the module is loaded.
+  if (!hasKey) {
+    return {
+      source: 'OpenSanctions',
+      timestamp: new Date().toISOString(),
+      hasApiKey: false,
+      status: 'no_api_key',
+      message: 'Set OPENSANCTIONS_API_KEY in .env for sanctions search. Get a free key at https://www.opensanctions.org/api/',
+      recentSearches: [],
+      totalSanctionedEntities: 0,
+      datasets: [],
+      monitoringTargets: BRIEFING_QUERIES,
+      crossRefAvailable: false,
+    };
+  }
+
   // Run searches in parallel
   const results = await Promise.all(
     BRIEFING_QUERIES.map(async (query) => {
@@ -145,7 +164,7 @@ export async function briefing() {
   return {
     source: 'OpenSanctions',
     timestamp: new Date().toISOString(),
-    hasApiKey: !!process.env.OPENSANCTIONS_API_KEY,
+    hasApiKey: true,
     recentSearches: results,
     totalSanctionedEntities,
     datasets: datasetSummary,
