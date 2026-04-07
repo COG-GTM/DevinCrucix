@@ -52,13 +52,10 @@ import { briefing as cisaKev } from './sources/cisa-kev.mjs';
 import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
-const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with sequential rate-limited calls
-
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
-  // GDELT needs sequential rate-limited requests (tone scoring + geo); give it more time
-  const timeout = ['GDELT'].includes(name) ? SLOW_SOURCE_TIMEOUT_MS : SOURCE_TIMEOUT_MS;
+  const timeout = SOURCE_TIMEOUT_MS;
   try {
     const dataPromise = fn(...args);
     const timeoutPromise = new Promise((_, reject) => {

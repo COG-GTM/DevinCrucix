@@ -142,33 +142,30 @@ export async function briefing() {
     keywords.some(k => a.title?.toLowerCase().includes(k))
   );
 
-  // Regional tone scoring — get tone trends for top 2 monitored regions
-  // (limited to avoid 30s source timeout; GDELT rate limit is ~1 req/5s)
+  // Regional tone scoring — derived from article-level tone data (no extra API calls)
   const toneScores = [];
-  for (const region of MONITORED_REGIONS.slice(0, 2)) {
-    await delay(2000); // short delay — GDELT is lenient on light usage
-    try {
-      const toneData = await toneTrend(region.query, '7d');
-      const timeline = toneData?.timeline || [];
-      if (timeline.length >= 2) {
-        const recent = timeline.slice(-3);
-        const older = timeline.slice(0, Math.min(3, timeline.length - 3));
-        const recentAvg = recent.reduce((s, t) => s + (t.value || t.tone || 0), 0) / recent.length;
-        const olderAvg = older.length > 0 ? older.reduce((s, t) => s + (t.value || t.tone || 0), 0) / older.length : recentAvg;
-        const shift = recentAvg - olderAvg;
+  for (const region of MONITORED_REGIONS) {
+    const regionArticles = articles.filter(a =>
+      region.query.split(' OR ').some(kw => a.title?.toLowerCase().includes(kw.toLowerCase()))
+    );
+    if (regionArticles.length >= 3) {
+      const tones = regionArticles.filter(a => a.tone != null).map(a => a.tone);
+      if (tones.length > 0) {
+        const avgTone = tones.reduce((s, t) => s + t, 0) / tones.length;
         toneScores.push({
           region: region.name,
-          currentTone: parseFloat(recentAvg.toFixed(2)),
-          previousTone: parseFloat(olderAvg.toFixed(2)),
-          shift: parseFloat(shift.toFixed(2)),
-          dataPoints: timeline.length,
+          currentTone: parseFloat(avgTone.toFixed(2)),
+          previousTone: 0, // no historical baseline from single sweep
+          shift: parseFloat(avgTone.toFixed(2)),
+          dataPoints: tones.length,
+          articleCount: regionArticles.length,
         });
       }
-    } catch (e) { /* tone endpoint optional */ }
+    }
   }
 
   // Geo events — get mapped event locations
-  await delay(2000);
+  await delay(1500);
   let geoPoints = [];
   try {
     const geo = await geoEvents('conflict OR military OR protest OR crisis OR explosion', { maxPoints: 50, timespan: '24h' });
