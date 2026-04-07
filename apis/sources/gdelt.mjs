@@ -111,11 +111,19 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // Briefing mode — full integration with tone scoring + geographic clustering
 export async function briefing() {
-  // Broad query for global events
-  const all = await searchEvents(
-    'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
-    { maxRecords: 75, timespan: '24h' }
-  );
+  // Broad query for global events — retry once if rate-limited
+  let all;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) await delay(6000); // GDELT rate limit: 1 req per 5s
+    all = await searchEvents(
+      'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
+      { maxRecords: 75, timespan: '24h' }
+    );
+    // If we got articles or a real error (not rate-limit text), stop retrying
+    if (all?.articles?.length > 0 || all?.error) break;
+    // rawText means we got a non-JSON response (likely rate limit message)
+    if (all?.rawText && !all.rawText.includes('Please limit requests')) break;
+  }
 
   const articles = (all?.articles || []).map(compactArticle);
 
@@ -147,7 +155,7 @@ export async function briefing() {
   }
 
   // Geo events — get mapped event locations
-  await delay(500);
+  await delay(6000); // respect GDELT 5s rate limit
   let geoPoints = [];
   try {
     const geo = await geoEvents('conflict OR military OR protest OR crisis OR explosion', { maxPoints: 50, timespan: '24h' });
