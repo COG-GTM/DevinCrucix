@@ -111,7 +111,7 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 // Briefing mode — full integration with regional coverage + geographic clustering
 export async function briefing() {
   // Stagger start to avoid rate-limit collisions with other concurrent sources
-  await delay(3000);
+  await delay(5000);
 
   // Broad query for global events — retry up to 3 times if rate-limited
   let all;
