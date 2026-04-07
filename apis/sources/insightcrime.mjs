@@ -10,6 +10,7 @@ const FEEDS = [
   { name: 'Main', url: 'https://insightcrime.org/feed/' },
   { name: 'Mexico', url: 'https://insightcrime.org/tag/mexico/feed/' },
   { name: 'Colombia', url: 'https://insightcrime.org/tag/colombia/feed/' },
+  { name: 'Central America', url: 'https://insightcrime.org/tag/central-america/feed/' },
 ];
 
 // Simple XML RSS parser (no dependencies)
