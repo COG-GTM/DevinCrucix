@@ -11,7 +11,7 @@ import '../utils/env.mjs';
 
 const LOGIN_URL = 'https://acleddata.com/user/login?_format=json';
 const TOKEN_URL = 'https://acleddata.com/oauth/token';
-const API_BASE  = 'https://api.acleddata.com/acled/read';
+const API_BASE  = 'https://acleddata.com/api/acled/read';
 
 // Session cache
 let sessionCache = { cookies: null, token: null, method: null, expires: 0 };
