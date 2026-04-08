@@ -173,7 +173,7 @@ const RSS_SOURCE_FALLBACKS = {
   'The Hindu': { lat: 13.0827, lon: 80.2707, region: 'India' },
   'MercoPress': { lat: -34.9011, lon: -56.1645, region: 'South America' }
 };
-const REGIONAL_NEWS_SOURCES = ['MercoPress', 'Indian Express', 'The Hindu', 'SBS Australia'];
+const REGIONAL_NEWS_SOURCES = ['MercoPress', 'Indian Express', 'The Hindu', 'SBS Australia', 'INSIGHT CRIME'];
 
 export async function fetchAllNews() {
   const feeds = [
@@ -673,6 +673,7 @@ export async function synthesize(data) {
           entities: (a.entities || []).slice(0, 5), categories: (a.categories || []).slice(0, 3),
           link: a.link
         })),
+        extractedEntities: (icData.extractedEntities || []).slice(0, 20),
         sanctionsHits: (icData.sanctionsHits || []).slice(0, 10),
         priorityAlerts: (icData.priorityAlerts || []).slice(0, 5),
       };
@@ -685,6 +686,9 @@ export async function synthesize(data) {
         crossRefAvailable: osData.crossRefAvailable || false,
         totalSanctionedEntities: osData.totalSanctionedEntities || 0,
         monitoringTargets: osData.monitoringTargets || [],
+        recentSearches: (osData.recentSearches || []).map(s => ({
+          query: s.query, totalResults: s.totalResults, entityCount: (s.entities || []).length
+        })),
       };
     })(),
     ideas: [], ideasSource: 'disabled',
