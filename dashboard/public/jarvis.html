@@ -86,6 +86,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.health{background:#69f0ae;box-shadow:0 0 6px rgba(105,240,174,0.4)}
 .ldot.news{background:#81d4fa;box-shadow:0 0 6px rgba(129,212,250,0.4)}
 .ldot.space{background:#e0b0ff;box-shadow:0 0 6px rgba(224,176,255,0.4)}
+.ldot.narco{background:#ff4081;box-shadow:0 0 6px rgba(255,64,129,0.4)}
 .layer-name{font-size:12px;font-weight:500}
 .layer-sub{font-size:10px;color:var(--dim)}
 .layer-count{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent)}
@@ -238,8 +239,32 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .tk-src.anz{color:#80cbc4;border-color:rgba(128,203,196,0.3)}
 .tk-src.us{color:#90caf9;border-color:rgba(144,202,249,0.3)}
 .tk-src.other{color:#b0bec5;border-color:rgba(176,190,197,0.2)}
+.tk-src.narco{color:#ff4081;border-color:rgba(255,64,129,0.3)}
 .tk-head{font-size:11px;line-height:1.35;color:#c8d8d2;margin-top:3px}
 .tk-time{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px}
+
+/* NARCO & ORGANIZED CRIME PANEL */
+.narco-panel{flex:1.3 1 260px;max-width:400px}
+.narco-article{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:3px solid rgba(255,64,129,0.4)}
+.narco-article.region-mexico{border-left-color:#ff9800}
+.narco-article.region-colombia{border-left-color:#4caf50}
+.narco-article.region-central{border-left-color:#2196f3}
+.narco-article .na-feed{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;padding:1px 5px;display:inline-block;margin-right:4px}
+.narco-article .na-feed.mexico{color:#ff9800;border:1px solid rgba(255,152,0,0.3)}
+.narco-article .na-feed.colombia{color:#4caf50;border:1px solid rgba(76,175,80,0.3)}
+.narco-article .na-feed.central{color:#2196f3;border:1px solid rgba(33,150,243,0.3)}
+.narco-article .na-feed.main{color:#ff4081;border:1px solid rgba(255,64,129,0.3)}
+.narco-article .na-title{font-size:11px;line-height:1.35;color:#c8d8d2;margin-top:3px}
+.narco-article .na-title a{color:#c8d8d2;text-decoration:none}
+.narco-article .na-title a:hover{color:var(--accent)}
+.narco-article .na-date{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.narco-article .na-entities{margin-top:4px;display:flex;flex-wrap:wrap;gap:3px}
+.narco-entity{font-family:var(--mono);font-size:8px;padding:1px 5px;background:rgba(255,64,129,0.08);border:1px solid rgba(255,64,129,0.2);color:#ff80ab}
+.narco-entity.location{color:#80cbc4;border-color:rgba(128,203,196,0.25);background:rgba(128,203,196,0.06)}
+.narco-entity.org{color:#ffab40;border-color:rgba(255,171,64,0.25);background:rgba(255,171,64,0.06)}
+.narco-scroll{max-height:320px;overflow-y:auto}
+.narco-scroll::-webkit-scrollbar{width:3px}
+.narco-scroll::-webkit-scrollbar-thumb{background:rgba(255,64,129,0.2);border-radius:2px}
 
 /* DELTA BADGES */
 .delta-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.05em;padding:1px 4px;margin-left:4px;border-radius:2px;vertical-align:middle}
@@ -619,7 +644,8 @@ function renderLeftRail(){
     {name:t('layers.healthWatch','Health Watch'),count:D.who.length,dot:'health',sub:t('layers.whoAlerts','WHO alerts')},
     {name:t('layers.worldNews','World News'),count:newsCount,dot:'news',sub:t('layers.rssGeolocated','RSS geolocated')},
     {name:t('layers.osintFeed','OSINT Feed'),count:D.tg.posts,dot:'incident',sub:`${D.tg.urgent.length} ${t('badges.urgent','urgent').toLowerCase()}`},
-    {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`}
+    {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`},
+    {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`}
   ];
   const allNormal=D.nuke.every(s=>!s.anom);
   const nukeHtml=D.nuke.map(s=>`<div class="site-row"><span>${s.site}</span><span class="site-val">${s.n>0?(s.cpm?.toFixed(1)||'--')+' CPM':'No data'}</span></div>`).join('');
@@ -681,7 +707,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -1028,6 +1054,38 @@ function plotMarkers(){
     });
     labels.push({lat:a.lat, lng:a.lon+2, text:a.callsign||'VIP', size:0.4, color:'rgba(255,215,0,0.9)'});
   });
+
+  // === InSight Crime Narco Intel (hot pink/magenta markers) ===
+  const narcoGeoMap = {
+    'Mexico': [{lat:23.6,lon:-102.5,label:'Mexico'},{lat:19.4,lon:-99.1,label:'Mexico City'},{lat:20.7,lon:-103.3,label:'Guadalajara'},{lat:25.7,lon:-100.3,label:'Monterrey'}],
+    'Colombia': [{lat:4.6,lon:-74.1,label:'Bogotá'},{lat:6.2,lon:-75.6,label:'Medellín'},{lat:3.4,lon:-76.5,label:'Cali'},{lat:10.4,lon:-75.5,label:'Cartagena'}],
+    'Central America': [{lat:14.6,lon:-90.5,label:'Guatemala'},{lat:14.1,lon:-87.2,label:'Honduras'},{lat:13.7,lon:-89.2,label:'El Salvador'},{lat:9.9,lon:-84.1,label:'Costa Rica'}],
+    'Main': [{lat:19.4,lon:-99.1,label:'Latin America'}]
+  };
+  const narcoArticlesGlobe = (D.insightCrime?.articles || []);
+  const usedNarcoCoords = new Set();
+  narcoArticlesGlobe.forEach(a => {
+    const feed = a.feed || 'Main';
+    const coords = narcoGeoMap[feed] || narcoGeoMap['Main'];
+    // Pick a coordinate not yet used for variety
+    let coord = coords[0];
+    for (const c of coords) {
+      const key = `${c.lat},${c.lon}`;
+      if (!usedNarcoCoords.has(key)) { coord = c; usedNarcoCoords.add(key); break; }
+    }
+    const regionColor = feed === 'Mexico' ? 'rgba(255,152,0,0.85)' : feed === 'Colombia' ? 'rgba(76,175,80,0.85)' : feed === 'Central America' ? 'rgba(33,150,243,0.85)' : 'rgba(255,64,129,0.85)';
+    points.push({
+      lat: coord.lat + (Math.random()-0.5)*2, lng: coord.lon + (Math.random()-0.5)*2,
+      size: 0.25, alt: 0.015,
+      color: regionColor, type: 'narco-intel', priority: 2,
+      popHead: 'NARCO INTEL', popMeta: 'InSight Crime · ' + feed,
+      popText: (a.title||'').substring(0,80) + (a.entities?.length ? '<br>Entities: ' + a.entities.slice(0,3).join(', ') : '')
+    });
+  });
+  // Add a master label for the narco region
+  if (narcoArticlesGlobe.length > 0) {
+    labels.push({lat:17, lng:-95, text:'NARCO INTEL', size:0.4, color:'rgba(255,64,129,0.8)'});
+  }
 
   // Set points on globe
   globe.pointsData(points);
@@ -1474,6 +1532,7 @@ function renderLower(){
     if (sl.includes('bbc')) return 'bbc';
     if (sl.includes('jazeera') || sl.includes('alj')) return 'alj';
     if (sl.includes('gdelt')) return 'gdelt';
+    if (sl.includes('insight') || sl.includes('narco')) return 'narco';
     if (sl.includes('telegram')) return 'tg';
     if (sl.includes('npr')) return 'us';
     if (sl.includes('dw') || sl.includes('deutsche')) return 'dw';
@@ -1541,7 +1600,47 @@ function renderLower(){
       ${ideasHtml}
       <div class="disclosure">FOR INFORMATIONAL PURPOSES ONLY. This is not financial advice, a recommendation to buy or sell any security, or a solicitation of any kind. All signal-based observations are derived from publicly available OSINT data and should not be relied upon for investment decisions. Consult a licensed financial advisor before making any investment. Past performance does not guarantee future results.</div>
     </div>`;
-  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+  // === NARCO & ORGANIZED CRIME PANEL ===
+  const narcoArticles = (D.insightCrime?.articles || []).slice(0, 12);
+  const narcoEntities = (D.insightCrime?.extractedEntities || []).slice(0, 15);
+  const feedClass = f => {
+    if (!f) return 'main';
+    const fl = f.toLowerCase();
+    if (fl.includes('mexico')) return 'mexico';
+    if (fl.includes('colombia')) return 'colombia';
+    if (fl.includes('central')) return 'central';
+    return 'main';
+  };
+  const regionClass = f => {
+    if (!f) return '';
+    const fl = f.toLowerCase();
+    if (fl.includes('mexico')) return 'region-mexico';
+    if (fl.includes('colombia')) return 'region-colombia';
+    if (fl.includes('central')) return 'region-central';
+    return '';
+  };
+  const entityType = e => {
+    if (!e) return '';
+    if (/cartel|cjng|sinaloa|zetas|ms-13|mara|tren|clan|familia|comando/i.test(e)) return 'org';
+    if (/^[A-Z][a-z]+\s+(de\s+)?[A-Z]/.test(e) && e.split(' ').length <= 3) return '';
+    return 'location';
+  };
+  const narcoHtml = narcoArticles.map(a => {
+    const fc = feedClass(a.feed);
+    const rc = regionClass(a.feed);
+    const age = a.date ? getAge(a.date) : '';
+    const entHtml = (a.entities||[]).slice(0,4).map(e => `<span class="narco-entity ${entityType(e)}">${cleanText(e)}</span>`).join('');
+    const linkOpen = a.link ? `<a href="${String(a.link).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" target="_blank" rel="noopener">` : '';
+    const linkClose = a.link ? '</a>' : '';
+    return `<div class="narco-article ${rc}"><span class="na-feed ${fc}">${(a.feed||'MAIN').toUpperCase()}</span><span class="na-date">${age}</span><div class="na-title">${linkOpen}${cleanText(a.title||'')}${linkClose}</div>${entHtml?`<div class="na-entities">${entHtml}</div>`:''}</div>`;
+  }).join('');
+  const narcoEntityBadges = narcoEntities.slice(0,10).map(e => `<span class="narco-entity ${entityType(e)}">${cleanText(e)}</span>`).join('');
+  const narcoPanel = `<div class="g-panel narco-panel">
+      <div class="sec-head"><h3>Narco &amp; Organized Crime</h3><span class="badge" style="background:rgba(255,64,129,0.1);color:#ff4081;border-color:rgba(255,64,129,0.3)">${D.insightCrime?.totalArticles||0} ARTICLES</span></div>
+      ${narcoEntityBadges ? `<div style="padding:6px 8px;border:1px solid rgba(255,64,129,0.12);background:rgba(255,64,129,0.03);margin-bottom:6px"><div style="font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.08em;margin-bottom:4px">EXTRACTED ENTITIES</div><div style="display:flex;flex-wrap:wrap;gap:3px">${narcoEntityBadges}</div></div>` : ''}
+      <div class="narco-scroll">${narcoHtml || '<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">No InSight Crime data</div>'}</div>
+    </div>`;
+  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${osintPanel}${macroPanel}${ideasPanel}`;
 }
 
 // === RIGHT RAIL ===
