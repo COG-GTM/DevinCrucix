@@ -99,9 +99,11 @@ function compactEntity(e) {
 // Compact search results
 function compactSearchResult(result, query) {
   const entities = (result?.results || []).map(compactEntity);
+  const rawTotal = result?.total;
+  const totalResults = typeof rawTotal === 'object' ? (rawTotal?.value || 0) : (rawTotal || 0);
   return {
     query,
-    totalResults: result?.total || 0,
+    totalResults,
     entities: entities.slice(0, 10),
   };
 }
@@ -145,16 +147,19 @@ export async function briefing() {
     })
   );
 
-  // Also fetch dataset metadata for context
-  const collections = await getCollections();
-  const datasetSummary = Array.isArray(collections)
-    ? collections.slice(0, 10).map(c => ({
+  // Dataset metadata (collections endpoint may not be available)
+  let datasetSummary = [];
+  try {
+    const collections = await getCollections();
+    if (Array.isArray(collections)) {
+      datasetSummary = collections.slice(0, 10).map(c => ({
         name: c.name,
         title: c.title,
         entityCount: c.entity_count,
         lastUpdated: c.updated_at,
-      }))
-    : [];
+      }));
+    }
+  } catch { /* optional */ }
 
   // Aggregate totals
   const totalSanctionedEntities = results.reduce(
