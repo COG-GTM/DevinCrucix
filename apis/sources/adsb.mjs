@@ -311,7 +311,7 @@ export async function briefing() {
         tankers: tankers.slice(0, 10),
         vipTransport: vipTransport.slice(0, 5),
       },
-      militaryAircraft: militaryAircraft.slice(0, 50),
+      militaryAircraft: militaryAircraft.slice(0, 200),
       signals: signals.length > 0 ? signals : ['Military flight activity within normal patterns'],
       priorityAlerts: priorityAlerts.slice(0, 10),
     };

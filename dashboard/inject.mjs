@@ -116,6 +116,63 @@ function summarizeAirHotspots(hotspots = []) {
   }));
 }
 
+// Air hotspot regions — mirrors OpenSky HOTSPOTS for ADS-B fallback
+const AIR_REGIONS = [
+  { region: 'Middle East', lamin: 12, lomin: 30, lamax: 42, lomax: 65 },
+  { region: 'Taiwan Strait', lamin: 20, lomin: 115, lamax: 28, lomax: 125 },
+  { region: 'Ukraine Region', lamin: 44, lomin: 22, lamax: 53, lomax: 41 },
+  { region: 'Baltic Region', lamin: 53, lomin: 19, lamax: 60, lomax: 29 },
+  { region: 'South China Sea', lamin: 5, lomin: 105, lamax: 23, lomax: 122 },
+  { region: 'Korean Peninsula', lamin: 33, lomin: 124, lamax: 43, lomax: 132 },
+  { region: 'Caribbean', lamin: 18, lomin: -90, lamax: 30, lomax: -72 },
+  { region: 'Gulf of Guinea', lamin: -2, lomin: -5, lamax: 8, lomax: 10 },
+  { region: 'Cape Route', lamin: -38, lomin: 12, lamax: -28, lomax: 24 },
+  { region: 'Horn of Africa', lamin: 5, lomin: 40, lamax: 15, lomax: 55 },
+];
+
+// Build air hotspots from ADS-B military aircraft when OpenSky is unavailable
+function buildAirHotspotsFromADSB(adsbSource) {
+  const aircraft = adsbSource?.militaryAircraft || [];
+  // Also include all aircraft from category arrays
+  const catArrays = adsbSource?.categories || {};
+  const allCategorized = [
+    ...(catArrays.reconnaissance || []),
+    ...(catArrays.bombers || []),
+    ...(catArrays.tankers || []),
+    ...(catArrays.vipTransport || []),
+  ];
+  // Merge: use militaryAircraft as primary, add any categorized aircraft not already present
+  const seenHex = new Set(aircraft.map(a => a.hex).filter(Boolean));
+  const merged = [...aircraft];
+  for (const ac of allCategorized) {
+    if (ac.hex && !seenHex.has(ac.hex)) {
+      seenHex.add(ac.hex);
+      merged.push(ac);
+    }
+  }
+
+  return AIR_REGIONS.map(r => {
+    const inRegion = merged.filter(ac => {
+      const lat = ac.latitude ?? ac.lat ?? null;
+      const lon = ac.longitude ?? ac.lon ?? null;
+      if (lat == null || lon == null) return false;
+      return lat >= r.lamin && lat <= r.lamax && lon >= r.lomin && lon <= r.lomax;
+    });
+    const byCountry = {};
+    for (const ac of inRegion) {
+      const country = ac.militaryMatch || ac.country || 'Unknown';
+      byCountry[country] = (byCountry[country] || 0) + 1;
+    }
+    return {
+      region: r.region,
+      totalAircraft: inRegion.length,
+      noCallsign: inRegion.filter(ac => !(ac.callsign || '').trim()).length,
+      highAltitude: inRegion.filter(ac => (ac.altitude || 0) > 39370).length, // >12km in feet
+      byCountry,
+    };
+  });
+}
+
 function loadOpenSkyFallback(currentTimestamp) {
   const runsDir = join(ROOT, 'runs');
   if (!existsSync(runsDir)) return null;
@@ -403,7 +460,11 @@ export async function synthesize(data) {
   const airFallback = sumAirHotspots(liveAirHotspots) > 0
     ? null
     : loadOpenSkyFallback(data.sources.OpenSky?.timestamp || data.crucix?.timestamp);
-  const effectiveAirHotspots = airFallback?.hotspots || liveAirHotspots;
+  // ADS-B fallback: build air region hotspots from military aircraft when OpenSky is unavailable
+  const adsbAirHotspots = (!airFallback && sumAirHotspots(liveAirHotspots) === 0)
+    ? buildAirHotspotsFromADSB(data.sources['ADS-B'])
+    : null;
+  const effectiveAirHotspots = airFallback?.hotspots || (adsbAirHotspots && sumAirHotspots(adsbAirHotspots) > 0 ? adsbAirHotspots : liveAirHotspots);
   const air = summarizeAirHotspots(effectiveAirHotspots);
   const thermal = (data.sources.FIRMS?.hotspots || []).map(h => ({
     region: h.region, det: h.totalDetections || 0, night: h.nightDetections || 0,
@@ -607,10 +668,10 @@ export async function synthesize(data) {
   const V2 = {
     meta: data.crucix, air, thermal, tSignals, chokepoints, nuke, nukeSignals,
     airMeta: {
-      fallback: Boolean(airFallback),
+      fallback: Boolean(airFallback || adsbAirHotspots),
       liveTotal: sumAirHotspots(liveAirHotspots),
-      timestamp: airFallback?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
-      source: airFallback ? 'OpenSky fallback' : 'OpenSky',
+      timestamp: airFallback?.timestamp || data.sources['ADS-B']?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
+      source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : 'OpenSky'),
       ...(airFallback ? { fallbackFile: airFallback.file } : {}),
       ...(data.sources.OpenSky?.error ? { error: data.sources.OpenSky.error } : {}),
     },
