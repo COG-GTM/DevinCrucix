@@ -44,6 +44,9 @@ import { briefing as space } from './sources/space.mjs';
 import { briefing as spiderfoot } from './sources/spiderfoot.mjs';
 import { briefing as insightcrime } from './sources/insightcrime.mjs';
 
+// === Tier 8: Market Intelligence ===
+import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -73,7 +76,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 29 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 30 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -121,6 +124,9 @@ export async function fullBriefing() {
     // Tier 7: Phase 2A Sources
     runSource('SpiderFoot', spiderfoot),
     runSource('InSightCrime', insightcrime),
+
+    // Tier 8: Market Intelligence
+    runSource('UnusualWhales', unusualwhales),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve

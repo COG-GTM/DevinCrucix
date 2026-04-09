@@ -243,6 +243,30 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .tk-head{font-size:11px;line-height:1.35;color:#c8d8d2;margin-top:3px}
 .tk-time{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px}
 
+/* MARKET INTELLIGENCE PANEL */
+.market-panel{flex:1.3 1 260px;max-width:420px}
+.mi-section{margin-bottom:8px;border:1px solid rgba(0,229,255,0.1);background:rgba(0,229,255,0.02);padding:8px}
+.mi-section-head{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.mi-section-head .mi-count{color:var(--dim);font-size:8px}
+.mi-row{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;display:flex;align-items:center;gap:6px}
+.mi-row:last-child{border-bottom:none}
+.mi-ticker{font-family:var(--mono);font-weight:600;color:var(--accent);min-width:40px;font-size:11px}
+.mi-type{font-family:var(--mono);font-size:8px;padding:1px 4px;letter-spacing:0.05em;text-transform:uppercase}
+.mi-type.call{color:#4caf50;border:1px solid rgba(76,175,80,0.3);background:rgba(76,175,80,0.08)}
+.mi-type.put{color:#ef5350;border:1px solid rgba(239,83,80,0.3);background:rgba(239,83,80,0.08)}
+.mi-type.buy{color:#4caf50;border:1px solid rgba(76,175,80,0.3);background:rgba(76,175,80,0.08)}
+.mi-type.sell{color:#ef5350;border:1px solid rgba(239,83,80,0.3);background:rgba(239,83,80,0.08)}
+.mi-premium{font-family:var(--mono);font-weight:600;font-size:10px;margin-left:auto}
+.mi-premium.large{color:#ffd740}
+.mi-detail{font-size:9px;color:var(--dim);font-family:var(--mono)}
+.mi-sweep{font-family:var(--mono);font-size:7px;padding:1px 3px;color:#ffd740;border:1px solid rgba(255,215,64,0.3);background:rgba(255,215,64,0.08);letter-spacing:0.05em}
+.mi-congress-name{font-size:10px;color:var(--text);font-weight:500}
+.mi-congress-name.defense-committee{color:#ffd740}
+.mi-scroll{max-height:340px;overflow-y:auto}
+.mi-scroll::-webkit-scrollbar{width:3px}
+.mi-scroll::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+.ldot.market{background:#00e5ff;box-shadow:0 0 6px rgba(0,229,255,0.4)}
+
 /* NARCO & ORGANIZED CRIME PANEL */
 .narco-panel{flex:1.3 1 260px;max-width:400px}
 .narco-article{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:3px solid rgba(255,64,129,0.4)}
@@ -645,7 +669,8 @@ function renderLeftRail(){
     {name:t('layers.worldNews','World News'),count:newsCount,dot:'news',sub:t('layers.rssGeolocated','RSS geolocated')},
     {name:t('layers.osintFeed','OSINT Feed'),count:D.tg.posts,dot:'incident',sub:`${D.tg.urgent.length} ${t('badges.urgent','urgent').toLowerCase()}`},
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`},
-    {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`}
+    {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`},
+    {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`}
   ];
   const allNormal=D.nuke.every(s=>!s.anom);
   const nukeHtml=D.nuke.map(s=>`<div class="site-row"><span>${s.site}</span><span class="site-val">${s.n>0?(s.cpm?.toFixed(1)||'--')+' CPM':'No data'}</span></div>`).join('');
@@ -707,7 +732,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -1085,6 +1110,24 @@ function plotMarkers(){
   // Add a master label for the narco region
   if (narcoArticlesGlobe.length > 0) {
     labels.push({lat:17, lng:-95, text:'NARCO INTEL', size:0.4, color:'rgba(255,64,129,0.8)'});
+  }
+
+  // === Unusual Whales Market Intelligence (cyan markers at company HQ) ===
+  const uwMarkers = D.unusualWhales?.globeMarkers || [];
+  uwMarkers.forEach(m => {
+    if (!m.lat || !m.lon) return;
+    const markerColor = m.type === 'darkpool' ? 'rgba(0,229,255,0.7)' : 'rgba(0,229,255,0.9)';
+    const markerSize = m.type === 'darkpool' ? 0.35 : 0.25;
+    points.push({
+      lat: m.lat, lng: m.lon, size: markerSize, alt: 0.02,
+      color: markerColor, type: 'market-intel', priority: 2,
+      popHead: m.type === 'darkpool' ? 'DARK POOL' : 'OPTIONS FLOW',
+      popMeta: `Unusual Whales · ${m.company || m.ticker}`,
+      popText: `${m.label}<br>${m.city || ''}`
+    });
+  });
+  if (uwMarkers.length > 0) {
+    labels.push({lat:42, lng:-90, text:'MARKET INTEL', size:0.35, color:'rgba(0,229,255,0.7)'});
   }
 
   // Set points on globe
@@ -1640,7 +1683,67 @@ function renderLower(){
       ${narcoEntityBadges ? `<div style="padding:6px 8px;border:1px solid rgba(255,64,129,0.12);background:rgba(255,64,129,0.03);margin-bottom:6px"><div style="font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.08em;margin-bottom:4px">EXTRACTED ENTITIES</div><div style="display:flex;flex-wrap:wrap;gap:3px">${narcoEntityBadges}</div></div>` : ''}
       <div class="narco-scroll">${narcoHtml || '<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">No InSight Crime data</div>'}</div>
     </div>`;
-  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+  // === MARKET INTELLIGENCE PANEL ===
+  const uw = D.unusualWhales || {};
+  const uwLive = uw.status === 'live';
+  const fmtPremium = v => {
+    if (!v || v === 0) return '$0';
+    if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+    if (v >= 1e3) return '$' + (v/1e3).toFixed(0) + 'K';
+    return '$' + v.toFixed(0);
+  };
+  // Options flow rows (top 10 by premium)
+  const optFlowHtml = (uw.optionsFlow?.topAlerts || []).slice(0, 10).map(o => {
+    const typeClass = (o.type || '').toLowerCase() === 'put' ? 'put' : 'call';
+    const premClass = o.premium >= 1e6 ? ' large' : '';
+    return `<div class="mi-row">
+      <span class="mi-ticker">${cleanText(o.ticker||'')}</span>
+      <span class="mi-type ${typeClass}">${(o.type||'').toUpperCase()}</span>
+      ${o.hasSweep ? '<span class="mi-sweep">SWEEP</span>' : ''}
+      <span class="mi-detail">${o.strike||''} ${o.expiry||''}</span>
+      <span class="mi-premium${premClass}">${fmtPremium(o.premium)}</span>
+    </div>`;
+  }).join('');
+  // Congressional trades (defense/energy/aerospace filtered)
+  const congressHtml = (uw.congressTrades?.defenseSector || []).slice(0, 8).map(t => {
+    const txnClass = (t.txnType || '').toLowerCase() === 'sell' ? 'sell' : 'buy';
+    const dcClass = t.isDefenseCommittee ? ' defense-committee' : '';
+    return `<div class="mi-row">
+      <span class="mi-congress-name${dcClass}">${cleanText(t.name||'')}${t.isDefenseCommittee ? ' \u2605' : ''}</span>
+      <span class="mi-type ${txnClass}">${(t.txnType||'').toUpperCase()}</span>
+      <span class="mi-ticker">${cleanText(t.ticker||'')}</span>
+      <span class="mi-premium">${cleanText(t.amounts||'')}</span>
+    </div>`;
+  }).join('');
+  // Dark pool prints >$5M
+  const dpHtml = (uw.darkPool?.largePrints || []).slice(0, 8).map(d => {
+    return `<div class="mi-row">
+      <span class="mi-ticker">${cleanText(d.ticker||'')}</span>
+      <span class="mi-detail">${(d.size||0).toLocaleString()} shares @ $${(d.price||0).toFixed(2)}</span>
+      <span class="mi-premium large">${fmtPremium(d.premium)}</span>
+    </div>`;
+  }).join('');
+  const marketPanel = uwLive ? `<div class="g-panel market-panel">
+      <div class="sec-head"><h3>Market Intelligence</h3><span class="badge" style="background:rgba(0,229,255,0.1);color:#00e5ff;border-color:rgba(0,229,255,0.3)">UNUSUAL WHALES</span></div>
+      <div class="mi-scroll">
+        <div class="mi-section">
+          <div class="mi-section-head"><span>Options Flow</span><span class="mi-count">${uw.optionsFlow?.total||0} alerts \u00b7 ${fmtPremium(uw.optionsFlow?.totalPremium||0)} total \u00b7 ${uw.optionsFlow?.sweepCount||0} sweeps</span></div>
+          ${optFlowHtml || '<div style="padding:8px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:9px">No options flow data</div>'}
+        </div>
+        <div class="mi-section">
+          <div class="mi-section-head"><span>Congressional Trades</span><span class="mi-count">${uw.congressTrades?.total||0} total \u00b7 ${(uw.congressTrades?.defenseSector||[]).length} defense/energy</span></div>
+          ${congressHtml || '<div style="padding:8px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:9px">No defense/energy trades</div>'}
+        </div>
+        <div class="mi-section">
+          <div class="mi-section-head"><span>Dark Pool &gt;$5M</span><span class="mi-count">${uw.darkPool?.total||0} total \u00b7 ${fmtPremium(uw.darkPool?.totalVolume||0)} volume</span></div>
+          ${dpHtml || '<div style="padding:8px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:9px">No large dark pool prints</div>'}
+        </div>
+      </div>
+    </div>` : `<div class="g-panel market-panel">
+      <div class="sec-head"><h3>Market Intelligence</h3><span class="badge" style="background:rgba(0,229,255,0.1);color:#00e5ff;border-color:rgba(0,229,255,0.3)">OFFLINE</span></div>
+      <div style="padding:16px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">Unusual Whales data unavailable</div>
+    </div>`;
+  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
 }
 
 // === RIGHT RAIL ===

@@ -691,6 +691,57 @@ export async function synthesize(data) {
         })),
       };
     })(),
+    // Unusual Whales market intelligence
+    unusualWhales: (() => {
+      const uwData = data.sources.UnusualWhales || {};
+      if (uwData.status !== 'live') return { status: uwData.status || 'offline' };
+      const of = uwData.optionsFlow || {};
+      const ct = uwData.congressTrades || {};
+      const dp = uwData.darkPool || {};
+      return {
+        status: 'live',
+        optionsFlow: {
+          total: of.total || 0,
+          totalPremium: of.totalPremium || 0,
+          sweepCount: of.sweepCount || 0,
+          topAlerts: (of.topAlerts || []).slice(0, 10).map(o => ({
+            ticker: o.ticker, type: o.type, strike: o.strike, expiry: o.expiry,
+            premium: o.premium, size: o.size, sector: o.sector,
+            hasSweep: o.hasSweep, underlyingPrice: o.underlyingPrice,
+            alertRule: o.alertRule, createdAt: o.createdAt,
+          })),
+          largeFlow: (of.largeFlow || []).slice(0, 5),
+          bigDefenseFlow: (of.bigDefenseFlow || []).slice(0, 5),
+        },
+        congressTrades: {
+          total: ct.total || 0,
+          recent: (ct.recent || []).slice(0, 15).map(t => ({
+            name: t.name, ticker: t.ticker, txnType: t.txnType,
+            amounts: t.amounts, amountMid: t.amountMid,
+            transactionDate: t.transactionDate, filedDate: t.filedDate,
+            memberType: t.memberType, isDefenseCommittee: t.isDefenseCommittee,
+            isDefenseEnergySector: t.isDefenseEnergySector,
+          })),
+          defenseSector: (ct.defenseSector || []).slice(0, 10),
+          defenseCommittee: (ct.defenseCommittee || []).slice(0, 10),
+        },
+        darkPool: {
+          total: dp.total || 0,
+          totalVolume: dp.totalVolume || 0,
+          largePrints: (dp.largePrints || []).slice(0, 10).map(d => ({
+            ticker: d.ticker, size: d.size, price: d.price,
+            premium: d.premium, executedAt: d.executedAt,
+          })),
+          topPrints: (dp.topPrints || []).slice(0, 10).map(d => ({
+            ticker: d.ticker, size: d.size, price: d.price,
+            premium: d.premium, executedAt: d.executedAt,
+          })),
+        },
+        globeMarkers: (uwData.globeMarkers || []).slice(0, 15),
+        signals: uwData.signals || [],
+        priorityAlerts: (uwData.priorityAlerts || []).slice(0, 5),
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
