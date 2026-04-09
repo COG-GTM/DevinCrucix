@@ -266,6 +266,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .mi-scroll::-webkit-scrollbar{width:3px}
 .mi-scroll::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
 .ldot.market{background:#00e5ff;box-shadow:0 0 6px rgba(0,229,255,0.4)}
+.ldot.prc{background:#f44336;box-shadow:0 0 6px rgba(244,67,54,0.5)}
+.prc-gauge{display:flex;align-items:center;gap:8px;padding:6px 0}
+.prc-gauge-bar{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;position:relative}
+.prc-gauge-fill{height:100%;border-radius:4px;transition:width 0.6s ease}
+.prc-gauge-label{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;min-width:60px;text-align:right}
 
 /* NARCO & ORGANIZED CRIME PANEL */
 .narco-panel{flex:1.3 1 260px;max-width:400px}
@@ -443,7 +448,7 @@ let globeInitialized = false;
 let flightsVisible = true;
 let lowPerfMode = localStorage.getItem('crucix_low_perf') === 'true';
 let isFlat = shouldStartFlat();
-let currentRegion = 'world';
+let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
 const signalGuideItems = [
   {
@@ -564,7 +569,7 @@ const regionPOV = {
   americas: { lat: 35, lng: -95, altitude: 1.0 },
   europe: { lat: 50, lng: 15, altitude: 1.0 },
   middleEast: { lat: 28, lng: 45, altitude: 1.1 },
-  asiaPacific: { lat: 25, lng: 110, altitude: 1.2 },
+  asiaPacific: { lat: 20, lng: 118, altitude: 1.0 },
   africa: { lat: 5, lng: 20, altitude: 1.2 }
 };
 
@@ -636,6 +641,7 @@ function renderTopbar(){
     <div class="top-left">
       <span class="brand">CRUCIX MONITOR</span>
       <span class="regime-chip"><span class="blink"></span>WARTIME STAGFLATION RISK</span>
+      <span class="regime-chip" style="border-color:rgba(244,67,54,0.4);background:rgba(244,67,54,0.08)"><span class="blink" style="background:#f44336;box-shadow:0 0 6px rgba(244,67,54,0.6)"></span><span style="color:#f44336">PRC WATCH</span></span>
     </div>
     ${mobile ? `<div class="top-center">${getRegionControlsMarkup()}</div>` : ''}
     <div class="top-right">
@@ -672,6 +678,22 @@ function renderLeftRail(){
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`}
   ];
+  // === PRC INTELLIGENCE SECTION ===
+  const prcAir = D.air.find(a => a.region === 'Taiwan Strait') || {};
+  const prcChina = prcAir.top?.find(t => t[0] === 'China') || [];
+  const scsAir = D.air.find(a => a.region === 'South China Sea') || {};
+  const taiwanADIZ = prcChina[1] || prcAir.total || 0;
+  const scsCount = scsAir.total || 0;
+  const gdeltPRC = (D.gdelt?.topTitles || []).filter(t => /china|chinese|beijing|prc|taiwan|south china sea|xi jinping|pla |plan /i.test(t)).length;
+  const prcStateMedia = gdeltPRC;
+  const prcLayers = [
+    {name:'PLAN Vessels',count:scsCount,dot:'prc',sub:'SCS / Taiwan Strait'},
+    {name:'Taiwan ADIZ',count:taiwanADIZ,dot:'prc',sub:'PLA aviation activity'},
+    {name:'SCS Activity',count:scsCount + (prcChina[1]||0),dot:'prc',sub:'South China Sea events'},
+    {name:'PRC State Media',count:prcStateMedia,dot:'prc',sub:'Xinhua / Global Times'},
+  ];
+  const prcLayerHtml = prcLayers.map(l => `<div class="layer-item"><div class="layer-left"><div class="ldot ${l.dot}"></div><div><div class="layer-name">${l.name}</div><div class="layer-sub">${l.sub}</div></div></div><div class="layer-count">${l.count}</div></div>`).join('');
+  const prcSectionHtml = `<div style="margin-top:8px;border-top:1px solid rgba(244,67,54,0.2);padding-top:8px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:#f44336;margin-bottom:6px;display:flex;align-items:center;gap:4px"><span class="blink" style="background:#f44336;box-shadow:0 0 4px rgba(244,67,54,0.5);width:5px;height:5px;border-radius:50%;display:inline-block"></span>PRC INTELLIGENCE</div>${prcLayerHtml}</div>`;
   const allNormal=D.nuke.every(s=>!s.anom);
   const nukeHtml=D.nuke.map(s=>`<div class="site-row"><span>${s.site}</span><span class="site-val">${s.n>0?(s.cpm?.toFixed(1)||'--')+' CPM':'No data'}</span></div>`).join('');
   const vix=D.fred.find(f=>f.id==='VIXCLS');
@@ -685,6 +707,7 @@ function renderLeftRail(){
     <div class="g-panel">
       <div class="sec-head"><h3>${t('panels.sensorGrid','Sensor Grid')}</h3><span class="badge">${t('badges.live','LIVE')}</span></div>
       ${layers.map(l=>`<div class="layer-item"><div class="layer-left"><div class="ldot ${l.dot}"></div><div><div class="layer-name">${l.name}</div><div class="layer-sub">${l.sub}</div></div></div><div class="layer-count">${l.count}</div></div>`).join('')}
+      ${prcSectionHtml}
     </div>
     <div class="g-panel">
       <div class="sec-head"><h3>${t('panels.nuclearWatch','Nuclear Watch')}</h3><span class="badge">${t('badges.radiation','RADIATION')}</span></div>
@@ -732,7 +755,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -847,8 +870,8 @@ function initGlobe(){
     }
   });
 
-  // Set initial POV
-  globe.pointOfView(regionPOV.world, 0);
+  // Set initial POV — Asia Pacific / South China Sea focus
+  globe.pointOfView(regionPOV.asiaPacific, 0);
 
   // Auto-rotate slowly
   globe.controls().autoRotate = !lowPerfMode;
@@ -1110,6 +1133,53 @@ function plotMarkers(){
   // Add a master label for the narco region
   if (narcoArticlesGlobe.length > 0) {
     labels.push({lat:17, lng:-95, text:'NARCO INTEL', size:0.4, color:'rgba(255,64,129,0.8)'});
+  }
+
+  // === PRC-ATTRIBUTED ACTIVITY (red markers) ===
+  // Red markers for Chinese-flagged aircraft in Taiwan Strait and SCS
+  const prcAirRegions = D.air.filter(a => a.region === 'Taiwan Strait' || a.region === 'South China Sea');
+  const prcCoords = [
+    {lat:24.5,lon:118.5,label:'Taiwan Strait'},{lat:23.0,lon:117.0,label:'Taiwan Strait South'},
+    {lat:22.3,lon:114.2,label:'SCS North'},{lat:16.0,lon:112.0,label:'Paracel Islands'},
+    {lat:10.5,lon:114.3,label:'Spratly Islands'},{lat:18.2,lon:109.5,label:'Hainan'},
+    {lat:25.0,lon:121.5,label:'Taiwan ADIZ'},{lat:20.0,lon:116.0,label:'SCS Central'},
+  ];
+  let prcMarkerIdx = 0;
+  prcAirRegions.forEach(a => {
+    const chinaCount = a.top?.find(t => t[0] === 'China');
+    if (chinaCount && chinaCount[1] > 0) {
+      for (let i = 0; i < Math.min(chinaCount[1], 4); i++) {
+        const coord = prcCoords[prcMarkerIdx % prcCoords.length];
+        prcMarkerIdx++;
+        points.push({
+          lat: coord.lat + (Math.random()-0.5)*1.5, lng: coord.lon + (Math.random()-0.5)*1.5,
+          size: 0.3, alt: 0.02,
+          color: 'rgba(244,67,54,0.9)', type: 'prc-activity', priority: 1,
+          popHead: 'PRC ACTIVITY', popMeta: `Chinese aircraft · ${a.region}`,
+          popText: `${chinaCount[1]} PRC aircraft tracked<br>Region: ${coord.label}`
+        });
+      }
+    }
+  });
+  // ADS-B PRC military aircraft (bright red, larger)
+  (D.adsbMilitary?.categories?.isr || []).forEach(a => {
+    if (!a.lat || !a.lon) return;
+    const isPRC = (a.country||'').toLowerCase().includes('china') || (a.callsign||'').match(/^(CCA|PLA|PLAN|BAF)/i);
+    if (isPRC) {
+      points.push({
+        lat: a.lat, lng: a.lon, size: 0.5, alt: 0.03,
+        color: 'rgba(244,67,54,1.0)', type: 'prc-military', priority: 1,
+        popHead: (a.callsign||'PRC MILITARY') + ' ISR', popMeta: 'PRC Military · ADS-B',
+        popText: `${a.type||'Military Aircraft'}<br>Alt: ${a.altitude||'?'}ft<br>Country: ${a.country||'China'}`
+      });
+      labels.push({lat:a.lat, lng:a.lon+2, text:a.callsign||'PRC', size:0.4, color:'rgba(244,67,54,0.9)'});
+    }
+  });
+  // SCS / Taiwan Strait strategic labels
+  if (prcMarkerIdx > 0) {
+    labels.push({lat:20, lng:118, text:'PRC WATCH ZONE', size:0.5, color:'rgba(244,67,54,0.8)'});
+    labels.push({lat:24, lng:120, text:'TAIWAN ADIZ', size:0.35, color:'rgba(244,67,54,0.6)'});
+    labels.push({lat:15, lng:113, text:'SOUTH CHINA SEA', size:0.35, color:'rgba(244,67,54,0.6)'});
   }
 
   // === Unusual Whales Market Intelligence (cyan markers at company HQ) ===
@@ -1795,6 +1865,18 @@ function renderRight(){
     <div class="g-panel right-core">
       <div class="sec-head"><h3>${t('panels.signalCore','Signal Core')}</h3><span class="badge">${t('badges.hotMetrics','HOT METRICS')}</span></div>
       ${signalMetrics.map(s=>`<div class="sm"><span class="sml">${s.l}</span><div class="smb"><span style="width:${s.p}%"></span></div><span class="smv">${s.v}</span></div>`).join('')}
+      ${(() => {
+        const prcAirR = D.air.find(a => a.region === 'Taiwan Strait') || {};
+        const prcChinaR = prcAirR.top?.find(t => t[0] === 'China') || [];
+        const scsAirR = D.air.find(a => a.region === 'South China Sea') || {};
+        const prcAirCount = (prcChinaR[1] || 0) + (scsAirR.total || 0);
+        const gdeltPRCR = (D.gdelt?.topTitles || []).filter(t => /china|chinese|beijing|prc|taiwan|south china sea|xi jinping/i.test(t)).length;
+        const adsbPRCR = (D.adsbMilitary?.categories?.isr || []).filter(a => (a.country||'').toLowerCase().includes('china')).length;
+        const tensionScore = Math.min(100, Math.round((prcAirCount * 1.5) + (gdeltPRCR * 8) + (adsbPRCR * 15)));
+        const tensionLevel = tensionScore >= 70 ? 'ELEVATED' : tensionScore >= 40 ? 'HEIGHTENED' : tensionScore >= 15 ? 'NORMAL' : 'REDUCED';
+        const tensionColor = tensionScore >= 70 ? '#f44336' : tensionScore >= 40 ? '#ff9800' : tensionScore >= 15 ? '#ffd740' : '#4caf50';
+        return `<div style="margin-top:8px;border-top:1px solid rgba(244,67,54,0.15);padding-top:8px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:#f44336;margin-bottom:4px;display:flex;align-items:center;gap:4px"><span style="background:#f44336;width:5px;height:5px;border-radius:50%;display:inline-block;box-shadow:0 0 4px rgba(244,67,54,0.5)"></span>PRC TENSION INDEX</div><div class="prc-gauge"><div class="prc-gauge-bar"><div class="prc-gauge-fill" style="width:${tensionScore}%;background:${tensionColor}"></div></div><span class="prc-gauge-label" style="color:${tensionColor}">${tensionLevel}</span></div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;gap:8px;flex-wrap:wrap"><span>Air: ${prcAirCount}</span><span>GDELT: ${gdeltPRCR}</span><span>ISR: ${adsbPRCR}</span><span>Score: ${tensionScore}/100</span></div></div>`;
+      })()}
     </div>
     <div class="g-panel right-delta">
       <div class="sec-head"><h3>${t('panels.sweepDelta','Sweep Delta')}</h3><span class="badge ${dirClass}">${dirEmoji} ${ds.direction?t('delta.'+ds.direction,ds.direction.toUpperCase()):t('delta.baseline','BASELINE')}</span></div>
