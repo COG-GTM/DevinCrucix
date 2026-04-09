@@ -116,6 +116,63 @@ function summarizeAirHotspots(hotspots = []) {
   }));
 }
 
+// Air hotspot regions — mirrors OpenSky HOTSPOTS for ADS-B fallback
+const AIR_REGIONS = [
+  { region: 'Middle East', lamin: 12, lomin: 30, lamax: 42, lomax: 65 },
+  { region: 'Taiwan Strait', lamin: 20, lomin: 115, lamax: 28, lomax: 125 },
+  { region: 'Ukraine Region', lamin: 44, lomin: 22, lamax: 53, lomax: 41 },
+  { region: 'Baltic Region', lamin: 53, lomin: 19, lamax: 60, lomax: 29 },
+  { region: 'South China Sea', lamin: 5, lomin: 105, lamax: 23, lomax: 122 },
+  { region: 'Korean Peninsula', lamin: 33, lomin: 124, lamax: 43, lomax: 132 },
+  { region: 'Caribbean', lamin: 18, lomin: -90, lamax: 30, lomax: -72 },
+  { region: 'Gulf of Guinea', lamin: -2, lomin: -5, lamax: 8, lomax: 10 },
+  { region: 'Cape Route', lamin: -38, lomin: 12, lamax: -28, lomax: 24 },
+  { region: 'Horn of Africa', lamin: 5, lomin: 40, lamax: 15, lomax: 55 },
+];
+
+// Build air hotspots from ADS-B military aircraft when OpenSky is unavailable
+function buildAirHotspotsFromADSB(adsbSource) {
+  const aircraft = adsbSource?.militaryAircraft || [];
+  // Also include all aircraft from category arrays
+  const catArrays = adsbSource?.categories || {};
+  const allCategorized = [
+    ...(catArrays.reconnaissance || []),
+    ...(catArrays.bombers || []),
+    ...(catArrays.tankers || []),
+    ...(catArrays.vipTransport || []),
+  ];
+  // Merge: use militaryAircraft as primary, add any categorized aircraft not already present
+  const seenHex = new Set(aircraft.map(a => a.hex).filter(Boolean));
+  const merged = [...aircraft];
+  for (const ac of allCategorized) {
+    if (ac.hex && !seenHex.has(ac.hex)) {
+      seenHex.add(ac.hex);
+      merged.push(ac);
+    }
+  }
+
+  return AIR_REGIONS.map(r => {
+    const inRegion = merged.filter(ac => {
+      const lat = ac.latitude ?? ac.lat ?? null;
+      const lon = ac.longitude ?? ac.lon ?? null;
+      if (lat == null || lon == null) return false;
+      return lat >= r.lamin && lat <= r.lamax && lon >= r.lomin && lon <= r.lomax;
+    });
+    const byCountry = {};
+    for (const ac of inRegion) {
+      const country = ac.militaryMatch || ac.country || 'Unknown';
+      byCountry[country] = (byCountry[country] || 0) + 1;
+    }
+    return {
+      region: r.region,
+      totalAircraft: inRegion.length,
+      noCallsign: inRegion.filter(ac => !(ac.callsign || '').trim()).length,
+      highAltitude: inRegion.filter(ac => (ac.altitude || 0) > 39370).length, // >12km in feet
+      byCountry,
+    };
+  });
+}
+
 function loadOpenSkyFallback(currentTimestamp) {
   const runsDir = join(ROOT, 'runs');
   if (!existsSync(runsDir)) return null;
@@ -173,7 +230,7 @@ const RSS_SOURCE_FALLBACKS = {
   'The Hindu': { lat: 13.0827, lon: 80.2707, region: 'India' },
   'MercoPress': { lat: -34.9011, lon: -56.1645, region: 'South America' }
 };
-const REGIONAL_NEWS_SOURCES = ['MercoPress', 'Indian Express', 'The Hindu', 'SBS Australia'];
+const REGIONAL_NEWS_SOURCES = ['MercoPress', 'Indian Express', 'The Hindu', 'SBS Australia', 'INSIGHT CRIME'];
 
 export async function fetchAllNews() {
   const feeds = [
@@ -403,7 +460,11 @@ export async function synthesize(data) {
   const airFallback = sumAirHotspots(liveAirHotspots) > 0
     ? null
     : loadOpenSkyFallback(data.sources.OpenSky?.timestamp || data.crucix?.timestamp);
-  const effectiveAirHotspots = airFallback?.hotspots || liveAirHotspots;
+  // ADS-B fallback: build air region hotspots from military aircraft when OpenSky is unavailable
+  const adsbAirHotspots = (!airFallback && sumAirHotspots(liveAirHotspots) === 0)
+    ? buildAirHotspotsFromADSB(data.sources['ADS-B'])
+    : null;
+  const effectiveAirHotspots = airFallback?.hotspots || (adsbAirHotspots && sumAirHotspots(adsbAirHotspots) > 0 ? adsbAirHotspots : liveAirHotspots);
   const air = summarizeAirHotspots(effectiveAirHotspots);
   const thermal = (data.sources.FIRMS?.hotspots || []).map(h => ({
     region: h.region, det: h.totalDetections || 0, night: h.nightDetections || 0,
@@ -514,7 +575,7 @@ export async function synthesize(data) {
 
   // ACLED conflict events
   const acledData = data.sources.ACLED || {};
-  const acled = acledData.error ? { totalEvents: 0, totalFatalities: 0, byRegion: {}, byType: {}, deadliestEvents: [] } : {
+  const acled = acledData.error ? { totalEvents: 0, totalFatalities: 0, byRegion: {}, byType: {}, deadliestEvents: [], flashAlerts: [] } : {
     totalEvents: acledData.totalEvents || 0,
     totalFatalities: acledData.totalFatalities || 0,
     byRegion: acledData.byRegion || {},
@@ -522,10 +583,11 @@ export async function synthesize(data) {
     deadliestEvents: (acledData.deadliestEvents || []).slice(0, 15).map(e => ({
       date: e.date, type: e.type, country: e.country, location: e.location,
       fatalities: e.fatalities || 0, lat: e.lat || null, lon: e.lon || null
-    }))
+    })),
+    flashAlerts: (acledData.flashAlerts || []).slice(0, 5),
   };
 
-  // GDELT news articles + geo events
+  // GDELT news articles + geo events + tone scoring + clustering
   const gdeltData = data.sources.GDELT || {};
   const gdelt = {
     totalArticles: gdeltData.totalArticles || 0,
@@ -534,9 +596,16 @@ export async function synthesize(data) {
     health: (gdeltData.health || []).length,
     crisis: (gdeltData.crisis || []).length,
     topTitles: (gdeltData.allArticles || []).slice(0, 5).map(a => a.title?.substring(0, 80)),
-    geoPoints: (gdeltData.geoPoints || []).slice(0, 20).map(p => ({
+    geoPoints: (gdeltData.geoPoints || []).slice(0, 30).map(p => ({
       lat: p.lat, lon: p.lon, name: (p.name || '').substring(0, 80), count: p.count || 1
-    }))
+    })),
+    geoClusters: (gdeltData.geoClusters || []).slice(0, 15).map(c => ({
+      lat: c.lat, lon: c.lon, count: c.count, label: (c.label || '').substring(0, 80)
+    })),
+    toneScores: (gdeltData.toneScores || []).map(t => ({
+      region: t.region, currentTone: t.currentTone, previousTone: t.previousTone, shift: t.shift
+    })),
+    priorityAlerts: (gdeltData.priorityAlerts || []).slice(0, 5),
   };
 
   const health = Object.entries(data.sources).map(([name, src]) => ({
@@ -599,10 +668,10 @@ export async function synthesize(data) {
   const V2 = {
     meta: data.crucix, air, thermal, tSignals, chokepoints, nuke, nukeSignals,
     airMeta: {
-      fallback: Boolean(airFallback),
+      fallback: Boolean(airFallback || adsbAirHotspots),
       liveTotal: sumAirHotspots(liveAirHotspots),
-      timestamp: airFallback?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
-      source: airFallback ? 'OpenSky fallback' : 'OpenSky',
+      timestamp: airFallback?.timestamp || data.sources['ADS-B']?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
+      source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : 'OpenSky'),
       ...(airFallback ? { fallbackFile: airFallback.file } : {}),
       ...(data.sources.OpenSky?.error ? { error: data.sources.OpenSky.error } : {}),
     },
@@ -610,16 +679,140 @@ export async function synthesize(data) {
     tg: { posts: tgData.totalPosts || 0, urgent: tgUrgent, topPosts: tgTop },
     who, fred, energy, metals, bls, treasury, gscpi, defense, noaa, epa, acled, gdelt, space, health, news,
     markets, // Live Yahoo Finance market data
+    // Phase 2A: ADS-B military aircraft data
+    adsbMilitary: (() => {
+      const adsbData = data.sources['ADS-B'] || {};
+      return {
+        status: adsbData.status || 'unknown',
+        dataSource: adsbData.dataSource || 'unknown',
+        totalMilitary: adsbData.totalMilitary || 0,
+        byCountry: adsbData.byCountry || {},
+        categories: {
+          reconnaissance: (adsbData.categories?.reconnaissance || []).slice(0, 10).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            altitude: a.altitude, speed: a.speed, country: a.militaryMatch
+          })),
+          bombers: (adsbData.categories?.bombers || []).slice(0, 5).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            altitude: a.altitude, country: a.militaryMatch
+          })),
+          tankers: (adsbData.categories?.tankers || []).slice(0, 5).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            country: a.militaryMatch
+          })),
+          vipTransport: (adsbData.categories?.vipTransport || []).slice(0, 3).map(a => ({
+            callsign: a.callsign, type: a.typeDescription || a.type, lat: a.latitude, lon: a.longitude,
+            country: a.militaryMatch
+          })),
+        },
+        signals: adsbData.signals || [],
+        priorityAlerts: (adsbData.priorityAlerts || []).slice(0, 5),
+      };
+    })(),
+    // Phase 2A: SpiderFoot OSINT results
+    spiderfoot: (() => {
+      const sfData = data.sources.SpiderFoot || {};
+      return {
+        status: sfData.status || 'offline',
+        sfUrl: sfData.sfUrl || null,
+        totalScans: sfData.totalScans || 0,
+        recentScans: (sfData.recentScans || []).slice(0, 5).map(s => ({
+          name: s.name, target: s.target, status: s.status, started: s.started,
+          summaryCount: (s.summary || []).reduce((sum, e) => sum + (e.count || 0), 0)
+        })),
+        findings: (sfData.findings || []).slice(0, 10),
+      };
+    })(),
+    // Phase 2A: InSight Crime intelligence
+    insightCrime: (() => {
+      const icData = data.sources.InSightCrime || {};
+      return {
+        totalArticles: icData.totalArticles || 0,
+        feeds: icData.feeds || [],
+        articles: (icData.articles || []).slice(0, 15).map(a => ({
+          title: (a.title || '').substring(0, 100), date: a.date, feed: a.feed,
+          entities: (a.entities || []).slice(0, 5), categories: (a.categories || []).slice(0, 3),
+          link: a.link
+        })),
+        extractedEntities: (icData.extractedEntities || []).slice(0, 20),
+        sanctionsHits: (icData.sanctionsHits || []).slice(0, 10),
+        priorityAlerts: (icData.priorityAlerts || []).slice(0, 5),
+      };
+    })(),
+    // Phase 2A: OpenSanctions cross-referencing
+    sanctionsCrossRef: (() => {
+      const osData = data.sources.OpenSanctions || {};
+      return {
+        hasApiKey: osData.hasApiKey || false,
+        crossRefAvailable: osData.crossRefAvailable || false,
+        totalSanctionedEntities: osData.totalSanctionedEntities || 0,
+        monitoringTargets: osData.monitoringTargets || [],
+        recentSearches: (osData.recentSearches || []).map(s => ({
+          query: s.query, totalResults: s.totalResults, entityCount: (s.entities || []).length
+        })),
+      };
+    })(),
+    // Unusual Whales market intelligence
+    unusualWhales: (() => {
+      const uwData = data.sources.UnusualWhales || {};
+      if (uwData.status !== 'live') return { status: uwData.status || 'offline' };
+      const of = uwData.optionsFlow || {};
+      const ct = uwData.congressTrades || {};
+      const dp = uwData.darkPool || {};
+      return {
+        status: 'live',
+        optionsFlow: {
+          total: of.total || 0,
+          totalPremium: of.totalPremium || 0,
+          sweepCount: of.sweepCount || 0,
+          topAlerts: (of.topAlerts || []).slice(0, 10).map(o => ({
+            ticker: o.ticker, type: o.type, strike: o.strike, expiry: o.expiry,
+            premium: o.premium, size: o.size, sector: o.sector,
+            hasSweep: o.hasSweep, underlyingPrice: o.underlyingPrice,
+            alertRule: o.alertRule, createdAt: o.createdAt,
+          })),
+          largeFlow: (of.largeFlow || []).slice(0, 5),
+          bigDefenseFlow: (of.bigDefenseFlow || []).slice(0, 5),
+        },
+        congressTrades: {
+          total: ct.total || 0,
+          recent: (ct.recent || []).slice(0, 15).map(t => ({
+            name: t.name, ticker: t.ticker, txnType: t.txnType,
+            amounts: t.amounts, amountMid: t.amountMid,
+            transactionDate: t.transactionDate, filedDate: t.filedDate,
+            memberType: t.memberType, isDefenseCommittee: t.isDefenseCommittee,
+            isDefenseEnergySector: t.isDefenseEnergySector,
+          })),
+          defenseSector: (ct.defenseSector || []).slice(0, 10),
+          defenseCommittee: (ct.defenseCommittee || []).slice(0, 10),
+        },
+        darkPool: {
+          total: dp.total || 0,
+          totalVolume: dp.totalVolume || 0,
+          largePrints: (dp.largePrints || []).slice(0, 10).map(d => ({
+            ticker: d.ticker, size: d.size, price: d.price,
+            premium: d.premium, executedAt: d.executedAt,
+          })),
+          topPrints: (dp.topPrints || []).slice(0, 10).map(d => ({
+            ticker: d.ticker, size: d.size, price: d.price,
+            premium: d.premium, executedAt: d.executedAt,
+          })),
+        },
+        globeMarkers: (uwData.globeMarkers || []).slice(0, 15),
+        signals: uwData.signals || [],
+        priorityAlerts: (uwData.priorityAlerts || []).slice(0, 5),
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
-    // newsFeed for ticker (merged RSS + GDELT + Telegram)
-    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop),
+    // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
+    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
   };
 
   return V2;
 }
 
 // === Unified News Feed for Ticker ===
-function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop) {
+function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData) {
   const feed = [];
 
   // RSS news
@@ -657,6 +850,19 @@ function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop) {
       headline: text.substring(0, 100), source: p.channel?.toUpperCase() || 'TELEGRAM',
       type: 'telegram', timestamp: p.date, region: 'OSINT', urgent: false
     });
+  }
+
+  // InSight Crime articles
+  if (insightCrimeData) {
+    for (const a of (insightCrimeData.articles || []).slice(0, 10)) {
+      if (a.title) {
+        feed.push({
+          headline: a.title.substring(0, 100), source: 'INSIGHT CRIME',
+          type: 'insightcrime', timestamp: a.date || a.pubDate, region: 'Latin America',
+          urgent: false, url: a.link
+        });
+      }
+    }
   }
 
   // Filter to last 30 days, sort by timestamp descending, limit to 50
