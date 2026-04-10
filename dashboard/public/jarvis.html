@@ -2064,8 +2064,8 @@ function connectSSE(){
       } else if (msg.type === 'market_update' && msg.markets) {
         // Fast market-only update (every 60s) — patch markets without full reinit
         D.markets = msg.markets;
+        renderLower();
         renderTopbar();
-        renderRight();
       } else if (msg.type === 'sweep_start') {
         const badge = document.querySelector('.alert-badge');
         if (badge) { badge.textContent = 'SWEEPING...'; badge.style.borderColor = 'var(--accent)'; }
