@@ -32,7 +32,7 @@ const SYMBOLS = {
 
 async function fetchQuote(symbol) {
   try {
-    const url = `${BASE}/${encodeURIComponent(symbol)}?range=5d&interval=1d&includePrePost=false`;
+    const url = `${BASE}/${encodeURIComponent(symbol)}?range=1d&interval=5m&includePrePost=false`;
     const data = await safeFetch(url, {
       timeout: 8000,
       headers: {
@@ -127,4 +127,67 @@ export async function collect() {
 
 function pickGroup(quotes, symbols) {
   return symbols.map(s => quotes[s]).filter(Boolean);
+}
+
+// Lightweight collect for fast market-only refresh (no history, smaller payload)
+export async function collectQuick() {
+  const symbols = Object.keys(SYMBOLS);
+  const results = await Promise.allSettled(
+    symbols.map(s => fetchQuoteQuick(s))
+  );
+
+  const quotes = {};
+  let ok = 0;
+  let failed = 0;
+
+  for (const r of results) {
+    const q = r.status === 'fulfilled' ? r.value : null;
+    if (q && !q.error) {
+      quotes[q.symbol] = q;
+      ok++;
+    } else {
+      failed++;
+    }
+  }
+
+  return {
+    quotes,
+    summary: { totalSymbols: symbols.length, ok, failed, timestamp: new Date().toISOString() },
+    indexes: pickGroup(quotes, ['^GSPC', '^IXIC', '^DJI', '^RUT']),
+    rates: pickGroup(quotes, ['TLT', 'HYG', 'LQD']),
+    commodities: pickGroup(quotes, ['GC=F', 'SI=F', 'CL=F', 'BZ=F', 'NG=F']),
+    crypto: pickGroup(quotes, ['BTC-USD', 'ETH-USD']),
+    volatility: pickGroup(quotes, ['^VIX']),
+  };
+}
+
+// Fast quote — price only, no history (for the 60s market loop)
+async function fetchQuoteQuick(symbol) {
+  try {
+    const url = `${BASE}/${encodeURIComponent(symbol)}?range=1d&interval=1d&includePrePost=false`;
+    const data = await safeFetch(url, {
+      timeout: 6000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+    });
+
+    const meta = data?.chart?.result?.[0]?.meta;
+    if (!meta) return null;
+
+    const price = meta.regularMarketPrice;
+    const prevClose = meta.chartPreviousClose ?? meta.previousClose;
+    const change = price && prevClose ? price - prevClose : 0;
+    const changePct = prevClose ? (change / prevClose) * 100 : 0;
+
+    return {
+      symbol,
+      name: SYMBOLS[symbol] || meta.shortName || symbol,
+      price: Math.round(price * 100) / 100,
+      change: Math.round(change * 100) / 100,
+      changePct: Math.round(changePct * 100) / 100,
+    };
+  } catch {
+    return null;
+  }
 }

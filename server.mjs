@@ -10,6 +10,7 @@ import { exec } from 'child_process';
 import config from './crucix.config.mjs';
 import { getLocale, currentLanguage, getSupportedLocales } from './lib/i18n.mjs';
 import { fullBriefing } from './apis/briefing.mjs';
+import { collectQuick as yfinanceQuick } from './apis/sources/yfinance.mjs';
 import { synthesize, generateIdeas } from './dashboard/inject.mjs';
 import { MemoryManager } from './lib/delta/index.mjs';
 import { createLLMProvider } from './lib/llm/index.mjs';
@@ -32,8 +33,10 @@ let currentData = null;    // Current synthesized dashboard data
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
+let marketRefreshInProgress = false;
 const startTime = Date.now();
 const sseClients = new Set();
+const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
 
 // === Delta/Memory ===
 const memory = new MemoryManager(RUNS_DIR);
@@ -276,6 +279,7 @@ app.get('/api/health', (req, res) => {
     llmProvider: config.llm.provider,
     telegramEnabled: !!(config.telegram.botToken && config.telegram.chatId),
     refreshIntervalMinutes: config.refreshIntervalMinutes,
+    marketRefreshSeconds: MARKET_REFRESH_SECONDS,
     language: currentLanguage,
   });
 });
@@ -397,6 +401,56 @@ async function runSweepCycle() {
   }
 }
 
+// === Fast Market Refresh (between sweeps) ===
+async function runMarketRefresh() {
+  // Skip if a full sweep is running (it will fetch fresh market data anyway)
+  if (sweepInProgress || marketRefreshInProgress || !currentData) return;
+
+  marketRefreshInProgress = true;
+  try {
+    const marketData = await yfinanceQuick();
+    if (!marketData || marketData.summary.ok === 0) return;
+
+    // Patch market data into current dashboard state
+    const markets = {
+      indexes: (marketData.indexes || []).map(q => ({
+        symbol: q.symbol, name: q.name, price: q.price,
+        change: q.change, changePct: q.changePct,
+        history: currentData.markets?.indexes?.find(i => i.symbol === q.symbol)?.history || []
+      })),
+      rates: (marketData.rates || []).map(q => ({
+        symbol: q.symbol, name: q.name, price: q.price,
+        change: q.change, changePct: q.changePct
+      })),
+      commodities: (marketData.commodities || []).map(q => ({
+        symbol: q.symbol, name: q.name, price: q.price,
+        change: q.change, changePct: q.changePct,
+        history: currentData.markets?.commodities?.find(c => c.symbol === q.symbol)?.history || []
+      })),
+      crypto: (marketData.crypto || []).map(q => ({
+        symbol: q.symbol, name: q.name, price: q.price,
+        change: q.change, changePct: q.changePct
+      })),
+      vix: marketData.quotes['^VIX'] ? {
+        value: marketData.quotes['^VIX'].price,
+        change: marketData.quotes['^VIX'].change,
+        changePct: marketData.quotes['^VIX'].changePct,
+      } : currentData.markets?.vix || null,
+      timestamp: marketData.summary.timestamp,
+    };
+
+    currentData.markets = markets;
+
+    // Push market-only update to all connected browsers
+    broadcast({ type: 'market_update', markets, timestamp: marketData.summary.timestamp });
+  } catch (err) {
+    // Non-fatal — full sweep will catch up
+    console.error('[Crucix] Market refresh failed (non-fatal):', err.message);
+  } finally {
+    marketRefreshInProgress = false;
+  }
+}
+
 // === Startup ===
 async function start() {
   const port = config.port;
@@ -461,6 +515,10 @@ async function start() {
 
     // Schedule recurring sweeps
     setInterval(runSweepCycle, config.refreshIntervalMinutes * 60 * 1000);
+
+    // Schedule fast market-only refresh (every 60s by default)
+    console.log(`[Crucix] Market ticker refresh: every ${MARKET_REFRESH_SECONDS}s`);
+    setInterval(runMarketRefresh, MARKET_REFRESH_SECONDS * 1000);
   });
 }
 
