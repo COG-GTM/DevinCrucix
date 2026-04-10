@@ -128,15 +128,32 @@ function matchRegion(text) {
   return null;
 }
 
+// Surnames that are too common to match alone — require naval context words nearby
+const AMBIGUOUS_NAMES = new Set(['ford', 'bush', 'washington', 'lincoln', 'roosevelt', 'truman', 'reagan', 'vinson']);
+const NAVAL_CONTEXT = /\b(carrier|navy|uss|cvn|strike group|deployed|fleet|naval|warship|aircraft carrier|shipyard)\b/i;
+
 function matchCarrier(text) {
   const lower = text.toLowerCase();
   for (const [hull, info] of Object.entries(CARRIER_REGISTRY)) {
     const hullClean = hull.toLowerCase().replace('-', '');
+    // Hull number match (e.g. "CVN-78" or "CVN78") — always reliable
     if (lower.includes(hull.toLowerCase()) || lower.includes(hullClean)) return hull;
-    // Match last name of carrier (e.g., "Ford", "Eisenhower", "Nimitz")
+    // Full "USS <Name>" match — always reliable
     const shipName = info.name.split('(')[0].trim().toLowerCase();
+    if (lower.includes(shipName)) return hull;
+    // "USS <LastName>" match — reliable
     const lastName = shipName.split(' ').pop();
-    if (lastName && lastName.length > 3 && lower.includes(lastName)) return hull;
+    if (lastName && lower.includes('uss ' + lastName)) return hull;
+    // Bare last name match — only if naval context words are present
+    if (lastName && lastName.length > 3 && lower.includes(lastName)) {
+      if (AMBIGUOUS_NAMES.has(lastName)) {
+        // Require at least one naval context word in the same title
+        if (NAVAL_CONTEXT.test(text)) return hull;
+      } else {
+        // Unique names like "nimitz", "eisenhower", "stennis" — safe to match
+        return hull;
+      }
+    }
   }
   return null;
 }
