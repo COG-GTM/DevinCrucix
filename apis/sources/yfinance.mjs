@@ -32,7 +32,7 @@ const SYMBOLS = {
 
 async function fetchQuote(symbol) {
   try {
-    const url = `${BASE}/${encodeURIComponent(symbol)}?range=1d&interval=5m&includePrePost=false`;
+    const url = `${BASE}/${encodeURIComponent(symbol)}?range=5d&interval=1d&includePrePost=false`;
     const data = await safeFetch(url, {
       timeout: 8000,
       headers: {

@@ -411,31 +411,34 @@ async function runMarketRefresh() {
     const marketData = await yfinanceQuick();
     if (!marketData || marketData.summary.ok === 0) return;
 
-    // Patch market data into current dashboard state
+    // Merge new prices into existing market data, preserving symbols that failed this refresh
+    const prev = currentData.markets || {};
+
+    function mergeCategory(newItems, prevItems, preserveHistory) {
+      const merged = (newItems || []).map(q => {
+        const old = (prevItems || []).find(p => p.symbol === q.symbol);
+        const entry = { symbol: q.symbol, name: q.name, price: q.price, change: q.change, changePct: q.changePct };
+        if (preserveHistory) entry.history = old?.history || [];
+        return entry;
+      });
+      // Append any previously-good symbols that were absent from the new data
+      const newSymbols = new Set(merged.map(m => m.symbol));
+      for (const old of (prevItems || [])) {
+        if (!newSymbols.has(old.symbol)) merged.push(old);
+      }
+      return merged;
+    }
+
     const markets = {
-      indexes: (marketData.indexes || []).map(q => ({
-        symbol: q.symbol, name: q.name, price: q.price,
-        change: q.change, changePct: q.changePct,
-        history: currentData.markets?.indexes?.find(i => i.symbol === q.symbol)?.history || []
-      })),
-      rates: (marketData.rates || []).map(q => ({
-        symbol: q.symbol, name: q.name, price: q.price,
-        change: q.change, changePct: q.changePct
-      })),
-      commodities: (marketData.commodities || []).map(q => ({
-        symbol: q.symbol, name: q.name, price: q.price,
-        change: q.change, changePct: q.changePct,
-        history: currentData.markets?.commodities?.find(c => c.symbol === q.symbol)?.history || []
-      })),
-      crypto: (marketData.crypto || []).map(q => ({
-        symbol: q.symbol, name: q.name, price: q.price,
-        change: q.change, changePct: q.changePct
-      })),
+      indexes: mergeCategory(marketData.indexes, prev.indexes, true),
+      rates: mergeCategory(marketData.rates, prev.rates, false),
+      commodities: mergeCategory(marketData.commodities, prev.commodities, true),
+      crypto: mergeCategory(marketData.crypto, prev.crypto, false),
       vix: marketData.quotes['^VIX'] ? {
         value: marketData.quotes['^VIX'].price,
         change: marketData.quotes['^VIX'].change,
         changePct: marketData.quotes['^VIX'].changePct,
-      } : currentData.markets?.vix || null,
+      } : prev.vix || null,
       timestamp: marketData.summary.timestamp,
     };
 
