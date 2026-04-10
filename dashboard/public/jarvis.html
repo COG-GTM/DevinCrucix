@@ -87,6 +87,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.news{background:#81d4fa;box-shadow:0 0 6px rgba(129,212,250,0.4)}
 .ldot.space{background:#e0b0ff;box-shadow:0 0 6px rgba(224,176,255,0.4)}
 .ldot.narco{background:#ff4081;box-shadow:0 0 6px rgba(255,64,129,0.4)}
+.ldot.carrier{background:#4fc3f7;box-shadow:0 0 6px rgba(79,195,247,0.4)}
+.ldot.jamming{background:#ef5350;box-shadow:0 0 6px rgba(239,83,80,0.4)}
+.ldot.cctv{background:#66bb6a;box-shadow:0 0 6px rgba(102,187,106,0.4)}
 .layer-name{font-size:12px;font-weight:500}
 .layer-sub{font-size:10px;color:var(--dim)}
 .layer-count{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent)}
@@ -676,7 +679,10 @@ function renderLeftRail(){
     {name:t('layers.osintFeed','OSINT Feed'),count:D.tg.posts,dot:'incident',sub:`${D.tg.urgent.length} ${t('badges.urgent','urgent').toLowerCase()}`},
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`},
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`},
-    {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`}
+    {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`},
+    {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions'},
+    {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`},
+    {name:'CCTV Mesh',count:D.cctvMesh?.totalCameras||0,dot:'cctv',sub:`${Object.keys(D.cctvMesh?.sourceCounts||{}).length} sources`}
   ];
   // === PRC INTELLIGENCE SECTION ===
   const prcAir = D.air.find(a => a.region === 'Taiwan Strait') || {};
@@ -755,7 +761,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -1200,6 +1206,43 @@ function plotMarkers(){
     labels.push({lat:42, lng:-90, text:'MARKET INTEL', size:0.35, color:'rgba(0,229,255,0.7)'});
   }
 
+  // === Carrier Strike Groups (light blue, ship icon markers) ===
+  (D.carriers?.carriers||[]).forEach(c=>{
+    if(!c.lat||!c.lng) return;
+    points.push({
+      lat:c.lat, lng:c.lng, size:0.5, alt:0.025,
+      color:'rgba(79,195,247,0.95)', type:'carrier', priority:1,
+      popHead:c.name, popMeta:'Carrier Strike Group · '+c.source,
+      popText:`Region: ${c.desc}<br>Homeport: ${c.homeport}<br>Last update: ${c.lastUpdate?new Date(c.lastUpdate).toLocaleString():''}<br>${c.wiki?'<a href="'+c.wiki+'" target="_blank" style="color:var(--accent2)">Wikipedia</a>':''}`
+    });
+    labels.push({lat:c.lat, lng:c.lng+2, text:c.hull||c.name.split('(')[0].trim(), size:0.35, color:'rgba(79,195,247,0.8)'});
+  });
+
+  // === GPS Jamming Zones (red polygons rendered as large points) ===
+  (D.gpsJamming?.zones||[]).forEach(z=>{
+    if(!z.lat||!z.lng) return;
+    const sevColor = z.severity==='high' ? 'rgba(239,83,80,0.85)' : z.severity==='medium' ? 'rgba(255,152,0,0.75)' : 'rgba(255,235,59,0.6)';
+    const sevSize = z.severity==='high' ? 0.8 : z.severity==='medium' ? 0.6 : 0.4;
+    points.push({
+      lat:z.lat, lng:z.lng, size:sevSize, alt:0.01,
+      color:sevColor, type:'gps-jamming', priority:1,
+      popHead:'GPS JAMMING — '+z.severity.toUpperCase(), popMeta:`NACp Analysis · ${z.pctLabel} degraded`,
+      popText:`Region: ${z.region}<br>Degraded aircraft: ${z.degraded}/${z.total}<br>Severity: ${z.severity}<br>Grid: [${z.gridLat}, ${z.gridLng}]`
+    });
+    labels.push({lat:z.lat, lng:z.lng+1, text:z.pctLabel+' JAM', size:0.3, color:sevColor});
+  });
+
+  // === CCTV Cameras (green dots, small, priority 3 = only visible when zoomed in) ===
+  (D.cctvMesh?.cameras||[]).forEach(c=>{
+    if(!c.lat||!c.lng) return;
+    points.push({
+      lat:c.lat, lng:c.lng, size:0.12, alt:0.004,
+      color:'rgba(102,187,106,0.7)', type:'cctv', priority:3,
+      popHead:'CCTV: '+(c.name||'Camera'), popMeta:c.source+' · '+c.feedType,
+      popText:`${c.direction?'Direction: '+c.direction+'<br>':''}${c.feedUrl?'<a href="'+c.feedUrl+'" target="_blank" style="color:var(--accent2)">View Feed</a>':''}`
+    });
+  });
+
   // Set points on globe
   globe.pointsData(points);
   globe.labelsData(labels);
@@ -1509,6 +1552,30 @@ function plotFlatMarkers(){
       cG.append('path').datum({type:'Feature',geometry:{type:'LineString',coordinates:coords}}).attr('d',flatPath).attr('fill','none').attr('stroke','rgba(100,240,200,0.15)').attr('stroke-width',0.6);
     })});
   }
+  // Carrier Strike Groups (light blue diamond markers)
+  (D.carriers?.carriers||[]).forEach(c=>{
+    if(!c.lat||!c.lng) return;
+    const[x,y]=proj([c.lng,c.lat]);if(!x||!y)return;
+    const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',1)
+      .on('click',ev=>{ev.stopPropagation();showPopup(ev,c.name,`Region: ${c.desc||''}<br>Homeport: ${c.homeport||''}<br>Source: ${c.source||''}`,'Carrier Strike Group')});
+    g.append('rect').attr('x',-5).attr('y',-5).attr('width',10).attr('height',10).attr('fill','rgba(79,195,247,0.85)').attr('stroke','rgba(79,195,247,0.4)').attr('stroke-width',1).attr('transform','rotate(45)');
+    g.append('text').attr('class','marker-label').attr('x',10).attr('y',3).attr('fill','rgba(79,195,247,0.8)').attr('font-size','8px').attr('font-family','var(--mono)').text(c.hull||c.name);
+  });
+  // GPS Jamming Zones (red/orange/yellow circles by severity)
+  (D.gpsJamming?.zones||[]).forEach(z=>{
+    if(!z.lat||!z.lng) return;
+    const sevClr = z.severity==='high'?'rgba(239,83,80,0.6)':z.severity==='medium'?'rgba(255,152,0,0.5)':'rgba(255,235,59,0.4)';
+    const sevR = z.severity==='high'?8:z.severity==='medium'?6:4;
+    const g=addPt(z.lat,z.lng,sevR,sevClr,z.severity==='high'?'rgba(239,83,80,0.3)':'rgba(255,152,0,0.2)',
+      ev=>showPopup(ev,'GPS JAMMING — '+z.severity.toUpperCase(),`Region: ${z.region}<br>Degraded: ${z.degraded}/${z.total} (${z.pctLabel})`,'NACp Analysis'),1);
+    if(g) g.append('text').attr('class','marker-label').attr('x',sevR+2).attr('y',3).attr('fill',sevClr).attr('font-size','8px').attr('font-family','var(--mono)').text(z.pctLabel);
+  });
+  // CCTV Cameras (small green dots)
+  (D.cctvMesh?.cameras||[]).forEach(c=>{
+    if(!c.lat||!c.lng) return;
+    addPt(c.lat,c.lng,2,'rgba(102,187,106,0.6)','rgba(102,187,106,0.2)',
+      ev=>showPopup(ev,'CCTV: '+(c.name||'Camera'),`Source: ${c.source}<br>Type: ${c.feedType}${c.feedUrl?'<br><a href="'+c.feedUrl+'" target="_blank" style="color:var(--accent2)">View Feed</a>':''}`,c.source),3);
+  });
 }
 
 // Update setRegion for flat mode

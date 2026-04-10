@@ -262,6 +262,24 @@ app.get('/api/data', (req, res) => {
   res.json(currentData);
 });
 
+// API: carrier strike groups
+app.get('/api/carriers', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.carriers || { totalCarriers: 0, carriers: [] });
+});
+
+// API: GPS jamming zones
+app.get('/api/gps-jamming', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.gpsJamming || { totalZones: 0, zones: [] });
+});
+
+// API: CCTV mesh cameras
+app.get('/api/cctv', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.cctvMesh || { totalCameras: 0, cameras: [] });
+});
+
 // API: health check
 app.get('/api/health', (req, res) => {
   res.json({

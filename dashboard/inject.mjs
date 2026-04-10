@@ -803,6 +803,61 @@ export async function synthesize(data) {
         priorityAlerts: (uwData.priorityAlerts || []).slice(0, 5),
       };
     })(),
+    // Phase 3: Carrier Strike Groups
+    carriers: (() => {
+      const cData = data.sources.Carriers || {};
+      return {
+        totalCarriers: cData.totalCarriers || 0,
+        carriers: (cData.carriers || []).map(c => ({
+          hull: c.hull, name: c.name, type: c.type,
+          lat: c.lat, lng: c.lng, heading: c.heading,
+          homeport: c.homeport, desc: (c.desc || '').substring(0, 120),
+          wiki: c.wiki, estimated: c.estimated,
+          source: c.source, sourceUrl: c.sourceUrl,
+          lastUpdate: c.lastUpdate,
+        })),
+        sourceBreakdown: cData.sourceBreakdown || {},
+        signals: (cData.signals || []).slice(0, 10),
+      };
+    })(),
+    // Phase 3: GPS Jamming Detection
+    gpsJamming: (() => {
+      const gjData = data.sources.GPSJamming || {};
+      return {
+        status: gjData.status || 'unknown',
+        dataSource: gjData.dataSource || 'unknown',
+        totalZones: gjData.totalZones || 0,
+        zones: (gjData.zones || []).map(z => ({
+          lat: z.lat, lng: z.lng,
+          gridLat: z.gridLat, gridLng: z.gridLng, gridSize: z.gridSize,
+          severity: z.severity, ratio: z.ratio,
+          degraded: z.degraded, total: z.total,
+          pctLabel: z.pctLabel, region: z.region,
+        })),
+        aircraftAnalyzed: gjData.aircraftAnalyzed || 0,
+        totalDegraded: gjData.totalDegraded || 0,
+        severityBreakdown: gjData.severityBreakdown || {},
+        signals: (gjData.signals || []).slice(0, 5),
+      };
+    })(),
+    // Phase 3: CCTV Mesh
+    cctvMesh: (() => {
+      const ccData = data.sources.CCTV || {};
+      return {
+        status: ccData.status || 'unknown',
+        totalCameras: ccData.totalCameras || 0,
+        cameras: (ccData.cameras || []).slice(0, 500).map(c => ({
+          id: c.id, source: c.source,
+          lat: c.lat, lng: c.lng,
+          name: (c.name || '').substring(0, 80),
+          direction: c.direction || '',
+          feedUrl: c.feedUrl || '',
+          feedType: c.feedType || 'image',
+        })),
+        sourceCounts: ccData.sourceCounts || {},
+        sourceErrors: ccData.sourceErrors || {},
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),

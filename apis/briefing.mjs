@@ -47,6 +47,11 @@ import { briefing as insightcrime } from './sources/insightcrime.mjs';
 // === Tier 8: Market Intelligence ===
 import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
 
+// === Tier 9: Phase 3 Data Layers ===
+import { briefing as carriers } from './sources/carriers.mjs';
+import { briefing as gpsjamming } from './sources/gpsjamming.mjs';
+import { briefing as cctv } from './sources/cctv.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -56,7 +61,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT']); // sources that need extra time
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers']); // sources that need extra time
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
@@ -76,7 +81,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 30 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 33 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -127,6 +132,11 @@ export async function fullBriefing() {
 
     // Tier 8: Market Intelligence
     runSource('UnusualWhales', unusualwhales),
+
+    // Tier 9: Phase 3 Data Layers
+    runSource('Carriers', carriers),
+    runSource('GPSJamming', gpsjamming),
+    runSource('CCTV', cctv),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve
