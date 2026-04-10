@@ -176,6 +176,7 @@ async function fetchQuoteQuick(symbol) {
     if (!meta) return null;
 
     const price = meta.regularMarketPrice;
+    if (price == null) return null;
     const prevClose = meta.chartPreviousClose ?? meta.previousClose;
     const change = price && prevClose ? price - prevClose : 0;
     const changePct = prevClose ? (change / prevClose) * 100 : 0;
