@@ -18,6 +18,14 @@ import { generateLLMIdeas } from './lib/llm/ideas.mjs';
 import { TelegramAlerter } from './lib/alerts/telegram.mjs';
 import { DiscordAlerter } from './lib/alerts/discord.mjs';
 
+// Phase 4: Analytical Features
+import { computeCII } from './apis/sources/cii.mjs';
+import { computeConvergence } from './apis/sources/convergence.mjs';
+import { computeSignals } from './apis/sources/signals.mjs';
+import { computeFocalPoints } from './apis/sources/focalpoints.mjs';
+import { generateWorldBrief, generateCountryBrief } from './apis/sources/summarizer.mjs';
+import { classifyAll } from './apis/sources/threatclassifier.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
@@ -280,6 +288,73 @@ app.get('/api/cctv', (req, res) => {
   res.json(currentData.cctvMesh || { totalCameras: 0, cameras: [] });
 });
 
+// === Phase 4: Analytical Feature API Endpoints ===
+
+// API: Country Instability Index
+app.get('/api/cii', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.cii || { totalCountries: 0, countries: [] });
+});
+
+// API: Geographic Convergence
+app.get('/api/convergence', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.convergence || { totalZones: 0, zones: [] });
+});
+
+// API: Signal Intelligence
+app.get('/api/signals', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.signals || { totalSignals: 0, signals: [] });
+});
+
+// API: Focal Points
+app.get('/api/focal-points', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.focalPoints || { totalFocalPoints: 0, focalPoints: [] });
+});
+
+// API: AI Summarization (world brief)
+app.use(express.json());
+app.post('/api/summarize', async (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  try {
+    const allHeadlines = (currentData.newsFeed || []).map(n => ({
+      title: n.headline || n.title || '', source: n.source || 'Unknown', timestamp: n.timestamp,
+    }));
+    const result = await generateWorldBrief(allHeadlines, currentData.cii, currentData.focalPoints, req.body || {});
+    res.json(result);
+  } catch (err) {
+    console.error('[Crucix] Summarize error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Country brief
+app.get('/api/country-brief/:code', async (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  try {
+    const allHeadlines = (currentData.newsFeed || []).map(n => ({
+      title: n.headline || n.title || '', source: n.source || 'Unknown', timestamp: n.timestamp,
+    }));
+    const result = await generateCountryBrief(
+      req.params.code, allHeadlines, currentData.cii, currentData.focalPoints, currentData.signals, req.query || {},
+    );
+    res.json(result);
+  } catch (err) {
+    console.error('[Crucix] Country brief error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Threat classification
+app.get('/api/threat-classify', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  const headlines = (currentData.newsFeed || []).map(n => n.headline || n.title || '');
+  const result = classifyAll(headlines);
+  res.json(result);
+});
+
 // API: health check
 app.get('/api/health', (req, res) => {
   res.json({
@@ -355,6 +430,42 @@ async function runSweepCycle() {
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
     const synthesized = await synthesize(rawData);
+
+    // 3b. Phase 4: Compute analytical features post-sweep
+    try {
+      console.log('[Crucix] Computing Phase 4 analytical features...');
+
+      // Step 1: Convergence detection (uses raw source data)
+      const convergenceResult = computeConvergence(rawData.sources || {});
+      synthesized.convergence = convergenceResult;
+
+      // Step 2: CII (uses raw source data, no focal points yet)
+      const ciiResult = computeCII(rawData.sources || {}, null);
+      synthesized.cii = ciiResult;
+
+      // Step 3: Focal points (uses raw sources + convergence + CII)
+      const focalResult = computeFocalPoints(rawData.sources || {}, convergenceResult, ciiResult);
+      synthesized.focalPoints = focalResult;
+
+      // Step 4: Re-compute CII with focal point boosts
+      const criticalFocals = (focalResult.focalPoints || []).filter(f => f.urgency === 'Critical');
+      if (criticalFocals.length > 0) {
+        const ciiWithBoosts = computeCII(rawData.sources || {}, criticalFocals);
+        synthesized.cii = ciiWithBoosts;
+      }
+
+      // Step 5: Signals (uses raw sources + convergence + CII)
+      const signalsResult = computeSignals(rawData.sources || {}, convergenceResult, synthesized.cii);
+      synthesized.signals = signalsResult;
+
+      console.log(`[Crucix] Phase 4: CII ${ciiResult.totalCountries} countries | Convergence ${convergenceResult.totalZones} zones | Signals ${signalsResult.totalSignals} | Focal ${focalResult.totalFocalPoints}`);
+    } catch (phase4Err) {
+      console.error('[Crucix] Phase 4 analytics failed (non-fatal):', phase4Err.message);
+      synthesized.cii = synthesized.cii || { totalCountries: 0, countries: [] };
+      synthesized.convergence = synthesized.convergence || { totalZones: 0, zones: [] };
+      synthesized.signals = synthesized.signals || { totalSignals: 0, signals: [] };
+      synthesized.focalPoints = synthesized.focalPoints || { totalFocalPoints: 0, focalPoints: [] };
+    }
 
     // 4. Delta computation + memory
     const delta = memory.addRun(synthesized);

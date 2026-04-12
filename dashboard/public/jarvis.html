@@ -90,6 +90,44 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.carrier{background:#4fc3f7;box-shadow:0 0 6px rgba(79,195,247,0.4)}
 .ldot.jamming{background:#ef5350;box-shadow:0 0 6px rgba(239,83,80,0.4)}
 .ldot.cctv{background:#66bb6a;box-shadow:0 0 6px rgba(102,187,106,0.4)}
+.ldot.cii{background:#ff7043;box-shadow:0 0 6px rgba(255,112,67,0.4)}
+.ldot.convergence{background:#ab47bc;box-shadow:0 0 6px rgba(171,71,188,0.4)}
+.ldot.sigint{background:#ffd54f;box-shadow:0 0 6px rgba(255,213,79,0.4)}
+.ldot.focal{background:#26c6da;box-shadow:0 0 6px rgba(38,198,218,0.4)}
+/* Phase 4: CII Panel */
+.cii-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s}
+.cii-row:hover{background:rgba(100,240,200,0.04)}
+.cii-flag{font-size:12px;width:20px;text-align:center}
+.cii-name{font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cii-bar{width:60px;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;flex-shrink:0}
+.cii-bar-fill{height:100%;border-radius:3px;transition:width 0.3s}
+.cii-score{font-family:var(--mono);font-size:11px;font-weight:600;width:28px;text-align:right;flex-shrink:0}
+.cii-trend{font-family:var(--mono);font-size:10px;width:14px;text-align:center;flex-shrink:0}
+.cii-level{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;padding:1px 4px;border-radius:2px;flex-shrink:0}
+/* Phase 4: Signal Intelligence Panel */
+.sig-row{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s}
+.sig-row:hover{background:rgba(100,240,200,0.04)}
+.sig-type{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:1px 5px;border-radius:2px;margin-right:4px}
+.sig-conf{font-family:var(--mono);font-size:10px;font-weight:600}
+.sig-title{font-size:11px;line-height:1.3;margin-top:3px;color:#c8d8d2}
+.sig-meta{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px}
+.sig-propaganda{font-family:var(--mono);font-size:8px;color:#ff5252;border:1px solid rgba(255,82,82,0.3);padding:0 3px;border-radius:2px;margin-left:4px}
+/* Phase 4: Focal Points Panel */
+.fp-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s}
+.fp-row:hover{background:rgba(100,240,200,0.04)}
+.fp-urgency{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;padding:1px 4px;border-radius:2px;flex-shrink:0}
+.fp-name{font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-score{font-family:var(--mono);font-size:11px;font-weight:600;width:24px;text-align:right;flex-shrink:0}
+.fp-signals{font-size:10px;flex-shrink:0}
+/* Phase 4: Threat Badge */
+.threat-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.06em;padding:1px 4px;border-radius:2px;display:inline-block;margin-left:4px}
+.threat-critical{background:rgba(255,82,82,0.2);color:#ff5252;border:1px solid rgba(255,82,82,0.3)}
+.threat-high{background:rgba(255,152,0,0.15);color:#ff9800;border:1px solid rgba(255,152,0,0.3)}
+.threat-medium{background:rgba(255,213,79,0.12);color:#ffd54f;border:1px solid rgba(255,213,79,0.25)}
+/* Phase 4: CII Warmup */
+.cii-warmup{padding:6px 8px;border:1px solid rgba(255,184,76,0.2);background:rgba(255,184,76,0.05);font-family:var(--mono);font-size:9px;color:var(--warn);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.cii-warmup-bar{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.cii-warmup-fill{height:100%;background:var(--warn);border-radius:2px;transition:width 0.3s}
 .layer-name{font-size:12px;font-weight:500}
 .layer-sub{font-size:10px;color:var(--dim)}
 .layer-count{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent)}
@@ -682,7 +720,11 @@ function renderLeftRail(){
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`},
-    {name:'CCTV Mesh',count:D.cctvMesh?.totalCameras||0,dot:'cctv',sub:`${Object.keys(D.cctvMesh?.sourceCounts||{}).length} sources`}
+    {name:'CCTV Mesh',count:D.cctvMesh?.totalCameras||0,dot:'cctv',sub:`${Object.keys(D.cctvMesh?.sourceCounts||{}).length} sources`},
+    {name:'Instability Index',count:D.cii?.totalCountries||0,dot:'cii',sub:`${((D.cii?.countries||[]).filter(c=>c.level==='Critical'||c.level==='High').length)||0} critical/high`},
+    {name:'Convergence',count:D.convergence?.totalZones||0,dot:'convergence',sub:'multi-source zones'},
+    {name:'Signal Intel',count:D.signals?.totalSignals||0,dot:'sigint',sub:`${Object.keys(D.signals?.byType||{}).length} types`},
+    {name:'Focal Points',count:D.focalPoints?.totalFocalPoints||0,dot:'focal',sub:`${((D.focalPoints?.focalPoints||[]).filter(f=>f.urgency==='Critical').length)||0} critical`}
   ];
   // === PRC INTELLIGENCE SECTION ===
   const prcAir = D.air.find(a => a.region === 'Taiwan Strait') || {};
@@ -761,7 +803,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'},{c:'#ff7043',l:'CII Hotspot'},{c:'#ab47bc',l:'Convergence Zone'},{c:'#ffd54f',l:'Signal Intel'},{c:'#26c6da',l:'Focal Point'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -1883,6 +1925,62 @@ function renderLower(){
   document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
 }
 
+// === Phase 4: Panel Renderers ===
+function renderCIIPanel(){
+  const cii = D.cii || {};
+  const countries = (cii.countries || []).slice(0, 12);
+  if (countries.length === 0) {
+    return `<div class="g-panel"><div class="sec-head"><h3>Country Instability</h3><span class="badge">CII</span></div><div style="padding:8px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">Awaiting sweep data</div></div>`;
+  }
+  const warmupHtml = cii.warmingUp ? `<div class="cii-warmup"><span>LEARNING MODE</span><div class="cii-warmup-bar"><div class="cii-warmup-fill" style="width:${cii.warmupProgress||0}%"></div></div><span>${cii.warmupProgress||0}%</span></div>` : '';
+  const levelColors = {Critical:'#ff5252',High:'#ff9800',Elevated:'#ffd54f',Normal:'#9e9e9e',Low:'#4caf50'};
+  const trendArrows = {Rising:'\u2191',Falling:'\u2193',Stable:'\u2192'};
+  const trendColors = {Rising:'#ff5252',Falling:'#4caf50',Stable:'var(--dim)'};
+  const rows = countries.map(c => {
+    const color = levelColors[c.level] || '#9e9e9e';
+    const opacity = cii.warmingUp ? 'opacity:0.6' : '';
+    return `<div class="cii-row" style="${opacity}" title="${c.name}: ${c.score}/100 (${c.level})"><span class="cii-name">${c.name}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${c.score}%;background:${color}"></div></div><span class="cii-score" style="color:${color}">${c.score}</span><span class="cii-trend" style="color:${trendColors[c.trend]||'var(--dim)'}">${trendArrows[c.trend]||'\u2192'}</span><span class="cii-level" style="color:${color};border:1px solid ${color}40;background:${color}15">${c.level}</span></div>`;
+  }).join('');
+  const critCount = countries.filter(c => c.level === 'Critical').length;
+  const highCount = countries.filter(c => c.level === 'High').length;
+  const badgeText = critCount > 0 ? `${critCount} CRITICAL` : highCount > 0 ? `${highCount} HIGH` : 'STABLE';
+  const badgeStyle = critCount > 0 ? 'color:#ff5252;border-color:rgba(255,82,82,0.3)' : highCount > 0 ? 'color:#ff9800;border-color:rgba(255,152,0,0.3)' : '';
+  return `<div class="g-panel"><div class="sec-head"><h3>Country Instability Index</h3><span class="badge" style="${badgeStyle}">${badgeText}</span></div>${warmupHtml}${rows}</div>`;
+}
+
+function renderSignalIntelPanel(){
+  const sig = D.signals || {};
+  const signals = (sig.signals || []).slice(0, 6);
+  if (signals.length === 0) {
+    return `<div class="g-panel"><div class="sec-head"><h3>Signal Intelligence</h3><span class="badge">SIGINT</span></div><div style="padding:8px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">No active signals</div></div>`;
+  }
+  const typeColors = {convergence:'#ab47bc',triangulation:'#42a5f5',velocity_spike:'#ff7043',geo_convergence:'#66bb6a',hotspot_escalation:'#ff5252',military_surge:'#ef5350'};
+  const rows = signals.map(s => {
+    const color = typeColors[s.type] || '#ffd54f';
+    const typeLabel = (s.type || '').replace(/_/g, ' ');
+    const propFlags = (s.propagandaFlags || []).map(f => `<span class="sig-propaganda">${f}</span>`).join('');
+    return `<div class="sig-row"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="sig-type" style="color:${color};border:1px solid ${color}40;background:${color}15">${typeLabel}</span><span class="sig-conf" style="color:${color}">${s.confidence}%</span>${propFlags}</div><div class="sig-title">${(s.title || '').substring(0, 120)}</div><div class="sig-meta">${s.sources ? s.sources.slice(0,3).join(' \u00b7 ') : ''}</div></div>`;
+  }).join('');
+  return `<div class="g-panel"><div class="sec-head"><h3>Signal Intelligence</h3><span class="badge">${sig.totalSignals||0} ACTIVE</span></div>${rows}</div>`;
+}
+
+function renderFocalPointsPanel(){
+  const fp = D.focalPoints || {};
+  const points = (fp.focalPoints || []).slice(0, 8);
+  if (points.length === 0) {
+    return `<div class="g-panel"><div class="sec-head"><h3>Focal Points</h3><span class="badge">ENTITIES</span></div><div style="padding:8px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">No focal entities detected</div></div>`;
+  }
+  const urgencyColors = {Critical:'#ff5252',Elevated:'#ff9800',Watch:'#ffd54f'};
+  const signalIcons = {military_flight:'\u2708\uFE0F',military_vessel:'\u2693',protest:'\uD83D\uDCE2',internet_outage:'\uD83C\uDF10',earthquake:'\uD83C\uDF0B'};
+  const rows = points.map(f => {
+    const color = urgencyColors[f.urgency] || '#ffd54f';
+    const icons = (f.signalTypes || []).map(st => signalIcons[st] || '\u26A0\uFE0F').join('');
+    return `<div class="fp-row" title="${f.name}: score ${f.score} (${f.urgency})"><span class="fp-urgency" style="color:${color};border:1px solid ${color}40;background:${color}15">${f.urgency}</span><span class="fp-name">${f.name}</span><span class="fp-signals">${icons}</span><span class="fp-score" style="color:${color}">${f.score}</span></div>`;
+  }).join('');
+  const critCount = points.filter(f => f.urgency === 'Critical').length;
+  return `<div class="g-panel"><div class="sec-head"><h3>Focal Points</h3><span class="badge">${critCount > 0 ? critCount + ' CRITICAL' : points.length + ' TRACKED'}</span></div>${rows}</div>`;
+}
+
 // === RIGHT RAIL ===
 function renderRight(){
   const mobile = isMobileLayout();
@@ -1945,6 +2043,9 @@ function renderRight(){
         return `<div style="margin-top:8px;border-top:1px solid rgba(244,67,54,0.15);padding-top:8px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:#f44336;margin-bottom:4px;display:flex;align-items:center;gap:4px"><span style="background:#f44336;width:5px;height:5px;border-radius:50%;display:inline-block;box-shadow:0 0 4px rgba(244,67,54,0.5)"></span>PRC TENSION INDEX</div><div class="prc-gauge"><div class="prc-gauge-bar"><div class="prc-gauge-fill" style="width:${tensionScore}%;background:${tensionColor}"></div></div><span class="prc-gauge-label" style="color:${tensionColor}">${tensionLevel}</span></div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;gap:8px;flex-wrap:wrap"><span>Air: ${prcAirCount}</span><span>GDELT: ${gdeltPRCR}</span><span>ISR: ${adsbPRCR}</span><span>Score: ${tensionScore}/100</span></div></div>`;
       })()}
     </div>
+    ${renderCIIPanel()}
+    ${renderSignalIntelPanel()}
+    ${renderFocalPointsPanel()}
     <div class="g-panel right-delta">
       <div class="sec-head"><h3>${t('panels.sweepDelta','Sweep Delta')}</h3><span class="badge ${dirClass}">${dirEmoji} ${ds.direction?t('delta.'+ds.direction,ds.direction.toUpperCase()):t('delta.baseline','BASELINE')}</span></div>
       ${hasDelta?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:10px">
