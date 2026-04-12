@@ -245,6 +245,7 @@ if (discordAlerter.isConfigured) {
 
 // === Express Server ===
 const app = express();
+app.use(express.json());
 app.use(express.static(join(ROOT, 'dashboard/public')));
 
 // Serve loading page until first sweep completes, then the dashboard with injected locale
@@ -315,7 +316,6 @@ app.get('/api/focal-points', (req, res) => {
 });
 
 // API: AI Summarization (world brief)
-app.use(express.json());
 app.post('/api/summarize', async (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   try {
