@@ -858,6 +858,85 @@ export async function synthesize(data) {
         sourceErrors: ccData.sourceErrors || {},
       };
     })(),
+    // Phase 4: Analytical Features (computed post-sweep, stubs here for inject.mjs CLI mode)
+    cii: (() => {
+      const ciiData = data.sources.CII || {};
+      return {
+        source: ciiData.source || 'CII',
+        status: ciiData.status || 'deferred',
+        totalCountries: ciiData.totalCountries || 0,
+        countries: (ciiData.countries || []).map(c => ({
+          code: c.code, name: c.name, lat: c.lat, lng: c.lng,
+          score: c.score, level: c.level, color: c.color,
+          trend: c.trend, trendDelta: c.trendDelta,
+          components: c.components || {},
+          boosts: c.boosts || {},
+          topHeadlines: (c.topHeadlines || []).slice(0, 5),
+        })),
+        warmingUp: ciiData.warmingUp || false,
+        warmupProgress: ciiData.warmupProgress || 100,
+        levelBreakdown: ciiData.levelBreakdown || {},
+        signals: (ciiData.signals || []).slice(0, 10),
+      };
+    })(),
+    convergence: (() => {
+      const convData = data.sources.Convergence || {};
+      return {
+        source: convData.source || 'Convergence',
+        status: convData.status || 'deferred',
+        totalZones: convData.totalZones || 0,
+        zones: (convData.zones || []).map(z => ({
+          key: z.key, lat: z.lat, lng: z.lng,
+          gridLat: z.gridLat, gridLng: z.gridLng, gridSize: z.gridSize || 1.0,
+          eventTypes: z.eventTypes || [], typeCount: z.typeCount || 0,
+          totalEvents: z.totalEvents || 0, typeCounts: z.typeCounts || {},
+          score: z.score, alertLevel: z.alertLevel, color: z.color,
+        })),
+        levelBreakdown: convData.levelBreakdown || {},
+        signals: (convData.signals || []).slice(0, 5),
+      };
+    })(),
+    signals: (() => {
+      const sigData = data.sources.Signals || {};
+      return {
+        source: sigData.source || 'Signals',
+        status: sigData.status || 'deferred',
+        totalSignals: sigData.totalSignals || 0,
+        signals: (sigData.signals || []).slice(0, 20).map(s => ({
+          type: s.type, confidence: s.confidence,
+          title: (s.title || '').substring(0, 200),
+          sources: (s.sources || []).slice(0, 5),
+          whyItMatters: (s.whyItMatters || '').substring(0, 300),
+          actionableInsight: (s.actionableInsight || '').substring(0, 300),
+          timestamp: s.timestamp,
+          propagandaFlags: s.propagandaFlags || [],
+          lat: s.lat, lng: s.lng,
+          countryCode: s.countryCode, countryName: s.countryName,
+        })),
+        byType: sigData.byType || {},
+      };
+    })(),
+    focalPoints: (() => {
+      const fpData = data.sources.FocalPoints || {};
+      return {
+        source: fpData.source || 'FocalPoints',
+        status: fpData.status || 'deferred',
+        totalFocalPoints: fpData.totalFocalPoints || 0,
+        focalPoints: (fpData.focalPoints || []).slice(0, 30).map(f => ({
+          entityId: f.entityId, name: f.name, type: f.type, sector: f.sector,
+          countryCode: f.countryCode,
+          score: f.score, urgency: f.urgency,
+          components: f.components || {},
+          mentions: f.mentions,
+          topHeadlines: (f.topHeadlines || []).slice(0, 5),
+          signalTypes: f.signalTypes || [],
+          narrative: (f.narrative || '').substring(0, 300),
+          lat: f.lat, lng: f.lng,
+        })),
+        urgencyBreakdown: fpData.urgencyBreakdown || {},
+        signals: (fpData.signals || []).slice(0, 5),
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),

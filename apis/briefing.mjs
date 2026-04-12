@@ -52,6 +52,13 @@ import { briefing as carriers } from './sources/carriers.mjs';
 import { briefing as gpsjamming } from './sources/gpsjamming.mjs';
 import { briefing as cctv } from './sources/cctv.mjs';
 
+// === Tier 10: Phase 4 Analytical Features ===
+import { briefing as cii } from './sources/cii.mjs';
+import { briefing as convergence } from './sources/convergence.mjs';
+import { briefing as signals } from './sources/signals.mjs';
+import { briefing as focalpoints } from './sources/focalpoints.mjs';
+import { briefing as summarizer } from './sources/summarizer.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -81,7 +88,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 33 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 38 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -137,6 +144,13 @@ export async function fullBriefing() {
     runSource('Carriers', carriers),
     runSource('GPSJamming', gpsjamming),
     runSource('CCTV', cctv),
+
+    // Tier 10: Phase 4 Analytical Features (stubs — computed post-sweep)
+    runSource('CII', cii),
+    runSource('Convergence', convergence),
+    runSource('Signals', signals),
+    runSource('FocalPoints', focalpoints),
+    runSource('Summarizer', summarizer),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve
