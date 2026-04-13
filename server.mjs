@@ -26,6 +26,10 @@ import { computeFocalPoints } from './apis/sources/focalpoints.mjs';
 import { generateWorldBrief, generateCountryBrief } from './apis/sources/summarizer.mjs';
 import { classifyAll } from './apis/sources/threatclassifier.mjs';
 
+// Phase 5: New Features
+import { startTelegramLive, getTelegramFeed, getTelegramChannels, setTelegramChannels } from './apis/sources/telegramlive.mjs';
+import { computeDefcon } from './apis/sources/defcon.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
@@ -347,6 +351,50 @@ app.get('/api/country-brief/:code', async (req, res) => {
   }
 });
 
+// === Phase 5: Feature API Endpoints ===
+
+// API: Pentagon Pizza Index
+app.get('/api/pizza-index', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.pizzaIndex || { status: 'unavailable', doughcon: null });
+});
+
+// API: CISA KEV Cyber Threat Layer
+app.get('/api/cyber/kev', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.cyberKev || { totalVulnerabilities: 0, vulnerabilities: [] });
+});
+
+// API: Telegram OSINT Live Feed
+app.get('/api/telegram/feed', (req, res) => {
+  res.json(getTelegramFeed());
+});
+
+// API: Telegram channels list
+app.get('/api/telegram/channels', (req, res) => {
+  res.json(getTelegramChannels());
+});
+
+// API: Update Telegram channels
+app.post('/api/telegram/channels', (req, res) => {
+  const { channels } = req.body || {};
+  const result = setTelegramChannels(channels);
+  if (result.error) return res.status(400).json(result);
+  res.json(result);
+});
+
+// API: Polymarket Geopolitical Odds
+app.get('/api/prediction-markets', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.polymarket || { totalGeoMarkets: 0, markets: [] });
+});
+
+// API: DEFCON Threat Meter
+app.get('/api/defcon', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.defcon || { level: 5, score: 0, color: '#00ff41' });
+});
+
 // API: Threat classification
 app.get('/api/threat-classify', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
@@ -459,12 +507,31 @@ async function runSweepCycle() {
       synthesized.signals = signalsResult;
 
       console.log(`[Crucix] Phase 4: CII ${ciiResult.totalCountries} countries | Convergence ${convergenceResult.totalZones} zones | Signals ${signalsResult.totalSignals} | Focal ${focalResult.totalFocalPoints}`);
+
+      // Step 6: DEFCON Threat Meter (uses all components)
+      try {
+        const defconResult = computeDefcon(
+          rawData.sources || {},
+          {
+            cii: synthesized.cii,
+            convergence: synthesized.convergence,
+            signals: synthesized.signals,
+            polymarket: synthesized.polymarket,
+          }
+        );
+        synthesized.defcon = defconResult;
+        console.log(`[Crucix] Phase 5: DEFCON ${defconResult.level} (score ${defconResult.score})`);
+      } catch (defconErr) {
+        console.error('[Crucix] DEFCON computation failed (non-fatal):', defconErr.message);
+        synthesized.defcon = { level: 5, score: 0, color: '#00ff41', label: 'NORMAL READINESS', pulse: false, components: {}, fallbackMode: true };
+      }
     } catch (phase4Err) {
       console.error('[Crucix] Phase 4 analytics failed (non-fatal):', phase4Err.message);
       synthesized.cii = synthesized.cii || { totalCountries: 0, countries: [] };
       synthesized.convergence = synthesized.convergence || { totalZones: 0, zones: [] };
       synthesized.signals = synthesized.signals || { totalSignals: 0, signals: [] };
       synthesized.focalPoints = synthesized.focalPoints || { totalFocalPoints: 0, focalPoints: [] };
+      synthesized.defcon = synthesized.defcon || { level: 5, score: 0, color: '#00ff41', label: 'NORMAL READINESS', pulse: false, components: {}, fallbackMode: true };
     }
 
     // 4. Delta computation + memory
@@ -618,6 +685,10 @@ async function start() {
 
   server.on('listening', async () => {
     console.log(`[Crucix] Server running on http://localhost:${port}`);
+
+    // Start Telegram OSINT background scraper
+    startTelegramLive();
+    console.log('[Crucix] Telegram OSINT live scraper started');
 
     // Auto-open browser
     // NOTE: On Windows, `start` in PowerShell is an alias for Start-Service, not cmd's start.
