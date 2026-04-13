@@ -172,6 +172,8 @@ export async function briefing() {
       prcRelevant,
       lat: loc.lat + (Math.random() - 0.5) * 0.5, // jitter to avoid overlap
       lng: loc.lng + (Math.random() - 0.5) * 0.5,
+      baseLat: loc.lat,
+      baseLng: loc.lng,
       vendorCountry: loc.country,
       nvdUrl: `https://nvd.nist.gov/vuln/detail/${v.cveID}`,
     };
@@ -181,7 +183,7 @@ export async function briefing() {
   const byCountry = {};
   for (const v of enriched) {
     const key = v.vendorCountry || 'US';
-    if (!byCountry[key]) byCountry[key] = { count: 0, lat: v.lat, lng: v.lng };
+    if (!byCountry[key]) byCountry[key] = { count: 0, lat: v.baseLat, lng: v.baseLng };
     byCountry[key].count++;
   }
   const globeMarkers = Object.entries(byCountry).map(([country, data]) => ({

@@ -248,7 +248,7 @@ export function setTelegramChannels(channels) {
   if (!Array.isArray(channels) || channels.length === 0) {
     return { error: 'channels must be a non-empty array' };
   }
-  const cleaned = channels.map(c => c.trim()).filter(Boolean);
+  const cleaned = channels.map(c => (typeof c === 'string' ? c.trim() : String(c).trim())).filter(Boolean);
   if (cleaned.length === 0) {
     return { error: 'channels must contain at least one non-empty value' };
   }
