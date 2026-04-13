@@ -248,7 +248,11 @@ export function setTelegramChannels(channels) {
   if (!Array.isArray(channels) || channels.length === 0) {
     return { error: 'channels must be a non-empty array' };
   }
-  _channels = channels.map(c => c.trim()).filter(Boolean);
+  const cleaned = channels.map(c => c.trim()).filter(Boolean);
+  if (cleaned.length === 0) {
+    return { error: 'channels must contain at least one non-empty value' };
+  }
+  _channels = cleaned;
   saveState();
   console.log(`[TelegramLive] Channels updated: ${_channels.join(', ')}`);
   return { status: 'ok', channels: _channels };

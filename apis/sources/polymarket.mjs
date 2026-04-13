@@ -108,6 +108,16 @@ export async function briefing() {
     const markets1 = Array.isArray(r1) ? r1 : [];
     const markets2 = Array.isArray(r2) ? r2 : [];
 
+    // If both fetches failed, report as unavailable
+    if (!Array.isArray(r1) && !Array.isArray(r2)) {
+      if (_cache) return _cache;
+      return {
+        source: 'Polymarket', timestamp: new Date().toISOString(), status: 'unavailable',
+        error: r1?.error || r2?.error || 'API unreachable',
+        totalGeoMarkets: 0, markets: [], allMarkets: [], avgGeoRisk: 50, signals: [],
+      };
+    }
+
     // Filter to geopolitical, non-sports, valid markets
     const geoMarkets = [];
     const seen = new Set();

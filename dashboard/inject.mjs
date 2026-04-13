@@ -983,7 +983,7 @@ export async function synthesize(data) {
         status: tlData.status || 'stopped',
         totalMessages: tlData.totalMessages || 0,
         channels: tlData.channels || 0,
-        recentMessages: (tlData.recentMessages || []).slice(0, 15),
+        recentMessages: (tlData.recentMessages || []).slice(0, 15).map(m => ({ ...m, url: sanitizeExternalUrl(m.url) })),
       };
     })(),
     // Phase 5: Polymarket Geopolitical Odds
