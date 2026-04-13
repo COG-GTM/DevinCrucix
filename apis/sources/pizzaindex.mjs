@@ -54,8 +54,8 @@ export async function fetchPizzaIndex() {
       const oldest = graphPoints.slice(-6, -3).map(p => p.avgWait);
       if (oldest.length > 0) {
         const oldAvg = oldest.reduce((a, b) => a + b, 0) / oldest.length;
-        if (avg > oldAvg * 1.15) trend = 'rising';
-        else if (avg < oldAvg * 0.85) trend = 'falling';
+        if (avg > oldAvg * 1.15) trend = 'increasing';
+        else if (avg < oldAvg * 0.85) trend = 'decreasing';
       }
     }
 

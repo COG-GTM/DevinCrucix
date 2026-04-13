@@ -948,7 +948,7 @@ export async function synthesize(data) {
         storesOpen: piData.storesOpen || 0,
         totalStores: piData.totalStores || 0,
         trend: piData.trend || 'stable',
-        graph: (piData.graph || []).slice(-24),
+        graph: (piData.graph || []).slice(-24).map(g => typeof g === 'number' ? g : (g.avgWait || g.avg_wait || 0)),
         signals: piData.signals || [],
       };
     })(),
