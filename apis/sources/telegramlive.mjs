@@ -85,7 +85,9 @@ function parseWebPreview(html, channel) {
         .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
         .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
         .replace(/&nbsp;/g, ' ')
-        .trim();
+        .trim()
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
 
     // Extract timestamp

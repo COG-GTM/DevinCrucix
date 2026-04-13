@@ -2048,7 +2048,7 @@ function renderCyberKevPanel(){
     if (v.ransomware) tags.push('<span class="kev-tag ransomware">RANSOMWARE</span>');
     if (v.prcRelevant) tags.push('<span class="kev-tag prc">PRC</span>');
     (v.categories || []).slice(0, 2).forEach(c => tags.push(`<span class="kev-tag low">${c}</span>`));
-    return `<div class="kev-row"><div class="kev-cve">${v.cveID || ''} &middot; ${v.vendor || ''}</div><div class="kev-name">${cleanText(v.name || '')}</div><div class="kev-meta">${tags.join('')}</div></div>`;
+    return `<div class="kev-row"><div class="kev-cve">${cleanText(v.cveID || '')} &middot; ${cleanText(v.vendor || '')}</div><div class="kev-name">${cleanText(v.name || '')}</div><div class="kev-meta">${tags.join('')}</div></div>`;
   }).join('');
   const prcBadge = ck.prcRelevantCount > 0 ? ` &middot; <span style="color:#ff4081">${ck.prcRelevantCount} PRC</span>` : '';
   return `<div class="g-panel"><div class="sec-head"><h3>CISA KEV Threats</h3><span class="badge" style="background:rgba(66,165,245,0.1);color:#42a5f5;border-color:rgba(66,165,245,0.3)">${ck.totalVulnerabilities||0} CVEs${prcBadge}</span></div><div class="kev-scroll">${vulns}</div></div>`;
