@@ -1014,7 +1014,7 @@ export async function synthesize(data) {
         label: dcData.label || 'NORMAL READINESS',
         pulse: dcData.pulse || false,
         components: dcData.components || {},
-        fallbackMode: dcData.fallbackMode || true,
+        fallbackMode: dcData.fallbackMode ?? true,
       };
     })(),
     ideas: [], ideasSource: 'disabled',

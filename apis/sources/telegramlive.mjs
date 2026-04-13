@@ -10,12 +10,9 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_FILE = join(__dirname, '../../runs/telegram_live.json');
 
-const DEFAULT_CHANNELS = [
-  'ConflictsTracker',
-  'OSINTWarfare',
-  'monitor_the_situation',
-  'inaboringworld',
-];
+const DEFAULT_CHANNELS = process.env.TELEGRAM_OSINT_CHANNELS
+  ? process.env.TELEGRAM_OSINT_CHANNELS.split(',').map(c => c.trim()).filter(Boolean)
+  : ['ConflictsTracker', 'OSINTWarfare', 'monitor_the_situation', 'inaboringworld'];
 
 const MIN_POLL_INTERVAL_MS = 15_000; // 15s min between polls per channel
 const POLL_CYCLE_MS = 30_000;        // 30s between full poll cycles
