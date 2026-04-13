@@ -18,9 +18,12 @@ export async function searchEvents(query = '', opts = {}) {
   } = opts;
 
   // If no query, use broad geopolitical terms
-  const q = query || 'conflict OR crisis OR military OR sanctions OR war OR economy';
+  // GDELT requires OR'd terms to be wrapped in parentheses
+  const q = query || '(conflict OR crisis OR military OR sanctions OR war OR economy)';
+  // Ensure OR queries are parenthesized
+  const finalQ = (q.includes(' OR ') && !q.startsWith('(')) ? `(${q})` : q;
   const params = new URLSearchParams({
-    query: q,
+    query: finalQ,
     mode,
     maxrecords: String(maxRecords),
     timespan,
@@ -28,29 +31,7 @@ export async function searchEvents(query = '', opts = {}) {
     sort: sortBy,
   });
 
-  return safeFetch(`${BASE}/doc/doc?${params}`);
-}
-
-// Get tone/sentiment timeline for a topic
-export async function toneTrend(query, timespan = '7d') {
-  const params = new URLSearchParams({
-    query,
-    mode: 'TimelineTone',
-    timespan,
-    format: 'json',
-  });
-  return safeFetch(`${BASE}/doc/doc?${params}`);
-}
-
-// Get volume timeline for a topic (how much coverage)
-export async function volumeTrend(query, timespan = '7d') {
-  const params = new URLSearchParams({
-    query,
-    mode: 'TimelineVol',
-    timespan,
-    format: 'json',
-  });
-  return safeFetch(`${BASE}/doc/doc?${params}`);
+  return safeFetch(`${BASE}/doc/doc?${params}`, { timeout: 20000, retries: 0 });
 }
 
 // GEO API — geographic event mapping
@@ -62,7 +43,8 @@ export async function geoEvents(query = '', opts = {}) {
     maxPoints = 500,
   } = opts;
 
-  const q = query || 'conflict OR military OR protest OR explosion';
+  const raw = query || '(conflict OR military OR protest OR explosion)';
+  const q = (raw.includes(' OR ') && !raw.startsWith('(')) ? `(${raw})` : raw;
   const params = new URLSearchParams({
     query: q,
     mode,
@@ -71,7 +53,7 @@ export async function geoEvents(query = '', opts = {}) {
     maxpoints: String(maxPoints),
   });
 
-  return safeFetch(`${BASE}/geo/geo?${params}`);
+  return safeFetch(`${BASE}/geo/geo?${params}`, { timeout: 15000, retries: 0 });
 }
 
 // Compact article for briefing
@@ -86,16 +68,66 @@ function compactArticle(a) {
   };
 }
 
+// Monitored regions for tone scoring
+const MONITORED_REGIONS = [
+  { name: 'Ukraine/Russia', query: 'Ukraine OR Russia OR Kyiv OR Moscow' },
+  { name: 'Middle East', query: 'Iran OR Israel OR Gaza OR Syria OR Iraq OR Yemen' },
+  { name: 'East Asia', query: 'China OR Taiwan OR North Korea OR South China Sea' },
+  { name: 'Africa', query: 'Sudan OR Ethiopia OR Somalia OR Congo OR Sahel' },
+  { name: 'Latin America', query: 'Venezuela OR Colombia OR Mexico cartel OR Central America' },
+];
+
+// Geographic clustering — group events by proximity
+function clusterGeoPoints(points, radiusDeg = 2) {
+  const clusters = [];
+  const used = new Set();
+  for (let i = 0; i < points.length; i++) {
+    if (used.has(i)) continue;
+    const cluster = { lat: points[i].lat, lon: points[i].lon, count: points[i].count || 1, names: [points[i].name], points: [points[i]] };
+    used.add(i);
+    for (let j = i + 1; j < points.length; j++) {
+      if (used.has(j)) continue;
+      const dLat = Math.abs(points[j].lat - cluster.lat);
+      const dLon = Math.abs(points[j].lon - cluster.lon);
+      if (dLat < radiusDeg && dLon < radiusDeg) {
+        cluster.count += points[j].count || 1;
+        cluster.names.push(points[j].name);
+        cluster.points.push(points[j]);
+        // Update centroid
+        cluster.lat = (cluster.lat + points[j].lat) / 2;
+        cluster.lon = (cluster.lon + points[j].lon) / 2;
+        used.add(j);
+      }
+    }
+    cluster.label = cluster.names.filter(Boolean).slice(0, 3).join(', ') || 'Event cluster';
+    clusters.push(cluster);
+  }
+  return clusters.sort((a, b) => b.count - a.count);
+}
+
 // GDELT rate limit: 1 request per 5 seconds
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Briefing mode — get top global events summary (sequential due to rate limit)
+// Briefing mode — full integration with regional coverage + geographic clustering
 export async function briefing() {
-  // Single broad query to stay within rate limits
-  const all = await searchEvents(
-    'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
-    { maxRecords: 50, timespan: '24h' }
-  );
+  // Stagger start to avoid rate-limit collisions with other concurrent sources
+  await delay(5000);
+
+  // Broad query for global events — retry up to 3 times if rate-limited
+  let all;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await delay(7000); // GDELT rate limit: 1 req per 5s + buffer
+    all = await searchEvents(
+      'conflict OR military OR economy OR crisis OR war OR sanctions OR tariff OR strike OR outbreak',
+      { maxRecords: 75, timespan: '24h' }
+    );
+    // If we got articles, stop retrying
+    if (all?.articles?.length > 0) break;
+    // If it's a real error (not rate-limit), stop retrying
+    if (all?.error && !all.error.includes('429') && !all.error.includes('Please limit requests')) break;
+    // rawText means we got a non-JSON response (likely rate limit message)
+    if (all?.rawText && !all.rawText.includes('Please limit requests')) break;
+  }
 
   const articles = (all?.articles || []).map(compactArticle);
 
@@ -104,11 +136,28 @@ export async function briefing() {
     keywords.some(k => a.title?.toLowerCase().includes(k))
   );
 
-  // Geo events — get mapped event locations (separate API, respects rate limit)
-  await delay(5500);
+  // Regional article coverage — count articles per monitored region
+  // Note: GDELT ArtList mode doesn't include tone scores; regional coverage
+  // is tracked by article count instead.
+  const toneScores = MONITORED_REGIONS.map(region => {
+    const regionArticles = articles.filter(a =>
+      region.query.split(' OR ').some(kw => a.title?.toLowerCase().includes(kw.toLowerCase()))
+    );
+    return {
+      region: region.name,
+      articleCount: regionArticles.length,
+      currentTone: 0, // ArtList doesn't include tone
+      previousTone: 0,
+      shift: 0,
+      dataPoints: 0,
+    };
+  }).filter(r => r.articleCount > 0);
+
+  // Geo events — get mapped event locations
+  await delay(6000); // respect GDELT 5s rate limit
   let geoPoints = [];
   try {
-    const geo = await geoEvents('conflict OR military OR protest OR crisis', { maxPoints: 30, timespan: '24h' });
+    const geo = await geoEvents('conflict OR military OR protest OR crisis OR explosion', { maxPoints: 50, timespan: '24h' });
     geoPoints = (geo?.features || []).filter(f => f.geometry?.coordinates).map(f => ({
       lat: f.geometry.coordinates[1],
       lon: f.geometry.coordinates[0],
@@ -116,7 +165,19 @@ export async function briefing() {
       count: f.properties?.count || 1,
       type: f.properties?.type || 'event',
     }));
-  } catch (e) { /* geo endpoint optional — don't break briefing */ }
+  } catch (e) { /* geo endpoint optional */ }
+
+  // Geographic event clustering
+  const geoClusters = clusterGeoPoints(geoPoints);
+
+  // PRIORITY alerts: high volume coverage in monitored regions
+  const priorityAlerts = toneScores
+    .filter(t => t.articleCount >= 10) // significant coverage spike
+    .map(t => ({
+      tier: 'PRIORITY',
+      headline: `HIGH COVERAGE: ${t.region} — ${t.articleCount} articles in last 24h`,
+      detail: `Region is generating significant news coverage`,
+    }));
 
   return {
     source: 'GDELT',
@@ -124,10 +185,13 @@ export async function briefing() {
     totalArticles: articles.length,
     allArticles: articles,
     geoPoints,
+    geoClusters: geoClusters.slice(0, 20),
+    toneScores,
     conflicts: categorize(['military', 'conflict', 'war', 'strike', 'missile', 'attack', 'bomb', 'troops']),
     economy: categorize(['economy', 'recession', 'inflation', 'market', 'sanctions', 'tariff', 'trade', 'gdp']),
     health: categorize(['pandemic', 'outbreak', 'epidemic', 'disease', 'virus', 'health']),
     crisis: categorize(['crisis', 'disaster', 'emergency', 'refugee', 'famine']),
+    priorityAlerts,
   };
 }
 

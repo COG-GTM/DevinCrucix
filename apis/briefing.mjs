@@ -40,6 +40,13 @@ import { briefing as kiwisdr } from './sources/kiwisdr.mjs';
 // === Tier 4: Space & Satellites ===
 import { briefing as space } from './sources/space.mjs';
 
+// === Tier 7: Phase 2A Sources ===
+import { briefing as spiderfoot } from './sources/spiderfoot.mjs';
+import { briefing as insightcrime } from './sources/insightcrime.mjs';
+
+// === Tier 8: Market Intelligence ===
+import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -48,14 +55,16 @@ import { briefing as cisaKev } from './sources/cisa-kev.mjs';
 import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
-
+const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
+const SLOW_SOURCES = new Set(['GDELT']); // sources that need extra time
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
+  const timeout = SLOW_SOURCES.has(name) ? SLOW_SOURCE_TIMEOUT_MS : SOURCE_TIMEOUT_MS;
   try {
     const dataPromise = fn(...args);
     const timeoutPromise = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error(`Source ${name} timed out after ${SOURCE_TIMEOUT_MS / 1000}s`)), SOURCE_TIMEOUT_MS);
+      timer = setTimeout(() => reject(new Error(`Source ${name} timed out after ${timeout / 1000}s`)), timeout);
     });
     const data = await Promise.race([dataPromise, timeoutPromise]);
     return { name, status: 'ok', durationMs: Date.now() - start, data };
@@ -67,7 +76,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 29 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 30 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -111,6 +120,13 @@ export async function fullBriefing() {
     // Tier 6: Cyber & Infrastructure
     runSource('CISA-KEV', cisaKev),
     runSource('Cloudflare-Radar', cloudflareRadar),
+
+    // Tier 7: Phase 2A Sources
+    runSource('SpiderFoot', spiderfoot),
+    runSource('InSightCrime', insightcrime),
+
+    // Tier 8: Market Intelligence
+    runSource('UnusualWhales', unusualwhales),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve
