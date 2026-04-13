@@ -14,12 +14,17 @@ let _cacheTs = 0;
 let _history = []; // rolling 24h sparkline data
 
 // Map alert level string to DOUGHCON number (inverted: high activity = low DOUGHCON)
-const LEVEL_MAP = { low: 4, elevated: 3, high: 2, critical: 1 };
+const LEVEL_MAP = { none: 5, low: 4, elevated: 3, high: 2, critical: 1 };
 
 // Configurable alert threshold (DOUGHCON level at or below triggers signal)
 const ALERT_THRESHOLD = parseInt(process.env.PIZZA_ALERT_THRESHOLD) || 2;
 
 export async function fetchPizzaIndex() {
+  // Return cache if fresh
+  if (_cache && (Date.now() - _cacheTs) < POLL_INTERVAL_MS) {
+    return _cache;
+  }
+
   try {
     const raw = await safeFetch(PIZZA_API, {
       timeout: 10000,

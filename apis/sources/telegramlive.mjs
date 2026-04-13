@@ -227,13 +227,23 @@ export function stopTelegramLive() {
   _running = false;
 }
 
+// Sanitize URL to only allow http/https schemes
+function sanitizeUrl(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return url;
+  } catch { /* invalid URL */ }
+  return '';
+}
+
 // Get current feed
 export function getTelegramFeed() {
   return {
     status: _running ? 'live' : 'stopped',
     channels: _channels,
     totalMessages: _messages.length,
-    messages: _messages.slice(0, 50),
+    messages: _messages.slice(0, 50).map(m => ({ ...m, url: sanitizeUrl(m.url) })),
     updatedAt: new Date().toISOString(),
   };
 }
