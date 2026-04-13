@@ -998,7 +998,7 @@ export async function synthesize(data) {
           volume24hr: m.volume24hr, totalVolume: m.totalVolume,
           change24h: m.change24h, url: m.url,
         })),
-        avgGeoRisk: pmData.avgGeoRisk || 50,
+        avgGeoRisk: pmData.avgGeoRisk ?? 50,
         signals: pmData.signals || [],
       };
     })(),
