@@ -29,16 +29,17 @@ const SPORTS_KEYWORDS = [
   'nba', 'nfl', 'nhl', 'mlb', 'ufc', 'mma', 'golf', 'f1', 'formula 1',
   'championship', 'playoff', 'super bowl', 'world cup', 'premier league',
   'la liga', 'serie a', 'bundesliga', 'champions league', 'europa league',
-  'transfer', 'fixture', 'match', 'game winner', 'mvp', 'draft pick',
+  'fixture', 'game winner', 'mvp', 'draft pick',
   'season wins', 'most kills', 'counter-strike', 'esport',
-  'vs.', ' vs ', 'celtics', 'lakers', 'warriors', 'bucks', 'nuggets',
+  'celtics', 'lakers', 'warriors', 'bucks', 'nuggets',
   'yankees', 'dodgers', 'red sox', 'cubs', 'play-in', 'bo3', 'bo5',
   'oscar', 'grammy', 'emmy', 'bachelor', 'reality tv', 'movie',
 ];
 
 function isSports(question) {
   const q = question.toLowerCase();
-  if (/ vs /i.test(q) || / vs\./i.test(q)) return true;
+  // Only flag "vs" as sports if no geopolitical keywords are present
+  if ((/ vs /i.test(q) || / vs\./i.test(q)) && !GEO_KEYWORDS.some(kw => q.includes(kw))) return true;
   return SPORTS_KEYWORDS.some(kw => q.includes(kw));
 }
 
