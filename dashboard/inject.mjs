@@ -960,7 +960,7 @@ export async function synthesize(data) {
         totalVulnerabilities: ckData.totalVulnerabilities || 0,
         recentCount: ckData.recentCount || 0,
         vulnerabilities: (ckData.vulnerabilities || []).slice(0, 50).map(v => ({
-          cveID: v.cveID, vendor: v.vendor, product: v.product,
+          cveID: (v.cveID || '').substring(0, 20), vendor: (v.vendor || '').substring(0, 40), product: (v.product || '').substring(0, 60),
           name: (v.name || '').substring(0, 120),
           dateAdded: v.dateAdded, dueDate: v.dueDate,
           description: (v.description || '').substring(0, 200),
