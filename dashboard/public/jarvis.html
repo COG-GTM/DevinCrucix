@@ -2468,7 +2468,7 @@ function refreshMapViewport(forceGlobeReflow=false){
   const container = document.getElementById('mapContainer');
   if(!container) return;
   const width = container.clientWidth;
-  const height = container.clientHeight || (isMobileLayout() ? 420 : 560);
+  const height = Math.min(container.clientHeight || 560, Math.max(460, Math.round(width * 0.55)));
   if(globe){
     globe.width(width).height(height);
     if(forceGlobeReflow && !isFlat){
