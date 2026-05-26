@@ -94,6 +94,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.convergence{background:#ab47bc;box-shadow:0 0 6px rgba(171,71,188,0.4)}
 .ldot.sigint{background:#ffd54f;box-shadow:0 0 6px rgba(255,213,79,0.4)}
 .ldot.focal{background:#26c6da;box-shadow:0 0 6px rgba(38,198,218,0.4)}
+.ldot.pizza{background:#ff9800;box-shadow:0 0 6px rgba(255,152,0,0.4)}
+.ldot.cyber{background:#42a5f5;box-shadow:0 0 6px rgba(66,165,245,0.4)}
+.ldot.tglive{background:#00bcd4;box-shadow:0 0 6px rgba(0,188,212,0.4)}
+.ldot.polymarket{background:#7c4dff;box-shadow:0 0 6px rgba(124,77,255,0.4)}
+.ldot.defcon{background:#ff5252;box-shadow:0 0 6px rgba(255,82,82,0.4)}
 /* Phase 4: CII Panel */
 .cii-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s}
 .cii-row:hover{background:rgba(100,240,200,0.04)}
@@ -415,6 +420,55 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 
 /* IDEA HORIZON BADGE */
 .idea-horizon{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;padding:1px 5px;border:1px solid rgba(100,240,200,0.15);color:var(--dim);margin-left:6px}
+
+/* Phase 5: DEFCON Badge */
+.defcon-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.12em;margin-left:6px}
+@keyframes defcon-pulse{0%,100%{opacity:1;box-shadow:0 0 6px currentColor}50%{opacity:0.7;box-shadow:0 0 14px currentColor}}
+.defcon-badge.pulse{animation:defcon-pulse 1.5s ease-in-out infinite}
+
+/* Phase 5: Pizza Index Widget */
+.pizza-widget{padding:10px;border:1px solid rgba(255,152,0,0.2);background:rgba(255,152,0,0.04)}
+.pizza-doughcon{font-family:var(--mono);font-size:28px;font-weight:700;text-align:center;margin:6px 0}
+.pizza-trend{font-family:var(--mono);font-size:10px;text-align:center;letter-spacing:0.08em;text-transform:uppercase}
+.pizza-spark{display:flex;align-items:flex-end;gap:1px;height:20px;margin-top:6px;justify-content:center}
+.pizza-spark-bar{width:4px;background:linear-gradient(to top,rgba(255,152,0,0.3),#ff9800);border-radius:1px 1px 0 0}
+
+/* Phase 5: Polymarket Widget */
+.pm-row{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.pm-question{font-size:11px;line-height:1.3;color:#c8d8d2;margin-bottom:3px}
+.pm-bar-wrap{display:flex;align-items:center;gap:6px}
+.pm-bar{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.pm-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(68,204,255,0.4),var(--accent))}
+.pm-prob{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);min-width:36px;text-align:right}
+.pm-meta{display:flex;gap:8px;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px}
+.pm-change{font-weight:600}
+.pm-change.up{color:var(--accent)}
+.pm-change.down{color:var(--danger)}
+
+/* Phase 5: Telegram Live Feed */
+.tg-live-msg{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;line-height:1.35}
+.tg-live-ch{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--accent2);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px;display:flex;justify-content:space-between}
+.tg-live-time{font-family:var(--mono);font-size:9px;color:var(--dim);font-weight:400}
+.tg-live-text{color:#c8d8d2}
+.tg-live-scroll{max-height:260px;overflow-y:auto}
+.tg-live-scroll::-webkit-scrollbar{width:3px}
+.tg-live-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
+
+/* Phase 5: CyberKEV Panel */
+.kev-row{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.kev-cve{font-family:var(--mono);font-size:9px;color:var(--accent2);font-weight:600;letter-spacing:0.04em}
+.kev-name{font-size:11px;color:#c8d8d2;margin-top:2px}
+.kev-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.kev-tag{font-family:var(--mono);font-size:8px;padding:1px 4px;border:1px solid;letter-spacing:0.04em;text-transform:uppercase}
+.kev-tag.critical{color:#ff5252;border-color:rgba(255,82,82,0.4);background:rgba(255,82,82,0.08)}
+.kev-tag.high{color:#ff9800;border-color:rgba(255,152,0,0.4);background:rgba(255,152,0,0.08)}
+.kev-tag.medium{color:#ffd54f;border-color:rgba(255,213,79,0.4);background:rgba(255,213,79,0.08)}
+.kev-tag.low{color:var(--dim);border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.03)}
+.kev-tag.ransomware{color:#f44336;border-color:rgba(244,67,54,0.4);background:rgba(244,67,54,0.08)}
+.kev-tag.prc{color:#ff4081;border-color:rgba(255,64,129,0.4);background:rgba(255,64,129,0.08)}
+.kev-scroll{max-height:280px;overflow-y:auto}
+.kev-scroll::-webkit-scrollbar{width:3px}
+.kev-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
 </style>
 </head>
 <body>
@@ -692,6 +746,13 @@ function renderTopbar(){
       <span class="meta-pill">${t('dashboard.sources','SOURCES')} <span class="v">${D.meta.sourcesOk}/${D.meta.sourcesQueried}</span></span>
       ${D.delta?.summary ? `<span class="meta-pill">${t('dashboard.delta','DELTA')} <span class="v">${D.delta.summary.direction==='risk-off'?'&#x25B2; '+t('dashboard.riskOff','RISK-OFF'):D.delta.summary.direction==='risk-on'?'&#x25BC; '+t('dashboard.riskOn','RISK-ON'):'&#x25C6; '+t('dashboard.mixed','MIXED')}</span></span>` : ''}
       <button class="guide-btn" onclick="openGlossary()">${t('dashboard.guideBtn','What Signals Mean')}</button>
+      ${(() => {
+        const dc = D.defcon || {};
+        const level = dc.level || 5;
+        const color = dc.color || '#00ff41';
+        const pulseClass = dc.pulse ? ' pulse' : '';
+        return `<span class="defcon-badge${pulseClass}" style="color:${color};border-color:${color}40;background:${color}10">DEFCON ${level}</span>`;
+      })()}
       <span class="alert-badge">${t('dashboard.highAlert','HIGH ALERT')}</span>
     </div>`;
   renderRegionControls();
@@ -724,7 +785,12 @@ function renderLeftRail(){
     {name:'Instability Index',count:D.cii?.totalCountries||0,dot:'cii',sub:`${((D.cii?.countries||[]).filter(c=>c.level==='Critical'||c.level==='High').length)||0} critical/high`},
     {name:'Convergence',count:D.convergence?.totalZones||0,dot:'convergence',sub:'multi-source zones'},
     {name:'Signal Intel',count:D.signals?.totalSignals||0,dot:'sigint',sub:`${Object.keys(D.signals?.byType||{}).length} types`},
-    {name:'Focal Points',count:D.focalPoints?.totalFocalPoints||0,dot:'focal',sub:`${((D.focalPoints?.focalPoints||[]).filter(f=>f.urgency==='Critical').length)||0} critical`}
+    {name:'Focal Points',count:D.focalPoints?.totalFocalPoints||0,dot:'focal',sub:`${((D.focalPoints?.focalPoints||[]).filter(f=>f.urgency==='Critical').length)||0} critical`},
+    {name:'Pizza Index',count:D.pizzaIndex?.doughcon!=null?'DC'+D.pizzaIndex.doughcon:'--',dot:'pizza',sub:D.pizzaIndex?.trend||'awaiting data'},
+    {name:'Cyber KEV',count:D.cyberKev?.totalVulnerabilities||0,dot:'cyber',sub:`${D.cyberKev?.ransomwareCount||0} ransomware`},
+    {name:'Telegram Live',count:D.telegramLive?.totalMessages||0,dot:'tglive',sub:`${D.telegramLive?.channels||0} channels`},
+    {name:'Polymarket',count:D.polymarket?.totalGeoMarkets||0,dot:'polymarket',sub:'geopolitical odds'},
+    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing'}
   ];
   // === PRC INTELLIGENCE SECTION ===
   const prcAir = D.air.find(a => a.region === 'Taiwan Strait') || {};
@@ -803,7 +869,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'},{c:'#ff7043',l:'CII Hotspot'},{c:'#ab47bc',l:'Convergence Zone'},{c:'#ffd54f',l:'Signal Intel'},{c:'#26c6da',l:'Focal Point'}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'},{c:'#ff7043',l:'CII Hotspot'},{c:'#ab47bc',l:'Convergence Zone'},{c:'#ffd54f',l:'Signal Intel'},{c:'#26c6da',l:'Focal Point'},{c:'#ff9800',l:'Pizza Index'},{c:'#42a5f5',l:'Cyber KEV'},{c:'#00bcd4',l:'Telegram Live'},{c:'#7c4dff',l:'Polymarket'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -1925,6 +1991,69 @@ function renderLower(){
   document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
 }
 
+// === Phase 5: Panel Renderers ===
+function renderPizzaPanel(){
+  const pi = D.pizzaIndex || {};
+  if (pi.status === 'unavailable' || pi.doughcon == null) {
+    return `<div class="g-panel"><div class="sec-head"><h3>Pentagon Pizza Index</h3><span class="badge" style="background:rgba(255,152,0,0.1);color:#ff9800;border-color:rgba(255,152,0,0.3)">DOUGHCON</span></div><div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">DATA UNAVAILABLE</div></div>`;
+  }
+  const dcColors = {1:'#ff5252',2:'#ff9800',3:'#ffd54f',4:'#66bb6a',5:'#4caf50'};
+  const dcColor = dcColors[pi.doughcon] || '#ffd54f';
+  const trendArrow = pi.trend === 'increasing' ? '\u2191' : pi.trend === 'decreasing' ? '\u2193' : '\u2192';
+  const trendColor = pi.trend === 'increasing' ? '#ff9800' : pi.trend === 'decreasing' ? '#4caf50' : 'var(--dim)';
+  const sparkBars = (pi.graph || []).slice(-20).map(v => {
+    const pct = Math.max(10, Math.min(100, v * 20));
+    return `<div class="pizza-spark-bar" style="height:${pct}%"></div>`;
+  }).join('');
+  return `<div class="g-panel"><div class="sec-head"><h3>Pentagon Pizza Index</h3><span class="badge" style="background:rgba(255,152,0,0.1);color:#ff9800;border-color:rgba(255,152,0,0.3)">DOUGHCON</span></div><div class="pizza-widget"><div class="pizza-doughcon" style="color:${dcColor}">DOUGHCON ${pi.doughcon}</div><div class="pizza-trend" style="color:${trendColor}">${trendArrow} ${pi.trend || 'stable'} &middot; ${pi.storesOpen}/${pi.totalStores} stores &middot; ${pi.avgWait}min wait</div>${sparkBars ? `<div class="pizza-spark">${sparkBars}</div>` : ''}</div></div>`;
+}
+
+function renderPolymarketPanel(){
+  const pm = D.polymarket || {};
+  if (pm.status === 'unavailable' || (pm.markets || []).length === 0) {
+    return `<div class="g-panel"><div class="sec-head"><h3>Polymarket Geopolitical</h3><span class="badge" style="background:rgba(124,77,255,0.1);color:#7c4dff;border-color:rgba(124,77,255,0.3)">ODDS</span></div><div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">DATA UNAVAILABLE</div></div>`;
+  }
+  const rows = (pm.markets || []).slice(0, 8).map(m => {
+    const prob = Math.round(m.yesProb || 0);
+    const chg = m.change24h != null ? parseFloat(m.change24h).toFixed(1) : null;
+    const chgClass = chg > 0 ? 'up' : chg < 0 ? 'down' : '';
+    const chgStr = chg != null ? `${chg > 0 ? '+' : ''}${chg}%` : '';
+    const vol = m.volume24hr >= 1e6 ? `$${(m.volume24hr/1e6).toFixed(1)}M` : m.volume24hr >= 1e3 ? `$${(m.volume24hr/1e3).toFixed(0)}K` : `$${(m.volume24hr||0).toFixed(0)}`;
+    return `<div class="pm-row"><div class="pm-question">${cleanText(m.question || '')}</div><div class="pm-bar-wrap"><div class="pm-bar"><div class="pm-bar-fill" style="width:${prob}%"></div></div><span class="pm-prob">${prob}%</span></div><div class="pm-meta"><span>Vol: ${vol}</span>${chgStr ? `<span class="pm-change ${chgClass}">24h: ${chgStr}</span>` : ''}</div></div>`;
+  }).join('');
+  return `<div class="g-panel"><div class="sec-head"><h3>Polymarket Geopolitical</h3><span class="badge" style="background:rgba(124,77,255,0.1);color:#7c4dff;border-color:rgba(124,77,255,0.3)">${pm.totalGeoMarkets||0} MARKETS</span></div>${rows}</div>`;
+}
+
+function renderTelegramLivePanel(){
+  const tl = D.telegramLive || {};
+  if (tl.status === 'stopped' || (tl.recentMessages || []).length === 0) {
+    return `<div class="g-panel"><div class="sec-head"><h3>Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">LIVE</span></div><div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">Scraper initializing...</div></div>`;
+  }
+  const msgs = (tl.recentMessages || []).slice(0, 12).map(m => {
+    const age = m.timestamp ? getAge(m.timestamp) : '';
+    return `<div class="tg-live-msg"><div class="tg-live-ch"><span>${(m.channel || 'UNKNOWN').toUpperCase()}</span><span class="tg-live-time">${age}</span></div><div class="tg-live-text">${cleanText((m.text || '').substring(0, 180))}</div></div>`;
+  }).join('');
+  return `<div class="g-panel"><div class="sec-head"><h3>Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
+}
+
+function renderCyberKevPanel(){
+  const ck = D.cyberKev || {};
+  if (ck.status === 'unavailable' || (ck.vulnerabilities || []).length === 0) {
+    return `<div class="g-panel"><div class="sec-head"><h3>CISA KEV Threats</h3><span class="badge" style="background:rgba(66,165,245,0.1);color:#42a5f5;border-color:rgba(66,165,245,0.3)">CYBER</span></div><div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">DATA UNAVAILABLE</div></div>`;
+  }
+  const vulns = (ck.vulnerabilities || []).slice(0, 15).map(v => {
+    const sevClass = v.severity || 'low';
+    const tags = [];
+    if (v.severity) tags.push(`<span class="kev-tag ${sevClass}">${v.severity}</span>`);
+    if (v.ransomware) tags.push('<span class="kev-tag ransomware">RANSOMWARE</span>');
+    if (v.prcRelevant) tags.push('<span class="kev-tag prc">PRC</span>');
+    (v.categories || []).slice(0, 2).forEach(c => tags.push(`<span class="kev-tag low">${c}</span>`));
+    return `<div class="kev-row"><div class="kev-cve">${cleanText(v.cveID || '')} &middot; ${cleanText(v.vendor || '')}</div><div class="kev-name">${cleanText(v.name || '')}</div><div class="kev-meta">${tags.join('')}</div></div>`;
+  }).join('');
+  const prcBadge = ck.prcRelevantCount > 0 ? ` &middot; <span style="color:#ff4081">${ck.prcRelevantCount} PRC</span>` : '';
+  return `<div class="g-panel"><div class="sec-head"><h3>CISA KEV Threats</h3><span class="badge" style="background:rgba(66,165,245,0.1);color:#42a5f5;border-color:rgba(66,165,245,0.3)">${ck.totalVulnerabilities||0} CVEs${prcBadge}</span></div><div class="kev-scroll">${vulns}</div></div>`;
+}
+
 // === Phase 4: Panel Renderers ===
 function renderCIIPanel(){
   const cii = D.cii || {};
@@ -2046,6 +2175,10 @@ function renderRight(){
     ${renderCIIPanel()}
     ${renderSignalIntelPanel()}
     ${renderFocalPointsPanel()}
+    ${renderPizzaPanel()}
+    ${renderPolymarketPanel()}
+    ${renderTelegramLivePanel()}
+    ${renderCyberKevPanel()}
     <div class="g-panel right-delta">
       <div class="sec-head"><h3>${t('panels.sweepDelta','Sweep Delta')}</h3><span class="badge ${dirClass}">${dirEmoji} ${ds.direction?t('delta.'+ds.direction,ds.direction.toUpperCase()):t('delta.baseline','BASELINE')}</span></div>
       ${hasDelta?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:10px">

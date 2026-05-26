@@ -937,6 +937,86 @@ export async function synthesize(data) {
         signals: (fpData.signals || []).slice(0, 5),
       };
     })(),
+    // Phase 5: Pentagon Pizza Index
+    pizzaIndex: (() => {
+      const piData = data.sources.PizzaIndex || {};
+      return {
+        status: piData.status || 'unavailable',
+        doughcon: piData.doughcon ?? null,
+        alertLevel: piData.alertLevel || 'unknown',
+        avgWait: piData.avgWait || 0,
+        storesOpen: piData.storesOpen || 0,
+        totalStores: piData.totalStores || 0,
+        trend: piData.trend || 'stable',
+        graph: (piData.graph || []).slice(-24).map(g => typeof g === 'number' ? g : (g.avgWait || g.avg_wait || 0)),
+        signals: piData.signals || [],
+      };
+    })(),
+    // Phase 5: CISA KEV Cyber Threat Layer
+    cyberKev: (() => {
+      const ckData = data.sources.CyberKEV || {};
+      return {
+        status: ckData.status || 'unavailable',
+        totalVulnerabilities: ckData.totalVulnerabilities || 0,
+        recentCount: ckData.recentCount || 0,
+        vulnerabilities: (ckData.vulnerabilities || []).slice(0, 50).map(v => ({
+          cveID: (v.cveID || '').substring(0, 20), vendor: (v.vendor || '').substring(0, 40), product: (v.product || '').substring(0, 60),
+          name: (v.name || '').substring(0, 120),
+          dateAdded: v.dateAdded, dueDate: v.dueDate,
+          description: (v.description || '').substring(0, 200),
+          ransomware: v.ransomware, categories: v.categories || [],
+          severity: v.severity, prcRelevant: v.prcRelevant,
+          lat: v.lat, lng: v.lng, vendorCountry: v.vendorCountry,
+          nvdUrl: v.nvdUrl,
+        })),
+        globeMarkers: ckData.globeMarkers || [],
+        categoryBreakdown: ckData.categoryBreakdown || {},
+        prcRelevantCount: ckData.prcRelevantCount || 0,
+        ransomwareCount: ckData.ransomwareCount || 0,
+        signals: ckData.signals || [],
+      };
+    })(),
+    // Phase 5: Telegram OSINT Live (background scraper data)
+    telegramLive: (() => {
+      const tlData = data.sources.TelegramLive || {};
+      return {
+        status: tlData.status || 'stopped',
+        totalMessages: tlData.totalMessages || 0,
+        channels: tlData.channels || 0,
+        recentMessages: (tlData.recentMessages || []).slice(0, 15).map(m => ({ ...m, url: sanitizeExternalUrl(m.url) })),
+      };
+    })(),
+    // Phase 5: Polymarket Geopolitical Odds
+    polymarket: (() => {
+      const pmData = data.sources.Polymarket || {};
+      return {
+        status: pmData.status || 'unavailable',
+        totalGeoMarkets: pmData.totalGeoMarkets || 0,
+        markets: (pmData.markets || []).slice(0, 10).map(m => ({
+          question: (m.question || '').substring(0, 120),
+          yesProb: m.yesProb, noProb: m.noProb,
+          volume24hr: m.volume24hr, totalVolume: m.totalVolume,
+          change24h: m.change24h, url: m.url,
+        })),
+        avgGeoRisk: pmData.avgGeoRisk ?? 50,
+        signals: pmData.signals || [],
+      };
+    })(),
+    // Phase 5: DEFCON Threat Meter (computed post-sweep like CII)
+    defcon: (() => {
+      const dcData = data.sources.DEFCON || {};
+      return {
+        source: dcData.source || 'DEFCON',
+        status: dcData.status || 'deferred',
+        level: dcData.level || 5,
+        score: dcData.score || 0,
+        color: dcData.color || '#00ff41',
+        label: dcData.label || 'NORMAL READINESS',
+        pulse: dcData.pulse || false,
+        components: dcData.components || {},
+        fallbackMode: dcData.fallbackMode ?? true,
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),

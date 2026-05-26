@@ -59,6 +59,13 @@ import { briefing as signals } from './sources/signals.mjs';
 import { briefing as focalpoints } from './sources/focalpoints.mjs';
 import { briefing as summarizer } from './sources/summarizer.mjs';
 
+// === Tier 11: Phase 5 Features ===
+import { briefing as pizzaindex } from './sources/pizzaindex.mjs';
+import { briefing as cyberkev } from './sources/cyberkev.mjs';
+import { briefing as telegramlive } from './sources/telegramlive.mjs';
+import { briefing as polymarket } from './sources/polymarket.mjs';
+import { briefing as defcon } from './sources/defcon.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -88,7 +95,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 38 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 45 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -151,6 +158,13 @@ export async function fullBriefing() {
     runSource('Signals', signals),
     runSource('FocalPoints', focalpoints),
     runSource('Summarizer', summarizer),
+
+    // Tier 11: Phase 5 Features
+    runSource('PizzaIndex', pizzaindex),
+    runSource('CyberKEV', cyberkev),
+    runSource('TelegramLive', telegramlive),
+    runSource('Polymarket', polymarket),
+    runSource('DEFCON', defcon),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve
