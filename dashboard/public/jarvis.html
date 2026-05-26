@@ -556,6 +556,7 @@ let isFlat = shouldStartFlat();
 let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
 let autoZoomDone = false;
+let autoZoomTarget = null;
 const signalGuideItems = [
   {
     term:'No Callsign',
@@ -1695,15 +1696,25 @@ function autoZoomToHotspot(){
   autoZoomDone = true;
   const hottest = countries.reduce((a,b)=>a.score>b.score?a:b, countries[0]);
   if(!hottest || hottest.score < 40) return;
-  const [cx,cy] = flatProjection([hottest.lng, hottest.lat]);
-  if(!cx||!cy) return;
-  const scale = 3.0;
+  autoZoomTarget = { lng: hottest.lng, lat: hottest.lat, scale: 3.0 };
   currentRegion = 'europe';
   document.querySelectorAll('.region-btn').forEach(b=>b.classList.toggle('active',b.dataset.region==='europe'));
-  requestAnimationFrame(()=>{
-    flatSvg.transition().duration(1500).ease(d3.easeCubicInOut)
-      .call(flatZoom.transform, d3.zoomIdentity.translate(flatW/2 - scale*cx, flatH/2 - scale*cy).scale(scale));
-  });
+  applyAutoZoom(true);
+}
+
+function applyAutoZoom(animate){
+  if(!autoZoomTarget || !flatProjection || !flatSvg || !flatZoom) return;
+  const [cx,cy] = flatProjection([autoZoomTarget.lng, autoZoomTarget.lat]);
+  if(!cx||!cy) return;
+  const s = autoZoomTarget.scale;
+  const t = d3.zoomIdentity.translate(flatW/2 - s*cx, flatH/2 - s*cy).scale(s);
+  if(animate){
+    requestAnimationFrame(()=>{
+      flatSvg.transition().duration(1500).ease(d3.easeCubicInOut).call(flatZoom.transform, t);
+    });
+  } else {
+    flatSvg.call(flatZoom.transform, t);
+  }
 }
 
 function plotFlatMarkers(){
@@ -2473,6 +2484,7 @@ function refreshMapViewport(forceGlobeReflow=false){
       flatPath = d3.geoPath(flatProjection);
       flatG.selectAll('*').remove();
       drawFlatMap();
+      if(autoZoomTarget) applyAutoZoom(false);
     }
   }
 }
