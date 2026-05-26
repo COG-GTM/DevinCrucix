@@ -66,6 +66,14 @@ import { briefing as telegramlive } from './sources/telegramlive.mjs';
 import { briefing as polymarket } from './sources/polymarket.mjs';
 import { briefing as defcon } from './sources/defcon.mjs';
 
+// === Tier 12: Phase 6 — Osiris-Ported Features ===
+import { briefing as nuclear } from './sources/nuclear.mjs';
+import { briefing as spaceweather } from './sources/spaceweather.mjs';
+import { briefing as frontlines } from './sources/frontlines.mjs';
+import { briefing as regiondossier } from './sources/regiondossier.mjs';
+import { briefing as satellites } from './sources/satellites.mjs';
+import { briefing as livenews } from './sources/livenews.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -95,7 +103,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 45 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 51 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -165,6 +173,14 @@ export async function fullBriefing() {
     runSource('TelegramLive', telegramlive),
     runSource('Polymarket', polymarket),
     runSource('DEFCON', defcon),
+
+    // Tier 12: Phase 6 — Osiris-Ported Features
+    runSource('Nuclear', nuclear),
+    runSource('SpaceWeather', spaceweather),
+    runSource('Frontlines', frontlines),
+    runSource('RegionDossier', regiondossier),
+    runSource('SatTracking', satellites),
+    runSource('LiveNews', livenews),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve

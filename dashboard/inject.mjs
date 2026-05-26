@@ -1017,6 +1017,81 @@ export async function synthesize(data) {
         fallbackMode: dcData.fallbackMode ?? true,
       };
     })(),
+    // Phase 6: Osiris-Ported Features
+    nuclear: (() => {
+      const nData = data.sources.Nuclear || {};
+      return {
+        source: 'NuclearFacilities',
+        status: nData.status || 'unavailable',
+        totalFacilities: nData.totalFacilities || 0,
+        totalReactors: nData.totalReactors || 0,
+        totalCapacityMW: nData.totalCapacityMW || 0,
+        byCountry: nData.byCountry || {},
+        statusCounts: nData.statusCounts || {},
+        facilities: (nData.facilities || []).map(f => ({
+          id: f.id, name: f.name, country: f.country,
+          lat: f.lat, lng: f.lng,
+          reactors: f.reactors, capacityMW: f.capacityMW,
+          operator: f.operator, status: f.status, risk: f.risk || null,
+        })),
+        signals: nData.signals || [],
+      };
+    })(),
+    spaceWeather: (() => {
+      const swData = data.sources.SpaceWeather || {};
+      return {
+        source: 'SpaceWeather',
+        status: swData.status || 'unavailable',
+        kp: swData.kp || { current: 0, level: 'Quiet', color: '#00E676', severity: 'nominal', history: [] },
+        flares: (swData.flares || []).slice(0, 10),
+        alerts: (swData.alerts || []).slice(0, 10),
+        signals: swData.signals || [],
+      };
+    })(),
+    frontlines: (() => {
+      const flData = data.sources.Frontlines || {};
+      return {
+        source: 'Frontlines',
+        status: flData.status || 'unavailable',
+        featureCount: flData.featureCount || 0,
+        totalCoords: flData.totalCoords || 0,
+        featureTypes: flData.featureTypes || {},
+        geojson: flData.geojson || null,
+        signals: flData.signals || [],
+      };
+    })(),
+    satTracking: (() => {
+      const stData = data.sources.SatTracking || {};
+      return {
+        source: 'Satellites',
+        status: stData.status || 'unavailable',
+        totalTracked: stData.totalTracked || 0,
+        totalTLEs: stData.totalTLEs || 0,
+        byCategory: stData.byCategory || {},
+        byMission: stData.byMission || {},
+        satellites: (stData.satellites || []).slice(0, 200).map(s => ({
+          name: s.name, lat: s.lat, lng: s.lng, alt: s.alt,
+          mission: s.mission, color: s.color, category: s.category,
+        })),
+        signals: stData.signals || [],
+      };
+    })(),
+    liveNews: (() => {
+      const lnData = data.sources.LiveNews || {};
+      return {
+        source: 'LiveNews',
+        status: lnData.status || 'unavailable',
+        totalStreams: lnData.totalStreams || 0,
+        byCountry: lnData.byCountry || {},
+        byCategory: lnData.byCategory || {},
+        streams: (lnData.streams || []).map(s => ({
+          id: s.id, name: s.name, country: s.country,
+          lat: s.lat, lng: s.lng, url: s.url,
+          network: s.network, category: s.category,
+        })),
+        signals: lnData.signals || [],
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
