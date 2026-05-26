@@ -557,6 +557,7 @@ let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
 let autoZoomDone = false;
 let autoZoomTarget = null;
+let flatMapDrawId = 0;
 const signalGuideItems = [
   {
     term:'No Callsign',
@@ -1588,9 +1589,11 @@ function ciiColor(score){
 }
 
 function drawFlatMap(){
+  const myDrawId = ++flatMapDrawId;
   flatG.append('path').datum(d3.geoGraticule()()).attr('class','graticule').attr('d',flatPath);
   fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
     .then(r=>r.json()).then(world=>{
+      if(myDrawId !== flatMapDrawId) return;
       const countries=topojson.feature(world,world.objects.countries);
       // Build CII lookup by numeric country ID
       const ciiMap = {};
@@ -1619,8 +1622,8 @@ function drawFlatMap(){
         .style('cursor', d => ciiMap[String(d.id)] ? 'pointer' : null);
       flatG.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',flatPath);
       plotFlatMarkers();
-      drawFrontlines();
-      drawNuclearFacilities();
+      drawFrontlines(myDrawId);
+      drawNuclearFacilities(myDrawId);
       autoZoomToHotspot();
     });
 }
@@ -1645,8 +1648,9 @@ function rewindPolygon(feature){
   return feature;
 }
 
-function drawFrontlines(){
+function drawFrontlines(drawId){
   fetch('/api/frontlines').then(r=>r.json()).then(data=>{
+    if(drawId !== undefined && drawId !== flatMapDrawId) return;
     const geojson = data.geojson;
     if(!geojson || !geojson.features) return;
     const flG = flatG.append('g').attr('class','frontlines-layer');
@@ -1666,8 +1670,9 @@ function drawFrontlines(){
   }).catch(()=>{});
 }
 
-function drawNuclearFacilities(){
+function drawNuclearFacilities(drawId){
   fetch('/api/nuclear').then(r=>r.json()).then(data=>{
+    if(drawId !== undefined && drawId !== flatMapDrawId) return;
     const facilities = data.facilities||[];
     if(!facilities.length) return;
     const nG = flatG.append('g').attr('class','nuclear-layer');
