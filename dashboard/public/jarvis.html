@@ -2481,6 +2481,7 @@ function refreshMapViewport(forceGlobeReflow=false){
     }
   }
   if(flatSvg){
+    if(width === flatW && height === flatH) return;
     flatW = width;
     flatH = height;
     flatSvg.attr('viewBox',`0 0 ${flatW} ${flatH}`).attr('preserveAspectRatio','xMidYMid meet');
