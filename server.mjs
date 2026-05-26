@@ -30,6 +30,9 @@ import { classifyAll } from './apis/sources/threatclassifier.mjs';
 import { startTelegramLive, getTelegramFeed, getTelegramChannels, setTelegramChannels } from './apis/sources/telegramlive.mjs';
 import { computeDefcon } from './apis/sources/defcon.mjs';
 
+// Phase 6: Osiris-Ported Features
+import { getRegionDossier } from './apis/sources/regiondossier.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
@@ -395,6 +398,54 @@ app.get('/api/defcon', (req, res) => {
   res.json(currentData.defcon || { level: 5, score: 0, color: '#00ff41' });
 });
 
+// === Phase 6: Osiris-Ported Feature API Endpoints ===
+
+// API: Nuclear Facilities
+app.get('/api/nuclear', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.nuclear || { totalFacilities: 0, facilities: [] });
+});
+
+// API: Space Weather
+app.get('/api/space-weather', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.spaceWeather || { kp: { current: 0, level: 'Quiet' }, flares: [], alerts: [] });
+});
+
+// API: Ukraine Frontlines
+app.get('/api/frontlines', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.frontlines || { status: 'unavailable', geojson: null });
+});
+
+// API: Region Dossier (on-demand, not from sweep)
+app.get('/api/region-dossier', async (req, res) => {
+  const lat = parseFloat(req.query.lat);
+  const lng = parseFloat(req.query.lng);
+  if (isNaN(lat) || isNaN(lng)) {
+    return res.status(400).json({ error: 'Missing lat/lng query parameters' });
+  }
+  try {
+    const dossier = await getRegionDossier(lat, lng);
+    res.json(dossier);
+  } catch (err) {
+    console.error('[Crucix] Region dossier error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Satellite Tracking (SGP4)
+app.get('/api/satellites', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.satTracking || { totalTracked: 0, satellites: [] });
+});
+
+// API: Live News Streams
+app.get('/api/live-news', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.liveNews || { totalStreams: 0, streams: [] });
+});
+
 // API: Threat classification
 app.get('/api/threat-classify', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
@@ -657,7 +708,7 @@ async function start() {
   console.log(`
   ╔══════════════════════════════════════════════╗
   ║           CRUCIX INTELLIGENCE ENGINE         ║
-  ║          Local Palantir · 26 Sources         ║
+  ║          Local Palantir · 51 Sources         ║
   ╠══════════════════════════════════════════════╣
   ║  Dashboard:  http://localhost:${port}${' '.repeat(14 - String(port).length)}║
   ║  Health:     http://localhost:${port}/api/health${' '.repeat(4 - String(port).length)}║

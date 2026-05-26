@@ -254,17 +254,181 @@ async function ingestSingaporeLta() {
   return cameras;
 }
 
+// --- Source 5: WSDOT Washington State ---
+async function ingestWsdot() {
+  const cameras = [];
+  try {
+    const url = 'https://data.wsdot.wa.gov/log/public/cameras.json';
+    const data = await safeFetch(url, { timeout: 10000, retries: 1 });
+    if (!data || data.error || !Array.isArray(data)) {
+      console.log('[CCTV:WSDOT] No data or error');
+      return cameras;
+    }
+    for (const cam of data) {
+      const lat = cam.CameraLocation?.Latitude;
+      const lon = cam.CameraLocation?.Longitude;
+      if (!lat || !lon) continue;
+      const feedUrl = cam.ImageURL || '';
+      if (!feedUrl) continue;
+      cameras.push({
+        id: `wsdot_${cam.CameraID || cameras.length}`,
+        source: 'WSDOT',
+        lat, lon,
+        name: cam.Title || 'WSDOT Camera',
+        direction: cam.Direction || null,
+        feed_url: feedUrl,
+        feed_type: detectMediaType(feedUrl),
+      });
+    }
+    console.log(`[CCTV:WSDOT] ${cameras.length} cameras ingested`);
+  } catch (e) {
+    console.log('[CCTV:WSDOT] Ingest failed:', e.message);
+  }
+  return cameras;
+}
+
+// --- Source 6: Caltrans California ---
+async function ingestCaltrans() {
+  const cameras = [];
+  const districts = ['d03', 'd04', 'd05', 'd06', 'd07', 'd08', 'd10', 'd11', 'd12'];
+  for (const dist of districts) {
+    try {
+      const url = `https://cwwp2.dot.ca.gov/data/${dist}/cctv/cctvStatus${dist.toUpperCase()}.json`;
+      const data = await safeFetch(url, { timeout: 8000, retries: 0 });
+      if (!data || data.error) continue;
+      const cams = data?.data || [];
+      for (const cam of cams) {
+        const lat = parseFloat(cam.location?.latitude);
+        const lon = parseFloat(cam.location?.longitude);
+        const feedUrl = cam.cctv?.imageData?.static?.currentImageURL || '';
+        if (!lat || !lon || !feedUrl) continue;
+        cameras.push({
+          id: `cal_${cameras.length}`,
+          source: 'Caltrans',
+          lat, lon,
+          name: cam.location?.locationName || 'Caltrans Camera',
+          direction: cam.location?.direction || null,
+          feed_url: feedUrl,
+          feed_type: detectMediaType(feedUrl),
+        });
+      }
+    } catch { /* silent per-district */ }
+  }
+  console.log(`[CCTV:Caltrans] ${cameras.length} cameras ingested`);
+  return cameras;
+}
+
+// --- Source 7: 511 Ontario Canada ---
+async function ingestOntario() {
+  const cameras = [];
+  try {
+    const url = 'https://511on.ca/api/v2/get/cameras';
+    const data = await safeFetch(url, { timeout: 10000, retries: 1 });
+    if (!data || data.error || !Array.isArray(data)) {
+      console.log('[CCTV:Ontario] No data or error');
+      return cameras;
+    }
+    for (const cam of data) {
+      if (!cam.latitude || !cam.longitude) continue;
+      cameras.push({
+        id: `on_${cam.id || cameras.length}`,
+        source: '511 Ontario',
+        lat: cam.latitude,
+        lon: cam.longitude,
+        name: cam.description || cam.name || 'Ontario Camera',
+        direction: null,
+        feed_url: cam.imageUrl || cam.url || '',
+        feed_type: 'image',
+      });
+    }
+    console.log(`[CCTV:Ontario] ${cameras.length} cameras ingested`);
+  } catch (e) {
+    console.log('[CCTV:Ontario] Ingest failed:', e.message);
+  }
+  return cameras;
+}
+
+// --- Source 8: ASFINAG Austria ---
+async function ingestAsfinag() {
+  const cameras = [];
+  try {
+    const url = 'https://www.asfinag.at/verkehr/verkehrslage-kamera/?type=webcam&format=json';
+    const data = await safeFetch(url, { timeout: 10000, retries: 1 });
+    if (!data || data.error) {
+      console.log('[CCTV:ASFINAG] No data or error');
+      return cameras;
+    }
+    const cams = Array.isArray(data) ? data : (data.webcams || data.cameras || []);
+    for (const cam of cams) {
+      const lat = cam.latitude ?? cam.lat;
+      const lon = cam.longitude ?? cam.lon ?? cam.lng;
+      if (!lat || !lon) continue;
+      cameras.push({
+        id: `asfinag_${cam.id || cameras.length}`,
+        source: 'ASFINAG',
+        lat, lon,
+        name: cam.name || cam.title || 'Austria Motorway',
+        direction: cam.direction || null,
+        feed_url: cam.imageUrl || cam.image_url || cam.url || '',
+        feed_type: 'image',
+      });
+    }
+    console.log(`[CCTV:ASFINAG] ${cameras.length} cameras ingested`);
+  } catch (e) {
+    console.log('[CCTV:ASFINAG] Ingest failed:', e.message);
+  }
+  return cameras;
+}
+
+// --- Source 9: VicRoads Australia ---
+async function ingestVicroads() {
+  const cameras = [];
+  try {
+    const url = 'https://traffic.vicroads.vic.gov.au/api/cameras';
+    const data = await safeFetch(url, { timeout: 10000, retries: 1 });
+    if (!data || data.error) {
+      console.log('[CCTV:VicRoads] No data or error');
+      return cameras;
+    }
+    const cams = Array.isArray(data) ? data : (data.cameras || data.features || []);
+    for (const cam of cams) {
+      const props = cam.properties || cam;
+      const lat = props.latitude ?? props.lat ?? cam.geometry?.coordinates?.[1];
+      const lon = props.longitude ?? props.lon ?? props.lng ?? cam.geometry?.coordinates?.[0];
+      if (!lat || !lon) continue;
+      cameras.push({
+        id: `vicroads_${props.id || cameras.length}`,
+        source: 'VicRoads',
+        lat, lon,
+        name: props.name || props.description || 'VicRoads Camera',
+        direction: props.direction || null,
+        feed_url: props.imageUrl || props.image_url || props.url || '',
+        feed_type: 'image',
+      });
+    }
+    console.log(`[CCTV:VicRoads] ${cameras.length} cameras ingested`);
+  } catch (e) {
+    console.log('[CCTV:VicRoads] Ingest failed:', e.message);
+  }
+  return cameras;
+}
+
 // --- Main briefing function ---
 export async function briefing() {
   console.log('[CCTV] Starting camera mesh ingest...');
   initDb();
 
-  // Run all four ingestors in parallel with per-source timeouts
-  const [tfl, nyc, txdot, sg] = await Promise.allSettled([
+  // Run all ingestors in parallel with per-source timeouts
+  const [tfl, nyc, txdot, sg, wsdot, caltrans, ontario, asfinag, vicroads] = await Promise.allSettled([
     ingestTflJamcams(),
     ingestNycDot(),
     ingestAustinTxdot(),
     ingestSingaporeLta(),
+    ingestWsdot(),
+    ingestCaltrans(),
+    ingestOntario(),
+    ingestAsfinag(),
+    ingestVicroads(),
   ]);
 
   const sourceResults = {
@@ -272,6 +436,11 @@ export async function briefing() {
     nyc: nyc.status === 'fulfilled' ? nyc.value : [],
     txdot: txdot.status === 'fulfilled' ? txdot.value : [],
     sg: sg.status === 'fulfilled' ? sg.value : [],
+    wsdot: wsdot.status === 'fulfilled' ? wsdot.value : [],
+    caltrans: caltrans.status === 'fulfilled' ? caltrans.value : [],
+    ontario: ontario.status === 'fulfilled' ? ontario.value : [],
+    asfinag: asfinag.status === 'fulfilled' ? asfinag.value : [],
+    vicroads: vicroads.status === 'fulfilled' ? vicroads.value : [],
   };
 
   // Upsert all cameras to DB/store
@@ -315,6 +484,11 @@ export async function briefing() {
       nyc: nyc.status === 'rejected' ? nyc.reason?.message : null,
       txdot: txdot.status === 'rejected' ? txdot.reason?.message : null,
       sg: sg.status === 'rejected' ? sg.reason?.message : null,
+      wsdot: wsdot.status === 'rejected' ? wsdot.reason?.message : null,
+      caltrans: caltrans.status === 'rejected' ? caltrans.reason?.message : null,
+      ontario: ontario.status === 'rejected' ? ontario.reason?.message : null,
+      asfinag: asfinag.status === 'rejected' ? asfinag.reason?.message : null,
+      vicroads: vicroads.status === 'rejected' ? vicroads.reason?.message : null,
     },
     signals: totalIngested > 0
       ? [`${totalIngested} traffic cameras ingested from ${Object.keys(sourceCounts).length} sources`]
