@@ -555,6 +555,7 @@ let lowPerfMode = localStorage.getItem('crucix_low_perf') === 'true';
 let isFlat = shouldStartFlat();
 let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
+let autoZoomDone = false;
 const signalGuideItems = [
   {
     term:'No Callsign',
@@ -1624,6 +1625,26 @@ function drawFlatMap(){
     });
 }
 
+function rewindPolygon(feature){
+  const g = feature.geometry;
+  if(g.type==='Polygon'){
+    g.coordinates = g.coordinates.map((ring,i)=>{
+      const testArea = d3.geoArea({type:'Polygon',coordinates:[ring]});
+      if(i===0 && testArea > 2*Math.PI) ring.reverse();
+      return ring;
+    });
+  } else if(g.type==='MultiPolygon'){
+    g.coordinates = g.coordinates.map(poly=>
+      poly.map((ring,i)=>{
+        const testArea = d3.geoArea({type:'Polygon',coordinates:[ring]});
+        if(i===0 && testArea > 2*Math.PI) ring.reverse();
+        return ring;
+      })
+    );
+  }
+  return feature;
+}
+
 function drawFrontlines(){
   fetch('/api/frontlines').then(r=>r.json()).then(data=>{
     const geojson = data.geojson;
@@ -1633,6 +1654,7 @@ function drawFrontlines(){
       if(!f.geometry) return;
       const geoType = f.geometry.type;
       if(geoType==='Polygon'||geoType==='MultiPolygon'){
+        rewindPolygon(f);
         flG.append('path').datum(f).attr('d',flatPath).attr('class','frontline-area');
       } else if(geoType==='LineString'||geoType==='MultiLineString'){
         flG.append('path').datum(f).attr('d',flatPath).attr('class','frontline-path frontline-animated');
@@ -1668,13 +1690,17 @@ function drawNuclearFacilities(){
 }
 
 function autoZoomToHotspot(){
+  if(autoZoomDone) return;
   const countries = D.cii?.countries||[];
   if(!countries.length || !flatSvg || !flatZoom) return;
+  autoZoomDone = true;
   const hottest = countries.reduce((a,b)=>a.score>b.score?a:b, countries[0]);
   if(!hottest || hottest.score < 40) return;
   const [cx,cy] = flatProjection([hottest.lng, hottest.lat]);
   if(!cx||!cy) return;
   const scale = 3.0;
+  currentRegion = 'europe';
+  document.querySelectorAll('.region-btn').forEach(b=>b.classList.toggle('active',b.dataset.region==='europe'));
   setTimeout(()=>{
     flatSvg.transition().duration(1500).ease(d3.easeCubicInOut)
       .call(flatZoom.transform, d3.zoomIdentity.translate(flatW/2 - scale*cx, flatH/2 - scale*cy).scale(scale));
@@ -2469,6 +2495,9 @@ function syncResponsiveLayout(force=false){
 function reinit(){
   renderTopbar();renderLeftRail();renderLower();renderRight();
   plotMarkers();
+  if(isFlat && flatSvg && !autoZoomDone){
+    flatG.selectAll('*').remove(); drawFlatMap();
+  }
 }
 
 // === SSE: Live Updates from Server ===
