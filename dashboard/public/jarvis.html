@@ -558,6 +558,9 @@ let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
 let autoZoomDone = false;
 let autoZoomTarget = null;
 let flatMapDrawId = 0;
+let cachedWorldAtlas = null;
+let cachedFrontlines = null;
+let cachedNuclear = null;
 const signalGuideItems = [
   {
     term:'No Callsign',
@@ -1581,50 +1584,58 @@ function initFlatMap(){
 const ISO2_TO_NUM = {US:'840',VE:'862',BR:'076',MX:'484',CU:'192',DE:'276',FR:'250',GB:'826',PL:'616',RU:'643',UA:'804',IR:'364',IL:'376',SA:'682',AE:'784',TR:'792',SY:'760',YE:'887',CN:'156',TW:'158',KP:'408',IN:'356',PK:'586',MM:'104'};
 
 function ciiColor(score){
-  if(score>=81) return 'rgba(255,50,50,0.45)';
-  if(score>=66) return 'rgba(255,140,0,0.38)';
-  if(score>=51) return 'rgba(255,215,0,0.30)';
-  if(score>=31) return 'rgba(180,180,180,0.15)';
-  return 'rgba(50,200,50,0.15)';
+  if(score>=81) return 'rgba(255,50,50,0.55)';
+  if(score>=66) return 'rgba(255,140,0,0.48)';
+  if(score>=51) return 'rgba(255,215,0,0.40)';
+  if(score>=31) return 'rgba(255,180,60,0.25)';
+  return 'rgba(50,200,50,0.20)';
+}
+
+function renderFlatMapContent(world){
+  const countries=topojson.feature(world,world.objects.countries);
+  const ciiMap = {};
+  (D.cii?.countries||[]).forEach(c=>{
+    const num = ISO2_TO_NUM[c.code];
+    if(num) ciiMap[num] = c;
+  });
+  flatG.selectAll('path.land').data(countries.features).enter().append('path')
+    .attr('class', d => {
+      const c = ciiMap[String(d.id)];
+      return c ? 'land cii-fill' : 'land';
+    })
+    .attr('d',flatPath)
+    .attr('fill', d => {
+      const c = ciiMap[String(d.id)];
+      return c ? ciiColor(c.score) : null;
+    })
+    .on('click', function(ev, d){
+      const c = ciiMap[String(d.id)];
+      if(c){
+        ev.stopPropagation();
+        showPopup(ev, c.name, `CII Score: <b>${c.score}/100</b><br>Level: <b style="color:${c.color||'#fff'}">${c.level}</b><br>Trend: ${c.trend||'Stable'} (${c.trendDelta>0?'+':''}${c.trendDelta||0})`, 'Instability Index');
+      }
+    })
+    .style('cursor', d => ciiMap[String(d.id)] ? 'pointer' : null);
+  flatG.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',flatPath);
+  plotFlatMarkers();
+  renderFrontlines();
+  renderNuclearFacilities();
+  autoZoomToHotspot();
 }
 
 function drawFlatMap(){
-  const myDrawId = ++flatMapDrawId;
+  ++flatMapDrawId;
   flatG.append('path').datum(d3.geoGraticule()()).attr('class','graticule').attr('d',flatPath);
+  if(cachedWorldAtlas){
+    renderFlatMapContent(cachedWorldAtlas);
+    return;
+  }
+  const myDrawId = flatMapDrawId;
   fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
     .then(r=>r.json()).then(world=>{
+      cachedWorldAtlas = world;
       if(myDrawId !== flatMapDrawId) return;
-      const countries=topojson.feature(world,world.objects.countries);
-      // Build CII lookup by numeric country ID
-      const ciiMap = {};
-      (D.cii?.countries||[]).forEach(c=>{
-        const num = ISO2_TO_NUM[c.code];
-        if(num) ciiMap[num] = c;
-      });
-      // Draw countries with choropleth CII fill
-      flatG.selectAll('path.land').data(countries.features).enter().append('path')
-        .attr('class', d => {
-          const c = ciiMap[String(d.id)];
-          return c ? 'land cii-fill' : 'land';
-        })
-        .attr('d',flatPath)
-        .attr('fill', d => {
-          const c = ciiMap[String(d.id)];
-          return c ? ciiColor(c.score) : null;
-        })
-        .on('click', function(ev, d){
-          const c = ciiMap[String(d.id)];
-          if(c){
-            ev.stopPropagation();
-            showPopup(ev, c.name, `CII Score: <b>${c.score}/100</b><br>Level: <b style="color:${c.color||'#fff'}">${c.level}</b><br>Trend: ${c.trend||'Stable'} (${c.trendDelta>0?'+':''}${c.trendDelta||0})`, 'Instability Index');
-          }
-        })
-        .style('cursor', d => ciiMap[String(d.id)] ? 'pointer' : null);
-      flatG.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',flatPath);
-      plotFlatMarkers();
-      drawFrontlines(myDrawId);
-      drawNuclearFacilities(myDrawId);
-      autoZoomToHotspot();
+      renderFlatMapContent(world);
     });
 }
 
@@ -1648,49 +1659,67 @@ function rewindPolygon(feature){
   return feature;
 }
 
-function drawFrontlines(drawId){
+function renderFrontlinesContent(geojson){
+  if(!geojson || !geojson.features) return;
+  const flG = flatG.append('g').attr('class','frontlines-layer');
+  geojson.features.forEach(f=>{
+    if(!f.geometry) return;
+    const geoType = f.geometry.type;
+    if(geoType==='Polygon'||geoType==='MultiPolygon'){
+      rewindPolygon(f);
+      flG.append('path').datum(f).attr('d',flatPath).attr('class','frontline-area');
+    } else if(geoType==='LineString'||geoType==='MultiLineString'){
+      flG.append('path').datum(f).attr('d',flatPath).attr('class','frontline-path frontline-animated');
+    } else if(geoType==='Point'){
+      const [x,y] = flatProjection(f.geometry.coordinates);
+      if(x&&y) flG.append('circle').attr('cx',x).attr('cy',y).attr('r',2).attr('fill','rgba(255,80,60,0.6)').attr('stroke','rgba(255,80,60,0.3)').attr('stroke-width',0.5);
+    }
+  });
+}
+
+function renderFrontlines(){
+  if(cachedFrontlines){
+    renderFrontlinesContent(cachedFrontlines);
+    return;
+  }
+  const myDrawId = flatMapDrawId;
   fetch('/api/frontlines').then(r=>r.json()).then(data=>{
-    if(drawId !== undefined && drawId !== flatMapDrawId) return;
-    const geojson = data.geojson;
-    if(!geojson || !geojson.features) return;
-    const flG = flatG.append('g').attr('class','frontlines-layer');
-    geojson.features.forEach(f=>{
-      if(!f.geometry) return;
-      const geoType = f.geometry.type;
-      if(geoType==='Polygon'||geoType==='MultiPolygon'){
-        rewindPolygon(f);
-        flG.append('path').datum(f).attr('d',flatPath).attr('class','frontline-area');
-      } else if(geoType==='LineString'||geoType==='MultiLineString'){
-        flG.append('path').datum(f).attr('d',flatPath).attr('class','frontline-path frontline-animated');
-      } else if(geoType==='Point'){
-        const [x,y] = flatProjection(f.geometry.coordinates);
-        if(x&&y) flG.append('circle').attr('cx',x).attr('cy',y).attr('r',2).attr('fill','rgba(255,80,60,0.6)').attr('stroke','rgba(255,80,60,0.3)').attr('stroke-width',0.5);
-      }
-    });
+    cachedFrontlines = data.geojson;
+    if(myDrawId !== flatMapDrawId) return;
+    renderFrontlinesContent(cachedFrontlines);
   }).catch(()=>{});
 }
 
-function drawNuclearFacilities(drawId){
+function renderNuclearContent(facilities){
+  if(!facilities.length) return;
+  const nG = flatG.append('g').attr('class','nuclear-layer');
+  facilities.forEach(nf=>{
+    if(!nf.lat||!nf.lng) return;
+    const [x,y] = flatProjection([nf.lng,nf.lat]);
+    if(!x||!y) return;
+    const riskColors = {critical:'rgba(255,50,50,0.9)',elevated:'rgba(255,152,0,0.85)',normal:'rgba(255,224,130,0.7)'};
+    const clr = riskColors[nf.risk]||riskColors.normal;
+    const sz = Math.max(4, Math.min(8, 3 + nf.reactors * 0.6));
+    const g = nG.append('g').attr('class','nuke-marker').attr('transform',`translate(${x},${y})`)
+      .on('click',ev=>{
+        ev.stopPropagation();
+        showPopup(ev, nf.name, `Country: ${nf.country}<br>Reactors: ${nf.reactors}<br>Capacity: ${nf.capacityMW} MW<br>Status: <b>${nf.status}</b><br>Risk: <b style="color:${clr}">${(nf.risk||'normal').toUpperCase()}</b>`, 'Nuclear Facility');
+      });
+    g.append('circle').attr('r',sz).attr('fill',clr.replace(/[\d.]+\)$/,'0.25)')).attr('stroke',clr).attr('stroke-width',1);
+    g.append('text').attr('text-anchor','middle').attr('dy','4').attr('fill',clr).text('\u2622');
+  });
+}
+
+function renderNuclearFacilities(){
+  if(cachedNuclear){
+    renderNuclearContent(cachedNuclear);
+    return;
+  }
+  const myDrawId = flatMapDrawId;
   fetch('/api/nuclear').then(r=>r.json()).then(data=>{
-    if(drawId !== undefined && drawId !== flatMapDrawId) return;
-    const facilities = data.facilities||[];
-    if(!facilities.length) return;
-    const nG = flatG.append('g').attr('class','nuclear-layer');
-    facilities.forEach(nf=>{
-      if(!nf.lat||!nf.lng) return;
-      const [x,y] = flatProjection([nf.lng,nf.lat]);
-      if(!x||!y) return;
-      const riskColors = {critical:'rgba(255,50,50,0.9)',elevated:'rgba(255,152,0,0.85)',normal:'rgba(255,224,130,0.7)'};
-      const clr = riskColors[nf.risk]||riskColors.normal;
-      const sz = Math.max(4, Math.min(8, 3 + nf.reactors * 0.6));
-      const g = nG.append('g').attr('class','nuke-marker').attr('transform',`translate(${x},${y})`)
-        .on('click',ev=>{
-          ev.stopPropagation();
-          showPopup(ev, nf.name, `Country: ${nf.country}<br>Reactors: ${nf.reactors}<br>Capacity: ${nf.capacityMW} MW<br>Status: <b>${nf.status}</b><br>Risk: <b style="color:${clr}">${(nf.risk||'normal').toUpperCase()}</b>`, 'Nuclear Facility');
-        });
-      g.append('circle').attr('r',sz).attr('fill',clr.replace(/[\d.]+\)$/,'0.25)')).attr('stroke',clr).attr('stroke-width',1);
-      g.append('text').attr('text-anchor','middle').attr('dy','4').attr('fill',clr).text('\u2622');
-    });
+    cachedNuclear = data.facilities||[];
+    if(myDrawId !== flatMapDrawId) return;
+    renderNuclearContent(cachedNuclear);
   }).catch(()=>{});
 }
 
