@@ -1700,10 +1700,10 @@ function autoZoomToHotspot(){
   const scale = 3.0;
   currentRegion = 'europe';
   document.querySelectorAll('.region-btn').forEach(b=>b.classList.toggle('active',b.dataset.region==='europe'));
-  setTimeout(()=>{
+  requestAnimationFrame(()=>{
     flatSvg.transition().duration(1500).ease(d3.easeCubicInOut)
       .call(flatZoom.transform, d3.zoomIdentity.translate(flatW/2 - scale*cx, flatH/2 - scale*cy).scale(scale));
-  }, 800);
+  });
 }
 
 function plotFlatMarkers(){
@@ -2471,8 +2471,6 @@ function refreshMapViewport(forceGlobeReflow=false){
     if(flatProjection && flatG){
       flatProjection = d3.geoNaturalEarth1().fitSize([flatW-20,flatH-20],{type:'Sphere'}).translate([flatW/2,flatH/2]);
       flatPath = d3.geoPath(flatProjection);
-      if(flatZoom) flatSvg.call(flatZoom.transform, d3.zoomIdentity);
-      autoZoomDone = false;
       flatG.selectAll('*').remove();
       drawFlatMap();
     }
