@@ -33,6 +33,9 @@ import { computeDefcon } from './apis/sources/defcon.mjs';
 // Phase 6: Osiris-Ported Features
 import { getRegionDossier } from './apis/sources/regiondossier.mjs';
 
+// Phase 7: ISW Integration
+import { fetchISW } from './apis/sources/isw.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
@@ -444,6 +447,15 @@ app.get('/api/satellites', (req, res) => {
 app.get('/api/live-news', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   res.json(currentData.liveNews || { totalStreams: 0, streams: [] });
+});
+
+app.get('/api/isw', async (req, res) => {
+  try {
+    const data = await fetchISW();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // API: Threat classification

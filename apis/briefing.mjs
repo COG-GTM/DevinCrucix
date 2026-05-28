@@ -74,6 +74,9 @@ import { briefing as regiondossier } from './sources/regiondossier.mjs';
 import { briefing as satellites } from './sources/satellites.mjs';
 import { briefing as livenews } from './sources/livenews.mjs';
 
+// === Tier 13: Phase 7 — ISW Integration ===
+import { briefing as isw } from './sources/isw.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -103,7 +106,7 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 51 sources...');
+  console.error('[Crucix] Starting intelligence sweep — 52 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -181,6 +184,9 @@ export async function fullBriefing() {
     runSource('RegionDossier', regiondossier),
     runSource('SatTracking', satellites),
     runSource('LiveNews', livenews),
+
+    // Tier 13: Phase 7 — ISW Integration
+    runSource('ISW', isw),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve

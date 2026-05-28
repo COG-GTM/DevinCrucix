@@ -1092,6 +1092,29 @@ export async function synthesize(data) {
         signals: lnData.signals || [],
       };
     })(),
+    // Phase 7: ISW Integration
+    isw: (() => {
+      const iswData = data.sources.ISW || {};
+      return {
+        source: 'ISW',
+        status: iswData.status || 'unavailable',
+        totalAssessments: iswData.totalAssessments || 0,
+        totalMaps: iswData.totalMaps || 0,
+        assessments: (iswData.assessments || []).slice(0, 15).map(a => ({
+          id: a.id, title: a.title, excerpt: a.excerpt,
+          date: a.date, link: sanitizeExternalUrl(a.link),
+          theater: a.theater, region: a.region, type: a.type,
+        })),
+        battleMaps: (iswData.battleMaps || []).slice(0, 6).map(m => ({
+          id: m.id, title: m.title, date: m.date,
+          link: sanitizeExternalUrl(m.link), theater: m.theater, region: m.region,
+        })),
+        theaterCounts: iswData.theaterCounts || {},
+        signals: (iswData.signals || []).map(s => ({ ...s, link: sanitizeExternalUrl(s.link) })),
+        lastUpdate: iswData.lastUpdate || null,
+        attribution: iswData.attribution || 'ISW',
+      };
+    })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
