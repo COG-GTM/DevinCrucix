@@ -12,7 +12,7 @@ let _cache = null;
 let _cacheTs = 0;
 
 const THEATER_PATTERNS = [
-  { pattern: /russia|ukraine|kremlin|offensive|frontline|fortress/i, theater: 'Russia & Ukraine', region: 'ukraine' },
+  { pattern: /russia|ukraine|kremlin|donbas|zaporizhzhia|kherson|bakhmut/i, theater: 'Russia & Ukraine', region: 'ukraine' },
   { pattern: /iran|middle.?east|hormuz|houthi|yemen|proxy|proxies/i, theater: 'Middle East', region: 'middleEast' },
   { pattern: /china|taiwan|pla|indo.?pacific|south.china.sea/i, theater: 'China & Taiwan', region: 'asiaPacific' },
   { pattern: /adversary|entente|north.korea|dprk/i, theater: 'Adversary Entente', region: 'world' },

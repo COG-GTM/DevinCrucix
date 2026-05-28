@@ -1102,15 +1102,15 @@ export async function synthesize(data) {
         totalMaps: iswData.totalMaps || 0,
         assessments: (iswData.assessments || []).slice(0, 15).map(a => ({
           id: a.id, title: a.title, excerpt: a.excerpt,
-          date: a.date, link: a.link,
+          date: a.date, link: sanitizeExternalUrl(a.link),
           theater: a.theater, region: a.region, type: a.type,
         })),
         battleMaps: (iswData.battleMaps || []).slice(0, 6).map(m => ({
           id: m.id, title: m.title, date: m.date,
-          link: m.link, theater: m.theater, region: m.region,
+          link: sanitizeExternalUrl(m.link), theater: m.theater, region: m.region,
         })),
         theaterCounts: iswData.theaterCounts || {},
-        signals: iswData.signals || [],
+        signals: (iswData.signals || []).map(s => ({ ...s, link: sanitizeExternalUrl(s.link) })),
         lastUpdate: iswData.lastUpdate || null,
         attribution: iswData.attribution || 'ISW',
       };
