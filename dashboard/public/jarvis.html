@@ -1668,6 +1668,24 @@ function plotFlatMarkers(){
   });
   // GDELT geo events
   (D.gdelt?.geoPoints||[]).forEach(g=>{addPt(g.lat,g.lon,2.5,'rgba(100,149,237,0.5)','rgba(100,149,237,0.2)',ev=>showPopup(ev,'GDELT Event',g.name||'','GDELT · '+g.count+' reports'),3)});
+  // Seismic events (USGS — amber scaled by magnitude, red if suspect)
+  (D.seismic?.events||[]).forEach(e=>{
+    if(e.lat==null||e.lng==null) return;
+    const mag=e.mag||2.5;
+    addPt(e.lat,e.lng,Math.max(2.5,(mag-2)*1.4),
+      e.suspect?'rgba(255,23,68,0.85)':'rgba(255,183,77,0.7)',
+      e.suspect?'rgba(255,23,68,0.4)':'rgba(255,183,77,0.3)',
+      ev=>showPopup(ev,e.suspect?'SUSPECT SEISMIC EVENT':'SEISMIC EVENT M'+mag,
+        `${e.place}<br>Magnitude: M${mag} · Depth: ${e.depthKm}km`+
+        (e.suspect?`<br><span style="color:#ff1744">${e.nearSite.km}km from ${e.nearSite.name} test site (${e.nearSite.country}) — shallow event</span>`:'')+
+        (e.tsunami?'<br><span style="color:var(--warn)">TSUNAMI FLAG</span>':''),'USGS Seismic'),
+      e.suspect?1:(mag>=5?2:3));
+  });
+  // Nuclear test site reference markers
+  (D.seismic?.testSites||[]).forEach(s=>{
+    addPt(s.lat,s.lng,3,'rgba(255,23,68,0.35)','rgba(255,23,68,0.5)',
+      ev=>showPopup(ev,'NUCLEAR TEST SITE',s.name+' · '+s.country+'<br>Historic nuclear test range — monitored for shallow seismic signatures','Seismic Watch'),2);
+  });
   // ACLED
   (D.acled?.deadliestEvents||[]).filter(e=>e.lat&&e.lon).forEach(e=>{
     const[x,y]=proj([e.lon,e.lat]);if(!x||!y)return;
