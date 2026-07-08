@@ -99,6 +99,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.tglive{background:#00bcd4;box-shadow:0 0 6px rgba(0,188,212,0.4)}
 .ldot.polymarket{background:#7c4dff;box-shadow:0 0 6px rgba(124,77,255,0.4)}
 .ldot.defcon{background:#ff5252;box-shadow:0 0 6px rgba(255,82,82,0.4)}
+.ldot.seismic{background:#ffb74d;box-shadow:0 0 6px rgba(255,183,77,0.4)}
 /* Phase 4: CII Panel */
 .cii-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s}
 .cii-row:hover{background:rgba(100,240,200,0.04)}
@@ -790,7 +791,8 @@ function renderLeftRail(){
     {name:'Cyber KEV',count:D.cyberKev?.totalVulnerabilities||0,dot:'cyber',sub:`${D.cyberKev?.ransomwareCount||0} ransomware`},
     {name:'Telegram Live',count:D.telegramLive?.totalMessages||0,dot:'tglive',sub:`${D.telegramLive?.channels||0} channels`},
     {name:'Polymarket',count:D.polymarket?.totalGeoMarkets||0,dot:'polymarket',sub:'geopolitical odds'},
-    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing'}
+    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing'},
+    {name:'Seismic Monitor',count:D.seismic?.totalEvents||0,dot:'seismic',sub:`${D.seismic?.suspectCount||0} suspect · max M${D.seismic?.maxMagnitude??'--'}`}
   ];
   // === PRC INTELLIGENCE SECTION ===
   const prcAir = D.air.find(a => a.region === 'Taiwan Strait') || {};
@@ -827,6 +829,17 @@ function renderLeftRail(){
       <div class="sec-head"><h3>${t('panels.nuclearWatch','Nuclear Watch')}</h3><span class="badge">${t('badges.radiation','RADIATION')}</span></div>
       <div class="nuke-ok">${allNormal?'&#9679; '+t('nuclear.allSitesNormal','ALL SITES NORMAL'):'&#9888; '+t('nuclear.anomalyDetected','ANOMALY DETECTED')}</div>
       ${nukeHtml}
+    </div>
+    <div class="g-panel">
+      <div class="sec-head"><h3>Seismic Monitor</h3><span class="badge">USGS</span></div>
+      ${D.seismic ? `
+        <div class="nuke-ok" style="${D.seismic.suspectCount>0?'color:var(--warn)':''}">${D.seismic.suspectCount>0?'&#9888; '+D.seismic.suspectCount+' SUSPECT EVENT(S) NEAR TEST SITES':'&#9679; NO TEST-SITE SIGNATURES'}</div>
+        <div class="econ-row"><span class="elabel">Events (24h, M2.5+)</span><span class="eval">${D.seismic.totalEvents}</span></div>
+        <div class="econ-row"><span class="elabel">Max Magnitude</span><span class="eval" style="color:${D.seismic.maxMagnitude>=6?'var(--warn)':'var(--accent)'}">M${D.seismic.maxMagnitude??'--'}</span></div>
+        <div class="econ-row"><span class="elabel">Significant (M5+)</span><span class="eval">${D.seismic.significantCount||0}</span></div>
+        ${(D.seismic.events||[]).slice(0,4).map(e=>`<div class="site-row"><span>${(e.place||'').substring(0,28)}</span><span class="site-val">M${e.mag} · ${e.depthKm}km</span></div>`).join('')}
+        ${(D.seismic.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(255,183,77,0.25);background:rgba(255,183,77,0.05);font-family:var(--mono);font-size:9px;color:#ffb74d;line-height:1.5">${D.seismic.signals.slice(0,2).join('<br>')}</div>` : ''}
+      ` : '<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">AWAITING USGS FEED</div>'}
     </div>
     <div class="g-panel">
       <div class="sec-head"><h3>${t('panels.riskGauges','Risk Gauges')}</h3><span class="badge">${t('badges.stress','STRESS')}</span></div>
@@ -869,7 +882,7 @@ function bindMapLifecycleEvents(){
 function renderMapLegend(){
   document.getElementById('mapLegend').innerHTML=
     [{c:'#64f0c8',l:t('map.airTraffic','Air Traffic')},{c:'#ff5f63',l:t('map.thermalFire','Thermal/Fire')},{c:'rgba(255,120,80,0.8)',l:t('map.conflict','Conflict')},{c:'#44ccff',l:t('map.sdrReceiver','SDR Receiver')},
-     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'},{c:'#ff7043',l:'CII Hotspot'},{c:'#ab47bc',l:'Convergence Zone'},{c:'#ffd54f',l:'Signal Intel'},{c:'#26c6da',l:'Focal Point'},{c:'#ff9800',l:'Pizza Index'},{c:'#42a5f5',l:'Cyber KEV'},{c:'#00bcd4',l:'Telegram Live'},{c:'#7c4dff',l:'Polymarket'}]
+     {c:'#ffe082',l:t('map.nuclearSite','Nuclear Site')},{c:'#b388ff',l:t('map.chokepoint','Chokepoint')},{c:'#ffb84c',l:t('map.osintEvent','OSINT Event')},{c:'#69f0ae',l:t('map.healthAlert','Health Alert')},{c:'#81d4fa',l:t('map.worldNews','World News')},{c:'#ff9800',l:t('map.weatherAlert','Weather Alert')},{c:'#cddc39',l:t('map.epaRadNet','EPA RadNet')},{c:'#ffffff',l:t('map.spaceStation','Space Station')},{c:'#6495ed',l:t('map.gdeltEvent','GDELT Event')},{c:'#ff4081',l:'Narco Intel'},{c:'#00e5ff',l:'Market Intel'},{c:'#f44336',l:'PRC Activity'},{c:'#4fc3f7',l:'Carrier Group'},{c:'rgba(239,83,80,0.6)',l:'GPS Jamming'},{c:'#66bb6a',l:'CCTV Camera'},{c:'#ff7043',l:'CII Hotspot'},{c:'#ab47bc',l:'Convergence Zone'},{c:'#ffd54f',l:'Signal Intel'},{c:'#26c6da',l:'Focal Point'},{c:'#ff9800',l:'Pizza Index'},{c:'#42a5f5',l:'Cyber KEV'},{c:'#00bcd4',l:'Telegram Live'},{c:'#7c4dff',l:'Polymarket'},{c:'#ffb74d',l:'Seismic Event'},{c:'#ff1744',l:'Suspect Seismic'}]
     .map(x=>`<div class="leg-item"><div class="leg-dot" style="background:${x.c}"></div>${x.l}</div>`).join('');
 }
 
@@ -1348,6 +1361,32 @@ function plotMarkers(){
       color:'rgba(102,187,106,0.7)', type:'cctv', priority:3,
       popHead:'CCTV: '+(c.name||'Camera'), popMeta:c.source+' · '+c.feedType,
       popText:`${c.direction?'Direction: '+c.direction+'<br>':''}${c.feedUrl?'<a href="'+c.feedUrl+'" target="_blank" style="color:var(--accent2)">View Feed</a>':''}`
+    });
+  });
+
+  // === Seismic Events (USGS — amber dots scaled by magnitude, red if suspect) ===
+  (D.seismic?.events||[]).forEach(e=>{
+    if(e.lat==null||e.lng==null) return;
+    const mag = e.mag||2.5;
+    points.push({
+      lat:e.lat, lng:e.lng, size:Math.max(0.15, (mag-2)*0.13), alt:0.012,
+      color:e.suspect?'rgba(255,23,68,0.95)':'rgba(255,183,77,0.8)',
+      type:'seismic', priority:e.suspect?1:(mag>=5?2:3),
+      popHead:e.suspect?'SUSPECT SEISMIC EVENT':'SEISMIC EVENT M'+mag,
+      popMeta:'USGS · '+(e.time?new Date(e.time).toUTCString():''),
+      popText:`${e.place}<br>Magnitude: M${mag} · Depth: ${e.depthKm}km`+
+        (e.suspect?`<br><span style="color:#ff1744">${e.nearSite.km}km from ${e.nearSite.name} test site (${e.nearSite.country}) — shallow event</span>`:'')+
+        (e.tsunami?'<br><span style="color:var(--warn)">TSUNAMI FLAG</span>':'')
+    });
+    if(e.suspect||mag>=6) labels.push({lat:e.lat, lng:e.lng+2, text:(e.suspect?'SUSPECT ':'')+'M'+mag, size:0.35, color:e.suspect?'rgba(255,23,68,0.9)':'rgba(255,183,77,0.8)'});
+  });
+  // Nuclear test site reference markers
+  (D.seismic?.testSites||[]).forEach(s=>{
+    points.push({
+      lat:s.lat, lng:s.lng, size:0.22, alt:0.008,
+      color:'rgba(255,23,68,0.45)', type:'seismic-site', priority:2,
+      popHead:'NUCLEAR TEST SITE', popMeta:s.name+' · '+s.country,
+      popText:'Historic nuclear test range — monitored for shallow seismic signatures'
     });
   });
 

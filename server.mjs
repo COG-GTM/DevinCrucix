@@ -33,6 +33,9 @@ import { computeDefcon } from './apis/sources/defcon.mjs';
 // Phase 6: Osiris-Ported Features
 import { getRegionDossier } from './apis/sources/regiondossier.mjs';
 
+// Phase 7: Seismic Event Monitor
+import { collectSeismic } from './apis/sources/seismic.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
@@ -49,6 +52,7 @@ let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
 let marketRefreshInProgress = false;
+let seismicData = null;      // Seismic Event Monitor state (refreshed independently)
 const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
@@ -275,7 +279,7 @@ app.get('/', (req, res) => {
 // API: current data
 app.get('/api/data', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
-  res.json(currentData);
+  res.json({ ...currentData, seismic: seismicData });
 });
 
 // API: carrier strike groups
@@ -432,6 +436,11 @@ app.get('/api/region-dossier', async (req, res) => {
     console.error('[Crucix] Region dossier error:', err.message);
     res.status(500).json({ error: err.message });
   }
+});
+
+// API: Seismic Event Monitor (USGS live feed + nuclear-test discrimination)
+app.get('/api/seismic', (req, res) => {
+  res.json(seismicData || { status: 'pending', totalEvents: 0, events: [] });
 });
 
 // API: Satellite Tracking (SGP4)
@@ -773,6 +782,22 @@ async function start() {
     // Schedule fast market-only refresh (every 60s by default)
     console.log(`[Crucix] Market ticker refresh: every ${MARKET_REFRESH_SECONDS}s`);
     setInterval(runMarketRefresh, MARKET_REFRESH_SECONDS * 1000);
+
+    // Seismic Event Monitor — refresh every 5 minutes
+    const refreshSeismic = async () => {
+      try {
+        seismicData = await collectSeismic();
+        if (seismicData?.suspectCount > 0) {
+          console.log(`[Seismic] ${seismicData.suspectCount} SUSPECT event(s) near nuclear test sites`);
+        } else {
+          console.log(`[Seismic] ${seismicData?.totalEvents || 0} events (max M${seismicData?.maxMagnitude ?? '--'})`);
+        }
+      } catch (err) {
+        console.error('[Seismic] Refresh failed:', err.message);
+      }
+    };
+    refreshSeismic();
+    setInterval(refreshSeismic, 5 * 60 * 1000);
   });
 }
 
