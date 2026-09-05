@@ -1,10 +1,12 @@
 // Carrier Strike Group OSINT Tracker
-// Scrapes GDELT news articles for mentions of US Navy carrier names,
+// Scans GDELT news headlines for mentions of US Navy carrier names,
 // extracts geographic context, and maps mentions to estimated lat/lng
 // using a region-to-coordinate lookup table.
+// Headlines come from the shared GDELT export snapshot (no rate limit) plus
+// a single throttled DOC API query for the 14-day lookback.
 // Adapted from Shadowbroker carrier_tracker.py for CRUCIX architecture.
 
-import { safeFetch } from '../utils/fetch.mjs';
+import { loadFeeds, searchEvents } from './gdelt.mjs';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -177,44 +179,39 @@ function saveCache(positions) {
   }
 }
 
-// GDELT search for carrier news — rate-limited with delays
-async function fetchGdeltCarrierNews() {
-  const searchTerms = [
-    'aircraft+carrier+deployed',
-    'carrier+strike+group+navy',
-    'USS+Nimitz+carrier',
-    'USS+Ford+carrier',
-    'USS+Eisenhower+carrier',
-    'USS+Vinson+carrier',
-    'USS+Roosevelt+carrier+navy',
-    'USS+Lincoln+carrier',
-    'USS+Truman+carrier',
-    'USS+Reagan+carrier',
-    'USS+Washington+carrier+navy',
-    'USS+Bush+carrier',
-    'USS+Stennis+carrier',
-  ];
+const CARRIER_HEADLINE_RE = /\b(aircraft carrier|carrier strike group|USS (Nimitz|Ford|Eisenhower|Vinson|Roosevelt|Lincoln|Truman|Reagan|Washington|Bush|Stennis))\b/i;
 
+// Carrier news: recent headlines from the shared export snapshot (last hour,
+// no rate limit) plus one throttled DOC query covering the last 14 days.
+async function fetchGdeltCarrierNews() {
   const results = [];
-  for (let i = 0; i < searchTerms.length; i++) {
-    const term = searchTerms[i];
-    try {
-      const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${term}&mode=artlist&maxrecords=5&format=json&timespan=14d`;
-      const data = await safeFetch(url, { timeout: 8000, retries: 0 });
-      if (data && !data.error && Array.isArray(data.articles)) {
-        for (const art of data.articles) {
-          results.push({ title: art.title || '', url: art.url || '' });
-        }
-      }
-    } catch { /* skip failed queries */ }
-    // Rate limit: GDELT requires ~5s between requests
-    if (i < searchTerms.length - 1) {
-      await new Promise(r => setTimeout(r, 1500 + Math.random() * 500));
+  const seen = new Set();
+  const push = (title, url) => {
+    if (!title || seen.has(url || title)) return;
+    seen.add(url || title);
+    results.push({ title, url: url || '' });
+  };
+
+  let feedStatus = 'ok';
+  try {
+    const feeds = await loadFeeds();
+    for (const a of feeds.articles) {
+      if (CARRIER_HEADLINE_RE.test(a.title)) push(a.title, a.url);
     }
+  } catch (e) {
+    feedStatus = e.message;
   }
 
-  console.log(`[Carriers] GDELT returned ${results.length} articles`);
-  return results;
+  let docStatus = 'ok';
+  const doc = await searchEvents('"aircraft carrier" OR "carrier strike group"', { maxRecords: 75, timespan: '14d', timeout: 12000 });
+  if (doc && Array.isArray(doc.articles)) {
+    for (const art of doc.articles) push(art.title || '', art.url || '');
+  } else {
+    docStatus = doc?.error || (doc?.rawText ? 'non-JSON response (rate limited)' : 'no articles');
+  }
+
+  console.log(`[Carriers] GDELT returned ${results.length} articles (export feed: ${feedStatus}; DOC search: ${docStatus})`);
+  return { articles: results, feedStatus, docStatus };
 }
 
 function parseCarrierPositionsFromNews(articles) {
@@ -308,16 +305,19 @@ export async function briefing() {
     }
   }
 
-  // Phase 2: GDELT enrichment (slow, network)
+  // Phase 2: GDELT enrichment (network)
+  let enrichment = { articles: 0, feedStatus: 'skipped', docStatus: 'skipped' };
   try {
-    const articles = await fetchGdeltCarrierNews();
-    const newsPositions = parseCarrierPositionsFromNews(articles);
+    const news = await fetchGdeltCarrierNews();
+    enrichment = { articles: news.articles.length, feedStatus: news.feedStatus, docStatus: news.docStatus };
+    const newsPositions = parseCarrierPositionsFromNews(news.articles);
     for (const [hull, pos] of Object.entries(newsPositions)) {
       if (hull in positions) {
         Object.assign(positions[hull], pos);
       }
     }
   } catch (e) {
+    enrichment.feedStatus = e.message;
     console.log('[Carriers] GDELT enrichment failed (using fallbacks):', e.message);
   }
 
@@ -357,6 +357,10 @@ export async function briefing() {
     totalCarriers: deconflicted.length,
     carriers: deconflicted,
     sourceBreakdown,
+    enrichment,
+    ...(enrichment.feedStatus !== 'ok' && enrichment.docStatus !== 'ok'
+      ? { status: 'fallback', note: 'GDELT enrichment unreachable — positions are USNI fleet-tracker fallbacks/cached estimates' }
+      : {}),
     signals: deconflicted
       .filter(c => !c.desc.includes('Homeport') && !c.desc.includes('Maintenance') && !c.desc.includes('overhaul'))
       .map(c => `${c.name}: ${c.desc}`),

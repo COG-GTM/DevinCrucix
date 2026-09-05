@@ -145,7 +145,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 
 /* CENTER: MAP */
 .map-region-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--border);background:var(--panel);backdrop-filter:blur(20px)}
-.map-container{flex:1;min-height:560px;border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));position:relative;overflow:hidden}
+.map-container{flex:0 0 auto;height:clamp(560px,calc(100vh - 220px),820px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));position:relative;overflow:hidden}
 #globeViz{width:100%;height:100%;cursor:grab}
 #globeViz:active{cursor:grabbing}
 #globeViz canvas{outline:none}
@@ -414,7 +414,7 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
   #centerCol{order:1}
   #rightRail{order:2}
   #leftRail{order:3}
-  .map-container{min-height:420px}
+  .map-container{height:clamp(420px,70vh,640px)}
   .map-hint{font-size:8px;right:8px}
   .map-legend{left:8px;right:8px;bottom:8px;gap:4px}
   .leg-item{font-size:8px}
@@ -840,6 +840,9 @@ function shWorst(names){
   return worst;
 }
 function shNotReporting(s){return Boolean(s)&&(s.state==='no_key'||s.state==='off'||s.state==='error')}
+// Sidecar-only sources (Pizza Index, SpiderFoot) are hidden from panels/layers when not reporting;
+// they stay listed in the Source Health panel with the reason.
+function shHidden(names){const s=shWorst(names);return Boolean(s&&s.sidecar&&shNotReporting(s))}
 function shWhy(s){
   if(!s)return '';
   if(s.state==='no_key')return (s.envVars||[]).length?'SET '+s.envVars.join(' + '):'NEEDS KEY';
@@ -885,7 +888,7 @@ function renderLeftRail(){
   const conflictEvents = D.acled?.totalEvents || 0;
   const conflictFatal = D.acled?.totalFatalities || 0;
   const layers=[
-    {name:t('layers.airActivity','Air Activity'),count:totalAir,dot:'air',sub:`${D.air.length} ${t('layers.theaters','theaters')}`,src:D.airMeta?.fallback?['ADS-B']:['OpenSky']},
+    {name:t('layers.airActivity','Air Activity'),count:totalAir,dot:'air',sub:D.airMeta?.method&&D.airMeta.method!=='opensky'?esc(D.airMeta.source):`${D.air.length} ${t('layers.theaters','theaters')}`,src:D.airMeta?.fallback?['ADS-B']:['OpenSky']},
     {name:t('layers.thermalSpikes','Thermal Spikes'),count:totalThermal.toLocaleString(),dot:'thermal',sub:`${totalNight.toLocaleString()} ${t('layers.nightDet','night det.')}`,src:'FIRMS'},
     {name:t('layers.sdrCoverage','SDR Coverage'),count:D.sdr.total,dot:'sdr',sub:`${D.sdr.online} ${t('layers.online','online')}`,src:'KiwiSDR'},
     {name:t('layers.maritimeWatch','Maritime Watch'),count:D.chokepoints.length,dot:'maritime',sub:t('layers.chokepoints','chokepoints'),src:'Maritime'},
@@ -911,6 +914,7 @@ function renderLeftRail(){
     {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing',src:'DEFCON'}
   ];
   const layerRow=l=>{
+    if(l.src&&shHidden(l.src))return '';
     const s=l.src?shWorst(l.src):null;
     const nr=shNotReporting(s);
     const sub=nr?shWhy(s):(s&&s.state==='degraded'?`${l.sub} \u00b7 <span class="why">${esc(s.reason||'degraded')}</span>`:l.sub);
@@ -2124,7 +2128,7 @@ function renderLower(){
 function renderPizzaPanel(){
   const pi = D.pizzaIndex || {};
   if (pi.status === 'unavailable' || pi.doughcon == null) {
-    return offPanel('Pentagon Pizza Index','PizzaIndex','Awaiting data');
+    return shHidden('PizzaIndex') ? '' : offPanel('Pentagon Pizza Index','PizzaIndex','Awaiting data');
   }
   const dcColors = {1:'#ff5252',2:'#ff9800',3:'#ffd54f',4:'#66bb6a',5:'#4caf50'};
   const dcColor = dcColors[pi.doughcon] || '#ffd54f';

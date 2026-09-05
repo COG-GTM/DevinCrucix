@@ -376,13 +376,13 @@ crucix/
 
 | Source | What It Tracks | Auth |
 |--------|---------------|------|
-| **GDELT** | Global news events, conflict mapping (100+ languages) | None |
-| **OpenSky** | Real-time ADS-B flight tracking across 6 hotspot regions | None |
+| **GDELT** | Global news events, conflict mapping (100+ languages) via the 15-minute export/GKG snapshots | None |
+| **OpenSky** | Real-time ADS-B flight tracking across 10 hotspot regions (falls back to adsb.lol point samples, marked `fallback`, when OpenSky is unreachable) | None |
 | **NASA FIRMS** | Satellite fire/thermal anomaly detection (3hr latency) | Free key |
 | **Maritime/AIS** | Vessel tracking, dark ships, sanctions evasion | Free key |
 | **Safecast** | Citizen-science radiation monitoring near 6 nuclear sites | None |
 | **ACLED** | Armed conflict events: battles, explosions, protests | Free (OAuth2) |
-| **ReliefWeb** | UN humanitarian crisis tracking | None |
+| **ReliefWeb** | UN humanitarian crisis tracking (API v2 with `RELIEFWEB_APPNAME`, else public RSS → HDX) | Optional |
 | **WHO** | Disease outbreaks and health emergencies | None |
 | **OFAC** | US Treasury sanctions (SDN list) | None |
 | **OpenSanctions** | Aggregated global sanctions (30+ sources) | Partial |
