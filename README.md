@@ -134,6 +134,16 @@ Keyed sources are skipped (marked "no key" in the panel) when their variable is 
 
 **Typosquat Watch** runs in the sweep: for each domain in `TYPOSQUAT_WATCHLIST` (default: `treasury.gov,irs.gov,cisa.gov,defense.gov,login.gov`) it generates DNS-Twist-style permutations (homoglyph, omission, transposition, TLD swap, hyphenation, keyword addition, …), resolves them over DoH, and lists the registered ones, flagging any that are new since the previous sweep. Set the variable to an empty string to disable.
 
+### Border Watch (US–Mexico border news)
+
+Keyless, registry-driven regional news collection. Outlets live in `config/border-sources.json` (currently Border Report and The Texas Tribune) with outlet, feed URL, language, region, discovery date, and a reliability grade (`ungraded` until reviewed). Each sweep polls the RSS feeds with `If-None-Match`/`If-Modified-Since` (a 304 is a healthy "unchanged" poll), normalizes items with a content hash, pipeline version, and provenance, then fetches a bounded number of article bodies per feed via the public WordPress REST API or the article page — after a robots.txt check, with the descriptive CRUCIX User-Agent, never bypassing paywalls (paywalled or blocked articles keep their feed-level record and are flagged). Rule-based topic tags (violence, narcotics, enforcement, migration, rail, trade, governance) and a border-sector gazetteer (wire datelines are ignored for place tagging) feed a per-place/topic spike detector that stays silent until at least 3 days of baseline exist.
+
+- `BORDER_FETCH_ARTICLES` (default `true`) — set `false` for headlines/descriptions only.
+- `BORDER_MAX_ARTICLE_FETCH` (default `5`, max `20`) — article bodies fetched per feed per sweep; the backlog drains on later sweeps.
+- `GET /api/border/articles?place=el-paso-tx&topic=enforcement&outlet=borderreport&days=7&limit=50` — filters are whitelisted keys; anything else is a 400.
+
+Panel states are reported per feed (`LIVE`, `UNCHANGED`, `EMPTY`, `BLOCKED`, `ERROR`) and per article (`PAYWALL`, `WIRE`, `FEED-ONLY`). Runtime state is kept under `runs/border/`.
+
 ---
 
 ## What You Get

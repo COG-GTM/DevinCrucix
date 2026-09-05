@@ -368,6 +368,37 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .narco-entity{font-family:var(--mono);font-size:8px;padding:1px 5px;background:rgba(255,64,129,0.08);border:1px solid rgba(255,64,129,0.2);color:#ff80ab}
 .narco-entity.location{color:#80cbc4;border-color:rgba(128,203,196,0.25);background:rgba(128,203,196,0.06)}
 .narco-entity.org{color:#ffab40;border-color:rgba(255,171,64,0.25);background:rgba(255,171,64,0.06)}
+/* BORDER WATCH PANEL */
+.border-panel{flex:1.4 1 280px;max-width:440px}
+.bw-feeds{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.bw-feed{display:flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);font-family:var(--mono);font-size:8.5px;color:var(--dim);letter-spacing:0.04em}
+.bw-feed .bw-outlet{color:#c8d8d2;font-weight:600}
+.bw-feed .bw-st{padding:1px 4px;border:1px solid;border-radius:2px;font-size:7.5px}
+.bw-st.ok,.bw-st.not_modified{color:#21c19a;border-color:rgba(33,193,154,0.4)}
+.bw-st.empty,.bw-st.blocked,.bw-st.stale{color:#ffab40;border-color:rgba(255,171,64,0.4)}
+.bw-st.error{color:#ff5252;border-color:rgba(255,82,82,0.4)}
+.bw-sub{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.08em;margin:6px 0 3px}
+.bw-chips{display:flex;flex-wrap:wrap;gap:3px}
+.bw-chip{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid rgba(2,148,222,0.3);color:#7fc4ea;background:rgba(2,148,222,0.06);border-radius:2px}
+.bw-chip.place{border-color:rgba(128,203,196,0.3);color:#80cbc4;background:rgba(128,203,196,0.06)}
+.bw-chip.zero{opacity:0.45}
+.bw-spike{padding:5px 8px;border-left:3px solid #ff5252;background:rgba(255,82,82,0.05);margin-bottom:3px;font-size:10px;color:#c8d8d2}
+.bw-spike b{color:#ff8a80}
+.bw-note{padding:5px 8px;border:1px dashed rgba(255,255,255,0.1);font-family:var(--mono);font-size:8.5px;color:var(--dim);line-height:1.4}
+.bw-scroll{max-height:300px;overflow-y:auto;margin-top:6px}
+.bw-scroll::-webkit-scrollbar{width:3px}
+.bw-scroll::-webkit-scrollbar-thumb{background:rgba(2,148,222,0.25);border-radius:2px}
+.bw-article{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:3px solid rgba(2,148,222,0.5)}
+.bw-article.mx{border-left-color:#ff9800}
+.bw-article .bw-meta{display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:8px;color:var(--dim)}
+.bw-article .bw-meta .bw-outlet{color:#7fc4ea}
+.bw-article .bw-flag{padding:0 3px;border:1px solid rgba(255,171,64,0.4);color:#ffab40;border-radius:2px;font-size:7.5px}
+.bw-article .bw-flag.wire{border-color:rgba(255,255,255,0.2);color:#9aa}
+.bw-article .bw-title{font-size:11px;line-height:1.35;color:#c8d8d2;margin-top:2px}
+.bw-article .bw-title a{color:#c8d8d2;text-decoration:none}
+.bw-article .bw-title a:hover{color:var(--accent)}
+.bw-article .bw-tags{margin-top:3px;display:flex;flex-wrap:wrap;gap:3px}
+.bw-foot{margin-top:6px;font-family:var(--mono);font-size:7.5px;color:var(--dim);letter-spacing:0.04em;line-height:1.5}
 .narco-scroll{max-height:320px;overflow-y:auto}
 .narco-scroll::-webkit-scrollbar{width:3px}
 .narco-scroll::-webkit-scrollbar-thumb{background:rgba(255,64,129,0.2);border-radius:2px}
@@ -899,6 +930,7 @@ function renderLeftRail(){
     {name:t('layers.osintFeed','OSINT Feed'),count:D.tg.posts,dot:'incident',sub:`${D.tg.urgent.length} ${t('badges.urgent','urgent').toLowerCase()}`,src:'Telegram'},
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`,src:'Space'},
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`,src:'InSightCrime'},
+    {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
@@ -2064,6 +2096,7 @@ function renderLower(){
       ${narcoEntityBadges ? `<div style="padding:6px 8px;border:1px solid rgba(255,64,129,0.12);background:rgba(255,64,129,0.03);margin-bottom:6px"><div style="font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.08em;margin-bottom:4px">EXTRACTED ENTITIES</div><div style="display:flex;flex-wrap:wrap;gap:3px">${narcoEntityBadges}</div></div>` : ''}
       <div class="narco-scroll">${narcoHtml || '<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">No InSight Crime data</div>'}</div>
     </div>`;
+  const borderPanel = renderBorderPanel();
   // === MARKET INTELLIGENCE PANEL ===
   const uw = D.unusualWhales || {};
   const uwLive = uw.status === 'live';
@@ -2121,7 +2154,64 @@ function renderLower(){
         </div>
       </div>
     </div>` : offPanel('Market Intelligence','UnusualWhales','Unusual Whales data unavailable','market-panel');
-  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${borderPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+}
+
+// === BORDER WATCH PANEL ===
+// Every string here is third-party feed data: it goes through esc() and URLs through safeExternalUrl().
+const BW_FEED_LABEL = {ok:'LIVE',not_modified:'UNCHANGED',empty:'EMPTY',blocked:'BLOCKED',error:'ERROR'};
+function renderBorderPanel(){
+  const bn = D.borderNews || {};
+  const articles = bn.articles || [];
+  const feeds = bn.feeds || [];
+  if(!feeds.length && !articles.length){
+    return offPanel('Border Watch','BorderNews',bn.error||'Border feeds have not been polled yet','border-panel');
+  }
+  const feedsHtml = feeds.map(f => {
+    const st = BW_FEED_LABEL[f.status] ? f.status : 'error';
+    const why = f.reason ? ` title="${esc(f.reason)}"` : (f.lastChanged ? ` title="last new items ${esc(getAge(f.lastChanged))}"` : '');
+    const count = f.status==='ok' ? `${f.newItems} new / ${f.items}` : f.status==='not_modified' ? '304' : (f.httpStatus||'');
+    return `<span class="bw-feed"${why}><span class="bw-outlet">${esc(f.outlet)}</span><span class="bw-st ${st}">${BW_FEED_LABEL[st]}</span><span>${esc(count)}</span><span>${esc(f.reliability||'ungraded').toUpperCase()}</span></span>`;
+  }).join('');
+  const tc = bn.summary?.topicCounts || {};
+  const topicsHtml = Object.keys(tc).map(k => `<span class="bw-chip${tc[k]?'':' zero'}">${esc(k)} ${tc[k]|0}</span>`).join('');
+  const placesHtml = (bn.summary?.places||[]).slice(0,8).map(p => `<span class="bw-chip place" title="${esc(p.sector||'')}">${esc(p.name)} ${p.count|0}</span>`).join('');
+  const base = bn.baseline || {};
+  let spikesHtml;
+  if(!base.ready){
+    spikesHtml = `<div class="bw-note">SPIKE DETECTION WARMING UP — ${esc(String(base.days ?? 0))}/${esc(String(base.minDays ?? 3))} DAYS OF BASELINE. Flags need ≥3 mentions in 24h and ≥3× the trailing daily mean per place × topic.</div>`;
+  } else if(!(bn.spikes||[]).length){
+    spikesHtml = `<div class="bw-note">NO PLACE × TOPIC SPIKES vs ${esc(String(base.days))}-DAY BASELINE</div>`;
+  } else {
+    spikesHtml = bn.spikes.map(s => `<div class="bw-spike" title="${esc(s.rule)}"><b>${esc(s.placeName)}</b> · ${esc(s.topic)} — <b>${s.count24h|0}</b> in 24h vs ${esc(String(s.baselineDailyMean))}/day${s.ratio!=null?` (${esc(String(s.ratio))}×)`:' (no prior mentions)'}</div>`).join('');
+  }
+  const artHtml = articles.slice(0, 25).map(a => {
+    const href = safeExternalUrl(a.url);
+    const title = esc(a.title||'(untitled)');
+    const titleHtml = href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${title}</a>` : title;
+    const flags = [];
+    if(a.paywalled) flags.push('<span class="bw-flag">PAYWALL</span>');
+    if(a.syndicated) flags.push(`<span class="bw-flag wire" title="canonical: ${esc(a.wireSource||'')}">WIRE</span>`);
+    if(a.extraction!=='wp-rest' && a.extraction!=='article-page') flags.push(`<span class="bw-flag wire" title="${esc(a.fetchStatus||'')}">FEED-ONLY</span>`);
+    const tags = [...(a.topics||[]).map(t=>`<span class="bw-chip">${esc(t)}</span>`), ...(a.places||[]).map(p=>`<span class="bw-chip place">${esc(p)}</span>`)].join('');
+    const mx = (a.places||[]).some(p => /-(bc|son|chih|coah|nl|tamps)$/.test(p));
+    return `<div class="bw-article${mx?' mx':''}"><div class="bw-meta"><span class="bw-outlet">${esc(a.outlet)}</span><span>${esc(a.publishedAt?getAge(a.publishedAt):'')}</span>${flags.join('')}</div><div class="bw-title">${titleHtml}</div>${tags?`<div class="bw-tags">${tags}</div>`:''}</div>`;
+  }).join('');
+  const st = shWorst('BorderNews');
+  const badge = bn.status==='stale' ? `<span class="badge warn">STALE · ${bn.totalArticles|0} STORED</span>`
+    : bn.status==='partial' ? `<span class="badge warn">${bn.totalArticles|0} ARTICLES · 1 FEED DOWN</span>`
+    : bn.status==='empty' ? '<span class="badge warn">FEEDS EMPTY</span>'
+    : `<span class="badge ${shBadgeClass(st)}" style="color:#7fc4ea;border-color:rgba(2,148,222,0.35);background:rgba(2,148,222,0.1)">${bn.totalArticles|0} ARTICLES · +${bn.newThisSweep|0}</span>`;
+  return `<div class="g-panel border-panel">
+      <div class="sec-head"><h3>${shDot('BorderNews')}Border Watch</h3>${badge}</div>
+      <div class="bw-feeds">${feedsHtml}</div>
+      ${bn.note?`<div class="bw-note">${esc(bn.note).toUpperCase()}</div>`:''}
+      ${spikesHtml}
+      <div class="bw-sub">TOPICS · LAST ${esc(String(bn.summary?.windowDays||30))} DAYS</div><div class="bw-chips">${topicsHtml}</div>
+      ${placesHtml?`<div class="bw-sub">PLACES</div><div class="bw-chips">${placesHtml}</div>`:''}
+      <div class="bw-scroll">${artHtml || '<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">No stored articles yet</div>'}</div>
+      <div class="bw-foot">HEADLINES + PUBLISHER TEXT ONLY (NO GENERATED SUMMARIES) · RELIABILITY UNGRADED UNTIL REVIEWED · ${esc(bn.pipelineVersion||'')}</div>
+    </div>`;
 }
 
 // === Phase 5: Panel Renderers ===

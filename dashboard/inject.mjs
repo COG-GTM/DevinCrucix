@@ -1009,6 +1009,58 @@ export async function synthesize(data) {
         timestamp: tsData.timestamp || null,
       };
     })(),
+    // Border Watch: registry-driven regional news with per-feed health, tags and spikes
+    borderNews: (() => {
+      const bn = data.sources.BorderNews || {};
+      const str = (v, n) => String(v ?? '').substring(0, n);
+      const num = (v) => (Number.isFinite(v) ? v : 0);
+      return {
+        status: bn.status || 'unavailable',
+        error: bn.error ? str(bn.error, 200) : null,
+        note: bn.note ? str(bn.note, 200) : null,
+        timestamp: bn.timestamp || null,
+        pipelineVersion: str(bn.pipelineVersion, 40),
+        totalArticles: num(bn.totalArticles),
+        newThisSweep: num(bn.newThisSweep),
+        feeds: (bn.feeds || []).slice(0, 20).map(f => ({
+          id: str(f.id, 40), outlet: str(f.outlet, 60), status: str(f.status, 20), httpStatus: f.httpStatus ?? null,
+          reason: f.reason ? str(f.reason, 120) : null, items: num(f.items), newItems: num(f.newItems),
+          reliability: str(f.reliability, 10), lastPolled: f.lastPolled || null, lastChanged: f.lastChanged || null,
+          articleFetch: f.articleFetch || null,
+        })),
+        articles: (bn.articles || []).slice(0, 40).map(a => ({
+          id: str(a.id, 64), outlet: str(a.outlet, 60), sourceId: str(a.sourceId, 40), title: str(a.title, 200),
+          url: sanitizeExternalUrl(a.url), canonicalUrl: sanitizeExternalUrl(a.canonicalUrl),
+          publishedAt: a.publishedAt || null, collectedAt: a.collectedAt || null,
+          excerpt: str(a.excerpt, 300), categories: (a.categories || []).slice(0, 8).map(c => str(c, 40)),
+          topics: (a.tags?.topics || []).slice(0, 7).map(t => str(t, 20)),
+          places: (a.tags?.places || []).slice(0, 6).map(p => str(p, 40)),
+          extraction: str(a.extraction?.method, 30), fetchStatus: str(a.extraction?.fetchStatus, 60),
+          paywalled: !!a.paywalled, syndicated: !!a.syndicated, wireSource: a.wireSource ? str(a.wireSource, 60) : null,
+          reliability: str(a.reliability, 10), language: str(a.language, 8),
+        })),
+        summary: bn.summary ? {
+          windowDays: num(bn.summary.windowDays), articlesInWindow: num(bn.summary.articlesInWindow),
+          topicCounts: bn.summary.topicCounts || {},
+          outletCounts: bn.summary.outletCounts || {},
+          places: (bn.summary.places || []).slice(0, 25).map(p => ({
+            key: str(p.key, 40), name: str(p.name, 60), country: str(p.country, 2), sector: p.sector ? str(p.sector, 30) : null,
+            lat: Number.isFinite(p.lat) ? p.lat : null, lon: Number.isFinite(p.lon) ? p.lon : null, count: num(p.count),
+          })),
+        } : null,
+        baseline: bn.baseline || null,
+        spikes: (bn.spikes || []).slice(0, 10).map(s => ({
+          place: str(s.place, 40), placeName: str(s.placeName, 60), sector: s.sector ? str(s.sector, 30) : null,
+          lat: Number.isFinite(s.lat) ? s.lat : null, lon: Number.isFinite(s.lon) ? s.lon : null,
+          topic: str(s.topic, 20), count24h: num(s.count24h), baselineDailyMean: num(s.baselineDailyMean), ratio: s.ratio ?? null,
+          articleIds: (s.articleIds || []).slice(0, 10).map(i => str(i, 64)), rule: str(s.rule, 120),
+        })),
+        registry: (bn.registry || []).slice(0, 20).map(r => ({
+          id: str(r.id, 40), outlet: str(r.outlet, 60), language: str(r.language, 8), regionTag: str(r.regionTag, 40),
+          reliability: str(r.reliability, 10), discoveryDate: str(r.discoveryDate, 10), paywall: !!r.paywall,
+        })),
+      };
+    })(),
     // Phase 5: Telegram OSINT Live (background scraper data)
     telegramLive: (() => {
       const tlData = data.sources.TelegramLive || {};
@@ -1127,14 +1179,14 @@ export async function synthesize(data) {
     })(),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
-    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
+    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime, data.sources.BorderNews),
   };
 
   return V2;
 }
 
 // === Unified News Feed for Ticker ===
-function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData) {
+function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData, borderNewsData) {
   const feed = [];
 
   // RSS news
@@ -1182,6 +1234,19 @@ function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData) {
           headline: a.title.substring(0, 100), source: 'INSIGHT CRIME',
           type: 'insightcrime', timestamp: a.date || a.pubDate, region: 'Latin America',
           urgent: false, url: a.link
+        });
+      }
+    }
+  }
+
+  // Border Watch articles (registry outlets; title/url are third-party and escaped client-side)
+  if (borderNewsData) {
+    for (const a of (borderNewsData.articles || []).slice(0, 10)) {
+      if (a.title) {
+        feed.push({
+          headline: String(a.title).substring(0, 100), source: String(a.outlet || 'BORDER WATCH').toUpperCase().substring(0, 40),
+          type: 'bordernews', timestamp: a.publishedAt || a.collectedAt, region: 'US-MX Border',
+          urgent: false, url: sanitizeExternalUrl(a.url)
         });
       }
     }
