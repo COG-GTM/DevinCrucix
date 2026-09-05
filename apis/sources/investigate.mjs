@@ -1,0 +1,316 @@
+// Investigate — on-demand OSINT enrichment pivot (not part of the sweep)
+// Given a domain, IP, file hash, or company name, runs an enrichment chain and
+// returns a structured dossier. Keyless sources always run; keyed sources
+// (VirusTotal, Shodan, OpenCorporates) activate when their env var is set.
+//
+// Keyless:  RDAP WHOIS (rdap.org) · DNS over HTTPS (Cloudflare) · Certificate
+//           Transparency (crt.sh) · Shodan InternetDB · typosquat probe
+// Keyed:    VIRUSTOTAL_API_KEY · SHODAN_API_KEY · OPENCORPORATES_API_TOKEN
+
+import { isIP } from 'net';
+import { safeFetch } from '../utils/fetch.mjs';
+import { generatePermutations, resolveMany } from './typosquat.mjs';
+
+const CACHE_TTL_MS = 15 * 60 * 1000;
+const CACHE_MAX = 200;
+const _cache = new Map(); // key -> { ts, dossier }
+
+const DOMAIN_RE = /^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+const HASH_RE = /^[a-f0-9]{32}$|^[a-f0-9]{40}$|^[a-f0-9]{64}$/;
+const COMPANY_RE = /^[a-zA-Z0-9 .,&'()-]{2,80}$/;
+
+const DOH = 'https://cloudflare-dns.com/dns-query';
+const DNS_TYPES = ['A', 'AAAA', 'MX', 'NS', 'TXT'];
+
+// Log the upstream failure, return only a generic status-class message to the client.
+function providerError(source, raw) {
+  console.error(`[Investigate] ${source}: ${String(raw).slice(0, 300)}`);
+  const m = /HTTP (\d{3})/.exec(String(raw));
+  const code = m ? Number(m[1]) : 0;
+  if (code === 401 || code === 403) return 'authentication rejected';
+  if (code === 429) return 'rate limited';
+  if (code >= 500) return 'upstream error';
+  if (/timeout|aborted/i.test(String(raw))) return 'timed out';
+  return 'unavailable';
+}
+
+export function classifyTarget(raw, hint) {
+  const s = String(raw || '').trim();
+  if (!s || s.length > 253) return null;
+  const lower = s.toLowerCase();
+  if (hint === 'company') return COMPANY_RE.test(s) ? { type: 'company', value: s } : null;
+  if (isIP(lower)) return { type: 'ip', value: lower };
+  if (HASH_RE.test(lower)) return { type: 'hash', value: lower };
+  const noScheme = lower.replace(/^[a-z]+:\/\//, '').split(/[/?#]/)[0].replace(/^www\./, '');
+  if (DOMAIN_RE.test(noScheme)) return { type: 'domain', value: noScheme };
+  return null;
+}
+
+// ─── Keyless sources ────────────────────────────────────────────────────────
+
+async function dohQuery(name, type) {
+  const url = `${DOH}?name=${encodeURIComponent(name)}&type=${type}`;
+  const data = await safeFetch(url, { timeout: 8000, retries: 0, headers: { Accept: 'application/dns-json' } });
+  if (data.error) return { type, error: providerError(`DoH ${type} ${name}`, data.error), records: [] };
+  return {
+    type,
+    status: data.Status,
+    records: (data.Answer || []).map(a => String(a.data).replace(/^"|"$/g, '')),
+  };
+}
+
+async function dnsRecords(domain) {
+  const results = await Promise.all(DNS_TYPES.map(t => dohQuery(domain, t)));
+  const dmarc = await dohQuery(`_dmarc.${domain}`, 'TXT');
+  const out = {};
+  for (const r of results) out[r.type] = r.records;
+  const txt = out.TXT || [];
+  return {
+    ...out,
+    spf: txt.find(t => /^v=spf1/i.test(t)) || null,
+    dmarc: dmarc.records.find(t => /^v=DMARC1/i.test(t)) || null,
+  };
+}
+
+async function reverseDns(ip) {
+  if (isIP(ip) !== 4) return [];
+  const rev = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+  const r = await dohQuery(rev, 'PTR');
+  return r.records;
+}
+
+function rdapEvent(events, action) {
+  return (events || []).find(e => e.eventAction === action)?.eventDate || null;
+}
+
+function rdapEntityName(entity) {
+  const vcard = entity?.vcardArray?.[1] || [];
+  const fn = vcard.find(v => v[0] === 'fn')?.[3];
+  const org = vcard.find(v => v[0] === 'org')?.[3];
+  return fn || org || entity?.handle || null;
+}
+
+async function rdapDomain(domain) {
+  const data = await safeFetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`, { timeout: 12000, retries: 0, headers: { Accept: 'application/rdap+json' } });
+  if (data.error) return { error: providerError('RDAP domain', data.error) };
+  const entities = data.entities || [];
+  const byRole = (role) => entities.find(e => (e.roles || []).includes(role));
+  return {
+    handle: data.handle || null,
+    status: data.status || [],
+    registered: rdapEvent(data.events, 'registration'),
+    expires: rdapEvent(data.events, 'expiration'),
+    updated: rdapEvent(data.events, 'last changed'),
+    registrar: rdapEntityName(byRole('registrar')),
+    registrant: rdapEntityName(byRole('registrant')),
+    nameservers: (data.nameservers || []).map(n => n.ldhName).filter(Boolean),
+    dnssec: data.secureDNS?.delegationSigned ?? null,
+  };
+}
+
+async function rdapIp(ip) {
+  const data = await safeFetch(`https://rdap.org/ip/${ip}`, { timeout: 12000, retries: 0, headers: { Accept: 'application/rdap+json' } });
+  if (data.error) return { error: providerError('RDAP ip', data.error) };
+  const entities = data.entities || [];
+  return {
+    name: data.name || null,
+    handle: data.handle || null,
+    range: data.startAddress && data.endAddress ? `${data.startAddress} - ${data.endAddress}` : null,
+    country: data.country || null,
+    type: data.type || null,
+    org: rdapEntityName(entities.find(e => (e.roles || []).includes('registrant')) || entities[0]),
+    registered: rdapEvent(data.events, 'registration'),
+    updated: rdapEvent(data.events, 'last changed'),
+  };
+}
+
+async function certTransparency(domain) {
+  const data = await safeFetch(`https://crt.sh/?q=${encodeURIComponent('%.' + domain)}&output=json`, { timeout: 20000, retries: 0 });
+  if (data.error) return { error: providerError('crt.sh', data.error), subdomains: [], certificates: [] };
+  const rows = Array.isArray(data) ? data : [];
+  const names = new Set();
+  for (const r of rows) {
+    for (const n of String(r.name_value || '').split('\n')) {
+      const clean = n.trim().toLowerCase();
+      if (clean && !clean.startsWith('*.') && !clean.includes('@') && (clean === domain || clean.endsWith('.' + domain))) names.add(clean);
+    }
+  }
+  const seenCert = new Set();
+  const certs = rows
+    .sort((a, b) => new Date(b.not_before) - new Date(a.not_before))
+    .filter(r => { const k = `${r.common_name}|${r.not_before}|${r.issuer_name}`; if (seenCert.has(k)) return false; seenCert.add(k); return true; })
+    .slice(0, 10)
+    .map(r => ({ issuer: String(r.issuer_name || '').replace(/^.*O=([^,]+).*$/, '$1'), commonName: r.common_name, notBefore: r.not_before, notAfter: r.not_after }));
+  return { totalCerts: rows.length, subdomains: [...names].sort().slice(0, 60), certificates: certs };
+}
+
+async function internetDb(ip) {
+  const data = await safeFetch(`https://internetdb.shodan.io/${encodeURIComponent(ip)}`, { timeout: 10000, retries: 0 });
+  if (data.error) return /HTTP 404/.test(data.error) ? { ip, ports: [], vulns: [], hostnames: [], tags: [], cpes: [] } : { ip, error: providerError('InternetDB', data.error) };
+  return { ip, ports: data.ports || [], vulns: data.vulns || [], hostnames: data.hostnames || [], tags: data.tags || [], cpes: data.cpes || [] };
+}
+
+// ─── Keyed sources ──────────────────────────────────────────────────────────
+
+async function virusTotal(kind, value) {
+  const key = process.env.VIRUSTOTAL_API_KEY;
+  if (!key) return { status: 'no_key' };
+  const path = { domain: 'domains', ip: 'ip_addresses', hash: 'files' }[kind];
+  const data = await safeFetch(`https://www.virustotal.com/api/v3/${path}/${encodeURIComponent(value)}`, { timeout: 15000, retries: 0, headers: { 'x-apikey': key } });
+  if (data.error) return { status: 'error', error: /HTTP 404/.test(data.error) ? 'Not found in VirusTotal' : providerError('VirusTotal', data.error) };
+  const a = data.data?.attributes || {};
+  const stats = a.last_analysis_stats || {};
+  return {
+    status: 'ok',
+    malicious: stats.malicious || 0,
+    suspicious: stats.suspicious || 0,
+    harmless: stats.harmless || 0,
+    undetected: stats.undetected || 0,
+    reputation: a.reputation ?? null,
+    categories: Object.values(a.categories || {}).slice(0, 5),
+    tags: (a.tags || []).slice(0, 8),
+    // file-specific
+    names: (a.names || []).slice(0, 5),
+    typeDescription: a.type_description || null,
+    threatLabel: a.popular_threat_classification?.suggested_threat_label || null,
+    firstSeen: a.first_submission_date ? new Date(a.first_submission_date * 1000).toISOString() : null,
+    link: `https://www.virustotal.com/gui/${kind === 'hash' ? 'file' : kind === 'ip' ? 'ip-address' : 'domain'}/${value}`,
+  };
+}
+
+async function shodanHost(ip) {
+  const key = process.env.SHODAN_API_KEY;
+  if (!key) return { status: 'no_key' };
+  const data = await safeFetch(`https://api.shodan.io/shodan/host/${encodeURIComponent(ip)}?key=${encodeURIComponent(key)}`, { timeout: 15000, retries: 0 });
+  if (data.error) return { status: 'error', error: /HTTP 404/.test(data.error) ? 'No Shodan record' : providerError('Shodan', data.error.replaceAll(key, '***')) };
+  return {
+    status: 'ok',
+    org: data.org || null, isp: data.isp || null, asn: data.asn || null,
+    country: data.country_name || null, city: data.city || null,
+    os: data.os || null,
+    ports: data.ports || [],
+    vulns: data.vulns || [],
+    services: (data.data || []).slice(0, 12).map(s => ({ port: s.port, transport: s.transport, product: s.product || null, version: s.version || null })),
+    lastUpdate: data.last_update || null,
+  };
+}
+
+async function openCorporates(name) {
+  const token = process.env.OPENCORPORATES_API_TOKEN;
+  if (!token) return { status: 'no_key' };
+  const url = `https://api.opencorporates.com/v0.4/companies/search?q=${encodeURIComponent(name)}&per_page=10&api_token=${encodeURIComponent(token)}`;
+  const data = await safeFetch(url, { timeout: 15000, retries: 0 });
+  if (data.error) return { status: 'error', error: providerError('OpenCorporates', data.error.replaceAll(token, '***')) };
+  const companies = (data.results?.companies || []).map(c => c.company).map(c => ({
+    name: c.name, number: c.company_number, jurisdiction: c.jurisdiction_code,
+    status: c.current_status || null, incorporated: c.incorporation_date || null, dissolved: c.dissolution_date || null,
+    address: c.registered_address_in_full || null, type: c.company_type || null,
+    url: c.opencorporates_url,
+  }));
+  return { status: 'ok', total: data.results?.total_count || companies.length, companies, keyed: !!token };
+}
+
+// ─── Risk scoring ───────────────────────────────────────────────────────────
+
+function scoreDossier(d) {
+  const flags = [];
+  let score = 0;
+  const vt = d.virustotal;
+  if (vt?.status === 'ok') {
+    if (vt.malicious >= 5) { score += 40; flags.push(`${vt.malicious} AV engines flag malicious`); }
+    else if (vt.malicious > 0) { score += 20; flags.push(`${vt.malicious} AV engine(s) flag malicious`); }
+    if (vt.threatLabel) { score += 20; flags.push(`Threat label: ${vt.threatLabel}`); }
+  }
+  const whois = d.whois;
+  if (whois?.registered) {
+    const ageDays = (Date.now() - new Date(whois.registered).getTime()) / 86400000;
+    if (ageDays < 30) { score += 25; flags.push(`Domain registered ${Math.round(ageDays)}d ago`); }
+    else if (ageDays < 180) { score += 10; flags.push(`Domain younger than 6 months`); }
+  }
+  if (d.dns && d.dns.MX?.length && !d.dns.spf) { score += 5; flags.push('Mail-enabled domain without SPF'); }
+  if (d.dns && d.dns.MX?.length && !d.dns.dmarc) { score += 5; flags.push('No DMARC policy'); }
+  const vulnCount = (d.hosts || []).reduce((s, h) => s + (h.vulns?.length || 0), 0);
+  if (vulnCount > 0) { score += Math.min(25, vulnCount * 3); flags.push(`${vulnCount} known CVE(s) on exposed hosts`); }
+  const riskyPorts = new Set([21, 23, 445, 3389, 5900, 6379, 9200, 27017]);
+  const exposed = (d.hosts || []).flatMap(h => (h.ports || []).filter(p => riskyPorts.has(p)));
+  if (exposed.length) { score += Math.min(15, exposed.length * 5); flags.push(`Sensitive services exposed: ${[...new Set(exposed)].join(', ')}`); }
+  if (d.typosquats?.registered?.length) { score += 5; flags.push(`${d.typosquats.registered.length} registered look-alike domain(s)`); }
+  score = Math.min(100, score);
+  const level = score >= 60 ? 'critical' : score >= 35 ? 'high' : score >= 15 ? 'elevated' : 'low';
+  return { score, level, flags };
+}
+
+// ─── Orchestration ──────────────────────────────────────────────────────────
+
+async function investigateDomain(domain) {
+  const [whois, dns, ct, vt, typo] = await Promise.all([
+    rdapDomain(domain),
+    dnsRecords(domain),
+    certTransparency(domain),
+    virusTotal('domain', domain),
+    (async () => {
+      const perms = generatePermutations(domain, 60);
+      const registered = await resolveMany(perms);
+      return { checked: perms.length, registered };
+    })(),
+  ]);
+  const ips = [...new Set((dns.A || []).length ? dns.A : (dns.AAAA || []))].slice(0, 4);
+  const hosts = await Promise.all(ips.map(async ip => {
+    const [idb, ipWhois, shodan] = await Promise.all([internetDb(ip), rdapIp(ip), shodanHost(ip)]);
+    return { ...idb, network: ipWhois, shodan };
+  }));
+  return { whois, dns, certificates: ct, virustotal: vt, typosquats: typo, hosts };
+}
+
+async function investigateIp(ip) {
+  const [idb, network, ptr, vt, shodan] = await Promise.all([
+    internetDb(ip), rdapIp(ip), reverseDns(ip), virusTotal('ip', ip), shodanHost(ip),
+  ]);
+  return { hosts: [{ ...idb, network, shodan }], reverseDns: ptr, virustotal: vt };
+}
+
+async function investigateHash(hash) {
+  return { virustotal: await virusTotal('hash', hash) };
+}
+
+async function investigateCompany(name) {
+  return { corporate: await openCorporates(name) };
+}
+
+export function keyedSourceStatus() {
+  return {
+    virustotal: !!process.env.VIRUSTOTAL_API_KEY,
+    shodan: !!process.env.SHODAN_API_KEY,
+    opencorporates: !!process.env.OPENCORPORATES_API_TOKEN,
+  };
+}
+
+export async function investigate(target) {
+  const key = `${target.type}:${target.value}`;
+  const cached = _cache.get(key);
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return { ...cached.dossier, cached: true };
+
+  const start = Date.now();
+  const runner = { domain: investigateDomain, ip: investigateIp, hash: investigateHash, company: investigateCompany }[target.type];
+  const result = await runner(target.value);
+  const dossier = {
+    target: target.value,
+    type: target.type,
+    timestamp: new Date().toISOString(),
+    durationMs: Date.now() - start,
+    keyed: keyedSourceStatus(),
+    ...result,
+  };
+  dossier.risk = scoreDossier(dossier);
+
+  if (_cache.size >= CACHE_MAX) _cache.delete(_cache.keys().next().value);
+  _cache.set(key, { ts: Date.now(), dossier });
+  return dossier;
+}
+
+// Standalone test: node apis/sources/investigate.mjs example.com
+if (process.argv[1]?.endsWith('investigate.mjs')) {
+  const target = classifyTarget(process.argv[2] || 'example.com');
+  if (!target) { console.error('Invalid target'); process.exit(1); }
+  investigate(target).then(d => console.log(JSON.stringify(d, null, 2)));
+}

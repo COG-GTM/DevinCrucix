@@ -976,6 +976,26 @@ export async function synthesize(data) {
         signals: ckData.signals || [],
       };
     })(),
+    // Phase 7: Typosquat Watch (look-alike domains against the watchlist)
+    typosquat: (() => {
+      const tsData = data.sources.Typosquat || {};
+      return {
+        status: tsData.status || 'unavailable',
+        watchlist: (tsData.watchlist || []).slice(0, 25),
+        totalChecked: tsData.totalChecked || 0,
+        newCount: tsData.newCount || 0,
+        byBase: tsData.byBase || {},
+        byTechnique: tsData.byTechnique || {},
+        registered: (tsData.registered || []).slice(0, 80).map(r => ({
+          domain: String(r.domain || '').substring(0, 253),
+          base: String(r.base || '').substring(0, 253),
+          technique: String(r.technique || '').substring(0, 20),
+          ips: (r.ips || []).slice(0, 3),
+          isNew: !!r.isNew,
+        })),
+        timestamp: tsData.timestamp || null,
+      };
+    })(),
     // Phase 5: Telegram OSINT Live (background scraper data)
     telegramLive: (() => {
       const tlData = data.sources.TelegramLive || {};

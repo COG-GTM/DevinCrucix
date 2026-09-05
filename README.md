@@ -113,7 +113,26 @@ fly secrets set CRUCIX_PASSWORD='your-access-code' CRUCIX_SESSION_SECRET=$(opens
 fly deploy
 ```
 
-Setting `CRUCIX_PASSWORD` puts a login page in front of the dashboard and all `/api/*` routes (except `/api/health`). Failed attempts are rate-limited (5 per IP, 15-minute lockout). Leave it unset for local use.
+Setting `CRUCIX_PASSWORD` puts a login page in front of the dashboard and all `/api/*` routes (except `/api/health`). Failed attempts are rate-limited (5 per IP, 15-minute lockout). Leave it unset for local use. Anyone without the access code sees only the login page, so a deployment can stay private to whoever holds the code.
+
+### Investigate Pivot & Typosquat Watch
+
+The right rail has an **Investigate** panel: enter a domain, IPv4/IPv6, MD5/SHA-1/SHA-256 hash, or company name and CRUCIX runs an enrichment chain and renders a dossier with a risk score. Every domain/IP in the results (and in the Typosquat panel) is clickable to pivot further.
+
+| Source | Key needed | Returns |
+|--------|-----------|---------|
+| RDAP WHOIS (`rdap.org`) | none | registrar, registrant, dates, nameservers, DNSSEC, IP allocation/org |
+| DNS-over-HTTPS (Cloudflare) | none | A/AAAA/MX/NS/TXT, SPF, DMARC, reverse DNS |
+| Certificate Transparency (`crt.sh`) | none | hostnames seen in certificates, recent issuers |
+| Shodan InternetDB | none | open ports, CVEs, hostnames, tags per IP |
+| Look-alike probe | none | registered typosquat permutations of the target |
+| VirusTotal | `VIRUSTOTAL_API_KEY` | AV verdicts, reputation, threat label for domain/IP/hash |
+| Shodan | `SHODAN_API_KEY` | org, ASN, services/banners, full vuln list |
+| OpenCorporates | `OPENCORPORATES_API_TOKEN` | company matches, jurisdiction, status, address |
+
+Keyed sources are skipped (marked "no key" in the panel) when their variable is blank. Results are cached for 15 minutes.
+
+**Typosquat Watch** runs in the sweep: for each domain in `TYPOSQUAT_WATCHLIST` (default: `treasury.gov,irs.gov,cisa.gov,defense.gov,login.gov`) it generates DNS-Twist-style permutations (homoglyph, omission, transposition, TLD swap, hyphenation, keyword addition, …), resolves them over DoH, and lists the registered ones, flagging any that are new since the previous sweep. Set the variable to an empty string to disable.
 
 ---
 
@@ -229,6 +248,9 @@ These three unlock the most valuable economic and satellite data. Each takes abo
 | `ACLED_EMAIL` + `ACLED_PASSWORD` | Armed conflict event data | [acleddata.com/register](https://acleddata.com/register/) — free, OAuth2 |
 | `AISSTREAM_API_KEY` | Maritime AIS vessel tracking | [aisstream.io](https://aisstream.io/) — free |
 | `ADSB_API_KEY` | Unfiltered flight tracking | [RapidAPI](https://rapidapi.com/adsbexchange/api/adsbexchange-com1) — ~$10/mo |
+| `VIRUSTOTAL_API_KEY` | Investigate: domain/IP/hash reputation | [virustotal.com](https://www.virustotal.com/gui/join-us) — free |
+| `SHODAN_API_KEY` | Investigate: full host/service data | [account.shodan.io](https://account.shodan.io/) — free tier |
+| `OPENCORPORATES_API_TOKEN` | Investigate: company registry | [opencorporates.com](https://opencorporates.com/api_accounts/new) — free for non-commercial |
 
 ### LLM Provider (optional, for AI-enhanced ideas)
 
@@ -450,6 +472,9 @@ When running `npm run dev`:
 | `GET /api/data` | Current synthesized intelligence data (JSON) |
 | `GET /api/health` | Server status, uptime, source count, LLM status |
 | `GET /events` | SSE stream for live push updates |
+| `GET /api/investigate?target=<domain\|ip\|hash>` | On-demand OSINT dossier (`&type=company` for registry search) |
+| `GET /api/investigate/status` | Which keyed enrichment sources are configured |
+| `GET /api/typosquat` | Registered look-alike domains for the watchlist |
 
 ---
 
