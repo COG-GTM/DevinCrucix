@@ -103,6 +103,13 @@ function sanitizeExternalUrl(raw) {
   }
 }
 
+function airSourceLabel(openSky) {
+  const c = openSky?.coverage;
+  if (!c || openSky.method === 'opensky') return 'OpenSky';
+  if (openSky.method === 'adsb_sample') return 'ADS-B sample (OpenSky unreachable)';
+  return `OpenSky ${c.opensky}/${c.total} · ADS-B sample ${c.adsbSample}/${c.total}`;
+}
+
 function sumAirHotspots(hotspots = []) {
   return hotspots.reduce((sum, hotspot) => sum + (hotspot.totalAircraft || 0), 0);
 }
@@ -674,7 +681,10 @@ export async function synthesize(data) {
       fallback: Boolean(airFallback || adsbAirHotspots),
       liveTotal: sumAirHotspots(liveAirHotspots),
       timestamp: airFallback?.timestamp || data.sources['ADS-B']?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
-      source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : 'OpenSky'),
+      source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : airSourceLabel(data.sources.OpenSky)),
+      method: data.sources.OpenSky?.method || null,
+      ...(data.sources.OpenSky?.coverage ? { coverage: data.sources.OpenSky.coverage } : {}),
+      ...(data.sources.OpenSky?.note ? { note: data.sources.OpenSky.note } : {}),
       ...(airFallback ? { fallbackFile: airFallback.file } : {}),
       ...(data.sources.OpenSky?.error ? { error: data.sources.OpenSky.error } : {}),
     },
