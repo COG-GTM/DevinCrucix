@@ -105,6 +105,16 @@ docker compose up -d
 
 Dashboard at `http://localhost:3117`. Sweep data persists in `./runs/` via volume mount. Includes a health check endpoint.
 
+### Fly.io (shared URL with password gate)
+
+```bash
+fly launch --copy-config --no-deploy     # first time only; creates the app from fly.toml
+fly secrets set CRUCIX_PASSWORD='your-access-code' CRUCIX_SESSION_SECRET=$(openssl rand -hex 32)
+fly deploy
+```
+
+Setting `CRUCIX_PASSWORD` puts a login page in front of the dashboard and all `/api/*` routes (except `/api/health`). Failed attempts are rate-limited (5 per IP, 15-minute lockout). Leave it unset for local use.
+
 ---
 
 ## What You Get
