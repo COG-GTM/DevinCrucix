@@ -151,7 +151,9 @@ Panel states are reported per feed (`LIVE`, `UNCHANGED`, `EMPTY`, `BLOCKED`, `ER
 ### Live Dashboard
 A self-contained Jarvis-style HUD with:
 - **3D WebGL globe** (Globe.gl) with atmosphere glow, star field, and smooth rotation — plus a classic flat map toggle
-- **9 marker types** across both views: fire detections, air traffic, radiation sites, maritime chokepoints, SDR receivers, OSINT events, health alerts, geolocated news, conflict events
+- **Map layers** shared by both views (registry in `lib/maplayers.mjs`): air traffic, fire detections, radiation sites, maritime chokepoints, SDR receivers, OSINT events, health alerts, geolocated news, conflict events, carrier groups, GDELT clusters, narco reporting, space stations, PRC activity, GPS jamming, military ADS-B, market intel
+- **Signal-first defaults** — each sweep the server marks every layer `signal` (something notable this sweep), `data` (has points, nothing notable) or `none` (nothing to plot, with the reason: needs key, source failed, quiet). The map starts with only the `signal` layers on (max 5, padded to 3 with `data` layers); the chip row under the map toggles any layer, remembers a manual selection in local storage, and `RESET TO AUTO` returns to the sweep's defaults. Globe and flat map always show the same selection
+- **Panel captions** — every panel opens with one line saying what it shows, which source or computation feeds it, and what it does not establish (`Derived.` marks composites that add no independent data)
 - **Animated 3D flight corridor arcs** between air traffic hotspots and global hubs
 - **Region filters** (World, Americas, Europe, Middle East, Asia Pacific, Africa) — rotates the globe or zooms the flat map
 - **Live market data** — indexes, crypto, energy, commodities via Yahoo Finance (no API key needed)
@@ -185,7 +187,7 @@ The server runs a sweep cycle every 15 minutes (configurable). Each cycle:
 1. Queries all 27 sources in parallel (~30s)
 2. Synthesizes raw data into dashboard format
 3. Computes delta from previous run (what changed, escalated, de-escalated) — visible in the **What Changed** panel on the Situation tab
-4. Builds the **Situation strip**: up to 5 rule-based headline judgments (`lib/situation.mjs` — DEFCON, delta, flash alerts, radiation, PRC tension, focal points, CII, convergence, Border Watch spikes, KEV surges, Kp storms, new look-alike domains, source coverage). No LLM involved; each card links to the tab/panel holding the evidence
+4. Builds the **Situation strip**: up to 5 rule-based headline judgments (`lib/situation.mjs` — DEFCON, delta, flash alerts, radiation, PRC tension, focal points, CII, convergence, Border Watch spikes, KEV surges, Kp storms, new look-alike domains, source coverage). No LLM involved; each card links to the tab/panel holding the evidence. The same pass ranks the **map layers** (`lib/maplayers.mjs`) so the globe opens on what has signal this sweep
 5. Generates LLM trade ideas (if configured)
 6. Evaluates breaking news alerts — multi-tier (FLASH / PRIORITY / ROUTINE) with semantic dedup. Sends to Telegram and/or Discord if configured. Works with LLM evaluation or falls back to rule-based alerting when LLM is unavailable.
 7. Pushes update to all connected browsers via SSE
