@@ -18,6 +18,7 @@ import { generateLLMIdeas } from './lib/llm/ideas.mjs';
 import { TelegramAlerter } from './lib/alerts/telegram.mjs';
 import { DiscordAlerter } from './lib/alerts/discord.mjs';
 import { installAuthGate } from './lib/authgate.mjs';
+import { buildSituation } from './lib/situation.mjs';
 
 // Phase 4: Analytical Features
 import { computeCII } from './apis/sources/cii.mjs';
@@ -664,6 +665,7 @@ async function runSweepCycle() {
     // 4. Delta computation + memory
     const delta = memory.addRun(synthesized);
     synthesized.delta = delta;
+    synthesized.situation = buildSituation(synthesized);
 
     // 5. LLM-powered trade ideas (LLM-only feature) — isolated so failures don't kill sweep
     if (llmProvider?.isConfigured) {
@@ -830,6 +832,8 @@ async function start() {
     try {
       const existing = JSON.parse(readFileSync(join(RUNS_DIR, 'latest.json'), 'utf8'));
       const data = await synthesize(existing);
+      data.delta = memory.getLastDelta() || null;
+      data.situation = buildSituation(data);
       currentData = data;
       console.log('[Crucix] Loaded existing data from runs/latest.json — dashboard ready instantly');
       broadcast({ type: 'update', data: currentData });

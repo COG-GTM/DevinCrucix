@@ -73,6 +73,54 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sec-head h3{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim)}
 .badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border:1px solid var(--border);color:var(--accent)}
 
+/* TABS — one view per question; only the active tab's panels are rendered */
+.tabbar{display:flex;gap:4px;margin-top:10px;padding:6px;border:1px solid var(--border);background:var(--panel);backdrop-filter:blur(20px);overflow-x:auto;scrollbar-width:none}
+.tabbar::-webkit-scrollbar{display:none}
+.tab-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid transparent;background:transparent;color:var(--dim);font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.tab-btn:hover{color:var(--text);border-color:var(--border)}
+.tab-btn.active{color:#03140d;background:var(--accent);border-color:var(--accent)}
+.tab-btn .tab-n{font-size:9px;padding:1px 6px;border:1px solid rgba(255,255,255,0.15);color:var(--text);border-radius:2px;letter-spacing:0.04em}
+.tab-btn.active .tab-n{color:#03140d;border-color:rgba(3,20,13,0.35)}
+.tab-btn .tab-n.hot{color:#ffd8d9;border-color:rgba(255,95,99,0.5);background:rgba(255,95,99,0.12)}
+.tab-btn.active .tab-n.hot{color:#3a0c0e;background:rgba(255,95,99,0.35)}
+.tab-btn .tab-n.warn{color:#ffd54f;border-color:rgba(255,213,79,0.4)}
+.tab-btn.active .tab-n.warn{color:#3a2d00;background:rgba(255,213,79,0.4)}
+.tab-hint{margin-left:auto;padding:0 8px;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.06em;white-space:nowrap}
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:8px 12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
+.foot b{color:#21c19a;font-weight:600}
+.grid.no-map{grid-template-columns:240px 1fr}
+.grid.no-map #rightRail,.grid.no-map .map-region-bar,.grid.no-map .map-container,.grid.no-map #situationStrip{display:none !important}
+.grid.no-map .lower{margin-top:0}
+.lower .g-panel.lp-wide{flex:1 1 100%;max-width:none}
+.lower .g-panel.lp-half{flex:1 1 calc(50% - 5px);max-width:none;min-width:280px}
+.lower .g-panel.lp-third{flex:1 1 calc(33.33% - 7px);max-width:none;min-width:260px}
+.lower .lp-wide .inv-scroll{max-height:62vh}
+.lower .lp-wide .bw-scroll,.lower .lp-half .narco-scroll,.lower .lp-half .kev-scroll,.lower .lp-half .tg-live-scroll,.lower .lp-half .mi-scroll{max-height:52vh}
+.sh-full .sh-row.live .sh-why{color:var(--accent)}
+.sh-group{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);margin:10px 0 4px}
+.sh-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px}
+.sh-ms{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:right}
+
+/* SITUATION STRIP — rule-based headline judgments, click to jump to the evidence */
+.sit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim)}
+.sit-head .sit-counts{display:flex;gap:8px;font-size:9px;letter-spacing:0.06em}
+.sit-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:10px}
+.sit-card{border:1px solid var(--border);border-left:3px solid var(--dim);background:var(--glass);backdrop-filter:blur(16px);padding:10px 12px;cursor:pointer;transition:border-color 0.2s,background 0.2s;min-width:0}
+.sit-card:hover{border-color:var(--accent);background:rgba(100,240,200,0.04)}
+.sit-card.critical{border-left-color:var(--danger)}
+.sit-card.high{border-left-color:#ff9800}
+.sit-card.elevated{border-left-color:#ffd54f}
+.sit-card.info{border-left-color:var(--accent2)}
+.sit-sev{font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim)}
+.sit-card.critical .sit-sev{color:var(--danger)}
+.sit-card.high .sit-sev{color:#ff9800}
+.sit-card.elevated .sit-sev{color:#ffd54f}
+.sit-card.info .sit-sev{color:var(--accent2)}
+.sit-title{font-size:12.5px;font-weight:600;line-height:1.3;color:var(--text);margin:4px 0 3px;overflow-wrap:anywhere}
+.sit-why{font-size:10.5px;line-height:1.4;color:#c8d8d2}
+.sit-meta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-family:var(--mono);font-size:8.5px;color:var(--dim);letter-spacing:0.05em}
+.sit-meta .sit-go{color:var(--accent2)}
+
 /* LEFT RAIL */
 .layer-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);margin-bottom:4px}
 .layer-left{display:flex;align-items:center;gap:8px}
@@ -442,6 +490,10 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
   .top-right{gap:6px ; flex-wrap: wrap; justify-content: center;}
   .region-btn,.meta-pill,.alert-badge,.guide-btn{font-size:10px}
   .grid{display:flex;flex-direction:column}
+  .tab-btn{padding:7px 10px;font-size:10px}
+  .tab-hint{display:none}
+  .sit-strip{grid-template-columns:1fr}
+  .lower .lp-half,.lower .lp-third{flex:1 1 100%;min-width:0}
   #centerCol{order:1}
   #rightRail{order:2}
   #leftRail{order:3}
@@ -585,9 +637,11 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 <div class="scanline" id="scanline"></div>
 <div id="main">
   <div class="topbar" id="topbar"></div>
-  <div class="grid">
+  <div class="tabbar" id="tabbar" role="tablist"></div>
+  <div class="grid" id="grid">
     <div class="col" id="leftRail"></div>
     <div class="col" id="centerCol">
+      <div id="situationStrip"></div>
       <div class="map-region-bar" id="mapRegionBar"></div>
       <div class="map-container" id="mapContainer">
         <div id="globeViz"></div>
@@ -607,6 +661,7 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
     </div>
     <div class="col" id="rightRail"></div>
   </div>
+  <div class="foot"><span>CRUCIX MONITOR</span><span>Built with Devin &middot; <b>Cognition AI</b></span><span>Public OSINT only &middot; judgments are rule-based, not conclusions</span></div>
 </div>
 <div class="glossary-overlay" id="glossaryOverlay" onclick="if(event.target===this) closeGlossary()">
   <div class="glossary-panel">
@@ -861,6 +916,108 @@ function renderTopbar(){
   renderRegionControls();
 }
 
+// === TABS ===
+// One view per question. Situation keeps the globe + strip; every other tab is a focused
+// panel set rendered into #lowerGrid (and #leftRail), so the wall of ~30 equal panels is gone.
+const TAB_DEFS=[
+  {id:'situation',label:'Situation',hint:'What matters this sweep'},
+  {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
+  {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
+  {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
+  {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
+  {id:'investigations',label:'Investigations',hint:'On-demand OSINT pivot'},
+  {id:'sources',label:'Sources',hint:'What is reporting and why not'}
+];
+const TAB_IDS=TAB_DEFS.map(t=>t.id);
+function tabFromHash(){const h=(location.hash||'').replace(/^#/,'');return TAB_IDS.includes(h)?h:null}
+let currentTab = tabFromHash() || (TAB_IDS.includes(localStorage.getItem('crucix_tab')) ? localStorage.getItem('crucix_tab') : 'situation');
+function tabCounts(){
+  const sit=D.situation||{};const c=sit.counts||{};
+  const hot=(c.critical||0)+(c.high||0);
+  const h=D.meta?.health;
+  const dark=h?h.no_key+h.off+h.error:0;
+  const kev=D.cyberKev?.totalVulnerabilities||0;
+  const tsNew=D.typosquat?.newCount||0;
+  const spikes=(D.borderNews?.spikes||[]).length;
+  const airTotal=(D.air||[]).reduce((s,a)=>s+(a.total||0),0);
+  return {
+    situation: hot?{n:hot,cls:'hot',title:`${hot} critical/high judgments`}:sit.quiet?{n:'QUIET',cls:'',title:'No rule fired above baseline'}:null,
+    military: airTotal?{n:airTotal,cls:'',title:`${airTotal} aircraft across ${(D.air||[]).length} theaters`}:null,
+    cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
+    macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
+    regional: spikes?{n:`${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:'Border Watch place spikes vs baseline'}:null,
+    investigations: INV.dossier?{n:'1',cls:'',title:'Dossier loaded'}:null,
+    sources: h?{n:`${h.live}/${h.total}`,cls:h.error?'hot':dark?'warn':'',title:`${h.live} live · ${h.degraded} degraded · ${dark} not reporting`}:null
+  };
+}
+function renderTabbar(){
+  const el=document.getElementById('tabbar');if(!el)return;
+  const counts=tabCounts();
+  const cur=TAB_DEFS.find(t=>t.id===currentTab)||TAB_DEFS[0];
+  el.innerHTML=TAB_DEFS.map(tb=>{
+    const c=counts[tb.id];
+    return `<button class="tab-btn ${tb.id===currentTab?'active':''}" role="tab" aria-selected="${tb.id===currentTab}" data-tab="${tb.id}" onclick="setTab('${tb.id}')" title="${esc(tb.hint)}">${esc(tb.label)}${c?`<span class="tab-n ${c.cls}" title="${esc(c.title)}">${esc(c.n)}</span>`:''}</button>`;
+  }).join('')+`<span class="tab-hint">${esc(cur.hint)}</span>`;
+}
+function setTab(id, opts={}){
+  if(!TAB_IDS.includes(id)) id='situation';
+  const changed=id!==currentTab;
+  currentTab=id;
+  localStorage.setItem('crucix_tab',id);
+  if(location.hash!=='#'+id) history.replaceState(null,'',location.pathname+location.search+'#'+id);
+  applyTabLayout();
+  renderTabbar();renderLeftRail();renderLower();renderRight();
+  if(id==='situation'){renderSituationStrip();refreshMapViewport(changed && !isFlat);}
+  if(changed && !opts.keepScroll){const tb=document.getElementById('tabbar');if(tb)tb.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+function applyTabLayout(){
+  const g=document.getElementById('grid');if(!g)return;
+  g.classList.toggle('no-map',currentTab!=='situation');
+}
+window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);});
+
+// === SITUATION STRIP (rule-based headlines from lib/situation.mjs; all text is third-party-derived → esc()) ===
+const SIT_TAB_LABEL=Object.fromEntries(TAB_DEFS.map(t=>[t.id,t.label]));
+function jumpToPanel(tab, panel){
+  setTab(tab,{keepScroll:true});
+  const key=String(panel||'').replace(/[^a-zA-Z0-9_-]/g,'');
+  if(!key)return;
+  requestAnimationFrame(()=>{
+    const el=document.getElementById(key)||document.querySelector('.'+key);
+    if(!el)return;
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+    el.style.outline='1px solid var(--accent)';setTimeout(()=>{el.style.outline='';},1600);
+  });
+}
+function renderSituationStrip(){
+  const el=document.getElementById('situationStrip');if(!el)return;
+  const sit=D.situation;
+  if(!sit){el.innerHTML='';return;}
+  const c=sit.counts||{};
+  const asOf=sit.asOf?new Date(sit.asOf):null;
+  const asOfStr=asOf&&!isNaN(asOf)?asOf.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):'--';
+  const cards=(sit.headlines||[]).map((h,i)=>{
+    const sev=['critical','high','elevated','info'].includes(h.severity)?h.severity:'info';
+    const tab=TAB_IDS.includes(h.tab)?h.tab:'situation';
+    return `<div class="sit-card ${sev}" role="button" tabindex="0" data-sit-tab="${tab}" data-sit-panel="${esc(h.panel||'')}" title="Open ${esc(SIT_TAB_LABEL[tab])} \u2192 ${esc(h.panel||'')}">
+      <div class="sit-sev">${esc(sev)} \u00b7 ${esc(h.rule||'')}</div>
+      <div class="sit-title">${esc(h.title)}</div>
+      <div class="sit-why">${esc(h.why)}</div>
+      <div class="sit-meta"><span>${esc(h.source||'')}</span><span class="sit-go">${esc(SIT_TAB_LABEL[tab])} &#8599;</span></div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div class="sit-head"><span>Situation \u00b7 ${sit.rulesFired||0} rule${sit.rulesFired===1?'':'s'} fired \u00b7 as of ${asOfStr}</span><span class="sit-counts"><span style="color:var(--danger)">${c.critical||0} CRIT</span><span style="color:#ff9800">${c.high||0} HIGH</span><span style="color:#ffd54f">${c.elevated||0} ELEV</span><span>${c.info||0} INFO</span></span></div><div class="sit-strip">${cards}</div>`;
+}
+document.addEventListener('click',e=>{
+  const card=e.target.closest('.sit-card[data-sit-tab]');
+  if(card) jumpToPanel(card.dataset.sitTab, card.dataset.sitPanel);
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const card=e.target.closest&&e.target.closest('.sit-card[data-sit-tab]');
+  if(card){e.preventDefault();jumpToPanel(card.dataset.sitTab, card.dataset.sitPanel);}
+});
+
 // === SOURCE HEALTH (live / degraded / no_key / off / error, computed server-side in lib/sourcehealth.mjs) ===
 const SH_LABEL={live:'LIVE',degraded:'DEGRADED',no_key:'NO KEY',off:'OFF',error:'FAILED'};
 const SH_ORDER=['error','off','no_key','degraded','live'];
@@ -894,10 +1051,7 @@ function renderHealthPill(){
   const off=h.no_key+h.off+h.error;
   return `<span class="meta-pill hpill" onclick="scrollToSourceHealth()" title="${h.live} live \u00b7 ${h.degraded} degraded \u00b7 ${h.no_key} need a key \u00b7 ${h.off} off \u00b7 ${h.error} failed \u2014 click for detail"><span class="hdot live"></span><span class="v">${h.live}</span> LIVE<span class="hdot degraded"></span><span class="v">${h.degraded}</span> DEGRADED<span class="hdot off"></span><span class="v">${off}</span> NO KEY/OFF</span>`;
 }
-function scrollToSourceHealth(){
-  const el=document.getElementById('sourceHealthPanel');
-  if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.outline='1px solid var(--accent)';setTimeout(()=>{el.style.outline='';},1600);}
-}
+function scrollToSourceHealth(){ jumpToPanel('sources','sourceHealthPanel'); }
 function renderSourceHealthPanel(){
   const sh=D.sourceHealth;if(!sh)return '';
   const h=sh.summary;
@@ -989,24 +1143,32 @@ function renderLeftRail(){
   const h=D.meta?.health;
   const gridBadge=h?`${h.live+h.degraded}/${h.total} ${t('badges.live','LIVE')}`:t('badges.live','LIVE');
 
-  document.getElementById('leftRail').innerHTML=`
-    <div class="g-panel">
+  // Sensor Grid is filtered per tab so each view only lists the layers it is about.
+  const TAB_LAYERS={
+    military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
+    cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
+    macro:['Market Intel','Polymarket','Instability Index'],
+    regional:['Border Watch','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
+    investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
+  };
+  const layerNames=TAB_LAYERS[currentTab];
+  const shownLayers=layerNames?layers.filter(l=>layerNames.includes(l.name)):layers;
+  const sensorGridPanel=`<div class="g-panel sensor-grid">
       <div class="sec-head"><h3>${t('panels.sensorGrid','Sensor Grid')}</h3><span class="badge">${gridBadge}</span></div>
-      ${layers.map(layerRow).join('')}
-      ${prcSectionHtml}
-    </div>
-    ${renderSourceHealthPanel()}
-    <div class="g-panel">
+      ${shownLayers.map(layerRow).join('')}
+      ${currentTab==='military'||currentTab==='situation'?prcSectionHtml:''}
+    </div>`;
+  const nuclearPanel=`<div class="g-panel nuke-panel">
       <div class="sec-head"><h3>${shDot('Safecast')}${t('panels.nuclearWatch','Nuclear Watch')}</h3><span class="badge">${t('badges.radiation','RADIATION')}</span></div>
       <div class="nuke-ok">${allNormal?'&#9679; '+t('nuclear.allSitesNormal','ALL SITES NORMAL'):'&#9888; '+t('nuclear.anomalyDetected','ANOMALY DETECTED')}</div>
       ${nukeHtml}
-    </div>
-    <div class="g-panel">
+    </div>`;
+  const riskPanel=`<div class="g-panel risk-gauges">
       <div class="sec-head"><h3>${shDot(['FRED','Treasury'])}${t('panels.riskGauges','Risk Gauges')}</h3><span class="badge">${t('badges.stress','STRESS')}</span></div>
       ${fredRows}
       <div class="econ-row"><span class="elabel">${t('metrics.natDebt','Nat. Debt')}</span><span class="eval">$${(parseFloat(D.treasury.totalDebt)/1e12).toFixed(2)}T</span></div>
-    </div>
-    <div class="g-panel">
+    </div>`;
+  const spacePanel=`<div class="g-panel space-panel">
       <div class="sec-head"><h3>${shDot('Space')}${t('panels.spaceWatch','Space Watch')}</h3><span class="badge">${t('badges.orbital','CELESTRAK')}</span></div>
       ${D.space ? `
         <div class="econ-row"><span class="elabel">New Objects (30d)</span><span class="eval" style="color:var(--accent2)">${D.space.totalNewObjects||0}</span></div>
@@ -1018,6 +1180,48 @@ function renderLeftRail(){
         ${(D.space.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(68,204,255,0.2);background:rgba(68,204,255,0.04);font-family:var(--mono);font-size:9px;color:var(--accent2);line-height:1.5">${D.space.signals.slice(0,2).join('<br>')}</div>` : ''}
       ` : '<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">NO SPACE DATA</div>'}
     </div>`;
+  const byTab={
+    situation:[renderDeltaPanel(),sensorGridPanel,renderSourceHealthPanel()],
+    military:[sensorGridPanel,nuclearPanel,spacePanel],
+    cyber:[sensorGridPanel,renderSignalIntelPanel()],
+    macro:[riskPanel,sensorGridPanel],
+    regional:[sensorGridPanel,renderSourceHealthPanel()],
+    investigations:[renderInvestigateHelpPanel(),sensorGridPanel],
+    sources:[renderHowToReadPanel(),sensorGridPanel],
+  };
+  document.getElementById('leftRail').innerHTML=(byTab[currentTab]||byTab.situation).join('');
+}
+
+// Investigations tab: which pivot providers are on, and what a key would add.
+function renderInvestigateHelpPanel(){
+  const keyed=(INV.dossier&&INV.dossier.keyed)||{};
+  const rows=[
+    ['RDAP WHOIS','keyless','registrar, dates, nameservers'],
+    ['DNS-over-HTTPS','keyless','A/AAAA/MX/NS/TXT records'],
+    ['Certificate Transparency','keyless','crt.sh subdomains + issuers'],
+    ['Shodan InternetDB','keyless','open ports, CVEs per IP'],
+    ['Look-alike probe','keyless','registered typosquats of the target'],
+    ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation'],
+    ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org'],
+    ['OpenCorporates',keyed.opencorporates?'on':'OPENCORPORATES_API_TOKEN','officers, filings, subsidiaries'],
+  ];
+  return `<div class="g-panel"><div class="sec-head"><h3>Pivot Providers</h3><span class="badge">${rows.filter(r=>r[1]==='keyless'||r[1]==='on').length}/${rows.length} ON</span></div>
+    ${rows.map(([n,st,what])=>`<div class="sh-row ${st==='keyless'||st==='on'?'live':'no_key'}"><span class="hdot ${st==='keyless'||st==='on'?'live':'no_key'}"></span><span class="sh-name">${esc(n)}</span><span class="sh-why" style="white-space:normal;overflow-wrap:anywhere;text-align:right">${esc(st==='keyless'?'NO KEY NEEDED':st==='on'?'KEY SET':'SET '+st)}</span></div><div class="sh-ms" style="text-align:left;margin:-2px 0 4px 14px">${esc(what)}</div>`).join('')}
+    <div class="sh-note">Investigations run on demand and are not part of the 15-minute sweep. Nothing is stored server-side beyond the response cache; all providers are read-only lookups.</div></div>`;
+}
+
+// Sources tab: the legend for every state the dashboard can show.
+function renderHowToReadPanel(){
+  const items=[
+    ['live','LIVE','Returned usable data this sweep (or is derived from sources that did).'],
+    ['degraded','DEGRADED','Responded but partial: empty feed, fallback route, cached, rate-limited or stale.'],
+    ['no_key','NO KEY','Needs a credential that is not set. The env var is listed next to it.'],
+    ['off','OFF','Disabled or unconfigured (watchlist empty, sidecar not running).'],
+    ['error','FAILED','The request errored or timed out this sweep.'],
+  ];
+  return `<div class="g-panel"><div class="sec-head"><h3>How To Read Status</h3><span class="badge">LEGEND</span></div>
+    ${items.map(([st,l,d])=>`<div class="sh-row ${st}" style="align-items:flex-start"><span class="hdot ${st}" style="margin-top:4px"></span><span class="sh-name" style="flex:0 0 64px">${l}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2">${d}</span></div>`).join('')}
+    <div class="sh-note">A zero on a panel only means "quiet" when its source dot is green. Panels whose source is not reporting say so instead of showing 0. Composite indexes (CII, Convergence, Signals, Focal Points, DEFCON) are computed from the other sources after each sweep.</div></div>`;
 }
 
 // === MAP ===
@@ -2154,7 +2358,74 @@ function renderLower(){
         </div>
       </div>
     </div>` : offPanel('Market Intelligence','UnusualWhales','Unusual Whales data unavailable','market-panel');
-  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${borderPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+  const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
+  const byTab={
+    situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
+    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
+    macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
+    regional:[wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half')],
+    sources:[renderSourceHealthFullPanel()],
+  };
+  document.getElementById('lowerGrid').innerHTML=(byTab[currentTab]||byTab.situation).join('');
+}
+
+// === MILITARY TAB PANELS ===
+function renderAirTheatersPanel(){
+  const air=(D.air||[]).slice().sort((a,b)=>(b.total||0)-(a.total||0));
+  const src=D.airMeta?.fallback?['ADS-B']:['OpenSky'];
+  const s=shWorst(src);
+  if(!air.length||(shNotReporting(s)&&!air.some(a=>a.total)))return offPanel('Air Activity By Theater',src,'No aircraft state vectors this sweep');
+  const max=Math.max(1,...air.map(a=>a.total||0));
+  const rows=air.map(a=>`<div class="cii-row" title="${esc(a.region)}: ${a.total||0} aircraft · ${a.noCallsign||0} no callsign · ${a.highAlt||0} high altitude"><span class="cii-name" style="flex:0 0 112px">${esc(a.region)}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${Math.round((a.total||0)/max*100)}%;background:var(--accent2)"></div></div><span class="cii-score" style="color:var(--accent2)">${a.total||0}</span><span class="cii-level" style="color:var(--dim);border:1px solid var(--border)">${(a.top||[]).slice(0,2).map(tp=>esc(tp[0])+' '+tp[1]).join(' · ')||'—'}</span></div>`).join('');
+  const note=D.airMeta?.method&&D.airMeta.method!=='opensky'?`<div class="sh-note">Source: ${esc(D.airMeta.source||D.airMeta.method)} (OpenSky fallback). Counts are civil + military transponders inside each theater box, not military-only.</div>`:'<div class="sh-note">Counts are all transponding aircraft inside each theater box (civil + military). Sudden drops usually mean the upstream feed thinned, not that the sky emptied.</div>';
+  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT</span></div>${rows}${note}</div>`;
+}
+function renderPrcPanel(){
+  const prcAirR = D.air.find(a => a.region === 'Taiwan Strait') || {};
+  const prcChinaR = prcAirR.top?.find(t => t[0] === 'China') || [];
+  const scsAirR = D.air.find(a => a.region === 'South China Sea') || {};
+  const prcAirCount = (prcChinaR[1] || 0) + (scsAirR.total || 0);
+  const gdeltPRCR = (D.gdelt?.topTitles || []).filter(t => /china|chinese|beijing|prc|taiwan|south china sea|xi jinping/i.test(t)).length;
+  const adsbPRCR = (D.adsbMilitary?.categories?.isr || []).filter(a => (a.country||'').toLowerCase().includes('china')).length;
+  const p = D.situation?.prc || {score:Math.min(100, Math.round((prcAirCount * 1.5) + (gdeltPRCR * 8) + (adsbPRCR * 15)))};
+  const tensionScore = p.score;
+  const tensionLevel = p.level || (tensionScore >= 70 ? 'ELEVATED' : tensionScore >= 40 ? 'HEIGHTENED' : tensionScore >= 15 ? 'NORMAL' : 'REDUCED');
+  const tensionColor = tensionScore >= 70 ? '#f44336' : tensionScore >= 40 ? '#ff9800' : tensionScore >= 15 ? '#ffd740' : '#4caf50';
+  const kev=D.cyberKev?.prcRelevantCount||0;
+  const titles=(D.gdelt?.topTitles||[]).filter(t=>/china|chinese|beijing|prc|taiwan|south china sea|xi jinping/i.test(t)).slice(0,5);
+  return `<div class="g-panel prc-panel"><div class="sec-head"><h3><span class="blink" style="background:#f44336;box-shadow:0 0 4px rgba(244,67,54,0.5);width:5px;height:5px;border-radius:50%;display:inline-block;margin-right:6px"></span>PRC Tension Index</h3><span class="badge" style="color:${tensionColor};border-color:${tensionColor}55">${esc(tensionLevel)}</span></div>
+    <div class="prc-gauge"><div class="prc-gauge-bar"><div class="prc-gauge-fill" style="width:${tensionScore}%;background:${tensionColor}"></div></div><span class="prc-gauge-label" style="color:${tensionColor}">${tensionScore}/100</span></div>
+    <div class="econ-row"><span class="elabel">PLA / SCS air (Taiwan Strait CN + SCS total)</span><span class="eval">${prcAirCount}</span></div>
+    <div class="econ-row"><span class="elabel">GDELT PRC headlines (top titles)</span><span class="eval">${gdeltPRCR}</span></div>
+    <div class="econ-row"><span class="elabel">PRC ISR aircraft (ADS-B military)</span><span class="eval">${adsbPRCR}</span></div>
+    <div class="econ-row"><span class="elabel">PRC-relevant KEV CVEs</span><span class="eval" style="color:${kev?'#ff4081':'var(--text)'}">${kev}</span></div>
+    ${titles.length?`<div class="sh-group">PRC headlines in GDELT</div>${titles.map(tt=>`<div class="sig-title" style="margin-bottom:3px">${esc(tt)}</div>`).join('')}`:''}
+    <div class="sh-note">Score = 1.5×air + 8×GDELT + 15×ISR, capped at 100. It is an activity index, not an intent assessment.</div></div>`;
+}
+function renderCarriersPanel(){
+  const c=D.carriers||{};
+  const groups=c.carriers||c.groups||[];
+  if(!groups.length)return offPanel('Carrier Strike Groups','Carriers','No carrier group estimates this sweep');
+  const rows=groups.slice(0,12).map(g=>`<div class="fp-row" title="${esc(g.name||g.hull||'')}: ${esc(g.desc||'')} — ${esc(g.source||'')}"><span class="fp-urgency" style="color:var(--accent2);border:1px solid rgba(68,204,255,0.3)">${esc(g.hull||'CVN')}</span><span class="fp-name">${esc(g.name||'')}</span><span class="fp-signals" style="font-size:9px;color:var(--dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.desc||g.homeport||'')}</span><span class="fp-score" style="color:var(--dim);font-size:9px">${g.lastUpdate?getAge(g.lastUpdate):''}</span></div>`).join('');
+  return `<div class="g-panel carriers-panel"><div class="sec-head"><h3>${shDot('Carriers')}Carrier Strike Groups</h3><span class="badge">${c.totalCarriers||groups.length} TRACKED</span></div>${rows}<div class="sh-note">OSINT-estimated positions from GDELT export mentions and open reporting — not AIS. Treat as last-reported region, not a live fix.</div></div>`;
+}
+
+// === SOURCES TAB: full table of every source and its state ===
+function renderSourceHealthFullPanel(){
+  const sh=D.sourceHealth;
+  if(!sh)return `<div class="g-panel lp-wide" id="sourceHealthPanel"><div class="sec-head"><h3>Source Health</h3><span class="badge off">UNAVAILABLE</span></div><div class="g-off-why">Source health is computed after the first sweep completes.</div></div>`;
+  const h=sh.summary;
+  const groups=SH_ORDER.map(st=>({st,rows:sh.sources.filter(s=>s.state===st)})).filter(g=>g.rows.length);
+  const row=s=>`<div class="sh-row ${s.state}" title="${esc(s.name)}: ${SH_LABEL[s.state]}${s.reason?' \u2014 '+esc(s.reason):''}"><span class="hdot ${s.state}"></span><span class="sh-name">${esc(s.name)}${s.sidecar?' <span style="color:var(--dim);font-size:9px">sidecar</span>':''}</span><span class="sh-why">${esc(s.state==='live'?(s.kind==='derived'?'DERIVED':'OK'):s.state==='no_key'?'NO KEY':(s.reason||SH_LABEL[s.state]))}${s.state==='degraded'&&s.detail?` \u00b7 ${esc(s.detail)}`:''}</span>${(s.envVars||[]).length?`<span class="sh-env">${esc(s.envVars.join(' + '))}</span>`:''}${s.ms!=null?`<span class="sh-ms" style="grid-column:2/4">${Math.round(s.ms)} ms</span>`:''}</div>`;
+  const swept=D.meta?.timestamp?new Date(D.meta.timestamp):null;
+  return `<div class="g-panel lp-wide sh-full" id="sourceHealthPanel">
+      <div class="sec-head"><h3>Source Health — all ${h.total} sources</h3><span class="badge ${h.reporting===h.total?'':'warn'}">${h.reporting}/${h.total} REPORTING${swept&&!isNaN(swept)?' \u00b7 SWEPT '+swept.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):''}</span></div>
+      <div class="sh-sum"><span><span class="hdot live"></span>${h.live} live</span><span><span class="hdot degraded"></span>${h.degraded} degraded</span><span><span class="hdot no_key"></span>${h.no_key} no key</span><span><span class="hdot off"></span>${h.off} off</span><span><span class="hdot error"></span>${h.error} failed</span></div>
+      ${groups.map(g=>`<div class="sh-group"><span class="hdot ${g.st}"></span> ${SH_LABEL[g.st]} · ${g.rows.length}</div><div class="sh-cols">${g.rows.map(row).join('')}</div>`).join('')}
+      <div class="sh-note">NO KEY sources light up on the next sweep once the listed env var is set (Fly: <code>fly secrets set NAME=...</code>). FAILED sources are retried every sweep. DEGRADED means the request succeeded but the payload was partial, empty, cached or came through a fallback route.</div>
+    </div>`;
 }
 
 // === BORDER WATCH PANEL ===
@@ -2228,7 +2499,7 @@ function renderPizzaPanel(){
     const pct = Math.max(10, Math.min(100, v * 20));
     return `<div class="pizza-spark-bar" style="height:${pct}%"></div>`;
   }).join('');
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('PizzaIndex')}Pentagon Pizza Index</h3><span class="badge" style="background:rgba(255,152,0,0.1);color:#ff9800;border-color:rgba(255,152,0,0.3)">DOUGHCON</span></div><div class="pizza-widget"><div class="pizza-doughcon" style="color:${dcColor}">DOUGHCON ${pi.doughcon}</div><div class="pizza-trend" style="color:${trendColor}">${trendArrow} ${pi.trend || 'stable'} &middot; ${pi.storesOpen}/${pi.totalStores} stores &middot; ${pi.avgWait}min wait</div>${sparkBars ? `<div class="pizza-spark">${sparkBars}</div>` : ''}</div></div>`;
+  return `<div class="g-panel right-pizza"><div class="sec-head"><h3>${shDot('PizzaIndex')}Pentagon Pizza Index</h3><span class="badge" style="background:rgba(255,152,0,0.1);color:#ff9800;border-color:rgba(255,152,0,0.3)">DOUGHCON</span></div><div class="pizza-widget"><div class="pizza-doughcon" style="color:${dcColor}">DOUGHCON ${pi.doughcon}</div><div class="pizza-trend" style="color:${trendColor}">${trendArrow} ${pi.trend || 'stable'} &middot; ${pi.storesOpen}/${pi.totalStores} stores &middot; ${pi.avgWait}min wait</div>${sparkBars ? `<div class="pizza-spark">${sparkBars}</div>` : ''}</div></div>`;
 }
 
 function renderPolymarketPanel(){
@@ -2244,7 +2515,7 @@ function renderPolymarketPanel(){
     const vol = m.volume24hr >= 1e6 ? `$${(m.volume24hr/1e6).toFixed(1)}M` : m.volume24hr >= 1e3 ? `$${(m.volume24hr/1e3).toFixed(0)}K` : `$${(m.volume24hr||0).toFixed(0)}`;
     return `<div class="pm-row"><div class="pm-question">${cleanText(m.question || '')}</div><div class="pm-bar-wrap"><div class="pm-bar"><div class="pm-bar-fill" style="width:${prob}%"></div></div><span class="pm-prob">${prob}%</span></div><div class="pm-meta"><span>Vol: ${vol}</span>${chgStr ? `<span class="pm-change ${chgClass}">24h: ${chgStr}</span>` : ''}</div></div>`;
   }).join('');
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('Polymarket')}Polymarket Geopolitical</h3><span class="badge" style="background:rgba(124,77,255,0.1);color:#7c4dff;border-color:rgba(124,77,255,0.3)">${pm.totalGeoMarkets||0} MARKETS</span></div>${rows}</div>`;
+  return `<div class="g-panel right-poly"><div class="sec-head"><h3>${shDot('Polymarket')}Polymarket Geopolitical</h3><span class="badge" style="background:rgba(124,77,255,0.1);color:#7c4dff;border-color:rgba(124,77,255,0.3)">${pm.totalGeoMarkets||0} MARKETS</span></div>${rows}</div>`;
 }
 
 function renderTelegramLivePanel(){
@@ -2256,7 +2527,7 @@ function renderTelegramLivePanel(){
     const age = m.timestamp ? getAge(m.timestamp) : '';
     return `<div class="tg-live-msg"><div class="tg-live-ch"><span>${(m.channel || 'UNKNOWN').toUpperCase()}</span><span class="tg-live-time">${age}</span></div><div class="tg-live-text">${cleanText((m.text || '').substring(0, 180))}</div></div>`;
   }).join('');
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('TelegramLive')}Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
+  return `<div class="g-panel right-telegram"><div class="sec-head"><h3>${shDot('TelegramLive')}Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
 }
 
 // === Phase 7: Investigate pivot (on-demand OSINT enrichment) ===
@@ -2272,7 +2543,7 @@ async function investigateTarget(raw, type){
   const q = String(raw||'').trim();
   if (!q) return;
   INV.query = q; INV.loading = true; INV.error = null;
-  renderRight();
+  if (currentTab !== 'investigations') setTab('investigations'); else renderLower();
   try {
     const r = await fetch(`/api/investigate?target=${encodeURIComponent(q)}${type?`&type=${encodeURIComponent(type)}`:''}`);
     const body = await r.json().catch(()=>({}));
@@ -2280,7 +2551,7 @@ async function investigateTarget(raw, type){
     else { INV.dossier = body; }
   } catch { INV.error = 'Investigation failed'; INV.dossier = null; }
   INV.loading = false;
-  renderRight();
+  renderTabbar(); renderLeftRail(); renderLower();
   const panel = document.querySelector('.right-investigate');
   if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -2361,11 +2632,11 @@ function renderInvestigatePanel(){
 function renderTyposquatPanel(){
   const ts = D.typosquat || {};
   const badge = `<span class="badge" style="background:rgba(255,171,64,0.1);color:#ffab40;border-color:rgba(255,171,64,0.3)">${ts.newCount>0?`${ts.newCount} NEW`:`${(ts.registered||[]).length} HITS`}</span>`;
-  if (ts.status === 'disabled') return `<div class="g-panel"><div class="sec-head"><h3>Typosquat Watch</h3><span class="badge">OFF</span></div><div class="inv-hint">Set TYPOSQUAT_WATCHLIST to monitor look-alike domains.</div></div>`;
-  if (ts.status !== 'live') return `<div class="g-panel"><div class="sec-head"><h3>Typosquat Watch</h3>${badge}</div><div class="inv-hint" style="text-align:center">Awaiting sweep data</div></div>`;
+  if (ts.status === 'disabled') return `<div class="g-panel right-typosquat"><div class="sec-head"><h3>Typosquat Watch</h3><span class="badge">OFF</span></div><div class="inv-hint">Set TYPOSQUAT_WATCHLIST to monitor look-alike domains.</div></div>`;
+  if (ts.status !== 'live') return `<div class="g-panel right-typosquat"><div class="sec-head"><h3>Typosquat Watch</h3>${badge}</div><div class="inv-hint" style="text-align:center">Awaiting sweep data</div></div>`;
   const rows = (ts.registered||[]).slice(0,60).map(r=>`<div class="ts-row"><span class="ts-domain">${invLink(r.domain)}</span>${r.isNew?'<span class="inv-chip new">NEW</span>':''}<span class="ts-base">&larr; ${esc(r.base)}</span><span class="ts-tech">${esc(r.technique)}</span></div>`).join('');
   const summary = `<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">${ts.totalChecked||0} permutations · ${(ts.watchlist||[]).length} watched: ${(ts.watchlist||[]).map(w=>invLink(w)).join(', ')}</div>`;
-  return `<div class="g-panel"><div class="sec-head"><h3>Typosquat Watch</h3>${badge}</div>${summary}<div class="ts-scroll">${rows||'<div class="inv-hint" style="text-align:center">No registered look-alikes</div>'}</div></div>`;
+  return `<div class="g-panel right-typosquat"><div class="sec-head"><h3>Typosquat Watch</h3>${badge}</div>${summary}<div class="ts-scroll">${rows||'<div class="inv-hint" style="text-align:center">No registered look-alikes</div>'}</div></div>`;
 }
 
 document.addEventListener('click', e => {
@@ -2390,7 +2661,7 @@ function renderCyberKevPanel(){
     return `<div class="kev-row"><div class="kev-cve">${cleanText(v.cveID || '')} &middot; ${cleanText(v.vendor || '')}</div><div class="kev-name">${cleanText(v.name || '')}</div><div class="kev-meta">${tags.join('')}</div></div>`;
   }).join('');
   const prcBadge = ck.prcRelevantCount > 0 ? ` &middot; <span style="color:#ff4081">${ck.prcRelevantCount} PRC</span>` : '';
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('CyberKEV')}CISA KEV Threats</h3><span class="badge" style="background:rgba(66,165,245,0.1);color:#42a5f5;border-color:rgba(66,165,245,0.3)">${ck.totalVulnerabilities||0} CVEs${prcBadge}</span></div><div class="kev-scroll">${vulns}</div></div>`;
+  return `<div class="g-panel right-kev"><div class="sec-head"><h3>${shDot('CyberKEV')}CISA KEV Threats</h3><span class="badge" style="background:rgba(66,165,245,0.1);color:#42a5f5;border-color:rgba(66,165,245,0.3)">${ck.totalVulnerabilities||0} CVEs${prcBadge}</span></div><div class="kev-scroll">${vulns}</div></div>`;
 }
 
 // === Phase 4: Panel Renderers ===
@@ -2413,7 +2684,7 @@ function renderCIIPanel(){
   const highCount = countries.filter(c => c.level === 'High').length;
   const badgeText = critCount > 0 ? `${critCount} CRITICAL` : highCount > 0 ? `${highCount} HIGH` : 'STABLE';
   const badgeStyle = critCount > 0 ? 'color:#ff5252;border-color:rgba(255,82,82,0.3)' : highCount > 0 ? 'color:#ff9800;border-color:rgba(255,152,0,0.3)' : '';
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('CII')}Country Instability Index</h3><span class="badge" style="${badgeStyle}">${badgeText}</span></div>${warmupHtml}${rows}</div>`;
+  return `<div class="g-panel right-cii"><div class="sec-head"><h3>${shDot('CII')}Country Instability Index</h3><span class="badge" style="${badgeStyle}">${badgeText}</span></div>${warmupHtml}${rows}</div>`;
 }
 
 function renderSignalIntelPanel(){
@@ -2429,7 +2700,7 @@ function renderSignalIntelPanel(){
     const propFlags = (s.propagandaFlags || []).map(f => `<span class="sig-propaganda">${f}</span>`).join('');
     return `<div class="sig-row"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="sig-type" style="color:${color};border:1px solid ${color}40;background:${color}15">${typeLabel}</span><span class="sig-conf" style="color:${color}">${s.confidence}%</span>${propFlags}</div><div class="sig-title">${(s.title || '').substring(0, 120)}</div><div class="sig-meta">${s.sources ? s.sources.slice(0,3).join(' \u00b7 ') : ''}</div></div>`;
   }).join('');
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('Signals')}Signal Intelligence</h3><span class="badge">${sig.totalSignals||0} ACTIVE</span></div>${rows}</div>`;
+  return `<div class="g-panel right-sigint"><div class="sec-head"><h3>${shDot('Signals')}Signal Intelligence</h3><span class="badge">${sig.totalSignals||0} ACTIVE</span></div>${rows}</div>`;
 }
 
 function renderFocalPointsPanel(){
@@ -2446,26 +2717,11 @@ function renderFocalPointsPanel(){
     return `<div class="fp-row" title="${f.name}: score ${f.score} (${f.urgency})"><span class="fp-urgency" style="color:${color};border:1px solid ${color}40;background:${color}15">${f.urgency}</span><span class="fp-name">${f.name}</span><span class="fp-signals">${icons}</span><span class="fp-score" style="color:${color}">${f.score}</span></div>`;
   }).join('');
   const critCount = points.filter(f => f.urgency === 'Critical').length;
-  return `<div class="g-panel"><div class="sec-head"><h3>${shDot('FocalPoints')}Focal Points</h3><span class="badge">${critCount > 0 ? critCount + ' CRITICAL' : points.length + ' TRACKED'}</span></div>${rows}</div>`;
+  return `<div class="g-panel right-focal"><div class="sec-head"><h3>${shDot('FocalPoints')}Focal Points</h3><span class="badge">${critCount > 0 ? critCount + ' CRITICAL' : points.length + ' TRACKED'}</span></div>${rows}</div>`;
 }
 
-// === RIGHT RAIL ===
-function renderRight(){
-  const mobile = isMobileLayout();
-  // CROSS-SOURCE SIGNALS — moved from lower grid to right rail
-  const signals=D.tSignals.slice(0,6).map((s,i)=>`<div class="signal-row"><strong>Signal ${i+1}</strong><p>${s}</p></div>`).join('');
-
-  // OSINT TICKER — Telegram + WHO as flowing cards
-  const signalMetrics=[
-    {l:'Incident Tempo',v:D.tg.urgent.length,p:70},
-    {l:'Air Theaters',v:D.air.length,p:60},
-    {l:'Thermal Spikes',v:D.thermal.reduce((s,t)=>s+t.hc,0),p:80},
-    {l:'SDR Nodes',v:D.sdr.total,p:92},
-    {l:'Chokepoints',v:D.chokepoints.length,p:50},
-    {l:'WHO Alerts',v:D.who.length,p:40}
-  ];
-
-  // DELTA PANEL — what changed since last sweep
+// === WHAT CHANGED (promoted: top of the Situation left rail) ===
+function renderDeltaPanel(){
   const delta = D.delta || {};
   const ds = delta.summary || {};
   const hasDelta = ds.totalChanges > 0;
@@ -2487,48 +2743,53 @@ function renderRight(){
     const val = s.pctChange!==undefined?`${s.pctChange}%`:`${s.change}`;
     deltaRows.push(`<div class="delta-row"><span class="delta-badge down">&#9660;</span><span class="delta-label">${s.label||s.key}</span><span class="delta-val">${s.from}→${s.to} (${val})</span></div>`);
   }
-  const deltaHtml = hasDelta ? deltaRows.join('') : `<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">${t('delta.noChanges','No changes since last sweep')}</div>`;
-
-  document.getElementById('rightRail').innerHTML=`
-    <div class="g-panel right-signals">
-      <div class="sec-head"><h3>${shDot('Convergence')}${t('panels.crossSourceSignals','Cross-Source Signals')}</h3><span class="badge">${t('badges.worldview','WORLDVIEW')}</span></div>
-      ${signals}
-    </div>
-    ${mobile ? '' : buildOsintPanel('right-osint', 260)}
-    <div class="g-panel right-core">
-      <div class="sec-head"><h3>${t('panels.signalCore','Signal Core')}</h3><span class="badge">${t('badges.hotMetrics','HOT METRICS')}</span></div>
-      ${signalMetrics.map(s=>`<div class="sm"><span class="sml">${s.l}</span><div class="smb"><span style="width:${s.p}%"></span></div><span class="smv">${s.v}</span></div>`).join('')}
-      ${(() => {
-        const prcAirR = D.air.find(a => a.region === 'Taiwan Strait') || {};
-        const prcChinaR = prcAirR.top?.find(t => t[0] === 'China') || [];
-        const scsAirR = D.air.find(a => a.region === 'South China Sea') || {};
-        const prcAirCount = (prcChinaR[1] || 0) + (scsAirR.total || 0);
-        const gdeltPRCR = (D.gdelt?.topTitles || []).filter(t => /china|chinese|beijing|prc|taiwan|south china sea|xi jinping/i.test(t)).length;
-        const adsbPRCR = (D.adsbMilitary?.categories?.isr || []).filter(a => (a.country||'').toLowerCase().includes('china')).length;
-        const tensionScore = Math.min(100, Math.round((prcAirCount * 1.5) + (gdeltPRCR * 8) + (adsbPRCR * 15)));
-        const tensionLevel = tensionScore >= 70 ? 'ELEVATED' : tensionScore >= 40 ? 'HEIGHTENED' : tensionScore >= 15 ? 'NORMAL' : 'REDUCED';
-        const tensionColor = tensionScore >= 70 ? '#f44336' : tensionScore >= 40 ? '#ff9800' : tensionScore >= 15 ? '#ffd740' : '#4caf50';
-        return `<div style="margin-top:8px;border-top:1px solid rgba(244,67,54,0.15);padding-top:8px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:#f44336;margin-bottom:4px;display:flex;align-items:center;gap:4px"><span style="background:#f44336;width:5px;height:5px;border-radius:50%;display:inline-block;box-shadow:0 0 4px rgba(244,67,54,0.5)"></span>PRC TENSION INDEX</div><div class="prc-gauge"><div class="prc-gauge-bar"><div class="prc-gauge-fill" style="width:${tensionScore}%;background:${tensionColor}"></div></div><span class="prc-gauge-label" style="color:${tensionColor}">${tensionLevel}</span></div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;gap:8px;flex-wrap:wrap"><span>Air: ${prcAirCount}</span><span>GDELT: ${gdeltPRCR}</span><span>ISR: ${adsbPRCR}</span><span>Score: ${tensionScore}/100</span></div></div>`;
-      })()}
-    </div>
-    ${renderCIIPanel()}
-    ${renderSignalIntelPanel()}
-    ${renderFocalPointsPanel()}
-    ${renderPizzaPanel()}
-    ${renderPolymarketPanel()}
-    ${renderTelegramLivePanel()}
-    ${renderCyberKevPanel()}
-    ${renderInvestigatePanel()}
-    ${renderTyposquatPanel()}
-    <div class="g-panel right-delta">
-      <div class="sec-head"><h3>${t('panels.sweepDelta','Sweep Delta')}</h3><span class="badge ${dirClass}">${dirEmoji} ${ds.direction?t('delta.'+ds.direction,ds.direction.toUpperCase()):t('delta.baseline','BASELINE')}</span></div>
+  const deltaHtml = hasDelta ? deltaRows.join('') : `<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">${D.delta?t('delta.noChanges','No changes since last sweep'):'First sweep since restart — deltas appear from the second sweep'}</div>`;
+  return `<div class="g-panel right-delta" id="whatChanged">
+      <div class="sec-head"><h3>What Changed</h3><span class="badge ${dirClass}">${dirEmoji} ${ds.direction?t('delta.'+ds.direction,ds.direction.toUpperCase()):t('delta.baseline','BASELINE')}</span></div>
       ${hasDelta?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:10px">
         <span style="color:var(--dim)">${t('delta.changes','Changes')}: <span style="color:var(--accent)">${ds.totalChanges}</span></span>
         <span style="color:var(--dim)">${t('delta.critical','Critical')}: <span style="color:${ds.criticalChanges>0?'var(--warn)':'var(--dim)'}">${ds.criticalChanges||0}</span></span>
         ${ds.signalBreakdown?`<span style="color:var(--dim)">${t('delta.new','New')}: <span style="color:#4dd0e1">${ds.signalBreakdown.new}</span> &#8593;${ds.signalBreakdown.escalated} &#8595;${ds.signalBreakdown.deescalated}</span>`:''}
       </div>`:''}
       <div class="delta-list">${deltaHtml}</div>
+      <div class="sh-note">Compared with the previous sweep${D.delta?.previous?` (${getAge(D.delta.previous)})`:''}. Escalations are counted only when the source reported both times.</div>
     </div>`;
+}
+
+function renderSignalCorePanel(){
+  const signalMetrics=[
+    {l:'Incident Tempo',v:D.tg.urgent.length,p:70},
+    {l:'Air Theaters',v:D.air.length,p:60},
+    {l:'Thermal Spikes',v:D.thermal.reduce((s,t)=>s+t.hc,0),p:80},
+    {l:'SDR Nodes',v:D.sdr.total,p:92},
+    {l:'Chokepoints',v:D.chokepoints.length,p:50},
+    {l:'WHO Alerts',v:D.who.length,p:40}
+  ];
+  const p=D.situation?.prc;
+  const tensionColor = !p?'var(--dim)':p.score >= 70 ? '#f44336' : p.score >= 40 ? '#ff9800' : p.score >= 15 ? '#ffd740' : '#4caf50';
+  return `<div class="g-panel right-core">
+      <div class="sec-head"><h3>${t('panels.signalCore','Signal Core')}</h3><span class="badge">${t('badges.hotMetrics','HOT METRICS')}</span></div>
+      ${signalMetrics.map(s=>`<div class="sm"><span class="sml">${s.l}</span><div class="smb"><span style="width:${s.p}%"></span></div><span class="smv">${s.v}</span></div>`).join('')}
+      ${p?`<div style="margin-top:8px;border-top:1px solid rgba(244,67,54,0.15);padding-top:8px;cursor:pointer" onclick="jumpToPanel('military','prc-panel')" title="Open Military → PRC Tension Index"><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:#f44336;margin-bottom:4px;display:flex;align-items:center;gap:4px"><span style="background:#f44336;width:5px;height:5px;border-radius:50%;display:inline-block;box-shadow:0 0 4px rgba(244,67,54,0.5)"></span>PRC TENSION INDEX</div><div class="prc-gauge"><div class="prc-gauge-bar"><div class="prc-gauge-fill" style="width:${p.score}%;background:${tensionColor}"></div></div><span class="prc-gauge-label" style="color:${tensionColor}">${esc(p.level)}</span></div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);display:flex;gap:8px;flex-wrap:wrap"><span>Air: ${(p.straitCn??0)+(p.scsTotal??0)}</span><span>GDELT: ${p.gdeltPrc??0}</span><span>ISR: ${p.isr??0}</span><span>Score: ${p.score}/100</span></div></div>`:''}
+    </div>`;
+}
+
+// === RIGHT RAIL (Situation tab only; other tabs collapse it via .grid.no-map) ===
+function renderRight(){
+  const rail=document.getElementById('rightRail');
+  if(currentTab!=='situation'){rail.innerHTML='';return;}
+  const mobile = isMobileLayout();
+  const signals=D.tSignals.slice(0,6).map((s,i)=>`<div class="signal-row"><strong>Signal ${i+1}</strong><p>${s}</p></div>`).join('');
+  rail.innerHTML=`
+    <div class="g-panel right-signals">
+      <div class="sec-head"><h3>${shDot('Convergence')}${t('panels.crossSourceSignals','Cross-Source Signals')}</h3><span class="badge">${t('badges.worldview','WORLDVIEW')}</span></div>
+      ${signals||'<div class="g-off-why">No cross-source narrative this sweep.</div>'}
+    </div>
+    ${mobile ? '' : buildOsintPanel('right-osint', 260)}
+    ${renderSignalCorePanel()}
+    ${renderCIIPanel()}
+    ${renderCyberKevPanel()}
+    ${renderPolymarketPanel()}`;
 }
 
 // === HELPERS ===
@@ -2672,18 +2933,19 @@ function syncResponsiveLayout(force=false){
   const mobileNow = isMobileLayout();
   if(force || lastResponsiveMobile === null || mobileNow !== lastResponsiveMobile){
     lastResponsiveMobile = mobileNow;
-    renderTopbar();
-    renderLeftRail();
-    renderLower();
-    renderRight();
+    renderAll();
   }
   refreshMapViewport(force && !isFlat);
 }
 
 // === REINIT (for live updates without boot sequence) ===
+function renderAll(){
+  applyTabLayout();
+  renderTopbar();renderTabbar();renderSituationStrip();renderLeftRail();renderLower();renderRight();
+}
 function reinit(){
   const typing = document.activeElement && document.activeElement.classList.contains('inv-input');
-  renderTopbar();renderLeftRail();renderLower();renderRight();
+  renderAll();
   plotMarkers();
   if (typing) { const el = document.querySelector('.inv-input'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
 }
@@ -2728,7 +2990,7 @@ function connectSSE(){
 // === INIT ===
 let booted = false;
 function init(){
-  renderTopbar();renderLeftRail();renderLower();renderRight();
+  renderAll();
   renderGlossary();
   initMap();
   if (!booted) { runBoot(); booted = true; }
