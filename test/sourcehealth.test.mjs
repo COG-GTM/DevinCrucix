@@ -32,6 +32,15 @@ describe('classifySource', () => {
     assert.equal(r.detail, 'HTTP 404');
   });
 
+  it('maps empty/blocked statuses to degraded and an explicit error status to error even with data attached', () => {
+    assert.equal(classifySource('BorderNews', { status: 'empty', feeds: [{ id: 'a' }] }).state, 'degraded');
+    assert.equal(classifySource('BorderNews', { status: 'blocked', feeds: [{ id: 'a' }] }).state, 'degraded');
+    const r = classifySource('BorderNews', { status: 'error', error: 'all feeds failed: ENOTFOUND', feeds: [{ id: 'a' }], registry: [{}] });
+    assert.equal(r.state, 'error');
+    assert.equal(r.reason, 'unreachable');
+    assert.equal(classifySource('X', { status: 'error', message: 'HTTP 503', items: [1] }).state, 'error');
+  });
+
   it('treats deferred composites as live/derived', () => {
     const r = classifySource('CII', { status: 'deferred', message: 'computed post-sweep' });
     assert.equal(r.state, 'live');

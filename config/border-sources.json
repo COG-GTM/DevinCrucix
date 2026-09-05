@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "notes": "Source registry for the Border Watch ingestion slice. The list is data, not code: add an outlet here and it is polled on the next sweep. Reliability grades follow the NATO/Admiralty A-F scale and are analyst-editable; every new source starts 'ungraded'.",
+  "sources": [
+    {
+      "id": "borderreport",
+      "outlet": "Border Report",
+      "homepage": "https://www.borderreport.com",
+      "feedUrl": "https://www.borderreport.com/feed/",
+      "feedType": "rss",
+      "articleApi": "wp-rest",
+      "language": "en",
+      "countryOfPublication": "US",
+      "regionTag": "US-MX border (all sectors)",
+      "sourceType": "news-outlet",
+      "owner": "Nexstar Media Group",
+      "reliability": "ungraded",
+      "paywall": false,
+      "robotsChecked": "2026-09-05",
+      "discoveryDate": "2026-09-05",
+      "discoveryNotes": "WordPress site; /feed/ honours ETag + Last-Modified (304 on revisit). Article HTML pages return 403 to non-browser clients, the public WP REST API (/wp-json/wp/v2/posts/{id}) does not. robots.txt only disallows search/tag/page/plugin paths for '*'."
+    },
+    {
+      "id": "texastribune",
+      "outlet": "The Texas Tribune",
+      "homepage": "https://www.texastribune.org",
+      "feedUrl": "https://feeds.texastribune.org/feeds/main/",
+      "feedType": "rss",
+      "articleApi": "wp-rest",
+      "articleApiBase": "https://www.texastribune.org",
+      "language": "en",
+      "countryOfPublication": "US",
+      "regionTag": "Texas statewide (border/immigration desk)",
+      "sourceType": "news-outlet",
+      "owner": "The Texas Tribune (nonprofit)",
+      "reliability": "ungraded",
+      "paywall": false,
+      "license": "CC BY-NC-ND 4.0 (republishing guidelines)",
+      "robotsChecked": "2026-09-05",
+      "discoveryDate": "2026-09-05",
+      "discoveryNotes": "No public REST/open-data API beyond the WordPress REST API; main feed is served via FeedPress and honours ETag (304). Item <link> is a FeedPress redirect; the canonical article URL comes from the WP REST 'link' field. AP wire copy carries an apnews.com canonical."
+    }
+  ]
+}

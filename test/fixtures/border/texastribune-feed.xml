@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" media="screen" href="/~files/feed-premium.xsl"?>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:feedpress="https://feed.press/xmlns" xmlns:media="http://search.yahoo.com/mrss/" xmlns:podcast="https://podcastindex.org/namespace/1.0" version="2.0">
+  <channel>
+    <feedpress:locale>en</feedpress:locale>
+    <atom:link rel="hub" href="https://feedpress.superfeedr.com/"/>
+    <title>The Texas Tribune</title>
+    <atom:link href="https://feeds.texastribune.org/feeds/main/" rel="self" type="application/rss+xml"/>
+    <link>https://www.texastribune.org/</link>
+    <description>Independent news. Trusted by Texans.</description>
+    <lastBuildDate>Sat, 05 Sep 2026 18:47:51 +0000</lastBuildDate>
+    <language>en-US</language>
+    <sy:updatePeriod>
+hourly</sy:updatePeriod>
+    <sy:updateFrequency>
+1</sy:updateFrequency>
+    <image>
+      <url>https://www.texastribune.org/wp-content/uploads/2025/09/cropped-cropped-texas-tribune-favicon-32x32.png</url>
+      <title>The Texas Tribune</title>
+      <link>https://www.texastribune.org/</link>
+      <width>32</width>
+      <height>32</height>
+    </image>
+    <site xmlns="com-wordpress:feed-additions:1">249301168</site>
+    <item>
+      <title>MAGA Inc. cavalry arrives for Paxton in Texas Senate as Trump’s PAC places $10 million ad buy</title>
+      <link>https://feeds.texastribune.org/link/16799/17440601/texas-maga-inc-10-million-ad-spend-paxton-trump</link>
+      <dc:creator><![CDATA[Gabby Birenbaum]]></dc:creator>
+      <pubDate>Sat, 05 Sep 2026 18:47:51 +0000</pubDate>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[State Government]]></category>
+      <category><![CDATA[Uncategorized]]></category>
+      <category><![CDATA[Democrats]]></category>
+      <category><![CDATA[Donald Trump]]></category>
+      <category><![CDATA[James Talarico]]></category>
+      <category><![CDATA[Ken Paxton]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[Tim Dunn]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=242116</guid>
+      <description><![CDATA[This is the first buy that Trump’s well-heeled political operation has made for a general election, underscoring how critical Texas’ Senate race is to the GOP’s hopes.<img src="https://feeds.texastribune.org/link/16799/17440601.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/260303-Paxton-Watch-Party-12-JJ-.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Ken Paxton speaking at his election results watch party in Dallas on March 3, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/260303-Paxton-Watch-Party-12-JJ-.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Johnathan Johnson for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">242116</post-id>
+    </item>
+    <item>
+      <title>ICE officer charged in Minnesota shooting released on bond</title>
+      <link>https://feeds.texastribune.org/link/16799/17440220/texas-ice-agent-charged-minnesota-immigration-shooting</link>
+      <dc:creator><![CDATA[By Valerie Gonzalez and Alanna Durkin Richer, Associated Press]]></dc:creator>
+      <pubDate>Sat, 05 Sep 2026 02:29:34 +0000</pubDate>
+      <category><![CDATA[Immigration]]></category>
+      <category><![CDATA[McAllen]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=242108</guid>
+      <description><![CDATA[Attorneys for Christian Castro, who appeared in federal court in McAllen, say he intends to plead not guilty to charges he lied about the circumstances that led to the shooting of a Venezuelan.<img src="https://feeds.texastribune.org/link/16799/17440220.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20230510-ICE-Badge-REUTERS.jpg?fit=1024%2C686&amp;ssl=1">
+        <media:description><![CDATA[The badge of a U.S. Immigration and Customs Enforcement agent in El Paso is seen during an operation with migrants being transferred to a plane to be expelled under U.S. Title 42 from the United States on May 10, 2023.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20230510-ICE-Badge-REUTERS.jpg?fit=1024%2C686&amp;ssl=1" width="1024" height="686"/>
+        <media:credit><![CDATA[REUTERS/Jose Luis Gonzalez]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">242108</post-id>
+    </item>
+    <item>
+      <title>After rescoring STAAR exams, 11 Texas districts seeing A-F grades improve</title>
+      <link>https://feeds.texastribune.org/link/16799/17440184/school-districts-improved-ratings-staar-rescore-2026</link>
+      <dc:creator><![CDATA[Megan Menchaca]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 23:50:56 +0000</pubDate>
+      <category><![CDATA[Public Education]]></category>
+      <category><![CDATA[Galveston]]></category>
+      <category><![CDATA[San Antonio]]></category>
+      <category><![CDATA[school accountability]]></category>
+      <category><![CDATA[STAAR test]]></category>
+      <category><![CDATA[Texas Education Agency]]></category>
+      <category><![CDATA[Well B Homepage]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=242078</guid>
+      <description><![CDATA[The score changes are part of an annual process to review the accuracy of STAAR results, state officials said.<img src="https://feeds.texastribune.org/link/16799/17440184.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/0723-Dobie-Middle-School-ILP-57-.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[The Texas Education Agency rescores some STAAR exams annually. During a 2026 review, changes in student scores led to improved accountability ratings for some districts.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/0723-Dobie-Middle-School-ILP-57-.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Ilana Panich-Linsman for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">242078</post-id>
+    </item>
+    <item>
+      <title>AG Ken Paxton hasn’t challenged the Trump administration over Texas’ $10-billion Medicaid cut even though he sued Biden</title>
+      <link>https://feeds.texastribune.org/link/16799/17440185/texas-medicaid-hospitals-ken-paxton-trump-biden-lawsuit</link>
+      <dc:creator><![CDATA[Terri Langford]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 23:24:45 +0000</pubDate>
+      <category><![CDATA[Health care]]></category>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[State Government]]></category>
+      <category><![CDATA[Democrats]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[Joe Biden]]></category>
+      <category><![CDATA[John Cornyn]]></category>
+      <category><![CDATA[Ken Paxton]]></category>
+      <category><![CDATA[Medicaid]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[Texas Hospital Association]]></category>
+      <category><![CDATA[Well C Homepage]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=242070</guid>
+      <description><![CDATA[The attorney general won a lawsuit against the feds for withholding a Medicaid funding stream three years ago. Texas faces the same cut, but Paxton has stayed quiet. <img src="https://feeds.texastribune.org/link/16799/17440185.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260727-Red-River-Roll-Call-Data-ST-025-.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Attorney General Ken Paxton speaks at the Red River Roll Call, a Republican rally hosted by state Rep. Shelley Luther in Sherman on July 27, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260727-Red-River-Roll-Call-Data-ST-025-.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Shelby Tauber for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">242070</post-id>
+    </item>
+    <item>
+      <title>State education board finalizes anti-Islamic rewrite of Texas social studies lessons</title>
+      <link>https://feeds.texastribune.org/link/16799/17435481/texas-rewrite-social-studies-high-school</link>
+      <dc:creator><![CDATA[Jaden Edison]]></dc:creator>
+      <pubDate>Mon, 31 Aug 2026 10:00:00 +0000</pubDate>
+      <category><![CDATA[Public Education]]></category>
+      <category><![CDATA[Democrats]]></category>
+      <category><![CDATA[education]]></category>
+      <category><![CDATA[Islam]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[State Board of Education]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241299</guid>
+      <description><![CDATA[The final votes conclude years of debate over how social studies lessons should broach race and religion. <img src="https://feeds.texastribune.org/link/16799/17435481.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/20260626-SBOE-Social-Studies-REUTERS.jpg?fit=1024%2C682&amp;ssl=1">
+        <media:description><![CDATA[Texas State Board of Education Chair Aaron Kinsey’s gavel lays on his table during a board meeting where votes are expected on various proposals, among them a new social studies curriculum and required reading lists to include Christian stories across the state’s public K-12 schools, in Austin, on June 26, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/20260626-SBOE-Social-Studies-REUTERS.jpg?fit=1024%2C682&amp;ssl=1" width="1024" height="682"/>
+        <media:credit><![CDATA[REUTERS/Joel Angel Juarez]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241299</post-id>
+    </item>
+    <item>
+      <title>Elon Musk’s super PAC starts spending to boost Ken Paxton in Texas</title>
+      <link>https://feeds.texastribune.org/link/16799/17440063/elon-musk-ken-paxton-super-pac-spending-texas-senate-race</link>
+      <dc:creator><![CDATA[Will Hammann]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 20:35:06 +0000</pubDate>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[campaign finance]]></category>
+      <category><![CDATA[Elon Musk]]></category>
+      <category><![CDATA[James Talarico]]></category>
+      <category><![CDATA[Ken Paxton]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=242054</guid>
+      <description><![CDATA[Musk’s super PAC recently dropped almost a quarter-million dollars boosting the Republican Senate nominee, who has seen a recent surge in outside support yet continues to lag in fundraising.<img src="https://feeds.texastribune.org/link/16799/17440063.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2025/07/2025-04-10T172535Z_1576739421_RC25VDAIZ7D1_RTRMADP_3_USA-TRUMP_maxWidth_3000_maxHeight_3000_ppi_72_quality_95_embedColorProfile_true-2-scaled.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Elon Musk attends a meeting at the White House in April 2025.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2025/07/2025-04-10T172535Z_1576739421_RC25VDAIZ7D1_RTRMADP_3_USA-TRUMP_maxWidth_3000_maxHeight_3000_ppi_72_quality_95_embedColorProfile_true-2-scaled.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[REUTERS/Nathan Howard]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">242054</post-id>
+    </item>
+    <item>
+      <title>Texas A&amp;M System removes courses on LGBTQ, ethnic studies and climate change from core offerings</title>
+      <link>https://feeds.texastribune.org/link/16799/17438361/texas-am-remove-core-courses-lgbtq-race-climate-change</link>
+      <dc:creator><![CDATA[Sneha Dey]]></dc:creator>
+      <pubDate>Thu, 03 Sep 2026 10:00:00 +0000</pubDate>
+      <category><![CDATA[Higher Education]]></category>
+      <category><![CDATA[education]]></category>
+      <category><![CDATA[LGBTQ]]></category>
+      <category><![CDATA[politics]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[Texas A&M University System]]></category>
+      <category><![CDATA[Texas A&M University-College Station]]></category>
+      <category><![CDATA[Texas colleges]]></category>
+      <category><![CDATA[texas higher education]]></category>
+      <category><![CDATA[University of Houston]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241803</guid>
+      <description><![CDATA[More than 200 courses, including those on LGBTQ literature, cultural studies and climate change, will no longer count toward core degree requirements at 11 Texas A&#38;M universities.<img src="https://feeds.texastribune.org/link/16799/17438361.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/1113-TAMU-File-CS-40.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Students walk through a tunnel under Wellborn Road on the Texas A&amp;M University campus in College Station on Nov. 13, 2025.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/1113-TAMU-File-CS-40.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Cassie Stricker for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241803</post-id>
+    </item>
+    <item>
+      <title>Ken Paxton omits rental income and mortgages from financial disclosures, obscuring his wealth</title>
+      <link>https://feeds.texastribune.org/link/16799/17439929/texas-ken-paxton-personal-financial-disclosures-ethics-law-us-senate-race</link>
+      <dc:creator><![CDATA[By Zach Despart, The Texas Tribune and ProPublica, Kayla Guo, The Texas Tribune, and Alexandra Glorioso, The Texas Tribune and ProPublica]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 15:35:00 +0000</pubDate>
+      <category><![CDATA[Congress]]></category>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[Angela Paxton]]></category>
+      <category><![CDATA[campaign finance]]></category>
+      <category><![CDATA[elections]]></category>
+      <category><![CDATA[investigations]]></category>
+      <category><![CDATA[James Talarico]]></category>
+      <category><![CDATA[Ken Paxton]]></category>
+      <category><![CDATA[U.S. Senate]]></category>
+      <category><![CDATA[Well A Homepage]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241855</guid>
+      <description><![CDATA[The Republican U.S. Senate nominee appears to have violated federal ethics law, which requires candidates to report their income and disclose mortgages on properties other than personal residences, experts said.<img src="https://feeds.texastribune.org/link/16799/17439929.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/paxtonwealth-v4_maxHeight_3000_maxWidth_3000-1-scaled.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/paxtonwealth-v4_maxHeight_3000_maxWidth_3000-1-scaled.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Photo collage by ProPublica. Source imagery by The Texas Tribune, with documents acquired by ProPublica.]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241855</post-id>
+    </item>
+    <item>
+      <title>Meet our new class of fall fellows</title>
+      <link>https://feeds.texastribune.org/link/16799/17439665/fall-2026-fellows</link>
+      <dc:creator><![CDATA[Brandon Formby]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 10:00:00 +0000</pubDate>
+      <category><![CDATA[Higher Education]]></category>
+      <category><![CDATA[T-Squared]]></category>
+      <category><![CDATA[The Texas Tribune]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241923</guid>
+      <description><![CDATA[The college students and recent graduates join our nonprofit as we produce TribFest and cover heated midterm elections. Our fellows gain real-world experience while helping us serve Texans.<img src="https://feeds.texastribune.org/link/16799/17439665.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/2026-Fall-Fellows-.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Five college students and a recent graduate join The Texas Tribune for its fall fellowship program. ]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/2026-Fall-Fellows-.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241923</post-id>
+    </item>
+    <item>
+      <title>After Abbott’s order limiting Flock cameras, DPS to continue using its vast surveillance network</title>
+      <link>https://feeds.texastribune.org/link/16799/17439666/texas-flock-cameras-dps-network-search-abbott</link>
+      <dc:creator><![CDATA[Ayden Runnels]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 10:00:00 +0000</pubDate>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[State Government]]></category>
+      <category><![CDATA[Gina Hinojosa]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[law enforcement]]></category>
+      <category><![CDATA[Ron DeSantis]]></category>
+      <category><![CDATA[Well A Homepage]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241964</guid>
+      <description><![CDATA[Law enforcement agencies from across the country search the DPS Flock database once every four seconds, on average. After the Tribune inquired, DPS said it will limit which agencies can access the network.<img src="https://feeds.texastribune.org/link/16799/17439666.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/20260804-Flock-Cameras-Houston-Area-JS-19.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[A Flock camera records drivers on the Interstate 610 feeder road in Bellaire on Sunday, Aug. 23, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/20260804-Flock-Cameras-Houston-Area-JS-19.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Jon Shapley for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241964</post-id>
+    </item>
+    <item>
+      <title>School librarians hesitant to discuss books, order more amid Texas battles to restrict titles, they say</title>
+      <link>https://feeds.texastribune.org/link/16799/17439667/texas-school-library-books-student-reading-dan-patrick</link>
+      <dc:creator><![CDATA[Colleen DeGuzman]]></dc:creator>
+      <pubDate>Fri, 04 Sep 2026 10:00:00 +0000</pubDate>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[Public Education]]></category>
+      <category><![CDATA[Austin]]></category>
+      <category><![CDATA[book bans]]></category>
+      <category><![CDATA[Dan Patrick]]></category>
+      <category><![CDATA[Democrats]]></category>
+      <category><![CDATA[education]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[Texas public schools]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241908</guid>
+      <description><![CDATA[Lt. Gov. Dan Patrick’s latest push to restrict what students can access adds to Texas school librarians’ angst, the educators said.<img src="https://feeds.texastribune.org/link/16799/17439667.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260831-Texas-School-Books-JL-07-full.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Frank Strong, an English teacher at a charter school in Austin, poses with books Lt. Gov. Dan Patrick recently urged Texas public schools to remove from libraries. on Aug. 31, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260831-Texas-School-Books-JL-07-full.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Jacob Lujan/The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241908</post-id>
+    </item>
+    <item>
+      <title>Tesla launches steering-wheel-free Cybercabs in Austin</title>
+      <link>https://feeds.texastribune.org/link/16799/17439446/tesla-elon-musk-autonomous-cybercabs-launch-austin</link>
+      <dc:creator><![CDATA[By Bernard Condon, Associated Press]]></dc:creator>
+      <pubDate>Thu, 03 Sep 2026 22:50:56 +0000</pubDate>
+      <category><![CDATA[Transportation]]></category>
+      <category><![CDATA[Austin]]></category>
+      <category><![CDATA[Elon Musk]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241953</guid>
+      <description><![CDATA[It is unclear how soon Elon Musk intends to roll out service of the futuristic-looking, gold-colored taxis that passengers have no way of controlling in an emergency.<img src="https://feeds.texastribune.org/link/16799/17439446.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20251105-Tesla-Cybercab-REUTERS.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Tesla&#039;s Cybercab makes its debut at the 8th China International Import Expo in Shanghai, China, on Nov. 5, 2025.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20251105-Tesla-Cybercab-REUTERS.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Oriental Image via REUTERS]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241953</post-id>
+    </item>
+    <item>
+      <title>ICE officer in Texas-Minnesota fight turns himself in to face shooting charges, AP reports</title>
+      <link>https://feeds.texastribune.org/link/16799/17439230/texas-ice-agent-federal-charges-minnesota</link>
+      <dc:creator><![CDATA[By Alanna Durkin Richer and Valerie Gonzalez, Associated Press]]></dc:creator>
+      <pubDate>Thu, 03 Sep 2026 17:45:22 +0000</pubDate>
+      <category><![CDATA[Immigration]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[investigations]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241866</guid>
+      <description><![CDATA[Christian Castro, who is accused of lying about the incident, was released from a Texas jail last week after Gov. Greg Abbott declined to sign extradition papers from Minnesota.<img src="https://feeds.texastribune.org/link/16799/17439230.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260114-ICE-Minneapolis-REUTERS.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Federal law enforcement officers at a protest in Minneapolis, Minnesota on Jan. 14, 2026, after an ICE agent shot a man in the leg during an arrest.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260114-ICE-Minneapolis-REUTERS.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Christian Zander/NurPhoto via REUTERS]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241866</post-id>
+    </item>
+    <item>
+      <title>Comptroller requests doubling Texas school voucher program to $2 billion</title>
+      <link>https://feeds.texastribune.org/link/16799/17439231/texas-school-voucher-program-2-billion-expansion-budget-comptroller</link>
+      <dc:creator><![CDATA[Jaden Edison]]></dc:creator>
+      <pubDate>Thu, 03 Sep 2026 17:04:26 +0000</pubDate>
+      <category><![CDATA[Public Education]]></category>
+      <category><![CDATA[State Government]]></category>
+      <category><![CDATA[Don Huffines]]></category>
+      <category><![CDATA[school vouchers]]></category>
+      <category><![CDATA[state funding]]></category>
+      <category><![CDATA[Texas Comptroller Of Public Accounts]]></category>
+      <category><![CDATA[Texas education]]></category>
+      <category><![CDATA[Texas Legislature]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241852</guid>
+      <description><![CDATA[This is the first year for education savings accounts, which allow Texas families to use taxpayer dollars for private or home schooling.<img src="https://feeds.texastribune.org/link/16799/17439231.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/0217-Abbott-Voucher-Night-SB-03-1.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Students pledge allegiance during ‘Parent Empowerment Night’ at San Antonio Christian School in San Antonio. ]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/0217-Abbott-Voucher-Night-SB-03-1.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Scott Stephen Ball for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241852</post-id>
+    </item>
+    <item>
+      <title>Already one of the largest recorded wildfires in North Texas history, Ross Fire continues burning</title>
+      <link>https://feeds.texastribune.org/link/16799/17433096/texas-ross-fire-wildfires-north-texas</link>
+      <dc:creator><![CDATA[Alejandra Martinez and Alex Nguyen]]></dc:creator>
+      <pubDate>Thu, 27 Aug 2026 16:42:45 +0000</pubDate>
+      <category><![CDATA[Environment]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[North Texas]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241050</guid>
+      <description><![CDATA[More than 90,000 acres in Palo Pinto and Jack counties are still on fire. Containment has grown to 38%, according to the Texas A&#38;M Forest Service. Two firefighters received minor injuries.<img src="https://feeds.texastribune.org/link/16799/17433096.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/08252026-Ross-Fire-TAMU-10.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[The Ross fire started in Palo Pinto County on Aug. 24, 2026 and has since grown to more than 80,000 acres across Palo Pinto and Jack counties.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/08/08252026-Ross-Fire-TAMU-10.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[A. Turner/Texas A&amp;M AgriLife]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241050</post-id>
+    </item>
+    <item>
+      <title>1 in 5 Texans experience food insecurity as food banks struggle to keep up with demand</title>
+      <link>https://feeds.texastribune.org/link/16799/17439194/texas-food-banks-struggle-federal-cuts</link>
+      <dc:creator><![CDATA[Stephen Simpson]]></dc:creator>
+      <pubDate>Thu, 03 Sep 2026 16:00:00 +0000</pubDate>
+      <category><![CDATA[Economy]]></category>
+      <category><![CDATA[Supplemental Nutrition Assistance Program]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241807</guid>
+      <description><![CDATA[More Texans have become food insecure due to a rise in natural disasters and less qualifying for SNAP benefits. Rural food banks in particular face additional pressures.<img src="https://feeds.texastribune.org/link/16799/17439194.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260812-Houston-Food-Bank-HM-02.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Volunteers and a group participating from Shell’s health program sort and prepare food at Houston Food Bank in Houston on Aug. 12, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260812-Houston-Food-Bank-HM-02.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Hope Mora for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241807</post-id>
+    </item>
+    <item>
+      <title>Federal disaster assistance approved for some Texas counties after July floods</title>
+      <link>https://feeds.texastribune.org/link/16799/17437275/trump-texas-flood-recovery-50-million</link>
+      <dc:creator><![CDATA[Emily Foxhall]]></dc:creator>
+      <pubDate>Wed, 02 Sep 2026 14:42:59 +0000</pubDate>
+      <category><![CDATA[Environment]]></category>
+      <category><![CDATA[Donald Trump]]></category>
+      <category><![CDATA[Federal Emergency Management Agency]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[Kerr County]]></category>
+      <category><![CDATA[Ted Cruz]]></category>
+      <category><![CDATA[texas flooding]]></category>
+      <category><![CDATA[Uvalde County]]></category>
+      <category><![CDATA[Zavala County]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241749</guid>
+      <description><![CDATA[The announced funding will help 19 counties pay for infrastructure repairs, but Texas is still waiting for help for individuals in the affected counties.<img src="https://feeds.texastribune.org/link/16799/17437275.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260227-Trump-Corpus-Christi-PG-68.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[President Donald Trump speaks at the Port of Corpus Christi on Feb. 27, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260227-Trump-Corpus-Christi-PG-68.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Pete Garcia for The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241749</post-id>
+    </item>
+    <item>
+      <title>With voters squeezed by high costs, Texas candidates race to claim affordability mantle</title>
+      <link>https://feeds.texastribune.org/link/16799/17438362/texas-affordability-costs-inflation-2026-elections</link>
+      <dc:creator><![CDATA[By Joshua Fechter and Paul Cobler, GRAPHICS BY Dan Keemahill]]></dc:creator>
+      <pubDate>Thu, 03 Sep 2026 10:00:00 +0000</pubDate>
+      <category><![CDATA[Economy]]></category>
+      <category><![CDATA[Energy]]></category>
+      <category><![CDATA[Health care]]></category>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[State Government]]></category>
+      <category><![CDATA[Uncategorized]]></category>
+      <category><![CDATA[Democrats]]></category>
+      <category><![CDATA[Donald Trump]]></category>
+      <category><![CDATA[energy]]></category>
+      <category><![CDATA[Gina Hinojosa]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[housing]]></category>
+      <category><![CDATA[immigration]]></category>
+      <category><![CDATA[James Talarico]]></category>
+      <category><![CDATA[Ken Paxton]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[taxes]]></category>
+      <category><![CDATA[Texas Democratic Party]]></category>
+      <category><![CDATA[Texas Southern University]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241640</guid>
+      <description><![CDATA[If not carefully vetted, candidates’ proposals to lower costs could exacerbate future affordability issues, experts say. <img src="https://feeds.texastribune.org/link/16799/17438362.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>beside</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260825-Affordability-JL-19.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Prices are displayed at a CITGO gas station in Austin on Aug. 26, 2026. ]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260825-Affordability-JL-19.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Jacob Lujan/The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241640</post-id>
+    </item>
+    <item>
+      <title>Edouard causes flooding in East Texas, dumping more than 20 inches of rain in places</title>
+      <link>https://feeds.texastribune.org/link/16799/17435962/texas-tropical-storm-edouard-flooding-forecast</link>
+      <dc:creator><![CDATA[Emily Foxhall and Stephen Simpson]]></dc:creator>
+      <pubDate>Mon, 31 Aug 2026 23:10:43 +0000</pubDate>
+      <category><![CDATA[Environment]]></category>
+      <category><![CDATA[Crystal City (private) (place)]]></category>
+      <category><![CDATA[Greg Abbott (person)]]></category>
+      <category><![CDATA[Hardin County (private) (place)]]></category>
+      <category><![CDATA[Liberty County]]></category>
+      <category><![CDATA[Polk County (private) (place)]]></category>
+      <category><![CDATA[San Jacinto County]]></category>
+      <category><![CDATA[Trinity County]]></category>
+      <category><![CDATA[Tyler County]]></category>
+      <category><![CDATA[Uvalde (private) (place)]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241483</guid>
+      <description><![CDATA[Forecasters warned that the risk of flooding could continue in East Texas into Thursday as the tropical storm’s remnants move slowly north. <img src="https://feeds.texastribune.org/link/16799/17435962.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/TS-Edouard-20260902-0722AM.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Radar image of the remnants of Tropical Storm Edouard as it continues to dump rain on parts of East Texas at 7:22 a.m. on Wednesday, Sept. 2, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/TS-Edouard-20260902-0722AM.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[National Weather Service]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241483</post-id>
+    </item>
+    <item>
+      <title>In a rare move, Gov. Greg Abbott defends Medicaid funding for Texas</title>
+      <link>https://feeds.texastribune.org/link/16799/17437995/texas-hospitals-medicaid-greg-abbott</link>
+      <dc:creator><![CDATA[Terri Langford]]></dc:creator>
+      <pubDate>Wed, 02 Sep 2026 19:19:16 +0000</pubDate>
+      <category><![CDATA[Health care]]></category>
+      <category><![CDATA[Politics]]></category>
+      <category><![CDATA[State Government]]></category>
+      <category><![CDATA[Uncategorized]]></category>
+      <category><![CDATA[Greg Abbott]]></category>
+      <category><![CDATA[Medicaid]]></category>
+      <category><![CDATA[Republicans]]></category>
+      <category><![CDATA[Texas Hospital Association]]></category>
+      <category><![CDATA[The Texas Tribune]]></category>
+      <guid isPermaLink="false">https://www.texastribune.org/?p=241764</guid>
+      <description><![CDATA[Abbott’s spokesman reiterated that Texas is not doing anything wrong that would disqualify hospitals from receiving nearly $10 billion in Medicaid funding annually. <img src="https://feeds.texastribune.org/link/16799/17437995.gif" height="1" width="1"/>]]></description>
+      <thumbnail_position>default</thumbnail_position>
+      <media:content type="image/jpeg" url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260831-Abbott-Edouard-Storm-Presser-JL-17.jpg?fit=1024%2C683&amp;ssl=1">
+        <media:description><![CDATA[Gov. Greg Abbott speaks at a press conference in Austin on Aug. 31, 2026.]]></media:description>
+        <media:thumbnail url="https://i0.wp.com/www.texastribune.org/wp-content/uploads/2026/09/20260831-Abbott-Edouard-Storm-Presser-JL-17.jpg?fit=1024%2C683&amp;ssl=1" width="1024" height="683"/>
+        <media:credit><![CDATA[Jacob Lujan/The Texas Tribune]]></media:credit>
+      </media:content>
+      <post-id xmlns="com-wordpress:feed-additions:1">241764</post-id>
+    </item>
+  </channel>
+</rss>

@@ -15,15 +15,19 @@ export function stripTags(s) {
   return decodeEntities(String(s || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
 }
 
+// CDATA payloads are literal (no entity decoding); everything else is entity-encoded XML text.
+function cdataInner(raw) {
+  const v = String(raw || '').trim();
+  const cdata = v.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/);
+  return cdata ? { text: cdata[1].trim(), cdata: true } : { text: v, cdata: false };
+}
+
 function tagText(xml, tag) {
   const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i');
   const m = xml.match(re);
   if (!m) return '';
-  let v = m[1].trim();
-  const cdata = v.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/);
-  if (cdata) v = cdata[1];
-  else v = decodeEntities(v);
-  return v.trim();
+  const { text, cdata } = cdataInner(m[1]);
+  return (cdata ? text : decodeEntities(text)).trim();
 }
 
 function attr(xml, tag, name) {
@@ -60,7 +64,7 @@ export function parseFeed(xmlText) {
       description: stripTags(rawDesc),
       rawDescription: rawDesc,
       categories: [...x.matchAll(/<category\b[^>]*(?:term="([^"]*)"[^>]*\/?>|>([\s\S]*?)<\/category>)/gi)]
-        .map(c => stripTags(c[1] || c[2])).filter(Boolean),
+        .map(c => stripTags(c[1] || cdataInner(c[2]).text)).filter(Boolean),
     });
   }
   return items;

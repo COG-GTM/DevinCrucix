@@ -43,6 +43,7 @@ import { briefing as space } from './sources/space.mjs';
 // === Tier 7: Phase 2A Sources ===
 import { briefing as spiderfoot } from './sources/spiderfoot.mjs';
 import { briefing as insightcrime } from './sources/insightcrime.mjs';
+import { briefing as bordernews } from './sources/bordernews.mjs';
 
 // === Tier 8: Market Intelligence ===
 import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
@@ -104,7 +105,6 @@ export async function runSource(name, fn, ...args) {
 }
 
 export async function fullBriefing() {
-  console.error('[Crucix] Starting intelligence sweep — 51 sources...');
   const start = Date.now();
 
   const allPromises = [
@@ -185,7 +185,11 @@ export async function fullBriefing() {
 
     // Tier 13: Phase 7 — Investigation / brand-protection
     runSource('Typosquat', typosquat),
+
+    // Tier 14: Border Watch — registry-driven regional news (Border Report, Texas Tribune)
+    runSource('BorderNews', bordernews),
   ];
+  console.error(`[Crucix] Starting intelligence sweep — ${allPromises.length} sources...`);
 
   // Each runSource has its own 30s timeout, so allSettled will resolve
   // within ~30s even if APIs hang. Global timeout is a safety net.

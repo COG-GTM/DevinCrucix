@@ -35,6 +35,7 @@ import { computeDefcon } from './apis/sources/defcon.mjs';
 import { getRegionDossier } from './apis/sources/regiondossier.mjs';
 import { classifyTarget, investigate, keyedSourceStatus } from './apis/sources/investigate.mjs';
 import { briefing as typosquatBriefing, getWatchlist as typosquatWatchlist } from './apis/sources/typosquat.mjs';
+import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_KEYS as BORDER_TOPICS, PLACE_BY_KEY as BORDER_PLACES } from './apis/sources/bordernews.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -476,6 +477,38 @@ app.get('/api/typosquat', async (req, res) => {
   }
 });
 
+// API: Border Watch — stored articles filtered by whitelisted place / topic / outlet keys
+let borderSourceIds = null;
+function borderSourceIdSet() {
+  if (!borderSourceIds) {
+    try { borderSourceIds = new Set(borderRegistry().map(s => s.id)); } catch { borderSourceIds = new Set(); }
+  }
+  return borderSourceIds;
+}
+app.get('/api/border/articles', (req, res) => {
+  const pick = (name, allowed) => {
+    const v = req.query[name];
+    if (v === undefined) return null;
+    return typeof v === 'string' && v.length <= 64 && allowed(v) ? v : undefined;
+  };
+  const place = pick('place', v => BORDER_PLACES.has(v));
+  const topic = pick('topic', v => BORDER_TOPICS.includes(v));
+  const outlet = pick('outlet', v => borderSourceIdSet().has(v));
+  const daysRaw = req.query.days === undefined ? '30' : req.query.days;
+  const days = typeof daysRaw === 'string' && /^\d{1,2}$/.test(daysRaw) ? Number(daysRaw) : NaN;
+  const limitRaw = req.query.limit === undefined ? '100' : req.query.limit;
+  const limit = typeof limitRaw === 'string' && /^\d{1,3}$/.test(limitRaw) ? Number(limitRaw) : NaN;
+  if ([place, topic, outlet].includes(undefined) || !(days >= 1 && days <= 90) || !(limit >= 1 && limit <= 200)) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  try {
+    res.json(borderArticles({ place, topic, outlet, days, limit }));
+  } catch (err) {
+    console.error('[Crucix] Border articles error:', err);
+    res.status(500).json({ error: 'Border articles unavailable' });
+  }
+});
+
 // API: Satellite Tracking (SGP4)
 app.get('/api/satellites', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
@@ -751,7 +784,7 @@ async function start() {
   console.log(`
   ╔══════════════════════════════════════════════╗
   ║           CRUCIX INTELLIGENCE ENGINE         ║
-  ║          Local Palantir · 51 Sources         ║
+  ║       Local Palantir · Multi-Source OSINT    ║
   ╠══════════════════════════════════════════════╣
   ║  Dashboard:  http://localhost:${port}${' '.repeat(14 - String(port).length)}║
   ║  Health:     http://localhost:${port}/api/health${' '.repeat(4 - String(port).length)}║
