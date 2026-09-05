@@ -56,6 +56,13 @@ const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
 
+function sourceSummaryLine() {
+  const meta = currentData?.meta || {};
+  const h = meta.health;
+  if (!h) return `${meta.sourcesOk || 0}/${meta.sourcesQueried || 0} OK`;
+  return `${h.live} live · ${h.degraded} degraded · ${h.no_key} no key · ${h.off} off · ${h.error} failed (${h.total} total)`;
+}
+
 // === Delta/Memory ===
 const memory = new MemoryManager(RUNS_DIR);
 
@@ -74,9 +81,6 @@ if (telegramAlerter.isConfigured) {
     const uptime = Math.floor((Date.now() - startTime) / 1000);
     const h = Math.floor(uptime / 3600);
     const m = Math.floor((uptime % 3600) / 60);
-    const sourcesOk = currentData?.meta?.sourcesOk || 0;
-    const sourcesTotal = currentData?.meta?.sourcesQueried || 0;
-    const sourcesFailed = currentData?.meta?.sourcesFailed || 0;
     const llmStatus = llmProvider?.isConfigured ? `✅ ${llmProvider.name}` : '❌ Disabled';
     const nextSweep = lastSweepTime
       ? new Date(new Date(lastSweepTime).getTime() + config.refreshIntervalMinutes * 60000).toLocaleTimeString()
@@ -89,7 +93,7 @@ if (telegramAlerter.isConfigured) {
       `Last sweep: ${lastSweepTime ? new Date(lastSweepTime).toLocaleTimeString() + ' UTC' : 'never'}`,
       `Next sweep: ${nextSweep} UTC`,
       `Sweep in progress: ${sweepInProgress ? '🔄 Yes' : '⏸️ No'}`,
-      `Sources: ${sourcesOk}/${sourcesTotal} OK${sourcesFailed > 0 ? ` (${sourcesFailed} failed)` : ''}`,
+      `Sources: ${sourceSummaryLine()}`,
       `LLM: ${llmStatus}`,
       `SSE clients: ${sseClients.size}`,
       `Dashboard: http://localhost:${config.port}`,
@@ -173,9 +177,6 @@ if (discordAlerter.isConfigured) {
     const uptime = Math.floor((Date.now() - startTime) / 1000);
     const h = Math.floor(uptime / 3600);
     const m = Math.floor((uptime % 3600) / 60);
-    const sourcesOk = currentData?.meta?.sourcesOk || 0;
-    const sourcesTotal = currentData?.meta?.sourcesQueried || 0;
-    const sourcesFailed = currentData?.meta?.sourcesFailed || 0;
     const llmStatus = llmProvider?.isConfigured ? `✅ ${llmProvider.name}` : '❌ Disabled';
     const nextSweep = lastSweepTime
       ? new Date(new Date(lastSweepTime).getTime() + config.refreshIntervalMinutes * 60000).toLocaleTimeString()
@@ -187,7 +188,7 @@ if (discordAlerter.isConfigured) {
       `Last sweep: ${lastSweepTime ? new Date(lastSweepTime).toLocaleTimeString() + ' UTC' : 'never'}`,
       `Next sweep: ${nextSweep} UTC`,
       `Sweep in progress: ${sweepInProgress ? '🔄 Yes' : '⏸️ No'}`,
-      `Sources: ${sourcesOk}/${sourcesTotal} OK${sourcesFailed > 0 ? ` (${sourcesFailed} failed)` : ''}`,
+      `Sources: ${sourceSummaryLine()}`,
       `LLM: ${llmStatus}`,
       `SSE clients: ${sseClients.size}`,
       `Dashboard: http://localhost:${config.port}`,
@@ -508,6 +509,7 @@ app.get('/api/health', (req, res) => {
     sweepStartedAt,
     sourcesOk: currentData?.meta?.sourcesOk || 0,
     sourcesFailed: currentData?.meta?.sourcesFailed || 0,
+    sourceHealth: currentData?.meta?.health || null,
     llmEnabled: !!config.llm.provider,
     llmProvider: config.llm.provider,
     telegramEnabled: !!(config.telegram.botToken && config.telegram.chatId),
@@ -676,7 +678,7 @@ async function runSweepCycle() {
     // 6. Push to all connected browsers
     broadcast({ type: 'update', data: currentData });
 
-    console.log(`[Crucix] Sweep complete — ${currentData.meta.sourcesOk}/${currentData.meta.sourcesQueried} sources OK`);
+    console.log(`[Crucix] Sweep complete — ${sourceSummaryLine()}`);
     console.log(`[Crucix] ${currentData.ideas.length} ideas (${synthesized.ideasSource}) | ${currentData.news.length} news | ${currentData.newsFeed.length} feed items`);
     if (delta?.summary) console.log(`[Crucix] Delta: ${delta.summary.totalChanges} changes, ${delta.summary.criticalChanges} critical, direction: ${delta.summary.direction}`);
     console.log(`[Crucix] Next sweep at ${new Date(Date.now() + config.refreshIntervalMinutes * 60000).toLocaleTimeString()}`);
