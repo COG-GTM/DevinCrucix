@@ -12,6 +12,7 @@ import { exec } from 'child_process';
 import config from '../crucix.config.mjs';
 import { createLLMProvider } from '../lib/llm/index.mjs';
 import { generateLLMIdeas } from '../lib/llm/ideas.mjs';
+import { buildSourceHealth } from '../lib/sourcehealth.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -608,8 +609,9 @@ export async function synthesize(data) {
     priorityAlerts: (gdeltData.priorityAlerts || []).slice(0, 5),
   };
 
-  const health = Object.entries(data.sources).map(([name, src]) => ({
-    n: name, err: Boolean(src.error), stale: Boolean(src.stale)
+  const sourceHealth = buildSourceHealth(data);
+  const health = sourceHealth.sources.map(s => ({
+    n: s.name, err: s.state === 'error', stale: s.state === 'degraded'
   }));
 
   // === Yahoo Finance live market data ===
@@ -666,7 +668,8 @@ export async function synthesize(data) {
   const news = await fetchAllNews();
 
   const V2 = {
-    meta: data.crucix, air, thermal, tSignals, chokepoints, nuke, nukeSignals,
+    meta: { ...data.crucix, health: sourceHealth.summary }, air, thermal, tSignals, chokepoints, nuke, nukeSignals,
+    sourceHealth,
     airMeta: {
       fallback: Boolean(airFallback || adsbAirHotspots),
       liveTotal: sumAirHotspots(liveAirHotspots),
