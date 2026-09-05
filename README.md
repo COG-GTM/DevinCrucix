@@ -184,10 +184,11 @@ The preference is saved in browser local storage, so the UI will remember your l
 The server runs a sweep cycle every 15 minutes (configurable). Each cycle:
 1. Queries all 27 sources in parallel (~30s)
 2. Synthesizes raw data into dashboard format
-3. Computes delta from previous run (what changed, escalated, de-escalated) — visible in the **Sweep Delta** panel on the dashboard
-4. Generates LLM trade ideas (if configured)
-5. Evaluates breaking news alerts — multi-tier (FLASH / PRIORITY / ROUTINE) with semantic dedup. Sends to Telegram and/or Discord if configured. Works with LLM evaluation or falls back to rule-based alerting when LLM is unavailable.
-6. Pushes update to all connected browsers via SSE
+3. Computes delta from previous run (what changed, escalated, de-escalated) — visible in the **What Changed** panel on the Situation tab
+4. Builds the **Situation strip**: up to 5 rule-based headline judgments (`lib/situation.mjs` — DEFCON, delta, flash alerts, radiation, PRC tension, focal points, CII, convergence, Border Watch spikes, KEV surges, Kp storms, new look-alike domains, source coverage). No LLM involved; each card links to the tab/panel holding the evidence
+5. Generates LLM trade ideas (if configured)
+6. Evaluates breaking news alerts — multi-tier (FLASH / PRIORITY / ROUTINE) with semantic dedup. Sends to Telegram and/or Discord if configured. Works with LLM evaluation or falls back to rule-based alerting when LLM is unavailable.
+7. Pushes update to all connected browsers via SSE
 
 ### Telegram Bot (Two-Way)
 Crucix doubles as an interactive Telegram bot. Beyond sending alerts, it responds to commands directly from your chat:
