@@ -73,6 +73,7 @@ import { briefing as frontlines } from './sources/frontlines.mjs';
 import { briefing as regiondossier } from './sources/regiondossier.mjs';
 import { briefing as satellites } from './sources/satellites.mjs';
 import { briefing as livenews } from './sources/livenews.mjs';
+import { briefing as typosquat } from './sources/typosquat.mjs';
 
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
@@ -181,6 +182,9 @@ export async function fullBriefing() {
     runSource('RegionDossier', regiondossier),
     runSource('SatTracking', satellites),
     runSource('LiveNews', livenews),
+
+    // Tier 13: Phase 7 — Investigation / brand-protection
+    runSource('Typosquat', typosquat),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve

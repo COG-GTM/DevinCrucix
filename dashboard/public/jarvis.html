@@ -469,6 +469,47 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .kev-scroll{max-height:280px;overflow-y:auto}
 .kev-scroll::-webkit-scrollbar{width:3px}
 .kev-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
+/* Phase 7: Investigate pivot + Typosquat watch */
+.inv-form{display:flex;gap:6px;margin-bottom:8px}
+.inv-input{flex:1;min-width:0;background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:6px 8px;outline:none}
+.inv-input:focus{border-color:var(--accent2)}
+.inv-btn{padding:6px 10px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;border:1px solid rgba(68,204,255,0.28);color:var(--accent2);background:rgba(68,204,255,0.07);cursor:pointer;white-space:nowrap}
+.inv-btn:hover{background:rgba(68,204,255,0.16)}
+.inv-btn:disabled{opacity:0.5;cursor:default}
+.inv-scroll{max-height:360px;overflow-y:auto}
+.inv-scroll::-webkit-scrollbar{width:3px}
+.inv-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
+.inv-hint{padding:10px 4px;color:var(--dim);font-family:var(--mono);font-size:10px;line-height:1.6}
+.inv-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 0 6px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.inv-target{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:600;word-break:break-all}
+.inv-type{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase}
+.inv-risk{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px solid;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap}
+.inv-risk.low{color:#4caf50;border-color:rgba(76,175,80,0.4)}
+.inv-risk.elevated{color:#ffd54f;border-color:rgba(255,213,79,0.4)}
+.inv-risk.high{color:#ff9800;border-color:rgba(255,152,0,0.4)}
+.inv-risk.critical{color:#ff5252;border-color:rgba(255,82,82,0.4);background:rgba(255,82,82,0.08)}
+.inv-flag{font-size:10px;color:#ffab40;padding:2px 0}
+.inv-sec{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.inv-sec-title{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:3px;display:flex;justify-content:space-between}
+.inv-sec-title .nokey{color:var(--dim)}
+.inv-kv{display:grid;grid-template-columns:78px 1fr;gap:1px 8px;font-size:10px}
+.inv-kv dt{color:var(--dim);font-family:var(--mono);font-size:9px}
+.inv-kv dd{margin:0;color:#c8d8d2;word-break:break-all}
+.inv-chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+.inv-chip{font-family:var(--mono);font-size:8px;padding:1px 4px;border:1px solid rgba(255,255,255,0.12);color:#c8d8d2;background:rgba(255,255,255,0.03)}
+.inv-chip.vuln{color:#ff5252;border-color:rgba(255,82,82,0.4)}
+.inv-chip.port{color:var(--accent);border-color:rgba(100,240,200,0.3)}
+.inv-chip.new{color:#4dd0e1;border-color:rgba(77,208,225,0.5);background:rgba(77,208,225,0.08)}
+.inv-link{color:var(--accent2);cursor:pointer;text-decoration:none;border-bottom:1px dotted rgba(68,204,255,0.4)}
+.inv-link:hover{color:var(--text);border-bottom-color:var(--text)}
+.inv-err{padding:8px;color:var(--warn);font-family:var(--mono);font-size:10px}
+.ts-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.ts-domain{font-family:var(--mono);font-size:10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-base{color:var(--dim);font-size:9px;white-space:nowrap}
+.ts-tech{font-family:var(--mono);font-size:8px;padding:1px 4px;border:1px solid rgba(255,255,255,0.12);color:var(--dim);text-transform:uppercase;white-space:nowrap}
+.ts-scroll{max-height:220px;overflow-y:auto}
+.ts-scroll::-webkit-scrollbar{width:3px}
+.ts-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
 </style>
 </head>
 <body>
@@ -2036,6 +2077,122 @@ function renderTelegramLivePanel(){
   return `<div class="g-panel"><div class="sec-head"><h3>Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
 }
 
+// === Phase 7: Investigate pivot (on-demand OSINT enrichment) ===
+const INV = { query: '', loading: false, dossier: null, error: null };
+function esc(v){return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function invLink(v){const s=esc(v);return `<a class="inv-link" data-inv="${s}">${s}</a>`}
+function invChips(items,cls=''){return items&&items.length?`<div class="inv-chips">${items.map(i=>`<span class="inv-chip ${cls}">${esc(i)}</span>`).join('')}</div>`:'<span style="color:var(--dim)">none</span>'}
+function invDate(d){if(!d)return '—';const t=new Date(d);return isNaN(t)?esc(d):t.toISOString().slice(0,10)}
+function invKv(pairs){return `<dl class="inv-kv">${pairs.filter(p=>p[1]!==undefined&&p[1]!==null&&p[1]!=='').map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`}
+function invSec(title,body,note){return `<div class="inv-sec"><div class="inv-sec-title"><span>${title}</span>${note?`<span class="nokey">${note}</span>`:''}</div>${body}</div>`}
+
+async function investigateTarget(raw, type){
+  const q = String(raw||'').trim();
+  if (!q) return;
+  INV.query = q; INV.loading = true; INV.error = null;
+  renderRight();
+  try {
+    const r = await fetch(`/api/investigate?target=${encodeURIComponent(q)}${type?`&type=${encodeURIComponent(type)}`:''}`);
+    const body = await r.json().catch(()=>({}));
+    if (!r.ok) { INV.error = body.error || 'Investigation failed'; INV.dossier = null; }
+    else { INV.dossier = body; }
+  } catch { INV.error = 'Investigation failed'; INV.dossier = null; }
+  INV.loading = false;
+  renderRight();
+  const panel = document.querySelector('.right-investigate');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderDossier(d){
+  const out = [];
+  const risk = d.risk || {};
+  out.push(`<div class="inv-head"><div><div class="inv-target">${esc(d.target)}</div><div class="inv-type">${esc(d.type)} &middot; ${d.durationMs||0}ms${d.cached?' &middot; cached':''}</div></div><span class="inv-risk ${esc(risk.level||'low')}">${esc(risk.level||'low')} ${risk.score||0}</span></div>`);
+  if ((risk.flags||[]).length) out.push(`<div style="padding:4px 0">${risk.flags.map(f=>`<div class="inv-flag">&#9650; ${esc(f)}</div>`).join('')}</div>`);
+
+  const w = d.whois;
+  if (w) out.push(invSec('WHOIS / RDAP', w.error ? `<span style="color:var(--dim)">unavailable</span>` : invKv([
+    ['Registrar', esc(w.registrar)], ['Registrant', esc(w.registrant)], ['Registered', invDate(w.registered)], ['Expires', invDate(w.expires)], ['Updated', invDate(w.updated)],
+    ['DNSSEC', w.dnssec===null?null:(w.dnssec?'signed':'unsigned')], ['Status', (w.status||[]).slice(0,3).map(esc).join(', ')], ['NS', (w.nameservers||[]).map(n=>invLink(n.toLowerCase())).join(' ')],
+  ])));
+
+  const dns = d.dns;
+  if (dns) out.push(invSec('DNS', invKv([
+    ['A', (dns.A||[]).map(invLink).join(' ')], ['AAAA', (dns.AAAA||[]).map(invLink).join(' ')], ['MX', (dns.MX||[]).map(m=>esc(m)).join(', ')], ['NS', (dns.NS||[]).map(n=>invLink(n.replace(/\.$/,''))).join(' ')],
+    ['SPF', dns.spf?esc(dns.spf):'<span style="color:var(--warn)">missing</span>'], ['DMARC', dns.dmarc?esc(dns.dmarc):'<span style="color:var(--warn)">missing</span>'],
+  ])));
+
+  const ct = d.certificates;
+  if (ct) out.push(invSec(`Certificate Transparency`, ct.error ? `<span style="color:var(--dim)">crt.sh unavailable</span>` : `<div style="font-size:10px;color:var(--dim)">${ct.totalCerts||0} certs &middot; ${(ct.subdomains||[]).length} hostnames</div><div class="inv-chips">${(ct.subdomains||[]).slice(0,40).map(s=>`<span class="inv-chip">${invLink(s)}</span>`).join('')}</div>${(ct.certificates||[]).slice(0,3).map(c=>`<div style="font-size:9px;color:var(--dim);margin-top:2px">${esc(c.issuer)} &middot; ${esc(c.commonName)} &middot; ${invDate(c.notBefore)}→${invDate(c.notAfter)}</div>`).join('')}`));
+
+  for (const h of (d.hosts||[])) {
+    const n = h.network||{}; const sh = h.shodan||{};
+    const shodanNote = sh.status==='no_key' ? 'InternetDB (keyless)' : sh.status==='ok' ? 'Shodan' : 'Shodan: '+esc(sh.error||'n/a');
+    out.push(invSec(`Host ${invLink(h.ip)}`, h.error ? `<span style="color:var(--dim)">unavailable</span>` : invKv([
+      ['Org', esc(sh.org||n.org||n.name)], ['ASN', esc(sh.asn)], ['Country', esc(sh.country||n.country)], ['Range', esc(n.range)],
+      ['Hostnames', (h.hostnames||[]).slice(0,6).map(invLink).join(' ')], ['Ports', invChips((sh.ports&&sh.ports.length?sh.ports:h.ports)||[], 'port')], ['CVEs', invChips((sh.vulns&&sh.vulns.length?sh.vulns:h.vulns)||[], 'vuln')],
+      ['Tags', (h.tags||[]).map(esc).join(', ')], ['Services', (sh.services||[]).map(s=>esc(`${s.port}/${s.transport} ${s.product||''} ${s.version||''}`.trim())).join('; ')],
+    ]), shodanNote));
+  }
+  if (d.reverseDns && d.reverseDns.length) out.push(invSec('Reverse DNS', d.reverseDns.map(p=>invLink(p.replace(/\.$/,''))).join(' ')));
+
+  const vt = d.virustotal;
+  if (vt) {
+    if (vt.status==='no_key') out.push(invSec('VirusTotal', '<span style="color:var(--dim)">set VIRUSTOTAL_API_KEY to enable reputation lookups</span>', 'no key'));
+    else if (vt.status==='error') out.push(invSec('VirusTotal', `<span style="color:var(--dim)">${esc(vt.error)}</span>`));
+    else out.push(invSec('VirusTotal', invKv([
+      ['Verdict', `<span style="color:${vt.malicious>0?'#ff5252':'#4caf50'}">${vt.malicious} malicious</span> / ${vt.suspicious} suspicious / ${vt.harmless} harmless / ${vt.undetected} undetected`],
+      ['Reputation', vt.reputation], ['Threat', esc(vt.threatLabel)], ['Type', esc(vt.typeDescription)], ['Names', (vt.names||[]).map(esc).join(', ')], ['Categories', (vt.categories||[]).map(esc).join(', ')], ['First seen', invDate(vt.firstSeen)],
+      ['Link', `<a class="inv-link" href="${esc(vt.link)}" target="_blank" rel="noopener noreferrer">open in VirusTotal</a>`],
+    ])));
+  }
+
+  const ts = d.typosquats;
+  if (ts) out.push(invSec(`Look-alike domains`, `<div style="font-size:10px;color:var(--dim)">${(ts.registered||[]).length} of ${ts.checked||0} permutations registered</div>${(ts.registered||[]).slice(0,30).map(r=>`<div class="ts-row"><span class="ts-domain">${invLink(r.domain)}</span><span class="ts-tech">${esc(r.technique)}</span></div>`).join('')}`));
+
+  const co = d.corporate;
+  if (co) {
+    if (co.status==='no_key') out.push(invSec('Corporate registry', '<span style="color:var(--dim)">set OPENCORPORATES_API_TOKEN to enable company registry lookups</span>', 'no key'));
+    else if (co.status!=='ok') out.push(invSec('Corporate registry', `<span style="color:var(--dim)">OpenCorporates ${esc(co.error||'unavailable')}</span>`, 'OpenCorporates'));
+    else out.push(invSec('Corporate registry', `<div style="font-size:10px;color:var(--dim)">${co.total||0} matches</div>${(co.companies||[]).map(c=>`<div class="ts-row" style="flex-wrap:wrap"><a class="inv-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.name)}</a><span class="ts-base">${esc(c.jurisdiction)} &middot; ${esc(c.number)}</span><span class="ts-tech">${esc(c.status||'?')}</span>${c.incorporated?`<span class="ts-base">inc. ${invDate(c.incorporated)}</span>`:''}${c.address?`<div style="flex-basis:100%;font-size:9px;color:var(--dim)">${esc(c.address)}</div>`:''}</div>`).join('')}`, 'OpenCorporates'));
+  }
+  return out.join('');
+}
+
+function renderInvestigatePanel(){
+  const keyed = (INV.dossier && INV.dossier.keyed) || {};
+  const keyChips = ['virustotal','shodan','opencorporates'].map(k=>`<span class="inv-chip" style="color:${keyed[k]?'var(--accent)':'var(--dim)'}">${k}${keyed[k]?'':' · no key'}</span>`).join('');
+  let body;
+  if (INV.loading) body = `<div class="inv-hint" style="text-align:center">RUNNING ENRICHMENT CHAIN…<br><span style="font-size:9px">RDAP · DoH · crt.sh · InternetDB · look-alikes</span></div>`;
+  else if (INV.error) body = `<div class="inv-err">${esc(INV.error)}</div>`;
+  else if (INV.dossier) body = renderDossier(INV.dossier);
+  else body = `<div class="inv-hint">Enter a domain, IPv4/IPv6, file hash, or company name to run the OSINT pivot chain.<br>Sources: RDAP WHOIS · DNS-over-HTTPS · Certificate Transparency · Shodan InternetDB · look-alike domain probe. Keyed: VirusTotal · Shodan · OpenCorporates.<br>Click any domain or IP in the results to pivot.</div>`;
+  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>Investigate</h3><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">PIVOT</span></div>
+    <form class="inv-form" onsubmit="event.preventDefault();investigateTarget(this.target.value, this.kind.value==='company'?'company':undefined)">
+      <input class="inv-input" name="target" maxlength="253" autocomplete="off" spellcheck="false" placeholder="domain / IP / hash / company" value="${esc(INV.query)}" oninput="INV.query=this.value">
+      <select class="inv-btn" name="kind" style="padding:6px 4px"><option value="auto">AUTO</option><option value="company" ${INV.dossier&&INV.dossier.type==='company'?'selected':''}>CO.</option></select>
+      <button class="inv-btn" type="submit" ${INV.loading?'disabled':''}>RUN</button>
+    </form>
+    <div class="inv-scroll">${body}</div>
+    <div class="inv-chips" style="margin-top:6px">${INV.dossier?keyChips:''}</div></div>`;
+}
+
+function renderTyposquatPanel(){
+  const ts = D.typosquat || {};
+  const badge = `<span class="badge" style="background:rgba(255,171,64,0.1);color:#ffab40;border-color:rgba(255,171,64,0.3)">${ts.newCount>0?`${ts.newCount} NEW`:`${(ts.registered||[]).length} HITS`}</span>`;
+  if (ts.status === 'disabled') return `<div class="g-panel"><div class="sec-head"><h3>Typosquat Watch</h3><span class="badge">OFF</span></div><div class="inv-hint">Set TYPOSQUAT_WATCHLIST to monitor look-alike domains.</div></div>`;
+  if (ts.status !== 'live') return `<div class="g-panel"><div class="sec-head"><h3>Typosquat Watch</h3>${badge}</div><div class="inv-hint" style="text-align:center">Awaiting sweep data</div></div>`;
+  const rows = (ts.registered||[]).slice(0,60).map(r=>`<div class="ts-row"><span class="ts-domain">${invLink(r.domain)}</span>${r.isNew?'<span class="inv-chip new">NEW</span>':''}<span class="ts-base">&larr; ${esc(r.base)}</span><span class="ts-tech">${esc(r.technique)}</span></div>`).join('');
+  const summary = `<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">${ts.totalChecked||0} permutations · ${(ts.watchlist||[]).length} watched: ${(ts.watchlist||[]).map(w=>invLink(w)).join(', ')}</div>`;
+  return `<div class="g-panel"><div class="sec-head"><h3>Typosquat Watch</h3>${badge}</div>${summary}<div class="ts-scroll">${rows||'<div class="inv-hint" style="text-align:center">No registered look-alikes</div>'}</div></div>`;
+}
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('a.inv-link[data-inv]');
+  if (!a) return;
+  e.preventDefault();
+  investigateTarget(a.dataset.inv);
+});
+
 function renderCyberKevPanel(){
   const ck = D.cyberKev || {};
   if (ck.status === 'unavailable' || (ck.vulnerabilities || []).length === 0) {
@@ -2179,6 +2336,8 @@ function renderRight(){
     ${renderPolymarketPanel()}
     ${renderTelegramLivePanel()}
     ${renderCyberKevPanel()}
+    ${renderInvestigatePanel()}
+    ${renderTyposquatPanel()}
     <div class="g-panel right-delta">
       <div class="sec-head"><h3>${t('panels.sweepDelta','Sweep Delta')}</h3><span class="badge ${dirClass}">${dirEmoji} ${ds.direction?t('delta.'+ds.direction,ds.direction.toUpperCase()):t('delta.baseline','BASELINE')}</span></div>
       ${hasDelta?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:10px">
@@ -2339,8 +2498,10 @@ function syncResponsiveLayout(force=false){
 
 // === REINIT (for live updates without boot sequence) ===
 function reinit(){
+  const typing = document.activeElement && document.activeElement.classList.contains('inv-input');
   renderTopbar();renderLeftRail();renderLower();renderRight();
   plotMarkers();
+  if (typing) { const el = document.querySelector('.inv-input'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
 }
 
 // === SSE: Live Updates from Server ===

@@ -33,6 +33,8 @@ import { computeDefcon } from './apis/sources/defcon.mjs';
 
 // Phase 6: Osiris-Ported Features
 import { getRegionDossier } from './apis/sources/regiondossier.mjs';
+import { classifyTarget, investigate, keyedSourceStatus } from './apis/sources/investigate.mjs';
+import { briefing as typosquatBriefing, getWatchlist as typosquatWatchlist } from './apis/sources/typosquat.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -434,6 +436,42 @@ app.get('/api/region-dossier', async (req, res) => {
   } catch (err) {
     console.error('[Crucix] Region dossier error:', err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Investigate pivot — on-demand OSINT enrichment for a domain / IP / hash / company
+const INVESTIGATE_TYPES = new Set(['auto', 'company']);
+app.get('/api/investigate', async (req, res) => {
+  const raw = typeof req.query.target === 'string' ? req.query.target.trim() : '';
+  const hint = typeof req.query.type === 'string' ? req.query.type : 'auto';
+  if (!raw || raw.length > 253 || !INVESTIGATE_TYPES.has(hint)) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  const target = classifyTarget(raw, hint === 'company' ? 'company' : undefined);
+  if (!target) {
+    return res.status(400).json({ error: 'Target must be a domain, IPv4/IPv6 address, MD5/SHA1/SHA256 hash, or company name' });
+  }
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate', ip: req.ip, type: target.type, target: target.value }));
+  try {
+    res.json(await investigate(target));
+  } catch (err) {
+    console.error('[Crucix] Investigate error:', err);
+    res.status(500).json({ error: 'Investigation failed' });
+  }
+});
+
+app.get('/api/investigate/status', (req, res) => {
+  res.json({ keyed: keyedSourceStatus(), typosquatWatchlist: typosquatWatchlist() });
+});
+
+// API: Typosquat Watch — look-alike domains registered against the watchlist
+app.get('/api/typosquat', async (req, res) => {
+  if (currentData?.typosquat?.status === 'live') return res.json(currentData.typosquat);
+  try {
+    res.json(await typosquatBriefing());
+  } catch (err) {
+    console.error('[Crucix] Typosquat error:', err);
+    res.status(500).json({ error: 'Typosquat watch unavailable' });
   }
 });
 
