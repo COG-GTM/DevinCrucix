@@ -219,6 +219,49 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .front-when{font-family:var(--mono);font-size:8px;color:var(--dim);flex:0 0 auto;margin-top:3px}
 .front-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin:4px 0 2px;font-family:var(--mono);font-size:8px;color:var(--dim)}
 .front-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+/* Cartels tab: Mexico-framed map. Current (crowd-sourced KML) layers are solid; START 2020 baseline layers are amber + dashed. */
+.ct-map{position:relative;height:clamp(420px,58vh,660px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden;margin-top:6px}
+#cartelMapSvg{width:100%;height:100%;display:block;cursor:grab}
+#cartelMapSvg:active{cursor:grabbing}
+#cartelMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+#cartelMapSvg .land.mx{fill:rgba(100,240,200,0.05);stroke:rgba(100,240,200,0.45)}
+#cartelMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .ct-poly{cursor:pointer;stroke-width:1;vector-effect:non-scaling-stroke;transition:fill-opacity 0.15s}
+#cartelMapSvg .ct-poly:hover{fill-opacity:0.55}
+#cartelMapSvg .ct-pin,#cartelMapSvg .ct-sym{cursor:pointer;vector-effect:non-scaling-stroke}
+#cartelMapSvg .ct-line{fill:none;vector-effect:non-scaling-stroke;stroke-width:1.4;stroke-linecap:round;cursor:pointer}
+#cartelMapSvg .ct-hist{stroke-dasharray:4 3}
+#cartelMapSvg .ct-hist-fill{fill-opacity:0.16;vector-effect:non-scaling-stroke;stroke-dasharray:4 3;stroke-width:1.2;cursor:pointer}
+#cartelMapSvg .ct-lbl{font-family:var(--mono);fill:#ffe0b2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.04em}
+#cartelMapSvg .ct-lbl.cur{fill:#e6f2ee}
+.ct-key{position:absolute;left:8px;bottom:8px;display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:8px;letter-spacing:0.06em;text-transform:uppercase;color:var(--dim);background:rgba(0,0,0,0.65);padding:4px 8px;border:1px solid var(--border);pointer-events:none;z-index:4}
+.ct-key i{display:inline-block;width:14px;height:0;vertical-align:middle;margin-right:5px;border-top:2px solid}
+.ct-key i.dash{border-top-style:dashed;border-color:#ffd54f}
+.ct-key i.solid{border-color:#ff5252}
+#cartelPopup,#mapPopup{overflow-y:auto;scrollbar-width:thin}
+.ct-hint{position:absolute;right:8px;top:8px;font-family:var(--mono);font-size:8px;letter-spacing:0.08em;color:var(--dim);background:rgba(0,0,0,0.6);padding:3px 7px;border:1px solid var(--border);pointer-events:none;z-index:4}
+.ct-chips{display:flex;flex-direction:column;gap:4px;margin:6px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase}
+.ct-chiprow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.lchip.hist{border-style:dashed}
+.lchip-head.hist{color:#ffd54f;border-style:dashed;border-color:rgba(255,213,79,0.35)}
+.lchip.preset{border-color:rgba(68,204,255,0.35);color:var(--accent2)}
+.lchip.preset.on{background:rgba(68,204,255,0.14)}
+.ct-org{display:flex;gap:7px;align-items:center;padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;font-size:10px}
+.ct-org:hover{background:rgba(100,240,200,0.04)}
+.ct-org.on{background:rgba(255,82,82,0.08);outline:1px solid rgba(255,82,82,0.45)}
+.ct-org i{width:10px;height:10px;border-radius:2px;flex:none}
+.ct-org-name{font-family:var(--mono);font-size:10px;color:#e6f2ee;line-height:1.3}
+.ct-org-sub{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.ct-org-n{font-family:var(--mono);font-size:11px;color:var(--warn);margin-left:auto;flex:none}
+.ct-kind{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:2px;flex:0 0 auto;margin-top:2px;letter-spacing:0.05em;border:1px solid;white-space:nowrap}
+.ct-scroll{max-height:46vh;overflow-y:auto;scrollbar-width:thin}
+.ct-disc{margin-top:6px;padding:6px 8px;border:1px solid rgba(255,184,76,0.3);background:rgba(255,184,76,0.05);font-family:var(--mono);font-size:9px;line-height:1.5;color:#ffe0b2}
+.ct-disc b{color:var(--warn)}
+.ct-brief{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.ct-brief .t{font-family:var(--mono);font-size:10px;color:#ffe0b2}
+.ct-brief ul{margin:3px 0 0 14px;padding:0;font-size:10px;line-height:1.45;color:#c8d8d2}
+.ct-feed-src{font-family:var(--mono);font-size:8px;color:var(--accent2);flex:none;margin-top:2px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes pulse-conflict{0%,100%{opacity:0.5;stroke-width:1.5}50%{opacity:0.9;stroke-width:2.5}}
 .conflict-ring{animation:pulse-conflict 2.5s ease-in-out infinite}
 @keyframes dash-flow{to{stroke-dashoffset:-20}}
@@ -1042,6 +1085,7 @@ const TAB_DEFS=[
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
+  {id:'cartels',label:'Cartels',hint:'Mexico cartel influence: crowd-sourced map vs 2020 research baseline'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
@@ -1057,12 +1101,16 @@ function tabCounts(){
   const tsNew=D.typosquat?.newCount||0;
   const spikes=(D.borderNews?.spikes||[]).length;
   const airTotal=(D.air||[]).reduce((s,a)=>s+(a.total||0),0);
+  const ct=D.cartels||{};
+  const ctCount=ct.status==='live'&&ct.featureCount?{n:ct.stale?'CACHED':`${ct.orgCount||0} ORGS`,cls:ct.stale?'warn':'',title:`${ct.layerCounts?.influence||0} influence areas · ${ct.orgCount||0} organizations · ${(ct.wars||[]).length} active wars${ct.stale?' · cached copy':''}`}
+    :ct.status==='stale'?{n:'STALE',cls:'warn',title:'Cartel map cache is older than 48h'}:ct.status?{n:'BASELINE ONLY',cls:'warn',title:'Current cartel map unavailable — START 2020 baseline still shown'}:null;
   return {
     situation: hot?{n:hot,cls:'hot',title:`${hot} critical/high judgments`}:sit.quiet?{n:'QUIET',cls:'',title:'No rule fired above baseline'}:null,
     military: airTotal?{n:airTotal,cls:'',title:`${airTotal} aircraft across ${(D.air||[]).length} theaters`}:null,
     cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
     regional: spikes?{n:`${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:'Border Watch place spikes vs baseline'}:null,
+    cartels: ctCount,
     investigations: (()=>{const n=Object.keys(INV.case.entities).length;const hi=Object.values(INV.case.dossiers).some(d=>d.risk&&(d.risk.level==='high'||d.risk.level==='critical'));return n?{n:String(n),cls:hi?'hot':'',title:`${n} entities in case · ${Object.keys(INV.case.dossiers).length} dossiers${hi?' · high-risk selector present':''}`}:null})(),
     sources: h?{n:`${h.live}/${h.total}`,cls:h.error?'hot':dark?'warn':'',title:`${h.live} live · ${h.degraded} degraded · ${dark} not reporting`}:null
   };
@@ -1161,6 +1209,13 @@ const PANEL_CAPTIONS={
   'cross-source signals':'<b>Derived.</b> Zones where two or more independent feeds overlap. Built from the panels above; adds no new data.',
   'carrier strike groups':'Positions estimated from public reporting (USNI, GDELT). Fallback positions are last known, not tracked.',
   'ukraine front':'DeepStateMAP\u2019s assessment of occupied, contested and liberated ground plus its update log. An observational map product with attribution \u2014 not verified ground truth, and km\u00b2 are computed from its polygons.',
+  'cartel influence':'Two layers that must not be confused: <b>current</b> = a crowd-sourced, single-maintainer Google My Maps KML (@MexicoCartelMap, solid colours); <b>historical</b> = START\u2019s June 2020 research briefs (amber, dashed). Neither is verified control of territory.',
+  'organizations':'Organizations named on the current map, ranked by assessed influence area. Attribution follows the map maintainer\u2019s colour legend, not an official designation.',
+  'active wars & truces':'Inter-cartel conflicts and truces pinned on the current map. Each pin is one crowd-sourced entry; dates are those written by the maintainer.',
+  'recent map entries':'Dated entries on the current map, newest first. Dates are as written by the maintainer, so \u201crecent\u201d means recently dated, not recently verified.',
+  'start 2020 baseline':'START (University of Maryland) Tracking Cartels briefs, June 2020. A point-in-time research product transcribed by hand; state classes were read from the printed choropleth.',
+  'mexico / northern triangle feed':'Items from InSight Crime, Border Watch and GDELT filtered to Mexico and the Northern Triangle by keyword. Journalism, not event data.',
+  'cartel map source':'Where the current layer comes from, how fresh it is, and what the maintainer says about it.',
   'country instability index':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'country instability':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'border watch':'US\u2013Mexico border reporting from public feeds (Border Report, Texas Tribune). A spike is a place mentioned above its own baseline.',
@@ -1367,6 +1422,7 @@ function renderLeftRail(){
     cyber:[sensorGridPanel,renderSignalIntelPanel()],
     macro:[riskPanel,sensorGridPanel],
     regional:[sensorGridPanel,renderSourceHealthPanel()],
+    cartels:[renderCartelSourcePanel(),renderCartelOrgsPanel()],
     investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
@@ -2084,6 +2140,18 @@ function plotMarkers(){
         popHead:'Airfield / air base', popMeta:'DeepStateMAP', popText:esc(a.name||'') });
     });
   }
+  // === MEXICO CARTEL INFLUENCE (crowd-sourced KML; polygons share the globe polygon layer with the front) ===
+  const cg = (layerOn('cartel-poly') || layerOn('cartel-pin')) ? ctGeoNow() : null;
+  if(cg){
+    if(layerOn('cartel-poly')) cg.polygons.filter(p => p.layer === 'influence' && Array.isArray(p.rings) && p.rings.length).forEach(p => {
+      const col = ctColor(p); const pop = ctFeaturePop(p);
+      frontPolys.push({ geometry:{type:'Polygon', coordinates:p.rings}, fill:ctRgba(col, 0.3), stroke:col, ...pop });
+    });
+    if(layerOn('cartel-pin')) cg.points.filter(p => p.layer === 'wars' || p.layer === 'strongholds').forEach(p => {
+      const pop = ctFeaturePop(p);
+      points.push({ lat:p.lat, lng:p.lon, size:p.layer === 'wars' ? 0.18 : 0.12, alt:0.01, color:ctLayerColor(p.layer), type:'cartel-pin', priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
+    });
+  }
   globe.polygonsData(frontPolys);
   globe.pathsData(frontPaths);
 
@@ -2198,15 +2266,27 @@ function showPopup(event,head,text,meta,lat,lng,alt){
   } else {
     left=rect.width/2 - 140; top=rect.height/2 - 60;
   }
-  if(left+290>rect.width) left=left-300;
-  if(top+150>rect.height) top=top-160;
-  if(left<0) left=10;
-  if(top<0) top=10;
-  popup.style.left=left+'px';popup.style.top=top+'px';
+  fillPopup(popup,head,text,meta);
+  placePopup(popup,rect,left,top);
+}
+function fillPopup(popup,head,text,meta){
   popup.querySelector('.pp-head').textContent=head||'';
   popup.querySelector('.pp-text').innerHTML=text||'';
   popup.querySelector('.pp-meta').textContent=meta||'';
+}
+// Keeps the whole popup inside its map container: measured after the content is set, so long
+// descriptions are nudged up and capped (scrolling inside the popup) instead of being clipped.
+function placePopup(popup,rect,left,top){
+  const pad=10;
+  popup.style.maxHeight=Math.max(120,rect.height-pad*2)+'px';
+  popup.style.left='0px';popup.style.top='0px';
   popup.classList.add('show');
+  const w=popup.offsetWidth||280,h=popup.offsetHeight||150;
+  if(left+w>rect.width-pad)left=left-w-20;
+  if(top+h>rect.height-pad)top=rect.height-pad-h;
+  if(left<pad)left=pad;
+  if(top<pad)top=pad;
+  popup.style.left=left+'px';popup.style.top=top+'px';
 }
 function closePopup(){document.getElementById('mapPopup').classList.remove('show')}
 
@@ -2302,6 +2382,23 @@ function plotFlatMarkers(){
     if(layerOn('front-attack')) fg.points.filter(p=>p.cat==='attack'&&Number.isFinite(p.heading)).forEach(p=>{
       const pts=frontArrow(p.lat,p.lon,p.heading,18).map(([la,lo])=>[lo,la]);
       fgG.append('path').datum({type:'Feature',geometry:{type:'LineString',coordinates:pts}}).attr('class','front-arrow').attr('d',flatPath).attr('stroke','rgba(255,110,64,0.9)');
+    });
+  }
+  // Mexico cartel influence (crowd-sourced KML) when its layer is toggled on the main map
+  const cg=(layerOn('cartel-poly')||layerOn('cartel-pin'))?ctGeoNow():null;
+  if(cg){
+    const cgG=flatG.append('g').attr('class','cartel-layer');
+    if(layerOn('cartel-poly')) cg.polygons.filter(p=>p.layer==='influence'&&Array.isArray(p.rings)&&p.rings.length).forEach(p=>{
+      const col=ctColor(p);const pop=ctFeaturePop(p);
+      cgG.append('path').datum({type:'Feature',geometry:{type:'Polygon',coordinates:p.rings}}).attr('class','front-poly').attr('d',flatPath)
+        .attr('fill',col).attr('fill-opacity',0.3).attr('stroke',col)
+        .on('click',ev=>{ev.stopPropagation();showPopup(ev,pop.head,pop.text,pop.meta)});
+    });
+    if(layerOn('cartel-pin')) cg.points.filter(p=>p.layer==='wars'||p.layer==='strongholds').forEach(p=>{
+      const [x,y]=flatProjection([p.lon,p.lat]);if(!Number.isFinite(x)||!Number.isFinite(y))return;
+      const pop=ctFeaturePop(p);const r=p.layer==='wars'?3.2:2.4;
+      cgG.append('circle').attr('class','marker-circle').attr('data-base-r',r).attr('cx',x).attr('cy',y).attr('r',r).attr('fill',ctLayerColor(p.layer)).attr('fill-opacity',0.85).attr('stroke','rgba(0,0,0,0.6)').attr('stroke-width',0.8).style('cursor','pointer')
+        .on('click',ev=>{ev.stopPropagation();showPopup(ev,pop.head,pop.text,pop.meta)});
     });
   }
   const mg=flatG.append('g').attr('class','markers');
@@ -2763,12 +2860,14 @@ function renderLower(){
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
   };
   const grid=document.getElementById('lowerGrid');
   grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
   applyCaptions(grid);
+  if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
 }
 
 // === MILITARY TAB PANELS ===
@@ -2878,6 +2977,370 @@ function renderFrontPanel(){
       <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><a class="lchip on" style="--lc:#ff6e40;text-decoration:none" href="${deepStateUrl()}" target="_blank" rel="noopener noreferrer" title="Open the live DeepStateMAP in a new tab"><span class="ldot"></span>OPEN DEEPSTATEMAP \u2197</a><button type="button" class="lchip" style="--lc:#ff6e40" onclick="showFrontLayer()" title="Overlay the front polygons on the CRUCIX globe"><span class="ldot"></span>CRUCIX MAP LAYER</button><span style="font-family:var(--mono);font-size:9px;color:var(--dim)">rows open DeepStateMAP at the place</span></div>
       <div class="sh-note">Map data \u00a9 DeepStateMAP (deepstatemap.live), polled every sweep; last map ${esc(frontAsOf())}${stale?' \u2014 more than 3 days old, treat as stale':''}. Areas are computed from its polygons; \u201coccupied\u201d includes Crimea and pre-2022 ORDLO.</div>
     </div>`;
+}
+
+// === CARTELS TAB ===
+// Two eras on one Mexico-framed map. CURRENT = crowd-sourced Google My Maps KML (@MexicoCartelMap),
+// summarised in D.cartels with geometry pulled from /api/cartels/geo on demand. HISTORICAL = START's
+// June 2020 Tracking Cartels briefs (D.cartels.baseline), drawn amber + dashed so it can never be read
+// as today's control of territory. Every third-party string goes through esc() before insertion.
+let cartelGeo=null, cartelGeoKey=null, cartelGeoBusy=false, cartelGeoFailed=false;
+const CT_STORE='crucix_ct_layers';
+const CT_LAYERS=[
+  {id:'influence',label:'Influence areas',color:'#ff5252',era:'now'},
+  {id:'wars',label:'Active wars',color:'#ff1744',era:'now'},
+  {id:'activity',label:'Activity / crimes',color:'#ffb74d',era:'now'},
+  {id:'strongholds',label:'Strongholds',color:'#ce93d8',era:'now'},
+  {id:'safehouses',label:'Alleged safehouses',color:'#80cbc4',era:'now'},
+  {id:'gov_ops',label:'Gov / military ops',color:'#64f0c8',era:'now'},
+  {id:'truces',label:'Truces',color:'#aed581',era:'now'},
+  {id:'alliances',label:'Alleged alliances',color:'#b39ddb',era:'now'},
+  {id:'us_activity',label:'Activity in the U.S.',color:'#90caf9',era:'now'},
+  {id:'other',label:'Other',color:'#bdbdbd',era:'now'},
+  {id:'h_density',label:'Cartel density by state',color:'#ffd54f',era:'2020'},
+  {id:'h_cjng',label:'CJNG footprint',color:'#ff8a65',era:'2020'},
+  {id:'h_flows',label:'Trafficking flows',color:'#ffcc80',era:'2020'},
+  {id:'h_ports',label:'Ports / points of entry',color:'#fff59d',era:'2020'},
+  {id:'h_cities',label:'Narcotics-concentration cities',color:'#ffe0b2',era:'2020'},
+  {id:'h_hotspots',label:'Avocado / huachicol hotspots',color:'#ffab40',era:'2020'},
+  {id:'h_timeline',label:'CJNG rise 2009\u20132019',color:'#ffa726',era:'2020'},
+];
+const CT_LAYER_BY_ID=Object.fromEntries(CT_LAYERS.map(l=>[l.id,l]));
+const CT_PRESETS={
+  current:{label:'CURRENT MAP',ids:['influence','wars','strongholds','activity']},
+  baseline:{label:'2020 BASELINE',ids:['h_density','h_cjng','h_flows','h_ports','h_hotspots']},
+  compare:{label:'COMPARE',ids:['influence','wars','h_density','h_flows','h_hotspots']},
+};
+const CT_DENSITY_COLORS=['#fff3c4','#ffe082','#ffca28','#ffa000','#e65100'];
+// Clockwise ring (D3 spherical winding) so fitExtent frames Mexico rather than its complement.
+const CT_MX_BBOX={type:'Polygon',coordinates:[[[-118.6,14.3],[-118.6,33.2],[-86.4,33.2],[-86.4,14.3],[-118.6,14.3]]]};
+let ctActive=(()=>{try{const v=JSON.parse(localStorage.getItem(CT_STORE));if(Array.isArray(v)&&v.length)return new Set(v.filter(id=>CT_LAYER_BY_ID[id]))}catch{}return new Set(CT_PRESETS.current.ids)})();
+let ctOrgFilter=null, ctTransform=null;
+let ctSvg=null, ctBase=null, ctLayersG=null, ctProj=null, ctPath=null, ctZoom=null, ctW=0, ctH=0, ctWorldP=null;
+const ctIdSafe=v=>String(v??'').replace(/[^a-z0-9_-]/gi,'').slice(0,40);
+function ctHasCurrent(c){return (c.status==='live'||c.status==='stale')&&Number(c.featureCount)>0}
+function ctOn(id){return ctActive.has(id)}
+function ctLayerColor(layer){return (CT_LAYER_BY_ID[layer]||CT_LAYER_BY_ID.other).color}
+function ctOrgOf(id){return (D.cartels?.orgs||[]).find(o=>o.id===id)||null}
+// Organization colour (matches the org cards) when attributed, else the KML style, else the layer colour. Hex only.
+function ctColor(f){const o=f.org&&f.org!=='analysis'&&f.org!=='unknown'?ctOrgOf(f.org):null;for(const v of [o?.color,f.fill,f.stroke,f.color]){if(/^#[0-9a-f]{6}$/i.test(String(v||'')))return v}return ctLayerColor(f.layer)}
+function ctRgba(hex,a){const m=/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex||'');return m?`rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`:`rgba(255,82,82,${a})`}
+function ctOrgNames(ids){return (ids||[]).map(id=>ctOrgOf(id)?.short||(id==='analysis'?'disputed / analysis':id==='unknown'?'':String(id))).filter(Boolean)}
+function ctFeaturePop(p){
+  const layer=CT_LAYER_BY_ID[p.layer]||CT_LAYER_BY_ID.other;
+  const names=ctOrgNames(p.involved);
+  const link=p.link?safeExternalUrl(p.link):null;
+  const text=`${p.desc?esc(p.desc)+'<br>':''}`
+    +(names.length?`<span style="color:var(--dim)">Named: </span>${esc(names.join(', '))}<br>`:'')
+    +(p.date?`<span style="color:var(--dim)">Dated </span>${esc(p.date)}<br>`:'')
+    +(Number.isFinite(p.areaKm2)&&p.areaKm2>0?`<span style="color:var(--dim)">${Math.round(p.areaKm2).toLocaleString('en-US')} km\u00b2 drawn</span><br>`:'')
+    +(link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">source \u2197</a><br>`:'')
+    +`<span style="color:var(--dim)">Crowd-sourced (@MexicoCartelMap) \u2014 unverified, not control of territory.</span>`;
+  return {head:String(p.name||layer.label).slice(0,160),text,meta:`${layer.label} \u00b7 Active Cartels In Mexico (KML)`};
+}
+// Geometry for the current map, fetched once per KML fetch; null while loading or when the source is down.
+function ctGeoNow(){
+  const c=D.cartels||{};
+  if(!ctHasCurrent(c))return null;
+  const key=String(c.fetchedAt||'latest');
+  if(cartelGeo&&cartelGeoKey===key)return cartelGeo;
+  if(!cartelGeoBusy)loadCartelGeo(key);
+  return cartelGeo;
+}
+function loadCartelGeo(key){
+  cartelGeoBusy=true;
+  fetch('/api/cartels/geo',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(g=>{
+    cartelGeoBusy=false;
+    if(!g||!Array.isArray(g.polygons)||!Array.isArray(g.points)){cartelGeoFailed=true;ctDraw();return;}
+    g.lines=Array.isArray(g.lines)?g.lines:[];
+    g.polygons.forEach(windForD3);
+    const changed=!cartelGeo||cartelGeo.fetchedAt!==g.fetchedAt;
+    cartelGeo=g;cartelGeoKey=key;cartelGeoFailed=false;
+    ctDraw();
+    if(changed&&currentTab==='situation'&&(layerOn('cartel-poly')||layerOn('cartel-pin')))replotMap();
+  }).catch(()=>{cartelGeoBusy=false;cartelGeoFailed=true;ctDraw()});
+}
+function ctSave(){try{localStorage.setItem(CT_STORE,JSON.stringify([...ctActive]))}catch{}}
+function ctToggle(id){if(!CT_LAYER_BY_ID[id])return;if(ctActive.has(id))ctActive.delete(id);else ctActive.add(id);ctSave();renderCartelChips();ctDraw()}
+function ctPreset(name){const p=CT_PRESETS[name];if(!p)return;ctActive=new Set(p.ids);ctSave();renderCartelChips();ctDraw()}
+function ctFocusOrg(id){ctOrgFilter=(ctOrgFilter===id)?null:id;renderLeftRail();renderCartelChips();ctDraw()}
+function ctFocusAt(lat,lon,k){
+  if(!ctSvg||!ctProj||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  const [x,y]=ctProj([lon,lat]);const z=k||5;
+  ctSvg.transition().duration(500).call(ctZoom.transform,d3.zoomIdentity.translate(ctW/2-x*z,ctH/2-y*z).scale(z));
+  document.getElementById('cartelMapWrap')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function ctResetView(){if(ctSvg)ctSvg.transition().duration(400).call(ctZoom.transform,d3.zoomIdentity)}
+function ctWorld(){return ctWorldP||(ctWorldP=fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r=>r.json()).catch(()=>{ctWorldP=null;return null}))}
+function ctHistCount(id,b){
+  if(!b)return 0;
+  switch(id){
+    case 'h_density':return (b.states||[]).filter(s=>s.density).length;
+    case 'h_cjng':return (b.states||[]).filter(s=>s.cjng).length;
+    case 'h_flows':return (b.flows||[]).length;
+    case 'h_ports':return (b.portsIntoMexico||[]).length+(b.pointsOfEntryUS||[]).length;
+    case 'h_cities':return (b.cities||[]).length;
+    case 'h_hotspots':return (b.hotspots||[]).length;
+    case 'h_timeline':return (b.cjngTimeline||[]).length;
+  }
+  return 0;
+}
+function ctClosePopup(){document.getElementById('cartelPopup')?.classList.remove('show')}
+function ctPopup(ev,head,html,meta){
+  const popup=document.getElementById('cartelPopup'),wrap=document.getElementById('cartelMapWrap');
+  if(!popup||!wrap)return;
+  const rect=wrap.getBoundingClientRect();
+  let left=ev&&ev.clientX!=null?ev.clientX-rect.left+10:rect.width/2-140, top=ev&&ev.clientY!=null?ev.clientY-rect.top-10:rect.height/2-60;
+  fillPopup(popup,head,html,meta);
+  placePopup(popup,rect,left,top);
+}
+function initCartelMap(){
+  const wrap=document.getElementById('cartelMapWrap'),svgEl=document.getElementById('cartelMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  ctW=wrap.clientWidth||900;ctH=wrap.clientHeight||520;
+  ctSvg=d3.select(svgEl).attr('viewBox',`0 0 ${ctW} ${ctH}`).attr('preserveAspectRatio','xMidYMid meet');
+  ctSvg.selectAll('*').remove();
+  ctProj=d3.geoMercator().fitExtent([[14,14],[ctW-14,ctH-14]],CT_MX_BBOX);
+  ctPath=d3.geoPath(ctProj);
+  const defs=ctSvg.append('defs');
+  defs.append('marker').attr('id','ctArrow').attr('viewBox','0 0 10 10').attr('refX',9).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7).attr('orient','auto-start-reverse')
+    .append('path').attr('d','M0,1 L9,5 L0,9 Z').attr('fill','#ffcc80');
+  const root=ctSvg.append('g');
+  ctBase=root.append('g').attr('class','ct-base');
+  ctLayersG=root.append('g').attr('class','ct-layers');
+  ctZoom=d3.zoom().scaleExtent([0.6,18]).on('zoom',ev=>{ctTransform=ev.transform;root.attr('transform',ev.transform);ctScale(ev.transform.k)});
+  ctSvg.call(ctZoom).on('click',()=>ctClosePopup());
+  if(ctTransform)ctSvg.call(ctZoom.transform,ctTransform);
+  ctBase.append('path').datum(d3.geoGraticule().step([5,5])()).attr('class','graticule').attr('d',ctPath);
+  ctWorld().then(world=>{
+    if(!world||!ctBase||!window.topojson)return;
+    const countries=topojson.feature(world,world.objects.countries);
+    ctBase.selectAll('path.land').data(countries.features).enter().append('path').attr('class',d=>'land'+(String(d.id)==='484'?' mx':'')).attr('d',ctPath);
+    ctBase.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',ctPath);
+    ctLayersG.raise();
+  });
+  renderCartelChips();
+  ctDraw();
+}
+function ctScale(k){
+  if(!ctLayersG)return;
+  ctLayersG.selectAll('.ct-pin').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  ctLayersG.selectAll('.ct-sym').attr('transform',function(){return `translate(${this.dataset.x},${this.dataset.y}) scale(${1/Math.sqrt(k)})`});
+  ctLayersG.selectAll('.ct-lbl').style('font-size',function(){return (+this.dataset.fs||9)/k+'px'}).style('display',function(){return k>=(+this.dataset.minK||1)?'block':'none'});
+}
+function ctDraw(){
+  if(!ctLayersG||!ctProj)return;
+  ctClosePopup();
+  ctLayersG.selectAll('*').remove();
+  const k=ctTransform?ctTransform.k:1;
+  const hist=ctLayersG.append('g').attr('class','ct-hist-g'),cur=ctLayersG.append('g').attr('class','ct-cur-g');
+  const c=D.cartels||{},b=c.baseline;
+  const pin=(g,lon,lat,r,fill,stroke,cls,onclick)=>{
+    const xy=ctProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
+    return g.append('circle').attr('class','ct-pin '+cls).attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r).attr('r',r/Math.sqrt(k)).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',1).on('click',ev=>{ev.stopPropagation();onclick(ev)});
+  };
+  const sym=(g,lon,lat,d,fill,stroke,onclick)=>{
+    const xy=ctProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
+    return g.append('path').attr('class','ct-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).attr('d',d).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',1).style('cursor','pointer').on('click',ev=>{ev.stopPropagation();onclick(ev)});
+  };
+  const lbl=(g,lon,lat,text,fs,minK,cls,dy)=>{
+    const xy=ctProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return;
+    g.append('text').attr('class','ct-lbl '+(cls||'')).attr('x',xy[0]).attr('y',xy[1]+(dy||-6)).attr('text-anchor','middle').attr('data-fs',fs).attr('data-min-k',minK).style('font-size',fs/k+'px').style('display',k>=minK?'block':'none').text(text);
+  };
+  const startMeta=(n)=>`START \u00b7 Tracking Cartels ${n} \u00b7 June 2020 \u00b7 historical`;
+  // ---- HISTORICAL (START June 2020): amber, dashed, under the current layers ----
+  if(b){
+    if(ctOn('h_hotspots'))(b.hotspots||[]).forEach(h=>{
+      if(!Number.isFinite(h.lat)||!Number.isFinite(h.lon))return;
+      const circ=d3.geoCircle().center([h.lon,h.lat]).radius((h.radiusKm||50)/111.32)();
+      hist.append('path').datum(circ).attr('class','ct-hist-fill').attr('d',ctPath).attr('fill','#ffab40').attr('stroke','#ffab40')
+        .on('click',ev=>{ev.stopPropagation();ctPopup(ev,h.name,`${esc(h.text||'')}<br><span style="color:var(--dim)">Actors named in 2020: ${esc(ctOrgNames(h.actors).join(', ')||(h.actors||[]).join(', '))}</span>`,startMeta(h.brief==='avocado'?'03':'04'))});
+      lbl(hist,h.lon,h.lat,h.name,9,1.6,'',-4);
+    });
+    if(ctOn('h_density'))(b.states||[]).forEach(s=>{
+      const cls=b.densityClasses?.[s.density];if(!cls||!Number.isFinite(s.lat))return;
+      const r=5+cls.rank*2.6;
+      pin(hist,s.lon,s.lat,r,ctRgba(CT_DENSITY_COLORS[cls.rank-1]||'#ffca28',0.38),'#ffd54f','ct-hist',ev=>ctPopup(ev,`${s.name} \u2014 2020 baseline`,`${esc(cls.label)} present, per START\u2019s June 2020 choropleth.${s.cjng?'<br>Inside CJNG\u2019s 2020 operational area.':''}${s.note?'<br><span style="color:var(--dim)">'+esc(s.note)+'</span>':''}<br><span style="color:var(--dim)">Historical research baseline \u2014 not current control.</span>`,startMeta('01')));
+      lbl(hist,s.lon,s.lat,s.name,8,2.2,'',r+8);
+    });
+    if(ctOn('h_cjng'))(b.states||[]).filter(s=>s.cjng).forEach(s=>{
+      if(!Number.isFinite(s.lat))return;
+      pin(hist,s.lon,s.lat,s.cjngBase?11:8,'none','#ff8a65','ct-hist',ev=>ctPopup(ev,`${s.name} \u2014 CJNG 2020`,`${s.cjngBase?'CJNG home base (Jalisco / Colima / Michoac\u00e1n).':'CJNG operational presence in 2020 (23 of 32 states).'}<br><span style="color:var(--dim)">Historical research baseline.</span>`,startMeta('02')));
+    });
+    if(ctOn('h_flows'))(b.flows||[]).forEach(f=>{
+      if(!Array.isArray(f.path)||f.path.length<2)return;
+      hist.append('path').datum({type:'Feature',geometry:{type:'LineString',coordinates:f.path}}).attr('class','ct-line ct-hist').attr('d',ctPath).attr('stroke','#ffcc80').attr('marker-end','url(#ctArrow)')
+        .on('click',ev=>{ev.stopPropagation();ctPopup(ev,f.name,'Trafficking flow as illustrated by START in 2020 (approximate, hand-transcribed).',startMeta('01'))});
+    });
+    if(ctOn('h_ports')){
+      (b.portsIntoMexico||[]).forEach(p=>{sym(hist,p.lon,p.lat,'M0,-6 L6,0 L0,6 L-6,0 Z','rgba(255,245,157,0.35)','#fff59d',ev=>ctPopup(ev,p.name,'Port of entry into Mexico (2020 baseline).',startMeta('01')));lbl(hist,p.lon,p.lat,p.name,8,2.6,'',-9)});
+      (b.pointsOfEntryUS||[]).forEach(p=>{sym(hist,p.lon,p.lat,'M0,-7 L6,5 L-6,5 Z','rgba(255,245,157,0.35)','#fff59d',ev=>ctPopup(ev,p.name,'Point of entry into the United States (2020 baseline).',startMeta('01')));lbl(hist,p.lon,p.lat,p.name,8,2.6,'',-10)});
+    }
+    if(ctOn('h_cities'))(b.cities||[]).forEach(p=>{sym(hist,p.lon,p.lat,'M-5,-5 H5 V5 H-5 Z','rgba(255,224,178,0.35)','#ffe0b2',ev=>ctPopup(ev,p.name,'City of narcotics concentration (2020 baseline).',startMeta('01')));lbl(hist,p.lon,p.lat,p.name,8,2.6,'',-9)});
+    if(ctOn('h_timeline'))(b.cjngTimeline||[]).forEach(e=>{
+      if(!Number.isFinite(e.lat))return;
+      pin(hist,e.lon,e.lat,7,'rgba(255,167,38,0.85)','#000','ct-hist',ev=>ctPopup(ev,`${e.date} \u00b7 ${e.place}`,`${esc(e.text||'')}<br><span style="color:var(--dim)">CJNG rise timeline, event ${Number(e.n)||''}.</span>`,startMeta('02')));
+      lbl(hist,e.lon,e.lat,String(Number(e.n)||''),8,0,'',3);
+    });
+  }
+  // ---- CURRENT (crowd-sourced KML) ----
+  const g=ctGeoNow();
+  if(g){
+    const orgOk=p=>!ctOrgFilter||p.org===ctOrgFilter||(p.involved||[]).includes(ctOrgFilter);
+    g.polygons.forEach(p=>{
+      if(!ctOn(p.layer)||!orgOk(p)||!Array.isArray(p.rings)||!p.rings.length)return;
+      const col=ctColor(p),pop=ctFeaturePop(p);
+      cur.append('path').datum({type:'Feature',geometry:{type:'Polygon',coordinates:p.rings}}).attr('class','ct-poly').attr('d',ctPath)
+        .attr('fill',col).attr('fill-opacity',ctOrgFilter?0.42:p.layer==='influence'?0.28:0.2).attr('stroke',col)
+        .on('click',ev=>{ev.stopPropagation();ctPopup(ev,pop.head,pop.text,pop.meta)});
+      if(p.layer==='influence'&&p.centroid&&Number.isFinite(p.centroid.lat)&&(ctOrgFilter||Number(p.areaKm2)>4000)){const o=ctOrgOf(p.org);if(o&&o.short)lbl(cur,p.centroid.lon,p.centroid.lat,o.short,9,ctOrgFilter?0:1.2,'cur',3)}
+    });
+    g.lines.forEach(l=>{
+      if(!ctOn(l.layer)||!orgOk(l)||!Array.isArray(l.path)||l.path.length<2)return;
+      const col=ctColor(l),pop=ctFeaturePop(l);
+      cur.append('path').datum({type:'Feature',geometry:{type:'LineString',coordinates:l.path}}).attr('class','ct-line').attr('d',ctPath).attr('stroke',col).attr('stroke-dasharray',l.layer==='alliances'?'6 3':null)
+        .on('click',ev=>{ev.stopPropagation();ctPopup(ev,pop.head,pop.text,pop.meta)});
+    });
+    const R={wars:5.5,strongholds:4.5,gov_ops:4.5,truces:4.5,safehouses:3.6,activity:3.4,us_activity:3.6,alliances:4,other:3.2,influence:3.2};
+    g.points.forEach(p=>{
+      if(!ctOn(p.layer)||!orgOk(p))return;
+      const pop=ctFeaturePop(p),col=ctLayerColor(p.layer);
+      pin(cur,p.lon,p.lat,R[p.layer]||3.4,ctRgba(col,0.85),p.layer==='wars'?'#fff':'rgba(0,0,0,0.7)','ct-cur',ev=>ctPopup(ev,pop.head,pop.text,pop.meta));
+    });
+  }
+  const note=document.getElementById('cartelMapNote');
+  if(note){
+    const cnt=ctLayersG.selectAll('.ct-poly,.ct-pin,.ct-line,.ct-sym,.ct-hist-fill').size();
+    note.textContent=ctHasCurrent(c)?(g?`${cnt.toLocaleString('en-US')} features drawn${ctOrgFilter?' \u00b7 filtered to '+(ctOrgOf(ctOrgFilter)?.short||ctOrgFilter):''}`:cartelGeoFailed?'CURRENT GEOMETRY UNAVAILABLE \u2014 baseline only':'LOADING CURRENT GEOMETRY\u2026'):`${cnt.toLocaleString('en-US')} features drawn \u00b7 2020 baseline only`;
+  }
+}
+function renderCartelChips(){
+  const el=document.getElementById('cartelChips');if(!el)return;
+  const c=D.cartels||{},lc=c.layerCounts||{},b=c.baseline,has=ctHasCurrent(c);
+  const chip=l=>{
+    const n=l.era==='now'?(has?Number(lc[l.id])||0:0):ctHistCount(l.id,b);
+    const none=!n,on=!none&&ctOn(l.id);
+    const why=l.era==='now'&&!has?'current map not available':'nothing in this layer';
+    const title=none?`${l.label}: ${why}`:`${l.label}: ${n} ${l.era==='now'?'crowd-sourced entries':'baseline records (June 2020)'}. Click to ${on?'hide':'show'}.`;
+    return `<button type="button" class="lchip ${none?'none':on?'on':'off'}${l.era==='2020'?' hist':''}" style="--lc:${l.color}" title="${esc(title)}" ${none?'disabled':`onclick="ctToggle('${l.id}')"`}><span class="ldot"></span>${esc(l.label)}${none?'':` <b>${n}</b>`}</button>`;
+  };
+  const presetOn=name=>{const ids=CT_PRESETS[name].ids;return ids.length===ctActive.size&&ids.every(id=>ctActive.has(id))};
+  el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">CURRENT \u00b7 ${has?esc(c.docName||'KML'):'UNAVAILABLE'}</span>${CT_LAYERS.filter(l=>l.era==='now').map(chip).join('')}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head hist">HISTORICAL \u00b7 START JUNE 2020</span>${CT_LAYERS.filter(l=>l.era==='2020').map(chip).join('')}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">PRESETS</span>${Object.entries(CT_PRESETS).map(([k,p])=>`<button type="button" class="lchip preset ${presetOn(k)?'on':'off'}" onclick="ctPreset('${k}')">${p.label}</button>`).join('')}<button type="button" class="lchip preset off" onclick="ctResetView()">RESET VIEW</button>${ctOrgFilter?`<button type="button" class="lchip on" style="--lc:${esc(ctOrgOf(ctOrgFilter)?.color||'#ff5252')}" onclick="ctFocusOrg('${ctIdSafe(ctOrgFilter)}')"><span class="ldot"></span>ONLY ${esc(ctOrgOf(ctOrgFilter)?.short||ctOrgFilter)} \u00d7</button>`:''}</div>`;
+}
+function ctBadge(c){
+  if(!ctHasCurrent(c))return `<span class="badge off">${c.status==='empty'?'EMPTY':c.status==='unavailable'||c.status==='error'?'UNAVAILABLE':'NO CURRENT MAP'}</span>`;
+  const age=Number.isFinite(c.cacheAgeH)?c.cacheAgeH:null;
+  const ageTxt=age==null?'':age<1?'fetched <1h ago':age<48?`fetched ${Math.round(age)}h ago`:`fetched ${Math.round(age/24)}d ago`;
+  return `<span class="badge ${c.stale||c.status==='stale'?'warn':''}">${c.status==='stale'?'STALE':c.stale?'CACHED':'LIVE'}${ageTxt?' \u00b7 '+ageTxt:''}</span>`;
+}
+function renderCartelMapPanel(){
+  const c=D.cartels||{},b=c.baseline,has=ctHasCurrent(c);
+  const km=v=>Number.isFinite(v)?Math.round(v).toLocaleString('en-US'):'\u2014';
+  const kpis=has?`<div class="front-kpis">
+      <div class="front-kpi"><div class="k">Influence areas</div><div class="v" style="color:#ff5252">${Number(c.layerCounts?.influence)||0}</div><div class="s">${km(c.influenceKm2)} km\u00b2 drawn \u00b7 ${km(c.disputedKm2)} km\u00b2 disputed</div></div>
+      <div class="front-kpi"><div class="k">Organizations</div><div class="v">${Number(c.orgCount)||0}</div><div class="s">${(c.orgs||[]).slice(0,3).map(o=>esc(o.short)).join(' \u00b7 ')||'\u2014'}</div></div>
+      <div class="front-kpi"><div class="k">Active wars</div><div class="v" style="color:#ff1744">${(c.wars||[]).length}</div><div class="s">${(c.truces||[]).length} truces \u00b7 ${(c.alliances||[]).length} alleged alliances</div></div>
+      <div class="front-kpi"><div class="k">Dated entries 30d</div><div class="v" style="color:var(--warn)">${Number(c.activityLast30d)||0}</div><div class="s">${c.latestMention?'latest '+esc(String(c.latestMention).slice(0,10)):'no dated entries'} \u00b7 ${Number(c.layerCounts?.strongholds)||0} strongholds</div></div>
+    </div>`
+    :`<div class="g-off-why" style="margin:6px 0">Current cartel map not available${c.error?': '+esc(c.error):''}. Showing START\u2019s June 2020 research baseline only \u2014 it is six years old and must not be read as today\u2019s picture.</div>`;
+  const disc=(c.disclaimer||[]).length?`<div class="ct-disc"><b>Maintainer\u2019s own disclaimer:</b> ${c.disclaimer.map(l=>esc(l)).join(' ')}</div>`:'';
+  return `<div class="g-panel cartel-map-panel">
+      <div class="sec-head"><h3>${shDot('Cartels')}Cartel Influence — Mexico</h3>${ctBadge(c)}</div>
+      ${kpis}
+      <div id="cartelChips" class="ct-chips"></div>
+      <div class="ct-map" id="cartelMapWrap">
+        <svg id="cartelMapSvg"></svg>
+        <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A SHAPE</div>
+        <div class="ct-key"><span><i class="solid"></i>CURRENT \u00b7 crowd-sourced KML (solid, cartel colours)</span><span><i class="dash"></i>HISTORICAL \u00b7 START June 2020 (amber, dashed)</span><span id="cartelMapNote"></span></div>
+        <div class="map-popup" id="cartelPopup"><div class="pp-close" onclick="ctClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
+      </div>
+      ${disc}
+      <div class="sh-note">Current layer: \u201c${esc(c.docName||'Active Cartels In Mexico')}\u201d by ${esc(c.provider||'@MexicoCartelMap')}, a public Google My Maps KML polled every 6h (${c.siteUrl?`<a href="${esc(c.siteUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">open map \u2197</a>`:'link unavailable'}). ${esc(c.caveat||'')} Historical layer: ${esc(b?.provider||'START, University of Maryland')}, ${esc(b?.series||'Tracking Cartels')} (${esc(b?.asOf||'2020-06')}), ${b?.seriesUrl?`<a href="${esc(b.seriesUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">series page \u2197</a>`:''} \u2014 hand-transcribed; ${esc(b?.caveat||'')}</div>
+    </div>`;
+}
+function ctRow(kind,color,text,when,lat,lon,extra){
+  const go=Number.isFinite(lat)&&Number.isFinite(lon)?` onclick="ctFocusAt(${Number(lat)},${Number(lon)})" title="Show on map"`:'';
+  return `<div class="front-row"${go}><span class="ct-kind" style="color:${color};border-color:${ctRgba(color,0.5)}">${esc(kind)}</span><span style="flex:1;min-width:0">${text}${extra||''}</span>${when?`<span class="front-when">${esc(when)}</span>`:''}</div>`;
+}
+function renderCartelWarsPanel(){
+  const c=D.cartels||{};
+  if(!ctHasCurrent(c))return offPanel('Active Wars & Truces','Cartels',c.error||'Current cartel map not available this sweep','cartel-wars');
+  const wars=(c.wars||[]).map(w=>ctRow('WAR','#ff1744',esc(w.name||''),w.date?String(w.date).slice(0,10):'',w.lat,w.lon,ctOrgNames(w.involved).length?`<div class="ct-org-sub">${esc(ctOrgNames(w.involved).join(' vs '))}</div>`:''));
+  const truces=(c.truces||[]).map(t=>ctRow('TRUCE','#aed581',esc(t.name||''),'',t.lat,t.lon,ctOrgNames(t.involved).length?`<div class="ct-org-sub">${esc(ctOrgNames(t.involved).join(' \u00b7 '))}</div>`:''));
+  const alli=(c.alliances||[]).map(a=>ctRow('ALLIANCE','#b39ddb',esc(a.name||''),'',NaN,NaN,`<div class="ct-org-sub">${esc(a.desc||ctOrgNames(a.involved).join(' \u00b7 '))}</div>`));
+  return `<div class="g-panel cartel-wars"><div class="sec-head"><h3>${shDot('Cartels')}Active Wars & Truces</h3><span class="badge">${wars.length} WARS \u00b7 ${truces.length} TRUCES</span></div>
+    <div class="ct-scroll">${[...wars,...truces,...alli].join('')||'<div class="g-off-why">No wars, truces or alliances on the current map.</div>'}</div>
+    <div class="sh-note">Each row is one crowd-sourced pin (click to locate). \u201cActive\u201d is the maintainer\u2019s label; a missing date means none was written.</div></div>`;
+}
+function renderCartelActivityPanel(){
+  const c=D.cartels||{};
+  if(!ctHasCurrent(c))return offPanel('Recent Map Entries','Cartels',c.error||'Current cartel map not available this sweep','cartel-activity');
+  const rows=(c.recent||[]).map(r=>{
+    const l=CT_LAYER_BY_ID[r.layer]||CT_LAYER_BY_ID.other;
+    const link=r.link?safeExternalUrl(r.link):null;
+    return ctRow(l.label.toUpperCase().slice(0,14),l.color,esc(r.name||''),r.date?String(r.date).slice(0,10):'',r.lat,r.lon,`${ctOrgNames(r.involved).length?`<div class="ct-org-sub">${esc(ctOrgNames(r.involved).join(' \u00b7 '))}</div>`:''}${link?`<div><a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:8px;color:var(--accent2)" onclick="event.stopPropagation()">source \u2197</a></div>`:''}`);
+  });
+  return `<div class="g-panel cartel-activity"><div class="sec-head"><h3>${shDot('Cartels')}Recent Map Entries</h3><span class="badge ${Number(c.activityLast30d)?'warn':''}">${Number(c.activityLast30d)||0} IN 30D</span></div>
+    <div class="ct-scroll">${rows.join('')||'<div class="g-off-why">No dated entries on the current map.</div>'}</div>
+    <div class="sh-note">Newest first by the date written into each entry (activity, government operations, wars, truces). Undated entries are not listed here but still plot on the map.</div></div>`;
+}
+function renderCartelBaselinePanel(){
+  const b=D.cartels?.baseline;
+  if(!b)return `<div class="g-panel cartel-baseline"><div class="sec-head"><h3>START 2020 Baseline</h3><span class="badge off">UNAVAILABLE</span></div><div class="g-off-why">config/cartels-baseline-2020.json did not load.</div></div>`;
+  const briefs=(b.briefs||[]).map(x=>`<div class="ct-brief"><div class="t">${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" style="color:#ffe0b2">${esc(x.title)} \u2197</a>`:esc(x.title)}</div><ul>${(x.keyPoints||[]).slice(0,3).map(k=>`<li>${esc(k)}</li>`).join('')}</ul></div>`).join('');
+  const tl=(b.cjngTimeline||[]).map(e=>ctRow(String(e.date||'').slice(0,7),'#ffa726',`<b style="color:#ffe0b2">${esc(e.place||'')}</b> \u2014 ${esc(e.text||'')}`,'',e.lat,e.lon)).join('');
+  const dens=Object.entries(b.densityClasses||{}).sort((a,z)=>a[1].rank-z[1].rank).map(([k,v])=>`<span><i style="background:${CT_DENSITY_COLORS[v.rank-1]||'#ffca28'};border-radius:50%"></i>${esc(v.label)}</span>`).join('');
+  return `<div class="g-panel cartel-baseline"><div class="sec-head"><h3>START 2020 Baseline</h3><span class="badge warn">HISTORICAL \u00b7 ${esc(b.asOf||'2020-06')}</span></div>
+    <div class="front-legend">${dens}<span><i style="border:1px dashed #ff8a65;background:none;border-radius:50%"></i>CJNG 2020 footprint</span><span style="color:#ffcc80">\u2192 trafficking flow</span></div>
+    <div class="ct-scroll">${briefs}<div class="sh-group" style="color:#ffa726">CJNG rise timeline \u00b7 ${(b.cjngTimeline||[]).length} events</div>${tl}</div>
+    <div class="sh-note">${esc(b.provider||'')}. ${esc(b.caveat||'')}</div></div>`;
+}
+function renderCartelFeedPanel(){
+  const feed=D.cartels?.feed||[];
+  const names=['InSightCrime','BorderNews','GDELT'];
+  if(!feed.length){
+    const worst=shWorst(names);
+    return `<div class="g-panel cartel-feed"><div class="sec-head"><h3>${shDot(names)}Mexico / Northern Triangle Feed</h3><span class="badge ${worst&&worst.state!=='live'?'off':''}">${worst&&worst.state!=='live'?SH_LABEL[worst.state]:'QUIET'}</span></div><div class="g-off-why">${worst&&worst.state!=='live'?esc(shWhy(worst)):'No Mexico / Northern Triangle items in the last 14 days from InSight Crime, Border Watch or GDELT.'}</div></div>`;
+  }
+  const rows=feed.map(i=>{
+    const url=i.url?safeExternalUrl(i.url):null;
+    const title=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(i.title)}</a>`:esc(i.title||'');
+    return `<div class="front-row" style="cursor:default"><span class="ct-feed-src" title="${esc(i.src||'')}">${esc(i.src||'')}</span><span style="flex:1;min-width:0">${title}${(i.tags||[]).length?`<div class="ct-org-sub">${esc(i.tags.join(' \u00b7 '))}</div>`:''}</span>${i.at?`<span class="front-when">${esc(getAge(i.at))}</span>`:''}</div>`;
+  }).join('');
+  return `<div class="g-panel cartel-feed"><div class="sec-head"><h3>${shDot(names)}Mexico / Northern Triangle Feed</h3><span class="badge">${feed.length} ITEMS \u00b7 14D</span></div><div class="ct-scroll">${rows}</div>
+    <div class="sh-note">Keyword-filtered from feeds CRUCIX already polls; nothing here is linked to a specific map polygon.</div></div>`;
+}
+// Left rail: where the current layer comes from and how fresh it is.
+function renderCartelSourcePanel(){
+  const c=D.cartels||{},b=c.baseline,has=ctHasCurrent(c),lc=c.layerCounts||{};
+  const fetched=c.fetchedAt?new Date(c.fetchedAt):null;
+  const rows=[
+    ['Current map',has?`${esc(c.docName||'KML')}`:'not available',has?(c.stale||c.status==='stale'?'degraded':'live'):'error'],
+    ['Fetched',fetched&&!isNaN(fetched)?fetched.toISOString().slice(0,16).replace('T',' ')+'Z':'\u2014',has?'live':'off'],
+    ['Features',has?`${Number(c.polygonCount)||0} polygons \u00b7 ${Number(c.pointCount)||0} pins \u00b7 ${Number(c.lineCount)||0} lines`:'\u2014',has?'live':'off'],
+    ['Layers',has?Object.entries(lc).filter(([,n])=>n).map(([k,n])=>`${esc((CT_LAYER_BY_ID[k]||CT_LAYER_BY_ID.other).label)} ${n}`).join(' \u00b7 '):'\u2014',has?'live':'off'],
+    ['Baseline',b?`${esc(b.series||'Tracking Cartels')} \u00b7 ${esc(b.asOf||'2020-06')}`:'not loaded',b?'degraded':'error'],
+  ];
+  const sig=(c.signals||[]).map(s=>`<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:var(--warn);border-color:rgba(255,184,76,0.5)">${esc(String(s.kind||'').toUpperCase())}</span><span style="flex:1">${esc(s.text||'')}</span></div>`).join('');
+  return `<div class="g-panel cartel-source"><div class="sec-head"><h3>${shDot('Cartels')}Cartel Map Source</h3>${ctBadge(c)}</div>
+    ${rows.map(([k,v,st])=>`<div class="sh-row ${st}" style="align-items:flex-start"><span class="hdot ${st}" style="margin-top:4px"></span><span class="sh-name" style="flex:0 0 70px">${k}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2;text-align:left">${v}</span></div>`).join('')}
+    ${sig}
+    ${c.error&&!has?`<div class="g-off-why">${esc(c.error)}</div>`:''}
+    <div class="sh-note">Green = fetched this sweep; amber = serving a cached copy or a historical baseline. The current map is one person\u2019s crowd-sourced assessment; the baseline is a 2020 research product. Neither is verified control of territory.</div></div>`;
+}
+function renderCartelOrgsPanel(){
+  const c=D.cartels||{};
+  if(!ctHasCurrent(c))return offPanel('Organizations','Cartels',c.error||'Current cartel map not available this sweep','cartel-orgs');
+  const orgs=(c.orgs||[]).filter(o=>o.id!=='unknown');
+  const rows=orgs.map(o=>{
+    const id=ctIdSafe(o.id);
+    return `<div class="ct-org ${ctOrgFilter===o.id?'on':''}" onclick="ctFocusOrg('${id}')" title="${esc(o.label||'')}: click to show only this organization on the map"><i style="background:${esc(o.color||'#888')}"></i><div style="min-width:0;flex:1"><div class="ct-org-name">${esc(o.short||o.label||o.id)}</div><div class="ct-org-sub">${Number(o.polygons)||0} areas \u00b7 ${(Number(o.areaKm2)||0).toLocaleString('en-US')} km\u00b2${Number(o.wars)?` \u00b7 ${o.wars} wars`:''}${Number(o.strongholds)?` \u00b7 ${o.strongholds} strongholds`:''}</div></div><div class="ct-org-n" title="dated activity entries">${Number(o.activity)||0}</div></div>`;
+  }).join('');
+  return `<div class="g-panel cartel-orgs"><div class="sec-head"><h3>${shDot('Cartels')}Organizations</h3><span class="badge">${orgs.length} ON MAP</span></div>
+    <div class="ct-scroll" style="max-height:60vh">${rows||'<div class="g-off-why">No organizations recognised on the current map.</div>'}</div>
+    <div class="sh-note">Sorted by drawn influence area (km\u00b2, from the KML polygons). Right-hand number = dated activity entries attributed to the organization. Click a row to isolate it on the map.</div></div>`;
 }
 
 // === SOURCES TAB: full table of every source and its state ===

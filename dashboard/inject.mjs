@@ -13,6 +13,7 @@ import config from '../crucix.config.mjs';
 import { createLLMProvider } from '../lib/llm/index.mjs';
 import { generateLLMIdeas } from '../lib/llm/ideas.mjs';
 import { buildSourceHealth } from '../lib/sourcehealth.mjs';
+import { buildCartelsView } from '../lib/cartelview.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -1176,6 +1177,9 @@ export async function synthesize(data) {
         signals: flData.signals || [],
       };
     })(),
+    // Cartels page: crowd-sourced KML summary + START 2020 baseline + Mexico-filtered live feeds.
+    // Geometry stays out of the payload; the browser pulls /api/cartels/geo on demand.
+    cartels: buildCartelsView(data.sources),
     satTracking: (() => {
       const stData = data.sources.SatTracking || {};
       return {
