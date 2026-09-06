@@ -18,6 +18,7 @@ import { generateLLMIdeas } from './lib/llm/ideas.mjs';
 import { TelegramAlerter } from './lib/alerts/telegram.mjs';
 import { DiscordAlerter } from './lib/alerts/discord.mjs';
 import { installAuthGate } from './lib/authgate.mjs';
+import { securityHeaders } from './lib/securityHeaders.mjs';
 import { buildSituation } from './lib/situation.mjs';
 
 // Phase 4: Analytical Features
@@ -268,6 +269,7 @@ if (discordAlerter.isConfigured) {
 // === Express Server ===
 const app = express();
 app.set('trust proxy', true);
+app.use(securityHeaders());
 const authGateEnabled = installAuthGate(app);
 if (authGateEnabled) console.log('[Crucix] Password gate enabled (CRUCIX_PASSWORD set)');
 app.use(express.json());
