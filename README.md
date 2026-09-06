@@ -115,9 +115,9 @@ fly deploy
 
 Setting `CRUCIX_PASSWORD` puts a login page in front of the dashboard and all `/api/*` routes (except `/api/health`). Failed attempts are rate-limited (5 per IP, 15-minute lockout). Leave it unset for local use. Anyone without the access code sees only the login page, so a deployment can stay private to whoever holds the code.
 
-### Investigate Pivot & Typosquat Watch
+### Investigations tab & Typosquat Watch
 
-The right rail has an **Investigate** panel: enter a domain, IPv4/IPv6, MD5/SHA-1/SHA-256 hash, or company name and CRUCIX runs an enrichment chain and renders a dossier with a risk score. Every domain/IP in the results (and in the Typosquat panel) is clickable to pivot further.
+The **Investigations** tab is a dedicated OSINT workbench: enter any selector — domain, URL, IPv4/IPv6, MD5/SHA-1/SHA-256 hash, email, `@handle`, `+phone`, BTC/ETH address, or company name — and CRUCIX fans out to every relevant passive source in parallel and renders a dossier with rule-based risk indicators. Every blue value pivots into a new dossier without losing context; pivots accumulate into a browser-local **case file** (entities, relationships, notes) with a force-directed **case graph**, a cross-source **timeline**, a **toolkit** of type-specific search dorks and external deep links, EXIF/GPS **metadata forensics** for uploaded images (parsed in memory, never written to disk), and Markdown / JSON / SVG **report export**. All lookups are read-only; `/api/investigate*` is rate-limited per IP and URL analysis refuses private, loopback and link-local destinations.
 
 | Source | Key needed | Returns |
 |--------|-----------|---------|
@@ -125,10 +125,19 @@ The right rail has an **Investigate** panel: enter a domain, IPv4/IPv6, MD5/SHA-
 | DNS-over-HTTPS (Cloudflare) | none | A/AAAA/MX/NS/TXT, SPF, DMARC, reverse DNS |
 | Certificate Transparency (`crt.sh`) | none | hostnames seen in certificates, recent issuers |
 | Shodan InternetDB | none | open ports, CVEs, hostnames, tags per IP |
+| ipwho.is · Tor exit list | none | geolocation, ASN, Tor exit-node status |
+| Wayback Machine · AlienVault OTX · urlscan.io | none | archive history, threat pulses, public scans |
+| HTTP fingerprint | none | status, server, title, redirect chain, phishing heuristics for URLs |
+| Gravatar · Keybase · GitHub | none (`GITHUB_TOKEN` optional) | identity claims, avatar hash, public repos / commit-email leaks |
+| Platform probes (API-verified) | none | handle presence on major platforms; generic 200s are never treated as a hit |
+| mempool.space · BlockCypher · OFAC SDN | none | BTC/ETH balance, tx counts, counterparties, sanctions-list match |
 | Look-alike probe | none | registered typosquat permutations of the target |
 | VirusTotal | `VIRUSTOTAL_API_KEY` | AV verdicts, reputation, threat label for domain/IP/hash |
 | Shodan | `SHODAN_API_KEY` | org, ASN, services/banners, full vuln list |
+| Have I Been Pwned | `HIBP_API_KEY` | breach names, dates, exposed data classes per email |
+| NumVerify | `NUMVERIFY_API_KEY` | carrier, line type, location for phone numbers |
 | OpenCorporates | `OPENCORPORATES_API_TOKEN` | company matches, jurisdiction, status, address |
+| OpenSanctions | `OPENSANCTIONS_API_KEY` | sanctions / PEP screening for wallets and entities |
 
 Keyed sources are skipped (marked "no key" in the panel) when their variable is blank. Results are cached for 15 minutes.
 
@@ -264,6 +273,10 @@ These three unlock the most valuable economic and satellite data. Each takes abo
 | `VIRUSTOTAL_API_KEY` | Investigate: domain/IP/hash reputation | [virustotal.com](https://www.virustotal.com/gui/join-us) — free |
 | `SHODAN_API_KEY` | Investigate: full host/service data | [account.shodan.io](https://account.shodan.io/) — free tier |
 | `OPENCORPORATES_API_TOKEN` | Investigate: company registry | [opencorporates.com](https://opencorporates.com/api_accounts/new) — free for non-commercial |
+| `HIBP_API_KEY` | Investigate: breach exposure per email | [haveibeenpwned.com/API/Key](https://haveibeenpwned.com/API/Key) — paid |
+| `NUMVERIFY_API_KEY` | Investigate: phone carrier / line type | [numverify.com](https://numverify.com/) — free tier |
+| `GITHUB_TOKEN` | Investigate: higher GitHub API rate limit for handle lookups | [github.com/settings/tokens](https://github.com/settings/tokens) — free, no scopes |
+| `OPENSANCTIONS_API_KEY` | Investigate: wallet + entity sanctions screening | [opensanctions.org/api](https://www.opensanctions.org/api/) — free for non-commercial |
 
 ### LLM Provider (optional, for AI-enhanced ideas)
 

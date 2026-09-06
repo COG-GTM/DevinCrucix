@@ -629,9 +629,94 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .inv-chip.vuln{color:#ff5252;border-color:rgba(255,82,82,0.4)}
 .inv-chip.port{color:var(--accent);border-color:rgba(100,240,200,0.3)}
 .inv-chip.new{color:#4dd0e1;border-color:rgba(77,208,225,0.5);background:rgba(77,208,225,0.08)}
-.inv-link{color:var(--accent2);cursor:pointer;text-decoration:none;border-bottom:1px dotted rgba(68,204,255,0.4)}
+/* Investigations workbench */
+.inv-link{color:var(--accent2);cursor:pointer;text-decoration:none;border-bottom:1px dotted rgba(68,204,255,0.35)}
 .inv-link:hover{color:var(--text);border-bottom-color:var(--text)}
-.inv-err{padding:8px;color:var(--warn);font-family:var(--mono);font-size:10px}
+.inv-link.ext{color:#82aaff;border-bottom-style:dashed}
+.inv-link.ext::after{content:'\2197';font-size:8px;margin-left:2px;opacity:0.7}
+.inv-ttag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;padding:1px 5px;border:1px solid;vertical-align:middle;margin-right:4px}
+.inv-btn.ghost{border-color:var(--border);color:var(--dim);background:transparent}
+.inv-btn.ghost:hover{color:var(--text);border-color:var(--border-bright)}
+.inv-preview{min-height:16px;margin:-2px 0 6px;font-size:9px}
+.inv-views{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:8px;align-items:center}
+.inv-view{background:transparent;border:1px solid transparent;border-bottom:none;color:var(--dim);font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:6px 12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.inv-view:hover{color:var(--text)}
+.inv-view.active{color:var(--accent2);border-color:var(--border);background:rgba(68,204,255,0.05);margin-bottom:-1px;border-bottom:1px solid var(--bg)}
+.inv-view .tab-n{font-size:8px;padding:0 5px}
+.inv-views-right{margin-left:auto;font-family:var(--mono);font-size:9px;padding-right:6px}
+.inv-flag.ok{color:#4caf50}
+.inv-err{padding:8px 10px;border:1px solid rgba(255,95,99,0.4);background:rgba(255,95,99,0.06);color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:8px}
+.inv-loading{padding:18px 8px;text-align:center}
+.inv-loading-head{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--accent2);margin-bottom:10px}
+.inv-loading-head span{color:var(--dim);margin-left:8px}
+.inv-loading .inv-chips{justify-content:center}
+.inv-chip.pulse{animation:invPulse 1.4s ease-in-out infinite}
+@keyframes invPulse{0%,100%{opacity:0.35}50%{opacity:1;border-color:var(--accent2);color:var(--accent2)}}
+.inv-empty-title{font-family:var(--sans);font-size:15px;color:var(--text);margin:6px 0 10px;letter-spacing:0.01em}
+.inv-empty-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.inv-empty-grid>div{border:1px solid var(--border);padding:8px;background:rgba(255,255,255,0.015)}
+.inv-empty-grid .inv-hint{padding:2px 0 0}
+.inv-plat-grid{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.inv-plat{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;padding:3px 7px;border:1px solid rgba(255,255,255,0.08);color:var(--dim);text-decoration:none}
+.inv-plat .hdot{margin:0;width:6px;height:6px}
+.inv-plat.found{color:var(--text);border-color:rgba(100,240,200,0.4);background:rgba(100,240,200,0.06)}
+.inv-plat.found:hover{border-color:var(--accent)}
+.inv-plat.err{opacity:0.6}
+.inv-chain{font-family:var(--mono);font-size:10px;margin:2px 0 6px}
+.inv-hop{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-left:2px solid rgba(68,204,255,0.25);padding-left:8px;margin-left:4px;flex-wrap:wrap}
+.inv-hop-n{color:var(--dim);font-size:9px;min-width:12px}
+.inv-hop-status{font-size:9px;padding:0 5px;border:1px solid;min-width:28px;text-align:center}
+.inv-hop-status.ok{color:#4caf50;border-color:rgba(76,175,80,0.4)}.inv-hop-status.redir{color:#ffd54f;border-color:rgba(255,213,79,0.4)}.inv-hop-status.err{color:#ff9800;border-color:rgba(255,152,0,0.4)}.inv-hop-status.blocked{color:var(--danger);border-color:rgba(255,95,99,0.5)}
+.inv-hop-url{word-break:break-all;color:#c8d8d2}
+.inv-tools{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.inv-tools{grid-template-columns:1fr}}
+.inv-dork{display:grid;grid-template-columns:110px 1fr auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.inv-dork-label{color:var(--dim);font-family:var(--mono);font-size:9px}
+.inv-dork-q{font-family:var(--mono);font-size:10px;color:#c8d8d2;background:rgba(0,0,0,0.35);padding:3px 6px;border:1px solid var(--border);cursor:copy;word-break:break-all}
+.inv-dork-q:hover{border-color:var(--accent2)}
+.inv-dork-go{font-family:var(--mono);font-size:9px;white-space:nowrap}
+.inv-drop{display:block;border:1px dashed rgba(68,204,255,0.35);padding:14px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;background:rgba(68,204,255,0.03);margin:4px 0 6px}
+.inv-drop:hover,.inv-drop.over{border-color:var(--accent2);color:var(--text);background:rgba(68,204,255,0.08)}
+.inv-drop.busy{animation:invPulse 1s ease-in-out infinite}
+.inv-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(6,14,22,0.95);border:1px solid var(--border-bright);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:0.08em;padding:8px 14px;opacity:0;pointer-events:none;transition:all .25s;z-index:999}
+.inv-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* case graph */
+.cg-bar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.cg-svg{width:100%;height:auto;max-height:62vh;background:radial-gradient(ellipse at center,rgba(68,204,255,0.04),transparent 70%);border:1px solid var(--border)}
+.cg-edge{stroke:rgba(100,240,200,0.28);stroke-width:1}
+.cg-rel{font-family:var(--mono);font-size:7px;fill:rgba(106,138,130,0.85);text-anchor:middle;pointer-events:none}
+.cg-node{cursor:default}.cg-node.piv{cursor:pointer}
+.cg-node circle{stroke-width:1;transition:stroke-width .15s}
+.cg-node.piv:hover circle{stroke-width:2.5}
+.cg-node.focus>circle:not(.cg-ring){stroke:#fff}
+.cg-ring{fill:none;stroke-width:1.5;stroke-dasharray:3 2}
+.cg-ring.low{stroke:#4caf50}.cg-ring.elevated{stroke:#ffd54f}.cg-ring.high{stroke:#ff9800}.cg-ring.critical{stroke:#ff5252}
+.cg-label{font-family:var(--mono);font-size:8.5px;fill:#c8d8d2;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#020408;stroke-width:3px;stroke-linejoin:round}
+/* timeline */
+.inv-tl{position:relative;padding-left:4px}
+.inv-tl-year{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.14em;color:var(--accent);margin:10px 0 4px}
+.inv-tl-row{display:grid;grid-template-columns:76px 10px 1fr auto;gap:8px;align-items:center;padding:3px 0;font-size:10px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.inv-tl-date{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.inv-tl-dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 5px rgba(68,204,255,0.5)}
+.inv-tl-row.threat .inv-tl-dot{background:var(--danger);box-shadow:0 0 5px rgba(255,95,99,0.5)}
+.inv-tl-row.me .inv-tl-dot{background:var(--accent)}
+.inv-tl-row.future .inv-tl-dot{background:transparent;border:1px solid var(--dim);box-shadow:none}
+.inv-tl-text{color:#c8d8d2}
+.inv-tl-who{font-family:var(--mono);font-size:9px}
+/* case file (left rail) */
+.cf-name{width:100%;box-sizing:border-box;font-size:12px;font-weight:600;margin-bottom:6px}
+.cf-steps{display:flex;gap:3px;margin-bottom:4px}
+.cf-step{flex:1;text-align:center;font-family:var(--mono);font-size:9px;padding:4px 0 2px;border:1px solid var(--border);color:var(--dim);position:relative}
+.cf-step em{display:block;font-style:normal;font-size:6.5px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.8}
+.cf-step.done{color:#03140d;background:var(--accent);border-color:var(--accent)}
+.cf-list{max-height:34vh;overflow-y:auto;margin-bottom:6px}
+.cf-list::-webkit-scrollbar{width:3px}.cf-list::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3)}
+.cf-row{display:flex;align-items:center;gap:6px;padding:3px 4px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px}
+.cf-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cf-val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+.cf-x{color:var(--dim);cursor:pointer;font-size:12px;line-height:1;padding:0 2px}.cf-x:hover{color:var(--danger)}
+.cf-notes{width:100%;box-sizing:border-box;resize:vertical;font-size:10px;margin-bottom:6px;line-height:1.4}
+.cf-actions{display:flex;gap:4px}.cf-actions .inv-btn{flex:1;padding:6px 4px;font-size:9px}
 .ts-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
 .ts-domain{font-family:var(--mono);font-size:10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ts-base{color:var(--dim);font-size:9px;white-space:nowrap}
@@ -939,7 +1024,7 @@ const TAB_DEFS=[
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
-  {id:'investigations',label:'Investigations',hint:'On-demand OSINT pivot'},
+  {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
 const TAB_IDS=TAB_DEFS.map(t=>t.id);
@@ -960,7 +1045,7 @@ function tabCounts(){
     cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
     regional: spikes?{n:`${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:'Border Watch place spikes vs baseline'}:null,
-    investigations: INV.dossier?{n:'1',cls:'',title:'Dossier loaded'}:null,
+    investigations: (()=>{const n=Object.keys(INV.case.entities).length;const hi=Object.values(INV.case.dossiers).some(d=>d.risk&&(d.risk.level==='high'||d.risk.level==='critical'));return n?{n:String(n),cls:hi?'hot':'',title:`${n} entities in case · ${Object.keys(INV.case.dossiers).length} dossiers${hi?' · high-risk selector present':''}`}:null})(),
     sources: h?{n:`${h.live}/${h.total}`,cls:h.error?'hot':dark?'warn':'',title:`${h.live} live · ${h.degraded} degraded · ${dark} not reporting`}:null
   };
 }
@@ -1249,30 +1334,12 @@ function renderLeftRail(){
     cyber:[sensorGridPanel,renderSignalIntelPanel()],
     macro:[riskPanel,sensorGridPanel],
     regional:[sensorGridPanel,renderSourceHealthPanel()],
-    investigations:[renderInvestigateHelpPanel(),sensorGridPanel],
+    investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
   const rail=document.getElementById('leftRail');
   rail.innerHTML=(byTab[currentTab]||byTab.situation).join('');
   applyCaptions(rail);
-}
-
-// Investigations tab: which pivot providers are on, and what a key would add.
-function renderInvestigateHelpPanel(){
-  const keyed=(INV.dossier&&INV.dossier.keyed)||{};
-  const rows=[
-    ['RDAP WHOIS','keyless','registrar, dates, nameservers'],
-    ['DNS-over-HTTPS','keyless','A/AAAA/MX/NS/TXT records'],
-    ['Certificate Transparency','keyless','crt.sh subdomains + issuers'],
-    ['Shodan InternetDB','keyless','open ports, CVEs per IP'],
-    ['Look-alike probe','keyless','registered typosquats of the target'],
-    ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation'],
-    ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org'],
-    ['OpenCorporates',keyed.opencorporates?'on':'OPENCORPORATES_API_TOKEN','officers, filings, subsidiaries'],
-  ];
-  return `<div class="g-panel"><div class="sec-head"><h3>Pivot Providers</h3><span class="badge">${rows.filter(r=>r[1]==='keyless'||r[1]==='on').length}/${rows.length} ON</span></div>
-    ${rows.map(([n,st,what])=>`<div class="sh-row ${st==='keyless'||st==='on'?'live':'no_key'}"><span class="hdot ${st==='keyless'||st==='on'?'live':'no_key'}"></span><span class="sh-name">${esc(n)}</span><span class="sh-why" style="white-space:normal;overflow-wrap:anywhere;text-align:right">${esc(st==='keyless'?'NO KEY NEEDED':st==='on'?'KEY SET':'SET '+st)}</span></div><div class="sh-ms" style="text-align:left;margin:-2px 0 4px 14px">${esc(what)}</div>`).join('')}
-    <div class="sh-note">Investigations run on demand and are not part of the 15-minute sweep. Nothing is stored server-side beyond the response cache; all providers are read-only lookups.</div></div>`;
 }
 
 // Sources tab: the legend for every state the dashboard can show.
@@ -2456,7 +2523,7 @@ function renderLower(){
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     regional:[wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
-    investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half')],
+    investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
   };
   const grid=document.getElementById('lowerGrid');
@@ -2623,104 +2690,558 @@ function renderTelegramLivePanel(){
   return `<div class="g-panel right-telegram"><div class="sec-head"><h3>${shDot('TelegramLive')}Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
 }
 
-// === Phase 7: Investigate pivot (on-demand OSINT enrichment) ===
-const INV = { query: '', loading: false, dossier: null, error: null };
+// === Phase 7: Investigations workbench (on-demand OSINT: selector → dossier → case graph → report) ===
+// Every string rendered below is either analyst input or third-party derived → esc() before insertion.
+const INV_TYPE_META = {
+  domain:{label:'Domain',color:'#44ccff'}, ip:{label:'IP',color:'#64f0c8'}, url:{label:'URL',color:'#82aaff'}, email:{label:'Email',color:'#ffb84c'},
+  username:{label:'Handle',color:'#c792ea'}, phone:{label:'Phone',color:'#f78c6c'}, hash:{label:'Hash',color:'#ff5f63'}, company:{label:'Company',color:'#89ddff'},
+  btc:{label:'BTC',color:'#f9d71c'}, eth:{label:'ETH',color:'#b39ddb'}, account:{label:'Account',color:'#a6e22e'}, breach:{label:'Breach',color:'#ff5f63'}, org:{label:'Org',color:'#89ddff'}, location:{label:'Geo',color:'#4dd0e1'},
+};
+const INV_PIVOTABLE = new Set(['domain','ip','url','email','username','phone','hash','company','btc','eth']);
+const INV_SOURCES_BY_TYPE = {
+  domain:['RDAP','DoH','crt.sh','InternetDB','ipwho.is','Wayback','OTX','urlscan','HTTP fingerprint','Tor exits','look-alikes'],
+  ip:['RDAP','InternetDB','PTR','ipwho.is','OTX','Tor exits'], url:['redirect chain','page analysis','OTX','urlscan','Wayback'],
+  email:['MX/SPF/DMARC','Gravatar','Keybase','Wayback','HIBP*'], username:['platform presence probes','GitHub API','Keybase','Gravatar'],
+  phone:['E.164 parse','NANP/ITU ranges','NumVerify*'], hash:['VirusTotal*','OTX'], company:['OpenCorporates*'], btc:['mempool.space','OFAC SDN','OpenSanctions*'], eth:['BlockCypher','OFAC SDN','OpenSanctions*'],
+};
+function invNewCase(){return {name:'Untitled case',created:new Date().toISOString(),entities:{},edges:[],dossiers:{},notes:'',exported:false,viewedGraph:false,metadata:[]}}
+function invLoadCase(){try{const c=JSON.parse(localStorage.getItem('crucix_case')||'null');if(c&&c.entities&&c.edges)return {...invNewCase(),...c}}catch{}return invNewCase()}
+const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', case:invLoadCase(), meta:null, metaLoading:false, metaError:null, graphFocus:null };
+// Resume the last dossier of a persisted case so the workbench is not empty after a reload.
+if(INV.case.lastKey&&INV.case.dossiers[INV.case.lastKey]){INV.dossier=INV.case.dossiers[INV.case.lastKey];INV.graphFocus=INV.case.lastKey;INV.query=INV.dossier.target||''}
+function invSaveCase(){try{localStorage.setItem('crucix_case',JSON.stringify(INV.case))}catch(e){console.warn('case too large for localStorage',e)}}
 function esc(v){return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-function invLink(v){const s=esc(v);return `<a class="inv-link" data-inv="${s}">${s}</a>`}
+function invLink(v,hint){const s=esc(v);return `<a class="inv-link" data-inv="${s}"${hint?` data-hint="${esc(hint)}"`:''}>${s}</a>`}
+function invExt(url,label){const u=String(url||'');if(!/^https?:\/\//i.test(u))return esc(label||u);return `<a class="inv-link ext" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label||u.replace(/^https?:\/\//,'').slice(0,60))}</a>`}
 function invChips(items,cls=''){return items&&items.length?`<div class="inv-chips">${items.map(i=>`<span class="inv-chip ${cls}">${esc(i)}</span>`).join('')}</div>`:'<span style="color:var(--dim)">none</span>'}
 function invDate(d){if(!d)return '—';const t=new Date(d);return isNaN(t)?esc(d):t.toISOString().slice(0,10)}
 function invKv(pairs){return `<dl class="inv-kv">${pairs.filter(p=>p[1]!==undefined&&p[1]!==null&&p[1]!=='').map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`}
 function invSec(title,body,note){return `<div class="inv-sec"><div class="inv-sec-title"><span>${title}</span>${note?`<span class="nokey">${note}</span>`:''}</div>${body}</div>`}
+function invMissing(label){return `<span style="color:var(--warn)">${label||'missing'}</span>`}
+function invDim(t){return `<span style="color:var(--dim)">${esc(t)}</span>`}
+function invKeyed(name,envVar,what){return `<span style="color:var(--dim)">${esc(what||'not enabled')} &middot; set <code>${esc(envVar)}</code></span>`}
+function invTypeTag(type){const m=INV_TYPE_META[type]||{label:type,color:'#c8d8d2'};return `<span class="inv-ttag" style="color:${m.color};border-color:${m.color}55">${esc(m.label)}</span>`}
+function invFmtNum(n,dp=2){return typeof n==='number'?n.toLocaleString(undefined,{maximumFractionDigits:dp}):'—'}
+
+// ─── Case file: entities + edges accumulate across pivots ─────────────────────
+function invKey(type,value){return `${type}:${String(value).toLowerCase()}`}
+function invAddEntity(type,value,extra={}){
+  if(!value)return null;
+  const k=invKey(type,value);
+  const cur=INV.case.entities[k];
+  INV.case.entities[k]={type,value:String(value),first:cur?cur.first:new Date().toISOString(),...(cur||{}),...extra};
+  return k;
+}
+function invAddEdge(from,to,rel){if(!from||!to||from===to)return;if(!INV.case.edges.some(e=>e.from===from&&e.to===to&&e.rel===rel))INV.case.edges.push({from,to,rel})}
+function invHost(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch{return null}}
+
+// Pull every pivotable / graphable entity out of a dossier and link it to the target node.
+function invIngestDossier(d){
+  const root=invAddEntity(d.type,d.target,{risk:d.risk?.level,score:d.risk?.score,investigated:d.timestamp});
+  const link=(type,value,rel,extra)=>{const k=invAddEntity(type,value,extra);invAddEdge(root,k,rel)};
+  const host=h=>String(h||'').replace(/\.$/,'').toLowerCase();
+  if(d.type==='domain'){
+    for(const ip of [...(d.dns?.A||[]),...(d.dns?.AAAA||[])].slice(0,6)) link('ip',ip,'resolves to');
+    for(const ns of (d.dns?.NS||d.whois?.nameservers||[]).slice(0,4)) link('domain',host(ns),'nameserver');
+    for(const mx of (d.dns?.MX||[]).slice(0,4)){const h=host(mx.split(' ').pop());if(h&&h!=='.')link('domain',h,'mail exchanger')}
+    for(const s of (d.certificates?.subdomains||[]).slice(0,14)) if(host(s)!==d.target) link('domain',host(s),'cert SAN');
+    for(const t of (d.typosquats?.registered||[]).slice(0,8)) link('domain',t.domain,'look-alike');
+    for(const h of d.hosts||[]){ if(h.geo?.city||h.geo?.country) link('location',[h.geo.city,h.geo.country].filter(Boolean).join(', '),'hosted in',{lat:h.geo.lat,lon:h.geo.lon}); }
+  } else if(d.type==='ip'){
+    for(const h of (d.hosts?.[0]?.hostnames||[]).slice(0,8)) link('domain',host(h),'hostname');
+    for(const p of (d.reverseDns||[]).slice(0,4)) link('domain',host(p),'PTR');
+    if(d.geo?.city||d.geo?.country) link('location',[d.geo.city,d.geo.country].filter(Boolean).join(', '),'geolocated',{lat:d.geo.lat,lon:d.geo.lon});
+    if(d.geo?.org) link('org',d.geo.org,'AS operator');
+  } else if(d.type==='email'){
+    link('domain',d.domain,'mail domain');
+    if(d.pivots?.username) link('username',d.pivots.username,'local part');
+    const gp=d.gravatar?.profile;
+    if(gp){ if(gp.username) link('username',gp.username,'gravatar handle'); for(const a of gp.accounts||[]) link('account',`${a.service}: ${a.handle||invHost(a.url)||''}`,'gravatar-linked',{url:a.url}); }
+    for(const u of d.keybase?.users||[]){ link('username',u.username,'keybase'); for(const p of u.proofs||[]) link('account',`${p.service}: ${p.handle}`,'keybase proof',{url:p.url}); }
+    for(const b of (d.breaches?.breaches||[]).slice(0,12)) link('breach',b.title||b.name,'exposed in',{date:b.date,url:b.domain?`https://${b.domain}`:null});
+  } else if(d.type==='username'){
+    for(const p of (d.platforms||[]).filter(p=>p.status==='found').slice(0,30)) link('account',`${p.platform}: ${d.target}`,'profile',{url:p.url,platform:p.platform});
+    const gh=d.github; if(gh?.status==='ok'){ for(const e of gh.commitEmails||[]) link('email',e.email,'commit author'); if(gh.blog){const h=invHost(/^https?:/.test(gh.blog)?gh.blog:'https://'+gh.blog);if(h)link('domain',h,'github blog')} if(gh.twitter) link('account',`X / Twitter: ${gh.twitter}`,'github profile',{url:`https://x.com/${gh.twitter}`}); if(gh.company) link('org',gh.company.replace(/^@/,''),'github company'); if(gh.location) link('location',gh.location,'github location'); }
+    for(const u of d.keybase?.users||[]) for(const p of u.proofs||[]) link('account',`${p.service}: ${p.handle}`,'keybase proof',{url:p.url});
+    for(const a of d.gravatar?.accounts||[]) link('account',`${a.service}: ${invHost(a.url)||''}`,'gravatar-linked',{url:a.url});
+  } else if(d.type==='url'){
+    if(d.pivots?.inputDomain) link('domain',d.pivots.inputDomain,'hosted at');
+    if(d.pivots?.domain&&d.pivots.domain!==d.pivots.inputDomain) link('domain',d.pivots.domain,'lands on');
+    for(const hop of (d.chain||[]).slice(1,-1)){const h=invHost(hop.url);if(h)link('domain',h,'redirect hop')}
+    for(const h of (d.page?.externalHosts||[]).slice(0,6)) link('domain',h,'loads resources from');
+  } else if(d.type==='btc'||d.type==='eth'){
+    for(const c of (d.counterparties||[]).slice(0,8)) link(d.type,c.address,'tx counterparty');
+  } else if(d.type==='company'){
+    for(const c of (d.corporate?.companies||[]).slice(0,6)) link('org',`${c.name} (${c.jurisdiction})`,'registry match',{url:c.url});
+  } else if(d.type==='phone'){
+    if(d.country&&d.country!=='Unknown') link('location',d.country,'numbering plan');
+  }
+  INV.case.dossiers[root]=d; INV.case.lastKey=root;
+  const keys=Object.keys(INV.case.dossiers); while(keys.length>16){delete INV.case.dossiers[keys.shift()]}
+  invSaveCase();
+}
 
 async function investigateTarget(raw, type){
   const q = String(raw||'').trim();
   if (!q) return;
-  INV.query = q; INV.loading = true; INV.error = null;
+  INV.query = q; INV.loading = true; INV.loadingSince = Date.now(); INV.error = null; INV.view = INV.view==='tools'?'dossier':INV.view; if(INV.view==='graph'||INV.view==='timeline')INV.view='dossier';
+  const hint = type && type!=='auto' ? type : undefined;
   if (currentTab !== 'investigations') setTab('investigations'); else renderLower();
+  const tick=setInterval(()=>{const el=document.getElementById('invElapsed');if(el)el.textContent=((Date.now()-INV.loadingSince)/1000).toFixed(1)+'s'},100);
   try {
-    const r = await fetch(`/api/investigate?target=${encodeURIComponent(q)}${type?`&type=${encodeURIComponent(type)}`:''}`);
+    const r = await fetch(`/api/investigate?target=${encodeURIComponent(q)}${hint?`&type=${encodeURIComponent(hint)}`:''}`);
     const body = await r.json().catch(()=>({}));
     if (!r.ok) { INV.error = body.error || 'Investigation failed'; INV.dossier = null; }
-    else { INV.dossier = body; }
+    else { INV.dossier = body; INV.graphFocus = invKey(body.type, body.target); invIngestDossier(body); }
   } catch { INV.error = 'Investigation failed'; INV.dossier = null; }
+  clearInterval(tick);
   INV.loading = false;
   renderTabbar(); renderLeftRail(); renderLower();
   const panel = document.querySelector('.right-investigate');
   if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function renderDossier(d){
-  const out = [];
-  const risk = d.risk || {};
-  out.push(`<div class="inv-head"><div><div class="inv-target">${esc(d.target)}</div><div class="inv-type">${esc(d.type)} &middot; ${d.durationMs||0}ms${d.cached?' &middot; cached':''}</div></div><span class="inv-risk ${esc(risk.level||'low')}">${esc(risk.level||'low')} ${risk.score||0}</span></div>`);
-  if ((risk.flags||[]).length) out.push(`<div style="padding:4px 0">${risk.flags.map(f=>`<div class="inv-flag">&#9650; ${esc(f)}</div>`).join('')}</div>`);
+// ─── Dossier renderers ───────────────────────────────────────────────────────
+function invRiskHeader(d){
+  const risk=d.risk||{};
+  const srcs=(INV_SOURCES_BY_TYPE[d.type]||[]);
+  return `<div class="inv-head"><div><div class="inv-target">${invTypeTag(d.type)} ${esc(d.target)}</div><div class="inv-type">${d.durationMs||0}ms &middot; ${srcs.length} sources${d.cached?' &middot; cached':''} &middot; ${invDate(d.timestamp)}</div></div>
+    <div style="display:flex;gap:6px;align-items:center"><button class="inv-btn ghost" onclick="invCopyJson()" title="Copy raw dossier JSON">JSON</button><span class="inv-risk ${esc(risk.level||'low')}">${esc(risk.level||'low')} ${risk.score||0}</span></div></div>
+    ${(risk.flags||[]).length?`<div style="padding:4px 0">${risk.flags.map(f=>`<div class="inv-flag">&#9650; ${esc(f)}</div>`).join('')}</div>`:`<div class="inv-flag ok">&#10003; no risk indicators from the sources that answered</div>`}`;
+}
+function invCopyJson(){if(!INV.dossier)return;navigator.clipboard?.writeText(JSON.stringify(INV.dossier,null,2)).then(()=>invToast('Dossier JSON copied'))}
+function invToast(msg){let t=document.getElementById('invToast');if(!t){t=document.createElement('div');t.id='invToast';t.className='inv-toast';document.body.appendChild(t)}t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
 
+function invOtxSec(o){
+  if(!o)return '';
+  if(o.error)return invSec('Threat intel · AlienVault OTX',invDim(o.error));
+  if(!o.pulseCount)return invSec('Threat intel · AlienVault OTX',`<span style="color:#4caf50">0 pulses</span>${o.validation?.length?` &middot; ${invDim(o.validation.join(' · '))}`:''}`);
+  return invSec('Threat intel · AlienVault OTX',`<div style="font-size:10px"><span style="color:${o.whitelisted?'var(--dim)':'#ff9800'}">${o.pulseCount} pulses</span>${o.whitelisted?' <span class="inv-chip">whitelisted</span>':''}${o.adversaries?.length?` &middot; adversaries: ${o.adversaries.map(esc).join(', ')}`:''}</div>
+    ${o.malwareFamilies?.length?invChips(o.malwareFamilies,'vuln'):''}${o.topTags?.length?invChips(o.topTags.slice(0,10)):''}
+    ${(o.pulses||[]).slice(0,5).map(p=>`<div class="ts-row"><span class="ts-domain" style="color:#c8d8d2">${esc(p.name)}</span><span class="ts-base">${invDate(p.created)}</span></div>`).join('')}`);
+}
+function invUrlscanSec(u){
+  if(!u)return '';
+  if(u.error)return invSec('urlscan.io submissions',invDim(u.error));
+  if(!u.scans?.length)return invSec('urlscan.io submissions',invDim('no public scans'));
+  return invSec(`urlscan.io submissions`,`<div style="font-size:10px;color:var(--dim)">${invFmtNum(u.total,0)} public scans</div>${u.scans.slice(0,6).map(s=>`<div class="ts-row" style="flex-wrap:wrap"><span class="ts-domain" style="color:#c8d8d2">${esc(s.title||s.url)}</span><span class="ts-base">${invDate(s.time)}${s.ip?` · ${invLink(s.ip)}`:''}</span>${(s.tags||[]).map(t=>`<span class="inv-chip ${/phish|malicious/i.test(t)?'vuln':''}">${esc(t)}</span>`).join('')}${s.result?`<span class="ts-tech">${invExt(s.result.replace('/api/v1/result/','/result/'),'open')}</span>`:''}</div>`).join('')}`);
+}
+function invHistorySec(h,label){
+  if(!h)return '';
+  if(h.error)return invSec(label||'Wayback Machine',invDim(h.error));
+  if(!h.archived)return invSec(label||'Wayback Machine',invMissing('never archived'));
+  return invSec(label||'Wayback Machine',invKv([['First seen',h.firstUrl?invExt(h.firstUrl,h.firstSeen):esc(h.firstSeen)],['Last seen',h.lastUrl?invExt(h.lastUrl,h.lastSeen):esc(h.lastSeen)]]));
+}
+function invGeoSec(g){
+  if(!g||g.error)return '';
+  const osm=g.lat!=null?`https://www.openstreetmap.org/?mlat=${g.lat}&mlon=${g.lon}#map=10/${g.lat}/${g.lon}`:null;
+  return invSec('Geolocation · ipwho.is',invKv([['Location',esc([g.city,g.region,g.country].filter(Boolean).join(', '))],['Coords',g.lat!=null?`${g.lat.toFixed(4)}, ${g.lon.toFixed(4)} ${osm?invExt(osm,'map'):''}`:null],['ASN',g.asn?`AS${esc(g.asn)} ${esc(g.org||'')}`:null],['ISP',esc(g.isp)],['AS domain',g.asDomain?invLink(g.asDomain):null],['Timezone',esc(g.timezone)]]));
+}
+function invWebSec(w){
+  if(!w)return '';
+  if(w.error)return invSec('HTTP fingerprint',invDim(w.error));
+  const sh=w.securityHeaders||{};
+  return invSec('HTTP fingerprint',invKv([['Status',`${w.status}${w.finalUrl?' → '+invExt(w.finalUrl):''}`],['Title',esc(w.title)],['Server',esc(w.server)],['Stack',invChips(w.technologies||[])],['Sec headers',`<span class="inv-risk ${sh.grade==='A'||sh.grade==='B'?'low':sh.grade==='C'?'elevated':'high'}" style="font-size:8px">${esc(sh.grade)}</span> ${(sh.present||[]).length}/6 &middot; missing: ${(sh.missing||[]).length?invDim((sh.missing||[]).join(', ')):'none'}`],['Cookies',w.cookies]]));
+}
+
+function renderDossierDomainIp(d,out){
   const w = d.whois;
-  if (w) out.push(invSec('WHOIS / RDAP', w.error ? `<span style="color:var(--dim)">unavailable</span>` : invKv([
+  if (w) out.push(invSec('WHOIS / RDAP', w.error ? invDim('unavailable') : invKv([
     ['Registrar', esc(w.registrar)], ['Registrant', esc(w.registrant)], ['Registered', invDate(w.registered)], ['Expires', invDate(w.expires)], ['Updated', invDate(w.updated)],
     ['DNSSEC', w.dnssec===null?null:(w.dnssec?'signed':'unsigned')], ['Status', (w.status||[]).slice(0,3).map(esc).join(', ')], ['NS', (w.nameservers||[]).map(n=>invLink(n.toLowerCase())).join(' ')],
   ])));
-
   const dns = d.dns;
   if (dns) out.push(invSec('DNS', invKv([
     ['A', (dns.A||[]).map(invLink).join(' ')], ['AAAA', (dns.AAAA||[]).map(invLink).join(' ')], ['MX', (dns.MX||[]).map(m=>esc(m)).join(', ')], ['NS', (dns.NS||[]).map(n=>invLink(n.replace(/\.$/,''))).join(' ')],
-    ['SPF', dns.spf?esc(dns.spf):'<span style="color:var(--warn)">missing</span>'], ['DMARC', dns.dmarc?esc(dns.dmarc):'<span style="color:var(--warn)">missing</span>'],
+    ['SPF', dns.spf?esc(dns.spf):invMissing()], ['DMARC', dns.dmarc?esc(dns.dmarc):invMissing()],
   ])));
-
+  if (d.history) out.push(invHistorySec(d.history));
+  if (d.web) out.push(invWebSec(d.web));
   const ct = d.certificates;
-  if (ct) out.push(invSec(`Certificate Transparency`, ct.error ? `<span style="color:var(--dim)">crt.sh unavailable</span>` : `<div style="font-size:10px;color:var(--dim)">${ct.totalCerts||0} certs &middot; ${(ct.subdomains||[]).length} hostnames</div><div class="inv-chips">${(ct.subdomains||[]).slice(0,40).map(s=>`<span class="inv-chip">${invLink(s)}</span>`).join('')}</div>${(ct.certificates||[]).slice(0,3).map(c=>`<div style="font-size:9px;color:var(--dim);margin-top:2px">${esc(c.issuer)} &middot; ${esc(c.commonName)} &middot; ${invDate(c.notBefore)}→${invDate(c.notAfter)}</div>`).join('')}`));
-
+  if (ct) out.push(invSec(`Certificate Transparency`, ct.error ? invDim('crt.sh unavailable') : `<div style="font-size:10px;color:var(--dim)">${ct.totalCerts||0} certs &middot; ${(ct.subdomains||[]).length} hostnames</div><div class="inv-chips">${(ct.subdomains||[]).slice(0,40).map(s=>`<span class="inv-chip">${invLink(s)}</span>`).join('')}</div>${(ct.certificates||[]).slice(0,3).map(c=>`<div style="font-size:9px;color:var(--dim);margin-top:2px">${esc(c.issuer)} &middot; ${esc(c.commonName)} &middot; ${invDate(c.notBefore)}→${invDate(c.notAfter)}</div>`).join('')}`));
   for (const h of (d.hosts||[])) {
-    const n = h.network||{}; const sh = h.shodan||{};
+    const n = h.network||{}; const sh = h.shodan||{}; const g=h.geo||{};
     const shodanNote = sh.status==='no_key' ? 'InternetDB (keyless)' : sh.status==='ok' ? 'Shodan' : 'Shodan: '+esc(sh.error||'n/a');
-    out.push(invSec(`Host ${invLink(h.ip)}`, h.error ? `<span style="color:var(--dim)">unavailable</span>` : invKv([
-      ['Org', esc(sh.org||n.org||n.name)], ['ASN', esc(sh.asn)], ['Country', esc(sh.country||n.country)], ['Range', esc(n.range)],
+    out.push(invSec(`Host ${invLink(h.ip)}${h.tor?.isTorExit?' <span class="inv-chip vuln">TOR EXIT</span>':''}`, h.error ? invDim('unavailable') : invKv([
+      ['Org', esc(sh.org||g.org||n.org||n.name)], ['ASN', esc(sh.asn||(g.asn?'AS'+g.asn:null))], ['Location', esc([g.city,g.country].filter(Boolean).join(', ')||sh.country||n.country)], ['Range', esc(n.range)],
       ['Hostnames', (h.hostnames||[]).slice(0,6).map(invLink).join(' ')], ['Ports', invChips((sh.ports&&sh.ports.length?sh.ports:h.ports)||[], 'port')], ['CVEs', invChips((sh.vulns&&sh.vulns.length?sh.vulns:h.vulns)||[], 'vuln')],
       ['Tags', (h.tags||[]).map(esc).join(', ')], ['Services', (sh.services||[]).map(s=>esc(`${s.port}/${s.transport} ${s.product||''} ${s.version||''}`.trim())).join('; ')],
     ]), shodanNote));
   }
+  if (d.type==='ip' && d.geo) out.push(invGeoSec(d.geo));
   if (d.reverseDns && d.reverseDns.length) out.push(invSec('Reverse DNS', d.reverseDns.map(p=>invLink(p.replace(/\.$/,''))).join(' ')));
-
-  const vt = d.virustotal;
-  if (vt) {
-    if (vt.status==='no_key') out.push(invSec('VirusTotal', '<span style="color:var(--dim)">set VIRUSTOTAL_API_KEY to enable reputation lookups</span>', 'no key'));
-    else if (vt.status==='error') out.push(invSec('VirusTotal', `<span style="color:var(--dim)">${esc(vt.error)}</span>`));
-    else out.push(invSec('VirusTotal', invKv([
-      ['Verdict', `<span style="color:${vt.malicious>0?'#ff5252':'#4caf50'}">${vt.malicious} malicious</span> / ${vt.suspicious} suspicious / ${vt.harmless} harmless / ${vt.undetected} undetected`],
-      ['Reputation', vt.reputation], ['Threat', esc(vt.threatLabel)], ['Type', esc(vt.typeDescription)], ['Names', (vt.names||[]).map(esc).join(', ')], ['Categories', (vt.categories||[]).map(esc).join(', ')], ['First seen', invDate(vt.firstSeen)],
-      ['Link', `<a class="inv-link" href="${esc(vt.link)}" target="_blank" rel="noopener noreferrer">open in VirusTotal</a>`],
-    ])));
-  }
-
+  out.push(invOtxSec(d.otx));
+  out.push(invUrlscanSec(d.urlscan));
+  renderVtSec(d,out);
   const ts = d.typosquats;
-  if (ts) out.push(invSec(`Look-alike domains`, `<div style="font-size:10px;color:var(--dim)">${(ts.registered||[]).length} of ${ts.checked||0} permutations registered</div>${(ts.registered||[]).slice(0,30).map(r=>`<div class="ts-row"><span class="ts-domain">${invLink(r.domain)}</span><span class="ts-tech">${esc(r.technique)}</span></div>`).join('')}`));
-
+  if (ts) out.push(invSec(`Look-alike domains`, `<div style="font-size:10px;color:var(--dim)">${(ts.registered||[]).length} of ${ts.checked||0} permutations registered</div>${(ts.registered||[]).slice(0,30).map(r=>`<div class="ts-row"><span class="ts-domain">${invLink(r.domain)}</span><span class="ts-tech">${esc(r.technique)}</span>${(r.ips||[]).slice(0,1).map(ip=>`<span class="ts-base">${invLink(ip)}</span>`).join('')}</div>`).join('')}`));
+}
+function renderVtSec(d,out){
+  const vt = d.virustotal;
+  if (!vt) return;
+  if (vt.status==='no_key') out.push(invSec('VirusTotal', invKeyed('VirusTotal','VIRUSTOTAL_API_KEY','70+ AV engines, categories, first-seen'), 'no key'));
+  else if (vt.status==='error') out.push(invSec('VirusTotal', invDim(vt.error)));
+  else out.push(invSec('VirusTotal', invKv([
+    ['Verdict', `<span style="color:${vt.malicious>0?'#ff5252':'#4caf50'}">${vt.malicious} malicious</span> / ${vt.suspicious} suspicious / ${vt.harmless} harmless / ${vt.undetected} undetected`],
+    ['Reputation', vt.reputation], ['Threat', esc(vt.threatLabel)], ['Type', esc(vt.typeDescription)], ['Names', (vt.names||[]).map(esc).join(', ')], ['Categories', (vt.categories||[]).map(esc).join(', ')], ['First seen', invDate(vt.firstSeen)],
+    ['Link', invExt(vt.link,'open in VirusTotal')],
+  ])));
+}
+function renderDossierEmail(d,out){
+  out.push(invSec('Address anatomy',invKv([
+    ['Local part',`${esc(d.local)}${d.plusTag?` <span class="inv-chip">+tag: ${esc(d.plusTag)}</span>`:''}`],['Domain',invLink(d.domain)],
+    ['Provider',`${esc(d.provider)}${d.freeProvider?' <span class="inv-chip">free webmail</span>':''}${d.disposable?' <span class="inv-chip vuln">DISPOSABLE</span>':''}`],
+    ['Deliverable',d.deliverable?'<span style="color:#4caf50">MX present</span>':invMissing('no MX — cannot receive mail')],['MX',(d.mx||[]).map(invLink).join(' ')],
+    ['SPF',d.spf?esc(d.spf):invMissing()],['DMARC',d.dmarc?esc(d.dmarc):invMissing('missing — domain is spoofable')],
+    ['Handle pivot',d.pivots?.username?invLink(d.pivots.username,'username'):null],
+  ])));
+  const g=d.gravatar||{};
+  out.push(invSec('Gravatar',g.hasAvatar||g.profile?invKv([
+    ['Avatar',g.hasAvatar?invExt(`https://www.gravatar.com/avatar/${g.hash}?s=200`,'custom avatar set'):'default'],['Name',esc(g.profile?.displayName)],['Handle',g.profile?.username?invLink(g.profile.username,'username'):null],['Location',esc(g.profile?.location)],['Title',esc([g.profile?.jobTitle,g.profile?.company].filter(Boolean).join(' @ '))],['About',esc(g.profile?.about)],
+    ['Accounts',(g.profile?.accounts||[]).map(a=>invExt(a.url,`${a.service}${a.handle?': '+a.handle:''}`)).join(' &middot; ')],['URLs',(g.profile?.urls||[]).map(u=>invExt(u)).join(' &middot; ')],
+  ]):invDim('no Gravatar for this address (MD5 '+g.hash+')')));
+  const kb=d.keybase||{};
+  out.push(invSec('Keybase',kb.error?invDim(kb.error):kb.users?.length?kb.users.map(u=>`<div class="ts-row" style="flex-wrap:wrap">${invLink(u.username,'username')}<span class="ts-base">${esc(u.fullName||'')}${u.location?' · '+esc(u.location):''}</span>${(u.proofs||[]).map(p=>`<span class="inv-chip">${invExt(p.url,`${p.service}:${p.handle}`)}</span>`).join('')}</div>`).join(''):invDim('no Keybase identity claims this address')));
+  const b=d.breaches||{};
+  if(b.status==='no_key')out.push(invSec('Breach exposure · HIBP',invKeyed('HIBP','HIBP_API_KEY','breach names, dates, exposed data classes'),'no key'));
+  else if(b.status==='error')out.push(invSec('Breach exposure · HIBP',invDim(b.error)));
+  else out.push(invSec('Breach exposure · HIBP',b.total?`<div style="font-size:10px;color:#ff9800">${b.total} breach(es)</div>${b.breaches.map(x=>`<div class="ts-row" style="flex-wrap:wrap"><span class="ts-domain" style="color:#c8d8d2">${esc(x.title)}</span><span class="ts-base">${invDate(x.date)} · ${invFmtNum(x.pwnCount,0)} accounts</span>${x.sensitive?'<span class="inv-chip vuln">sensitive</span>':''}<div style="flex-basis:100%">${invChips(x.dataClasses)}</div></div>`).join('')}`:'<span style="color:#4caf50">not found in any known breach</span>'));
+  out.push(invHistorySec(d.domainHistory,'Domain history · Wayback'));
+}
+function renderDossierUsername(d,out){
+  const found=(d.platforms||[]).filter(p=>p.status==='found'), miss=(d.platforms||[]).filter(p=>p.status==='not_found'), err=(d.platforms||[]).filter(p=>p.status==='error');
+  const cats={};for(const p of found)(cats[p.category]=cats[p.category]||[]).push(p);
+  out.push(invSec(`Handle footprint · ${found.length}/${d.checked} platforms`,`<div class="inv-plat-grid">${found.map(p=>`<a class="inv-plat found" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" title="${esc(p.category)}"><span class="hdot live"></span>${esc(p.platform)}</a>`).join('')}${miss.map(p=>`<span class="inv-plat" title="not found (HTTP ${esc(p.http)})"><span class="hdot off"></span>${esc(p.platform)}</span>`).join('')}${err.map(p=>`<span class="inv-plat err" title="probe failed"><span class="hdot error"></span>${esc(p.platform)}</span>`).join('')}</div>
+    <div class="sh-note">Presence = platform API or a content-verified profile page, not just HTTP 200. Categories: ${Object.entries(cats).map(([c,arr])=>`${esc(c)} ${arr.length}`).join(' · ')||'none'}</div>`));
+  const gh=d.github;
+  if(gh?.status==='ok')out.push(invSec('GitHub profile',`<div style="display:flex;gap:10px;align-items:flex-start">${gh.avatar?`<img src="${esc(gh.avatar)}&s=96" width="48" height="48" style="border:1px solid var(--border);flex-shrink:0" alt="">`:''}<div style="flex:1;min-width:0">${invKv([
+    ['Name',`${esc(gh.name||gh.login)} ${invExt(gh.url,'@'+gh.login)}`],['Company',esc(gh.company)],['Location',esc(gh.location)],['Bio',esc(gh.bio)],['Blog',gh.blog?invExt(/^https?:/.test(gh.blog)?gh.blog:'https://'+gh.blog):null],['Public email',gh.email?invLink(gh.email):null],['X / Twitter',gh.twitter?invExt('https://x.com/'+gh.twitter,'@'+gh.twitter):null],
+    ['Activity',`${invFmtNum(gh.publicRepos,0)} repos · ${invFmtNum(gh.followers,0)} followers · joined ${invDate(gh.created)} · ${gh.eventCount} recent events`],['Languages',invChips(gh.languages||[])],
+    ['Commit emails',(gh.commitEmails||[]).length?gh.commitEmails.map(e=>`${invLink(e.email)} <span class="ts-base">×${e.commits}</span>`).join('<br>'):invDim('none exposed in recent public pushes')],
+    ['Top repos',(gh.topRepos||[]).map(r=>`${invExt(`${gh.url}/${r.name}`,r.name)} <span class="ts-base">★${r.stars}${r.language?' · '+esc(r.language):''}</span>`).join('<br>')],
+  ])}</div></div>`));
+  else if(gh?.status==='error')out.push(invSec('GitHub profile',invDim(gh.error)));
+  const kb=d.keybase||{};
+  if(kb.users?.length)out.push(invSec('Keybase identity proofs',kb.users.map(u=>`<div class="ts-row" style="flex-wrap:wrap"><span class="ts-domain">${esc(u.username)}</span><span class="ts-base">${esc(u.fullName||'')}${u.location?' · '+esc(u.location):''}</span>${(u.proofs||[]).map(p=>`<span class="inv-chip">${invExt(p.url,`${p.service}:${p.handle}`)}</span>`).join('')}${u.bio?`<div style="flex-basis:100%;font-size:9px;color:var(--dim)">${esc(u.bio)}</div>`:''}</div>`).join('')));
+  if(d.gravatar)out.push(invSec('Gravatar profile',invKv([['Name',esc(d.gravatar.displayName)],['Location',esc(d.gravatar.location)],['About',esc(d.gravatar.about)],['Accounts',(d.gravatar.accounts||[]).map(a=>invExt(a.url,a.service)).join(' · ')],['Profile',invExt(d.gravatar.profileUrl)]])));
+  out.push(invSec('Handle variants to try',`<div class="inv-chips">${(d.variants||[]).map(v=>`<span class="inv-chip">${invLink(v,'username')}</span>`).join('')}</div>`));
+}
+function renderDossierPhone(d,out){
+  out.push(invSec('Number analysis',invKv([
+    ['E.164',`<b>${esc(d.e164)}</b>`],['Country',`${esc(d.country)}${d.iso?` <span class="inv-chip">${esc(d.iso)}</span>`:''} ${esc(d.countryCode||'')}`],['Valid',d.valid?'<span style="color:#4caf50">parses as valid</span>':invMissing('does not parse')],
+    ['Line type',esc(d.lineType)],['Flags',(d.flags||[]).length?d.flags.map(f=>`<div class="inv-flag">&#9650; ${esc(f)}</div>`).join(''):invDim('none')],
+  ])));
+  const nv=d.numverify||{};
+  if(nv.status==='no_key')out.push(invSec('Carrier lookup · NumVerify',invKeyed('NumVerify','NUMVERIFY_API_KEY','carrier, line type, registered location'),'no key'));
+  else if(nv.status==='error')out.push(invSec('Carrier lookup · NumVerify',invDim(nv.error)));
+  else if(nv.status==='ok')out.push(invSec('Carrier lookup · NumVerify',invKv([['Carrier',esc(nv.carrier)],['Line type',esc(nv.lineType)],['Location',esc(nv.location)],['Country',esc(nv.country)],['Intl format',esc(nv.international)],['Valid',nv.valid?'yes':invMissing('no')]])));
+  const p=d.pivots||{};
+  out.push(invSec('Manual pivots (open in new tab)',`<div class="inv-chips">${invExt(p.google,'Google exact-match')} ${invExt(p.whatsapp,'WhatsApp profile')} ${invExt(p.telegram,'Telegram')} ${invExt(p.truecaller,'Truecaller')} ${invExt(p.sync,'Sync.me')}</div><div class="sh-note">Messaging-app lookups reveal profile photo / display name only if the number is registered; they do not notify the subject.</div>`));
+}
+function renderDossierUrl(d,out){
+  out.push(invSec(`Redirect chain · ${d.redirects} hop(s)`,`<div class="inv-chain">${(d.chain||[]).map((c,i)=>`<div class="inv-hop"><span class="inv-hop-n">${i}</span><span class="inv-hop-status ${c.blocked?'blocked':c.status>=300&&c.status<400?'redir':c.status>=400?'err':'ok'}">${c.blocked?'BLOCKED':c.status||'—'}</span><span class="inv-hop-url">${esc(c.url)}</span>${c.server?`<span class="ts-base">${esc(c.server)}</span>`:''}${c.blocked?`<span class="ts-tech" style="color:var(--danger)">${esc(c.blocked)}</span>`:''}</div>`).join('')}</div>
+    ${invKv([['Input host',invLink(d.host)],['Final host',d.finalHost!==d.host?invLink(d.finalHost):null],['Final status',d.finalStatus],['Query params',(d.query||[]).length?invChips(d.query):null]])}`));
+  out.push(invSec(`Phishing heuristics · ${d.phishScore}/100`,`<span class="inv-risk ${esc(d.phishLevel)}">${esc(d.phishLevel)}</span>${(d.heuristics||[]).length?d.heuristics.map(h=>`<div class="inv-flag">&#9650; ${esc(h)}</div>`).join(''):'<div class="inv-flag ok">&#10003; no structural indicators</div>'}`));
+  const pg=d.page||{};
+  out.push(invSec('Landing page',invKv([['Title',esc(pg.title)],['Type',esc(pg.contentType)],['Server',esc(pg.server)],['Forms',`${pg.forms||0}${pg.passwordFields?` <span class="inv-chip vuln">${pg.passwordFields} password field(s)</span>`:''}`],['External hosts',(pg.externalHosts||[]).map(invLink).join(' ')],['Sec headers',`${(pg.securityHeaders?.present||[]).length}/6 present`]])));
+  out.push(invOtxSec(d.otx)); out.push(invUrlscanSec(d.urlscan)); out.push(invHistorySec(d.history,'Final host history · Wayback'));
+}
+function renderDossierWallet(d,out){
+  if(d.error){out.push(invSec('Chain data',invDim(d.error)))}
+  else out.push(invSec(`${d.chain.toUpperCase()} address · ${esc(d.addressType)}`,invKv([
+    ['Balance',`<b>${invFmtNum(d.balance,8)} ${d.chain.toUpperCase()}</b>${d.balanceUsd!=null?` <span class="ts-base">≈ $${invFmtNum(d.balanceUsd,0)}</span>`:''}`],['Received',`${invFmtNum(d.totalReceived,8)}`],['Sent',`${invFmtNum(d.totalSent,8)}`],['Transactions',`${invFmtNum(d.txCount,0)}${d.unconfirmedTx?` <span class="inv-chip">${d.unconfirmedTx} unconfirmed</span>`:''}`],
+    ['Recent window',d.windowFrom?`${invDate(d.windowFrom)} → ${invDate(d.windowTo)} (${d.windowTx} tx)`:null],['Explorer',invExt(d.explorer,'open')],
+  ])));
+  const of=d.ofac||{};
+  out.push(invSec('Sanctions screening',`${of.error?invDim('OFAC list '+of.error):of.sanctioned?'<span class="inv-risk critical">OFAC SDN MATCH</span>':`<span style="color:#4caf50">not on OFAC SDN</span> <span class="ts-base">(${invFmtNum(of.listSize,0)} listed ${d.chain.toUpperCase()} addresses)</span>`}
+    <div style="margin-top:3px">${d.opensanctions?.status==='no_key'?invKeyed('OpenSanctions','OPENSANCTIONS_API_KEY','consolidated sanctions / PEP wallet matches'):d.opensanctions?.status==='error'?invDim('OpenSanctions '+d.opensanctions.error):d.opensanctions?.matches?.length?d.opensanctions.matches.map(m=>`<div class="inv-flag">&#9650; ${esc(m.caption)} · ${(m.datasets||[]).map(esc).join(', ')}</div>`).join(''):'<span style="color:#4caf50">no OpenSanctions match</span>'}</div>`));
+  if(d.recentTx?.length)out.push(invSec('Recent transactions',d.recentTx.map(t=>`<div class="ts-row"><span class="ts-domain" style="color:#c8d8d2">${invExt(`https://mempool.space/tx/${t.txid}`,t.txid.slice(0,16)+'…')}</span><span class="ts-base">${t.time?invDate(t.time):'mempool'} · ${t.inputs}→${t.outputs} · ${invFmtNum(t.valueOut,6)} BTC</span></div>`).join('')));
+  if(d.counterparties?.length)out.push(invSec('Counterparty addresses',`<div class="inv-chips">${d.counterparties.map(c=>`<span class="inv-chip">${invLink(c.address)} <span class="ts-base">×${c.interactions}</span></span>`).join('')}</div>`));
+}
+function renderDossierHash(d,out){
+  out.push(invSec('Hash',invKv([['Algorithm',esc(d.algorithm)],['Length',`${d.target.length} hex`],['Search',`${invExt('https://www.virustotal.com/gui/file/'+encodeURIComponent(d.target),'VirusTotal')} · ${invExt('https://bazaar.abuse.ch/browse.php?search=md5%3A'+encodeURIComponent(d.target),'MalwareBazaar')} · ${invExt('https://www.hybrid-analysis.com/search?query='+encodeURIComponent(d.target),'Hybrid Analysis')}`]])));
+  renderVtSec(d,out); out.push(invOtxSec(d.otx));
+}
+function renderDossierCompany(d,out){
   const co = d.corporate;
-  if (co) {
-    if (co.status==='no_key') out.push(invSec('Corporate registry', '<span style="color:var(--dim)">set OPENCORPORATES_API_TOKEN to enable company registry lookups</span>', 'no key'));
-    else if (co.status!=='ok') out.push(invSec('Corporate registry', `<span style="color:var(--dim)">OpenCorporates ${esc(co.error||'unavailable')}</span>`, 'OpenCorporates'));
-    else out.push(invSec('Corporate registry', `<div style="font-size:10px;color:var(--dim)">${co.total||0} matches</div>${(co.companies||[]).map(c=>`<div class="ts-row" style="flex-wrap:wrap"><a class="inv-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.name)}</a><span class="ts-base">${esc(c.jurisdiction)} &middot; ${esc(c.number)}</span><span class="ts-tech">${esc(c.status||'?')}</span>${c.incorporated?`<span class="ts-base">inc. ${invDate(c.incorporated)}</span>`:''}${c.address?`<div style="flex-basis:100%;font-size:9px;color:var(--dim)">${esc(c.address)}</div>`:''}</div>`).join('')}`, 'OpenCorporates'));
-  }
+  if (!co) return;
+  if (co.status==='no_key') out.push(invSec('Corporate registry', invKeyed('OpenCorporates','OPENCORPORATES_API_TOKEN','officers, filings, subsidiaries'), 'no key'));
+  else if (co.status!=='ok') out.push(invSec('Corporate registry', invDim('OpenCorporates '+(co.error||'unavailable')), 'OpenCorporates'));
+  else out.push(invSec('Corporate registry', `<div style="font-size:10px;color:var(--dim)">${co.total||0} matches</div>${(co.companies||[]).map(c=>`<div class="ts-row" style="flex-wrap:wrap">${invExt(c.url,c.name)}<span class="ts-base">${esc(c.jurisdiction)} &middot; ${esc(c.number)}</span><span class="ts-tech">${esc(c.status||'?')}</span>${c.incorporated?`<span class="ts-base">inc. ${invDate(c.incorporated)}</span>`:''}${c.address?`<div style="flex-basis:100%;font-size:9px;color:var(--dim)">${esc(c.address)}</div>`:''}</div>`).join('')}`, 'OpenCorporates'));
+  out.push(invSec('Manual pivots',`<div class="inv-chips">${invExt('https://www.sec.gov/cgi-bin/browse-edgar?company='+encodeURIComponent(d.target)+'&type=&dateb=&owner=include&count=40','SEC EDGAR')} ${invExt('https://www.sam.gov/search/?keywords='+encodeURIComponent(d.target),'SAM.gov')} ${invExt('https://opencorporates.com/companies?q='+encodeURIComponent(d.target),'OpenCorporates')} ${invExt('https://www.linkedin.com/search/results/companies/?keywords='+encodeURIComponent(d.target),'LinkedIn')} ${invExt('https://www.google.com/search?q='+encodeURIComponent('"'+d.target+'"'),'Google exact')}</div>`));
+}
+function renderDossier(d){
+  const out = [invRiskHeader(d)];
+  ({domain:renderDossierDomainIp, ip:renderDossierDomainIp, email:renderDossierEmail, username:renderDossierUsername, phone:renderDossierPhone, url:renderDossierUrl, btc:renderDossierWallet, eth:renderDossierWallet, hash:renderDossierHash, company:renderDossierCompany}[d.type]||(()=>{}))(d,out);
   return out.join('');
 }
 
+// ─── Case graph (force layout in SVG, no libraries) ──────────────────────────
+function invGraphData(){
+  const ents=INV.case.entities, edges=INV.case.edges.filter(e=>ents[e.from]&&ents[e.to]);
+  const deg={}; for(const e of edges){deg[e.from]=(deg[e.from]||0)+1;deg[e.to]=(deg[e.to]||0)+1}
+  const nodes=Object.entries(ents).map(([k,v])=>({k,...v,deg:deg[k]||0}));
+  return {nodes,edges};
+}
+function renderCaseGraph(){
+  const {nodes,edges}=invGraphData();
+  if(!nodes.length)return `<div class="inv-hint" style="text-align:center">Run a selector — every dossier adds its discovered entities and relations here.</div>`;
+  const W=920,H=460; const idx=Object.fromEntries(nodes.map((n,i)=>[n.k,i]));
+  const focus=INV.graphFocus&&idx[INV.graphFocus]!=null?INV.graphFocus:(nodes.find(n=>INV.case.dossiers[n.k])||nodes[0]).k;
+  // deterministic seed by index so the layout is stable between renders
+  nodes.forEach((n,i)=>{const a=i*2.399963;const r=40+((i*37)%140);n.x=W/2+Math.cos(a)*r;n.y=H/2+Math.sin(a)*r*0.6;n.vx=0;n.vy=0});
+  const N=nodes.length, iters=N>80?80:200, PX=90, PY=34;
+  const rep=N>40?350:600, spring=N>40?70:110;
+  for(let it=0;it<iters;it++){
+    const k=0.9-it/iters*0.8;
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){const a=nodes[i],b=nodes[j];let dx=a.x-b.x,dy=a.y-b.y;let d2=dx*dx+dy*dy||0.01;if(d2>90000)continue;const f=rep/d2;const fx=dx*f,fy=dy*f;a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy}
+    for(const e of edges){const a=nodes[idx[e.from]],b=nodes[idx[e.to]];const dx=b.x-a.x,dy=b.y-a.y;const d=Math.sqrt(dx*dx+dy*dy)||1;const f=(d-spring)*0.03;a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f}
+    for(const n of nodes){n.vx+=(W/2-n.x)*0.03;n.vy+=(H/2-n.y)*0.045;n.x+=n.vx*k;n.y+=n.vy*k;n.vx*=0.4;n.vy*=0.4;n.x=Math.max(PX,Math.min(W-PX,n.x));n.y=Math.max(PY,Math.min(H-PY,n.y))}
+  }
+  const color=t=>(INV_TYPE_META[t]||{color:'#c8d8d2'}).color;
+  const short=n=>n.value.length>22?n.value.slice(0,20)+'…':n.value;
+  const svgEdges=edges.map(e=>{const a=nodes[idx[e.from]],b=nodes[idx[e.to]];const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" class="cg-edge"/><text x="${mx.toFixed(1)}" y="${my.toFixed(1)}" class="cg-rel">${esc(e.rel)}</text>`}).join('');
+  const svgNodes=nodes.map(n=>{const r=5+Math.min(9,n.deg*1.2)+(INV.case.dossiers[n.k]?3:0);const piv=INV_PIVOTABLE.has(n.type);const risk=n.risk;return `<g class="cg-node ${piv?'piv':''} ${n.k===focus?'focus':''}" data-key="${esc(n.k)}" transform="translate(${n.x.toFixed(1)},${n.y.toFixed(1)})"><title>${esc(n.type)}: ${esc(n.value)}${risk?` · risk ${risk} ${n.score}`:''}${n.url?`\n${esc(n.url)}`:''}</title>${INV.case.dossiers[n.k]?`<circle r="${r+4}" class="cg-ring ${esc(risk||'low')}"/>`:''}<circle r="${r}" fill="${color(n.type)}" fill-opacity="${INV.case.dossiers[n.k]?0.95:0.55}" stroke="${color(n.type)}"/><text y="${r+10}" class="cg-label">${esc(short(n))}</text></g>`}).join('');
+  const legend=Object.entries(INV_TYPE_META).filter(([t])=>nodes.some(n=>n.type===t)).map(([t,m])=>`<span class="inv-chip" style="color:${m.color};border-color:${m.color}55">${esc(m.label)} ${nodes.filter(n=>n.type===t).length}</span>`).join('');
+  return `<div class="cg-bar"><div class="inv-chips">${legend}</div><span class="sh-note" style="margin:0">${nodes.length} entities · ${edges.length} relations · ring = investigated (colour = risk) · click a node to pivot, hover for detail · <a class="inv-link" onclick="invDownload('svg')">save SVG</a></span></div>
+    <svg id="caseGraphSvg" class="cg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${svgEdges}${svgNodes}</svg>`;
+}
+
+// ─── Timeline (dated facts across every dossier in the case) ─────────────────
+function invTimelineEvents(){
+  const ev=[]; const add=(t,label,who,cls)=>{if(!t)return;const d=new Date(t);if(isNaN(d))return;ev.push({t:d,label,who,cls:cls||''})};
+  for(const [k,d] of Object.entries(INV.case.dossiers)){
+    const who=d.target;
+    add(d.timestamp,'investigated in this case',who,'me');
+    if(d.whois){add(d.whois.registered,'domain registered',who);add(d.whois.updated,'WHOIS updated',who);add(d.whois.expires,'registration expires',who,'future')}
+    if(d.history){add(d.history.firstSeen,'first Wayback capture',who);add(d.history.lastSeen,'latest Wayback capture',who)}
+    if(d.domainHistory){add(d.domainHistory.firstSeen,'mail domain first archived',who)}
+    for(const c of (d.certificates?.certificates||[]).slice(0,3))add(c.notBefore,`cert issued by ${c.issuer||'?'} for ${c.commonName||'?'}`,who);
+    for(const p of (d.otx?.pulses||[]).slice(0,5))add(p.created,`OTX pulse: ${p.name}`,who,'threat');
+    for(const s of (d.urlscan?.scans||[]).slice(0,4))add(s.time,`urlscan submission${(s.tags||[]).length?' ['+s.tags.join(', ')+']':''}`,who,(s.tags||[]).some(t=>/phish|malic/i.test(t))?'threat':'');
+    for(const b of (d.breaches?.breaches||[]))add(b.date,`breach: ${b.title} (${(b.dataClasses||[]).slice(0,3).join(', ')})`,who,'threat');
+    if(d.github?.status==='ok'){add(d.github.created,'GitHub account created',who);add(d.github.updated,'GitHub profile updated',who);for(const r of (d.github.topRepos||[]).slice(0,3))add(r.pushed,`pushed to ${r.name}`,who)}
+    for(const t of (d.recentTx||[]).slice(0,6))add(t.time,`tx ${t.txid.slice(0,12)}… ${t.valueOut} BTC out`,who);
+    if(d.virustotal?.firstSeen)add(d.virustotal.firstSeen,'first seen by VirusTotal',who);
+    for(const c of (d.corporate?.companies||[]).slice(0,4))add(c.incorporated,`${c.name} incorporated (${c.jurisdiction})`,who);
+  }
+  ev.sort((a,b)=>a.t-b.t);
+  return ev;
+}
+function renderCaseTimeline(){
+  const ev=invTimelineEvents();
+  if(!ev.length)return `<div class="inv-hint" style="text-align:center">No dated facts yet — registrations, certificates, archive captures, breaches, pulses and transactions land here as you pivot.</div>`;
+  let year=null;
+  return `<div class="inv-tl">${ev.map(e=>{const y=e.t.getUTCFullYear();const hdr=y!==year?`<div class="inv-tl-year">${y}</div>`:'';year=y;return `${hdr}<div class="inv-tl-row ${e.cls}"><span class="inv-tl-date">${e.t.toISOString().slice(0,10)}</span><span class="inv-tl-dot"></span><span class="inv-tl-text">${esc(e.label)}</span><span class="inv-tl-who">${invLink(e.who)}</span></div>`}).join('')}</div>`;
+}
+
+// ─── Toolkit: dorks, external pivots, media forensics ────────────────────────
+function invDorks(){
+  const d=INV.dossier; if(!d)return [];
+  const q=d.target, Q=`"${q}"`;
+  const G=s=>`https://www.google.com/search?q=${encodeURIComponent(s)}`, DDG=s=>`https://duckduckgo.com/?q=${encodeURIComponent(s)}`;
+  const rows=[];
+  const push=(label,s)=>rows.push({label,q:s,g:G(s),ddg:DDG(s)});
+  if(d.type==='domain'){push('Indexed pages',`site:${q}`);push('Documents',`site:${q} filetype:pdf OR filetype:docx OR filetype:xlsx`);push('Login portals',`site:${q} inurl:login OR inurl:admin OR intitle:"sign in"`);push('Exposed dirs / configs',`site:${q} intitle:"index of" OR inurl:.env OR inurl:config`);push('Email addresses',`"@${q}"`);push('Mentions off-site',`${Q} -site:${q}`);push('Paste sites',`site:pastebin.com OR site:ghostbin.com OR site:paste.ee ${Q}`);push('Code leaks',`site:github.com OR site:gitlab.com ${Q}`);push('Staff on LinkedIn',`site:linkedin.com/in ${Q}`);push('Subdomains via search',`site:*.${q} -www`)}
+  else if(d.type==='ip'){push('Mentions',Q);push('Abuse reports',`${Q} abuse OR blacklist OR spam`);push('Paste sites',`site:pastebin.com ${Q}`);push('Shodan-indexed',`site:shodan.io ${Q}`)}
+  else if(d.type==='email'){push('Exact mentions',Q);push('Paste / dump sites',`site:pastebin.com OR site:throwbin.io ${Q}`);push('Social profiles',`${Q} site:linkedin.com OR site:facebook.com OR site:x.com`);push('Documents',`${Q} filetype:pdf OR filetype:xlsx`);push('Code commits',`site:github.com ${Q}`);push('Local part as handle',`"${d.local}" ${d.domain}`)}
+  else if(d.type==='username'){push('Exact handle',Q);push('Social',`${Q} site:x.com OR site:instagram.com OR site:tiktok.com OR site:reddit.com`);push('Forums',`${Q} inurl:forum OR inurl:profile OR inurl:member`);push('Paste sites',`site:pastebin.com ${Q}`);push('Code',`site:github.com OR site:gitlab.com ${Q}`);push('Images',`${Q} site:imgur.com OR site:flickr.com`);push('Gaming',`${Q} site:steamcommunity.com OR site:twitch.tv`)}
+  else if(d.type==='phone'){push('E.164',`"${d.e164}"`);push('National formats',`"${d.national.slice(-10).replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3')}" OR "${d.national.slice(-10).replace(/(\d{3})(\d{3})(\d{4})/,'($1) $2-$3')}"`);push('Classifieds / listings',`"${d.e164}" OR "${d.national}" craigslist OR facebook OR marketplace`);push('Paste sites',`site:pastebin.com "${d.national}"`)}
+  else if(d.type==='url'){push('URL mentioned',Q);push('Final host indexed',`site:${d.finalHost}`);push('Reported as phishing',`${Q} phishing OR scam OR malicious`)}
+  else if(d.type==='btc'||d.type==='eth'){push('Address mentioned',Q);push('Scam / ransom reports',`${Q} scam OR ransomware OR bitcoinabuse`);push('Forum posts',`${Q} site:reddit.com OR site:bitcointalk.org`)}
+  else if(d.type==='hash'){push('Hash mentioned',Q);push('Sandbox reports',`${Q} site:any.run OR site:hybrid-analysis.com OR site:joesandbox.com`)}
+  else if(d.type==='company'){push('Company exact',Q);push('Filings',`${Q} site:sec.gov OR site:companieshouse.gov.uk`);push('Litigation',`${Q} lawsuit OR indictment OR settlement`);push('Contracts',`${Q} site:sam.gov OR site:usaspending.gov`);push('Employees',`site:linkedin.com/in ${Q}`)}
+  return rows;
+}
+function invExternalPivots(){
+  const d=INV.dossier; if(!d)return [];
+  const q=encodeURIComponent(d.target);
+  const P={
+    domain:[['VirusTotal',`https://www.virustotal.com/gui/domain/${q}`],['Shodan',`https://www.shodan.io/search?query=hostname%3A${q}`],['Censys',`https://search.censys.io/search?resource=hosts&q=${q}`],['crt.sh',`https://crt.sh/?q=${q}`],['SecurityTrails',`https://securitytrails.com/domain/${q}/dns`],['urlscan',`https://urlscan.io/search/#${q}`],['Wayback',`https://web.archive.org/web/*/${q}`],['ViewDNS reverse IP',`https://viewdns.info/reverseip/?host=${q}&t=1`],['Whoxy history',`https://www.whoxy.com/${q}`],['DNSDumpster',`https://dnsdumpster.com/`],['BuiltWith',`https://builtwith.com/${q}`],['Hunter (emails)',`https://hunter.io/try/search/${q}`]],
+    ip:[['VirusTotal',`https://www.virustotal.com/gui/ip-address/${q}`],['Shodan',`https://www.shodan.io/host/${q}`],['Censys',`https://search.censys.io/hosts/${q}`],['AbuseIPDB',`https://www.abuseipdb.com/check/${q}`],['GreyNoise',`https://viz.greynoise.io/ip/${q}`],['OTX',`https://otx.alienvault.com/indicator/ip/${q}`],['ViewDNS reverse IP',`https://viewdns.info/reverseip/?host=${q}&t=1`],['BGP.tools',`https://bgp.tools/prefix/${q}`]],
+    url:[['VirusTotal URL',`https://www.virustotal.com/gui/search/${q}`],['urlscan',`https://urlscan.io/search/#${encodeURIComponent(d.finalHost||'')}`],['Wayback',`https://web.archive.org/web/*/${q}`],['CheckPhish',`https://checkphish.bolster.ai/`],['PhishTank',`https://phishtank.org/`],['Google Safe Browsing',`https://transparencyreport.google.com/safe-browsing/search?url=${q}`]],
+    email:[['Have I Been Pwned',`https://haveibeenpwned.com/`],['Epieos',`https://epieos.com/`],['Hunter verify',`https://hunter.io/email-verifier/${q}`],['Gravatar',`https://www.gravatar.com/${d.gravatar?.hash||''}`],['Keybase',`https://keybase.io/`],['GitHub commits',`https://github.com/search?q=${q}&type=commits`]],
+    username:[['WhatsMyName',`https://whatsmyname.app/?q=${q}`],['Namechk',`https://namechk.com/`],['Sherlock (CLI)',`https://github.com/sherlock-project/sherlock`],['GitHub',`https://github.com/${q}`],['Keybase',`https://keybase.io/${q}`],['Reddit',`https://www.reddit.com/user/${q}`],['X / Twitter',`https://x.com/${q}`],['Instagram',`https://www.instagram.com/${q}/`],['TikTok',`https://www.tiktok.com/@${q}`],['Twitch',`https://www.twitch.tv/${q}`]],
+    phone:[['Truecaller',d.pivots?.truecaller],['Sync.me',d.pivots?.sync],['WhatsApp',d.pivots?.whatsapp],['Telegram',d.pivots?.telegram],['NumLookup',`https://www.numlookup.com/`],['FCC number lookup',`https://www.fcc.gov/`]],
+    hash:[['VirusTotal',`https://www.virustotal.com/gui/file/${q}`],['MalwareBazaar',`https://bazaar.abuse.ch/browse.php?search=md5%3A${q}`],['Hybrid Analysis',`https://www.hybrid-analysis.com/search?query=${q}`],['ANY.RUN',`https://app.any.run/submissions/#filehash:${q}`],['OTX',`https://otx.alienvault.com/indicator/file/${q}`]],
+    btc:[['mempool.space',d.explorer],['Blockchair',`https://blockchair.com/bitcoin/address/${q}`],['OXT',`https://oxt.me/address/${q}`],['Bitcoin Abuse / Chainabuse',`https://www.chainabuse.com/address/${q}`],['WalletExplorer',`https://www.walletexplorer.com/address/${q}`]],
+    eth:[['Etherscan',d.explorer],['Blockchair',`https://blockchair.com/ethereum/address/${q}`],['Chainabuse',`https://www.chainabuse.com/address/${q}`],['DeBank',`https://debank.com/profile/${q}`]],
+    company:[['OpenCorporates',`https://opencorporates.com/companies?q=${q}`],['SEC EDGAR',`https://efts.sec.gov/LATEST/search-index?q=${q}`],['SAM.gov',`https://sam.gov/search/?keywords=${q}`],['USAspending',`https://www.usaspending.gov/search`],['Companies House (UK)',`https://find-and-update.company-information.service.gov.uk/search?q=${q}`],['LinkedIn',`https://www.linkedin.com/search/results/companies/?keywords=${q}`]],
+  };
+  return (P[d.type]||[]).filter(p=>p[1]);
+}
+function renderToolkit(){
+  const d=INV.dossier;
+  const dorks=invDorks(), ext=invExternalPivots();
+  return `<div class="inv-tools">
+    <div class="inv-tool-col">
+      <div class="inv-sec-title"><span>Search dorks${d?` · ${invTypeTag(d.type)} ${esc(d.target)}`:''}</span><span class="nokey">${dorks.length} queries</span></div>
+      ${d?dorks.map(r=>`<div class="inv-dork"><span class="inv-dork-label">${esc(r.label)}</span><code class="inv-dork-q" title="click to copy" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent).then(()=>invToast('Query copied'))">${esc(r.q)}</code><span class="inv-dork-go">${invExt(r.g,'G')} ${invExt(r.ddg,'DDG')}</span></div>`).join(''):'<div class="inv-hint">Run a selector to generate type-specific search-engine dorks.</div>'}
+    </div>
+    <div class="inv-tool-col">
+      <div class="inv-sec-title"><span>External pivots</span><span class="nokey">open in new tab</span></div>
+      ${d?`<div class="inv-chips" style="gap:5px">${ext.map(([n,u])=>`<span class="inv-chip" style="font-size:9px;padding:3px 7px">${invExt(u,n)}</span>`).join('')}</div>`:'<div class="inv-hint">Deep links into VirusTotal, Shodan, Censys, crt.sh, urlscan, AbuseIPDB, WhatsMyName, HIBP, mempool, Etherscan, EDGAR… appear once a selector is loaded.</div>'}
+      <div class="inv-sec-title" style="margin-top:12px"><span>Media forensics · EXIF / GPS / hashes</span><span class="nokey">parsed server-side, never stored</span></div>
+      ${renderMetaTool()}
+    </div></div>`;
+}
+function renderMetaTool(){
+  const m=INV.meta;
+  const drop=`<label class="inv-drop ${INV.metaLoading?'busy':''}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');invMetaFile(event.dataTransfer.files[0])">
+    <input type="file" accept="image/*,.pdf,.heic" style="display:none" onchange="invMetaFile(this.files[0])">${INV.metaLoading?'PARSING…':'Drop a JPEG / PNG / WebP / PDF here or click to choose (≤12 MB)'}</label>`;
+  if(INV.metaError)return drop+`<div class="inv-err">${esc(INV.metaError)}</div>`;
+  if(!m)return drop+`<div class="sh-note">Extracts camera make/model, software, capture time, GPS fix, serials and PNG text chunks (incl. AI-generation prompts). Hashes pivot straight into VirusTotal / OTX. Reverse-image: ${invExt('https://tineye.com/','TinEye')} · ${invExt('https://lens.google.com/','Google Lens')} · ${invExt('https://yandex.com/images/','Yandex')} · ${invExt('https://www.bing.com/visualsearch','Bing')}</div>`;
+  const exif=Object.entries(m.exif||{});
+  const osm=m.gps?`https://www.openstreetmap.org/?mlat=${m.gps.lat}&mlon=${m.gps.lon}#map=15/${m.gps.lat}/${m.gps.lon}`:null;
+  return drop+`<div class="inv-sec">${invKv([['File',`${esc(m.name||'(unnamed)')} · ${esc(m.format)} · ${invFmtNum(m.bytes,0)} B${m.width?` · ${m.width}×${m.height}`:''}${m.xmp?' · XMP':''}${m.iptc?' · IPTC':''}`],
+    ['Findings',(m.findings||[]).length?m.findings.map(f=>`<div class="inv-flag ${/^No EXIF/.test(f)?'ok':''}">${/GPS|serial|Owner/i.test(f)?'&#9650;':'&#9679;'} ${esc(f)}</div>`).join(''):invDim('none')],
+    ['GPS',m.gps?`<b>${m.gps.lat}, ${m.gps.lon}</b>${m.gps.altitude!=null?` · ${m.gps.altitude} m`:''}${m.gps.direction!=null?` · heading ${m.gps.direction}°`:''}${m.gps.timestamp?` · ${esc(m.gps.timestamp)} UTC`:''} ${invExt(osm,'map')} <a class="inv-link" onclick="invAddGeoToCase()">add to case</a>`:null],
+    ['SHA-256',`${invLink(m.sha256)} <span class="ts-base">pivot → VT/OTX</span>`],['MD5',invLink(m.md5)],['SHA-1',invLink(m.sha1)],
+    ['EXIF',exif.length?`<dl class="inv-kv" style="grid-template-columns:120px 1fr">${exif.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(Array.isArray(v)?v.join(', '):v)}</dd>`).join('')}</dl>`:invDim('no EXIF tags')],
+    ['Text chunks',(m.textChunks||[]).length?m.textChunks.map(t=>`<div><span class="ts-base">${esc(t.key)}</span> ${esc(t.value)}</div>`).join(''):null],['Warnings',(m.warnings||[]).map(esc).join('; ')||null]])}</div>`;
+}
+async function invMetaFile(file){
+  if(!file)return;
+  if(file.size>12*1024*1024){INV.metaError='File exceeds 12 MB';renderLower();return}
+  INV.metaLoading=true;INV.metaError=null;renderLower();
+  try{
+    const r=await fetch('/api/investigate/metadata',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-File-Name':file.name.replace(/[^\w. -]/g,'').slice(0,120)},body:file});
+    const body=await r.json().catch(()=>({}));
+    if(!r.ok){INV.metaError=body.error||'Metadata extraction failed';INV.meta=null}else{INV.meta=body;INV.case.metadata=[{name:body.name,format:body.format,sha256:body.sha256,gps:body.gps,findings:body.findings,ts:new Date().toISOString()},...(INV.case.metadata||[])].slice(0,10);invSaveCase()}
+  }catch{INV.metaError='Metadata extraction failed';INV.meta=null}
+  INV.metaLoading=false;renderLower();renderLeftRail();
+}
+function invAddGeoToCase(){const m=INV.meta;if(!m?.gps)return;const k=invAddEntity('location',`${m.gps.lat}, ${m.gps.lon}`,{lat:m.gps.lat,lon:m.gps.lon,source:m.name});const f=invAddEntity('hash',m.sha256,{source:m.name});invAddEdge(f,k,'EXIF GPS');invSaveCase();invToast('GPS fix added to case graph');renderLeftRail()}
+
+// ─── Export: JSON case bundle · Markdown report · SVG graph ──────────────────
+function invReportMarkdown(){
+  const c=INV.case, ents=Object.values(c.entities), doss=Object.values(c.dossiers);
+  const byType={};for(const e of ents)byType[e.type]=(byType[e.type]||0)+1;
+  const L=[`# CRUCIX Investigation Report — ${c.name}`,``,`Generated ${new Date().toISOString()} · Built with Devin · Cognition AI`,`Case opened ${c.created}`,``,`## Summary`,``,`- ${doss.length} selector(s) investigated, ${ents.length} entities, ${c.edges.length} relations`,`- Entity mix: ${Object.entries(byType).map(([t,n])=>`${t} ${n}`).join(', ')||'none'}`,`- Highest risk: ${doss.slice().sort((a,b)=>(b.risk?.score||0)-(a.risk?.score||0)).slice(0,1).map(d=>`${d.target} (${d.risk?.level} ${d.risk?.score})`).join('')||'n/a'}`,``,`## Selectors`,``,`| Selector | Type | Risk | Indicators |`,`|---|---|---|---|`];
+  for(const d of doss)L.push(`| ${d.target} | ${d.type} | ${d.risk?.level||'low'} ${d.risk?.score||0} | ${(d.risk?.flags||[]).join('; ')||'—'} |`);
+  L.push(``,`## Entity relations`,``,`| From | Relation | To | Type |`,`|---|---|---|---|`);
+  for(const e of c.edges){const a=c.entities[e.from],b=c.entities[e.to];if(a&&b)L.push(`| ${a.value} | ${e.rel} | ${b.value} | ${b.type} |`)}
+  const tl=invTimelineEvents(); if(tl.length){L.push(``,`## Timeline`,``);for(const e of tl)L.push(`- ${e.t.toISOString().slice(0,10)} — ${e.label} (${e.who})`)}
+  if((c.metadata||[]).length){L.push(``,`## Media examined`,``);for(const m of c.metadata)L.push(`- ${m.name||'file'} · ${m.format} · sha256 ${m.sha256}${m.gps?` · GPS ${m.gps.lat}, ${m.gps.lon}`:''}${(m.findings||[]).length?` · ${m.findings.join('; ')}`:''}`)}
+  L.push(``,`## Analyst notes`,``,c.notes||'_none_',``,`## Sources`,``,`Keyless: RDAP · Cloudflare DoH · crt.sh · Shodan InternetDB · ipwho.is · Wayback Machine · AlienVault OTX · urlscan.io · Tor exit list · Gravatar · Keybase · GitHub · mempool.space · BlockCypher · OFAC SDN digital-currency list · ${INV._status?.platformProbes||'multi-'}platform presence probes.`,`Keyed (when configured): VirusTotal · Shodan · OpenCorporates · Have I Been Pwned · NumVerify · OpenSanctions.`,``,`All lookups are passive, read-only queries of public data. Risk scores are rule-based indicators, not conclusions.`);
+  return L.join('\n');
+}
+function invDownload(kind){
+  const c=INV.case; const slug=(c.name||'case').replace(/[^a-z0-9]+/gi,'-').toLowerCase().slice(0,40)||'case'; const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,'');
+  let blob,name;
+  if(kind==='json'){blob=new Blob([JSON.stringify({...c,exportedAt:new Date().toISOString(),generator:'CRUCIX · Built with Devin · Cognition AI'},null,2)],{type:'application/json'});name=`crucix-${slug}-${stamp}.json`}
+  else if(kind==='md'){blob=new Blob([invReportMarkdown()],{type:'text/markdown'});name=`crucix-${slug}-${stamp}.md`}
+  else if(kind==='svg'){const svg=document.getElementById('caseGraphSvg');if(!svg){invToast('Open the Case Graph view first');return}const css=`<style>${[...document.styleSheets].flatMap(s=>{try{return [...s.cssRules]}catch{return []}}).filter(r=>/\.cg-/.test(r.cssText)).map(r=>r.cssText).join('')}</style>`;const x=svg.cloneNode(true);x.setAttribute('xmlns','http://www.w3.org/2000/svg');x.setAttribute('style','background:#020408');x.insertAdjacentHTML('afterbegin',css);blob=new Blob([x.outerHTML],{type:'image/svg+xml'});name=`crucix-${slug}-graph-${stamp}.svg`}
+  else return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+  INV.case.exported=true;invSaveCase();renderLeftRail();invToast(`Saved ${name}`);
+}
+function invClearCase(){if(!confirm('Clear this case? Entities, relations, notes and cached dossiers are removed from this browser.'))return;INV.case=invNewCase();INV.dossier=null;INV.error=null;INV.meta=null;INV.graphFocus=null;invSaveCase();renderTabbar();renderLeftRail();renderLower()}
+function invRemoveEntity(k){delete INV.case.entities[k];INV.case.edges=INV.case.edges.filter(e=>e.from!==k&&e.to!==k);delete INV.case.dossiers[k];if(INV.case.lastKey===k)INV.case.lastKey=Object.keys(INV.case.dossiers).pop()||null;if(INV.dossier&&invKey(INV.dossier.type,INV.dossier.target)===k){INV.dossier=INV.case.lastKey?INV.case.dossiers[INV.case.lastKey]:null;INV.graphFocus=INV.case.lastKey}invSaveCase();renderTabbar();renderLeftRail();renderLower()}
+function invSetView(v){INV.view=v;if(v==='graph'){INV.case.viewedGraph=true;invSaveCase()}renderLower();renderLeftRail()}
+
+// ─── Workbench panel (lower grid, lp-wide) ───────────────────────────────────
 function renderInvestigatePanel(){
-  const keyed = (INV.dossier && INV.dossier.keyed) || {};
-  const keyChips = ['virustotal','shodan','opencorporates'].map(k=>`<span class="inv-chip" style="color:${keyed[k]?'var(--accent)':'var(--dim)'}">${k}${keyed[k]?'':' · no key'}</span>`).join('');
+  const d=INV.dossier;
+  const hints=[['auto','AUTO'],['domain','DOMAIN'],['url','URL'],['username','HANDLE'],['phone','PHONE'],['company','CO.']];
   let body;
-  if (INV.loading) body = `<div class="inv-hint" style="text-align:center">RUNNING ENRICHMENT CHAIN…<br><span style="font-size:9px">RDAP · DoH · crt.sh · InternetDB · look-alikes</span></div>`;
-  else if (INV.error) body = `<div class="inv-err">${esc(INV.error)}</div>`;
-  else if (INV.dossier) body = renderDossier(INV.dossier);
-  else body = `<div class="inv-hint">Enter a domain, IPv4/IPv6, file hash, or company name to run the OSINT pivot chain.<br>Sources: RDAP WHOIS · DNS-over-HTTPS · Certificate Transparency · Shodan InternetDB · look-alike domain probe. Keyed: VirusTotal · Shodan · OpenCorporates.<br>Click any domain or IP in the results to pivot.</div>`;
-  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>Investigate</h3><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">PIVOT</span></div>
-    <form class="inv-form" onsubmit="event.preventDefault();investigateTarget(this.target.value, this.kind.value==='company'?'company':undefined)">
-      <input class="inv-input" name="target" maxlength="253" autocomplete="off" spellcheck="false" placeholder="domain / IP / hash / company" value="${esc(INV.query)}" oninput="INV.query=this.value">
-      <select class="inv-btn" name="kind" style="padding:6px 4px"><option value="auto">AUTO</option><option value="company" ${INV.dossier&&INV.dossier.type==='company'?'selected':''}>CO.</option></select>
+  if (INV.loading) {
+    const t=classifyClientSide(INV.query,INV.hint);
+    const srcs=INV_SOURCES_BY_TYPE[t]||['classifying selector'];
+    body = `<div class="inv-loading"><div class="inv-loading-head">RUNNING ${esc((t||'').toUpperCase()||'SELECTOR')} ENRICHMENT CHAIN <span id="invElapsed">0.0s</span></div><div class="inv-chips">${srcs.map((s,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(s)}</span>`).join('')}</div><div class="sh-note">Parallel keyless lookups; keyed providers (marked *) run when their env var is set. Username sweeps take ~5–10 s.</div></div>`;
+  }
+  else if (INV.view==='graph') body = renderCaseGraph();
+  else if (INV.view==='timeline') body = renderCaseTimeline();
+  else if (INV.view==='tools') body = renderToolkit();
+  else if (INV.error) body = `<div class="inv-err">${esc(INV.error)}</div>${renderInvestigateEmpty(true)}`;
+  else if (d) body = renderDossier(d);
+  else body = renderInvestigateEmpty(false);
+  const views=[['dossier','Dossier'],['graph',`Case graph${Object.keys(INV.case.entities).length?` <span class="tab-n">${Object.keys(INV.case.entities).length}</span>`:''}`],['timeline','Timeline'],['tools','Toolkit']];
+  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>OSINT Workbench</h3><div style="display:flex;gap:6px;align-items:center"><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">${(INV._status?.types||[]).length||Object.keys(INV_SOURCES_BY_TYPE).length} SELECTOR TYPES</span><span class="badge">PASSIVE · READ-ONLY</span></div></div>
+    <form class="inv-form" onsubmit="event.preventDefault();investigateTarget(this.target.value, this.kind.value)">
+      <input class="inv-input" name="target" maxlength="2048" autocomplete="off" spellcheck="false" placeholder="domain · URL · IPv4/6 · hash · email · @handle · +phone · BTC/ETH · company (choose CO.)" value="${esc(INV.query)}" oninput="INV.query=this.value;invPreview()">
+      <select class="inv-btn" name="kind" style="padding:6px 4px" onchange="INV.hint=this.value;invPreview()">${hints.map(([v,l])=>`<option value="${v}" ${INV.hint===v?'selected':''}>${l}</option>`).join('')}</select>
       <button class="inv-btn" type="submit" ${INV.loading?'disabled':''}>RUN</button>
     </form>
-    <div class="inv-scroll">${body}</div>
-    <div class="inv-chips" style="margin-top:6px">${INV.dossier?keyChips:''}</div></div>`;
+    <div class="inv-preview" id="invPreview">${invPreviewHtml()}</div>
+    <div class="inv-views">${views.map(([v,l])=>`<button class="inv-view ${INV.view===v?'active':''}" onclick="invSetView('${v}')">${l}</button>`).join('')}<span class="inv-views-right">${d&&INV.view==='dossier'?`<a class="inv-link" onclick="invSetView('graph')">see in graph →</a>`:''}</span></div>
+    <div class="inv-scroll">${body}</div></div>`;
 }
+function classifyClientSide(raw,hint){
+  const s=String(raw||'').trim(); if(!s)return null;
+  if(hint&&hint!=='auto')return hint;
+  if(/^https?:\/\//i.test(s)){try{const u=new URL(s);return (u.pathname!=='/'||u.search)?'url':'domain'}catch{return null}}
+  if(/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(s))return 'email';
+  if(/^(\d{1,3}\.){3}\d{1,3}$/.test(s)||/^[0-9a-f:]+:[0-9a-f:]*$/i.test(s))return 'ip';
+  if(/^0x[a-f0-9]{40}$/i.test(s))return 'eth';
+  if(/^(bc1[a-z0-9]{25,62}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(s))return 'btc';
+  if(/^([a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64})$/i.test(s))return 'hash';
+  if(/^\+[0-9][0-9 .()-]{6,}$/.test(s))return 'phone';
+  if(/^(www\.)?([a-z0-9-]+\.)+[a-z]{2,}$/i.test(s))return 'domain';
+  if(/^@?[a-z0-9][a-z0-9._-]{1,38}$/i.test(s))return 'username';
+  return null;
+}
+function invPreviewHtml(){
+  const t=classifyClientSide(INV.query,INV.hint);
+  if(!INV.query.trim())return `<span class="sh-note" style="margin:0">Auto-detects the selector type. Prefix a handle with <b>@</b>, a phone with <b>+</b>; pick <b>CO.</b> for company names, <b>HANDLE</b> to force a bare word to a username.</span>`;
+  if(!t)return `<span class="sh-note" style="margin:0;color:var(--warn)">Not recognised as a selector — choose a type from the dropdown.</span>`;
+  return `<span class="sh-note" style="margin:0">Will run as ${invTypeTag(t)} → ${(INV_SOURCES_BY_TYPE[t]||[]).map(esc).join(' · ')}</span>`;
+}
+function invPreview(){const el=document.getElementById('invPreview');if(el)el.innerHTML=invPreviewHtml()}
+function renderInvestigateEmpty(afterError){
+  const samples=[['domain','example.com'],['ip','185.220.101.1'],['email','beau@automattic.com'],['username','@torvalds'],['url','https://bit.ly/3abc'],['btc','1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'],['phone','+44 7700 900123'],['hash','44d88612fea8a8f36de82e1278abb02f']];
+  return `<div class="inv-empty">${afterError?'':`<div class="inv-empty-title">Selector in → dossier, entity graph, timeline and report out.</div>`}
+    <div class="inv-empty-grid">
+      <div><div class="inv-sec-title"><span>1 · Understand</span></div><div class="inv-hint">Name the case in the left rail. Note the question you are answering — attribution, exposure, fraud, infrastructure mapping.</div></div>
+      <div><div class="inv-sec-title"><span>2 · Prepare</span></div><div class="inv-hint">Pick the selector. Supported: ${(INV._status?.types||Object.keys(INV_SOURCES_BY_TYPE)).map(t=>esc((INV_TYPE_META[t]||{label:t}).label)).join(', ')}.</div></div>
+      <div><div class="inv-sec-title"><span>3 · Collect</span></div><div class="inv-hint">One run fans out to every relevant keyless source in parallel; keyed providers (VirusTotal, Shodan, HIBP, NumVerify, OpenCorporates, OpenSanctions) light up when configured.</div></div>
+      <div><div class="inv-sec-title"><span>4 · Analyze</span></div><div class="inv-hint">Click any blue value to pivot without losing context. The Case graph and Timeline views accumulate across pivots; risk flags are rule-based indicators.</div></div>
+      <div><div class="inv-sec-title"><span>5 · Report</span></div><div class="inv-hint">Export a Markdown report, JSON case bundle or SVG graph from the left rail. Toolkit view adds search dorks, external deep links and EXIF / GPS forensics.</div></div>
+    </div>
+    <div class="inv-sec-title" style="margin-top:8px"><span>Try a sample selector</span></div><div class="inv-chips">${samples.map(([t,v])=>`<span class="inv-chip" style="padding:3px 6px">${invTypeTag(t)} ${invLink(v)}</span>`).join('')}</div></div>`;
+}
+
+// ─── Left rail: case file + methodology + providers ─────────────────────────
+function renderCaseFilePanel(){
+  const c=INV.case; const ents=Object.entries(c.entities); const doss=Object.keys(c.dossiers).length;
+  const byType={};for(const [,e] of ents)byType[e.type]=(byType[e.type]||0)+1;
+  const steps=[['Understand',c.name!=='Untitled case'||!!c.notes],['Prepare',!!INV.query||doss>0],['Collect',doss>0],['Analyze',doss>1||c.viewedGraph],['Report',c.exported]];
+  const rows=ents.sort((a,b)=>(INV.case.dossiers[b[0]]?1:0)-(INV.case.dossiers[a[0]]?1:0)||(b[1].first||'').localeCompare(a[1].first||'')).slice(0,60).map(([k,e])=>{
+    const m=INV_TYPE_META[e.type]||{color:'#c8d8d2',label:e.type};const piv=INV_PIVOTABLE.has(e.type);
+    const val=piv?invLink(e.value):e.url?invExt(e.url,e.value):esc(e.value);
+    return `<div class="cf-row"><span class="cf-dot" style="background:${m.color}"></span><span class="cf-val" title="${esc(e.type)}: ${esc(e.value)}">${val}</span>${INV.case.dossiers[k]?`<span class="inv-risk ${esc(e.risk||'low')}" style="font-size:7px;padding:0 3px">${e.score??''}</span>`:''}<a class="cf-x" title="remove from case" onclick="invRemoveEntity('${esc(k).replace(/'/g,'&#39;')}')">×</a></div>`}).join('');
+  return `<div class="g-panel"><div class="sec-head"><h3>Case file</h3><span class="badge">${ents.length} ENT · ${c.edges.length} REL</span></div>
+    <input class="inv-input cf-name" value="${esc(c.name)}" maxlength="80" spellcheck="false" onchange="INV.case.name=this.value.trim()||'Untitled case';invSaveCase();renderLeftRail()" title="Case name">
+    <div class="cf-steps">${steps.map(([s,done],i)=>`<span class="cf-step ${done?'done':''}" title="${esc(s)}">${i+1}<em>${esc(s)}</em></span>`).join('')}</div>
+    <div class="inv-chips" style="margin:4px 0 6px">${Object.entries(byType).map(([t,n])=>`<span class="inv-chip" style="color:${(INV_TYPE_META[t]||{}).color||'#c8d8d2'}">${esc((INV_TYPE_META[t]||{label:t}).label)} ${n}</span>`).join('')||'<span class="sh-note" style="margin:0">Empty — run a selector to start populating.</span>'}</div>
+    <div class="cf-list">${rows}</div>
+    <textarea class="inv-input cf-notes" rows="3" placeholder="Analyst notes (kept in this browser, included in the report)" onchange="INV.case.notes=this.value.slice(0,4000);invSaveCase();renderLeftRail()">${esc(c.notes)}</textarea>
+    <div class="cf-actions"><button class="inv-btn" onclick="invDownload('md')" ${ents.length?'':'disabled'}>Report .md</button><button class="inv-btn" onclick="invDownload('json')" ${ents.length?'':'disabled'}>Case .json</button><button class="inv-btn ghost" onclick="invClearCase()" ${ents.length||c.notes?'':'disabled'}>Clear</button></div></div>`;
+}
+// Investigations tab: which pivot providers are on, and what a key would add.
+function renderInvestigateHelpPanel(){
+  const keyed=(INV.dossier&&INV.dossier.keyed)||INV._status?.keyed||{};
+  const probes=INV._status?.platformProbes;
+  const rows=[
+    ['RDAP · DoH · crt.sh','keyless','whois, DNS, cert transparency'],
+    ['InternetDB · Tor exits','keyless','ports, CVEs, exit-node check'],
+    ['ipwho.is · Wayback','keyless','geolocation, archive history'],
+    ['OTX · urlscan.io','keyless','threat pulses, public scans'],
+    ['Gravatar · Keybase · GitHub','keyless','identity + commit-email leaks'],
+    [`${probes?probes+' ':''}platform probes`,'keyless','handle presence, API-verified'],
+    ['mempool · BlockCypher · OFAC','keyless','BTC/ETH balances, SDN screen'],
+    ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation'],
+    ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org'],
+    ['Have I Been Pwned',keyed.hibp?'on':'HIBP_API_KEY','breach exposure per email'],
+    ['NumVerify',keyed.numverify?'on':'NUMVERIFY_API_KEY','carrier + line type'],
+    ['OpenCorporates',keyed.opencorporates?'on':'OPENCORPORATES_API_TOKEN','officers, filings, subsidiaries'],
+    ['OpenSanctions',keyed.opensanctions?'on':'OPENSANCTIONS_API_KEY','wallet + entity sanctions'],
+  ];
+  return `<div class="g-panel"><div class="sec-head"><h3>Pivot Providers</h3><span class="badge">${rows.filter(r=>r[1]==='keyless'||r[1]==='on').length}/${rows.length} ON</span></div>
+    ${rows.map(([n,st,what])=>`<div class="sh-row ${st==='keyless'||st==='on'?'live':'no_key'}"><span class="hdot ${st==='keyless'||st==='on'?'live':'no_key'}"></span><span class="sh-name">${esc(n)}</span><span class="sh-why" style="white-space:normal;overflow-wrap:anywhere;text-align:right">${esc(st==='keyless'?'NO KEY':st==='on'?'KEY SET':'SET KEY')}</span></div><div class="sh-ms" style="text-align:left;margin:-2px 0 4px 14px">${esc(what)}${st!=='keyless'&&st!=='on'?` · <code>${esc(st)}</code>`:''}</div>`).join('')}
+    <div class="sh-note">Investigations run on demand and are not part of the 15-minute sweep. Lookups are passive and read-only; nothing is stored server-side beyond a 15-minute response cache. Case state lives in this browser only.</div></div>`;
+}
+fetch('/api/investigate/status').then(r=>r.ok?r.json():null).then(s=>{if(s?.keyed){INV._status=s;if(currentTab==='investigations'){renderLeftRail();if(!INV.loading)renderLower()}}}).catch(()=>{});
 
 function renderTyposquatPanel(){
   const ts = D.typosquat || {};
@@ -2736,7 +3257,15 @@ document.addEventListener('click', e => {
   const a = e.target.closest('a.inv-link[data-inv]');
   if (!a) return;
   e.preventDefault();
-  investigateTarget(a.dataset.inv);
+  investigateTarget(a.dataset.inv, a.dataset.hint);
+});
+document.addEventListener('click', e => {
+  const g = e.target.closest('g.cg-node[data-key]');
+  if (!g) return;
+  const ent = INV.case.entities[g.dataset.key];
+  if (!ent) return;
+  if (INV_PIVOTABLE.has(ent.type)) investigateTarget(ent.value, ent.type==='username'||ent.type==='phone'||ent.type==='company'||ent.type==='url'?ent.type:undefined);
+  else if (ent.url && /^https?:\/\//i.test(ent.url)) window.open(ent.url, '_blank', 'noopener,noreferrer');
 });
 
 function renderCyberKevPanel(){
