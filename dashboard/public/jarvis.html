@@ -362,6 +362,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .meta-pill.hpill .hdot:first-child{margin-left:0}
 .layer-item.nr{opacity:0.5}
 .layer-count.nr{color:var(--dim);font-weight:500;font-size:9px;letter-spacing:0.1em;white-space:nowrap}
+.sm .smv .nr{color:var(--dim);font-weight:500;font-size:9px;letter-spacing:0.1em;white-space:nowrap}
 .layer-sub .why{color:#ffd54f}
 .sh-sum{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;color:var(--text);margin-bottom:8px}
 .sh-sum span{display:inline-flex;align-items:center}
@@ -1335,7 +1336,7 @@ function renderLeftRail(){
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`,src:'Space'},
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`,src:'InSightCrime'},
     {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
-    {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`},
+    {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`,src:'UnusualWhales'},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
     {name:'CCTV Mesh',count:D.cctvMesh?.totalCameras||0,dot:'cctv',sub:`${Object.keys(D.cctvMesh?.sourceCounts||{}).length} sources`,src:'CCTV'},
@@ -4270,13 +4271,17 @@ function renderDeltaPanel(){
 
 function renderSignalCorePanel(){
   const signalMetrics=[
-    {l:'Incident Tempo',v:D.tg.urgent.length,p:70},
-    {l:'Air Theaters',v:D.air.length,p:60},
-    {l:'Thermal Spikes',v:D.thermal.reduce((s,t)=>s+t.hc,0),p:80},
-    {l:'SDR Nodes',v:D.sdr.total,p:92},
-    {l:'Chokepoints',v:D.chokepoints.length,p:50},
-    {l:'WHO Alerts',v:D.who.length,p:40}
-  ];
+    {l:'Incident Tempo',v:D.tg.urgent.length,p:70,src:'Telegram'},
+    {l:'Air Theaters',v:D.air.length,p:60,src:D.airMeta?.fallback?['ADS-B']:['OpenSky']},
+    {l:'Thermal Spikes',v:D.thermal.reduce((s,t)=>s+t.hc,0),p:80,src:'FIRMS'},
+    {l:'SDR Nodes',v:D.sdr.total,p:92,src:'KiwiSDR'},
+    {l:'Chokepoints',v:D.chokepoints.length,p:50,src:'Maritime'},
+    {l:'WHO Alerts',v:D.who.length,p:40,src:'WHO'}
+  ].map(m=>{
+    const s=shWorst(m.src);
+    if(!shNotReporting(s))return m;
+    return {...m,p:0,v:`<span class="nr" title="${esc(s.name)}: ${SH_LABEL[s.state]}${s.reason?' \u2014 '+esc(s.reason):''}">${SH_LABEL[s.state]}</span>`};
+  });
   const p=D.situation?.prc;
   const tensionColor = !p?'var(--dim)':p.score >= 70 ? '#f44336' : p.score >= 40 ? '#ff9800' : p.score >= 15 ? '#ffd740' : '#4caf50';
   return `<div class="g-panel right-core">
