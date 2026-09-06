@@ -238,7 +238,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ct-key i{display:inline-block;width:14px;height:0;vertical-align:middle;margin-right:5px;border-top:2px solid}
 .ct-key i.dash{border-top-style:dashed;border-color:#ffd54f}
 .ct-key i.solid{border-color:#ff5252}
-#cartelPopup{max-height:calc(100% - 24px);overflow-y:auto;scrollbar-width:thin}
+#cartelPopup,#mapPopup{overflow-y:auto;scrollbar-width:thin}
 .ct-hint{position:absolute;right:8px;top:8px;font-family:var(--mono);font-size:8px;letter-spacing:0.08em;color:var(--dim);background:rgba(0,0,0,0.6);padding:3px 7px;border:1px solid var(--border);pointer-events:none;z-index:4}
 .ct-chips{display:flex;flex-direction:column;gap:4px;margin:6px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase}
 .ct-chiprow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
@@ -2158,15 +2158,27 @@ function showPopup(event,head,text,meta,lat,lng,alt){
   } else {
     left=rect.width/2 - 140; top=rect.height/2 - 60;
   }
-  if(left+290>rect.width) left=left-300;
-  if(top+150>rect.height) top=top-160;
-  if(left<0) left=10;
-  if(top<0) top=10;
-  popup.style.left=left+'px';popup.style.top=top+'px';
+  fillPopup(popup,head,text,meta);
+  placePopup(popup,rect,left,top);
+}
+function fillPopup(popup,head,text,meta){
   popup.querySelector('.pp-head').textContent=head||'';
   popup.querySelector('.pp-text').innerHTML=text||'';
   popup.querySelector('.pp-meta').textContent=meta||'';
+}
+// Keeps the whole popup inside its map container: measured after the content is set, so long
+// descriptions are nudged up and capped (scrolling inside the popup) instead of being clipped.
+function placePopup(popup,rect,left,top){
+  const pad=10;
+  popup.style.maxHeight=Math.max(120,rect.height-pad*2)+'px';
+  popup.style.left='0px';popup.style.top='0px';
   popup.classList.add('show');
+  const w=popup.offsetWidth||280,h=popup.offsetHeight||150;
+  if(left+w>rect.width-pad)left=left-w-20;
+  if(top+h>rect.height-pad)top=rect.height-pad-h;
+  if(left<pad)left=pad;
+  if(top<pad)top=pad;
+  popup.style.left=left+'px';popup.style.top=top+'px';
 }
 function closePopup(){document.getElementById('mapPopup').classList.remove('show')}
 
@@ -2942,12 +2954,8 @@ function ctPopup(ev,head,html,meta){
   if(!popup||!wrap)return;
   const rect=wrap.getBoundingClientRect();
   let left=ev&&ev.clientX!=null?ev.clientX-rect.left+10:rect.width/2-140, top=ev&&ev.clientY!=null?ev.clientY-rect.top-10:rect.height/2-60;
-  if(left+290>rect.width)left-=300;if(top+260>rect.height)top=Math.max(10,rect.height-270);if(left<0)left=10;if(top<0)top=10;
-  popup.style.left=left+'px';popup.style.top=top+'px';
-  popup.querySelector('.pp-head').textContent=head||'';
-  popup.querySelector('.pp-text').innerHTML=html||'';
-  popup.querySelector('.pp-meta').textContent=meta||'';
-  popup.classList.add('show');
+  fillPopup(popup,head,html,meta);
+  placePopup(popup,rect,left,top);
 }
 function initCartelMap(){
   const wrap=document.getElementById('cartelMapWrap'),svgEl=document.getElementById('cartelMapSvg');
