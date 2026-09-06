@@ -10,6 +10,11 @@
 import { isIP } from 'net';
 import { safeFetch } from '../utils/fetch.mjs';
 import { generatePermutations, resolveMany } from './typosquat.mjs';
+import {
+  EMAIL_RE, USERNAME_RE, PHONE_RE, URL_RE, BTC_RE, ETH_RE,
+  geolocate, wayback, otx, urlscan, torExitCheck, httpFingerprint,
+  investigateEmail, investigateUsername, investigatePhone, investigateUrl, investigateWallet, osintKeyedStatus,
+} from './osint.mjs';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const CACHE_MAX = 200;
@@ -34,15 +39,40 @@ function providerError(source, raw) {
   return 'unavailable';
 }
 
+export const TARGET_TYPES = ['domain', 'ip', 'hash', 'company', 'email', 'username', 'phone', 'url', 'btc', 'eth'];
+export const TARGET_HINTS = new Set(['auto', 'company', 'username', 'phone', 'domain', 'url']);
+
+// Whitelist classification: every accepted value matches exactly one bounded pattern.
+// `hint` disambiguates selectors that are ambiguous on their own (company names,
+// bare usernames vs domains, phone numbers vs hashes).
 export function classifyTarget(raw, hint) {
   const s = String(raw || '').trim();
-  if (!s || s.length > 253) return null;
+  if (!s || s.length > 2048) return null;
   const lower = s.toLowerCase();
   if (hint === 'company') return COMPANY_RE.test(s) ? { type: 'company', value: s } : null;
+  if (hint === 'username') return USERNAME_RE.test(s) && s.length <= 39 ? { type: 'username', value: s } : null;
+  if (hint === 'phone') return PHONE_RE.test(s) && s.replace(/\D/g, '').length >= 7 ? { type: 'phone', value: s } : null;
+  if (hint === 'url') return URL_RE.test(s) ? { type: 'url', value: s } : null;
+  if (/^https?:\/\//i.test(s)) {
+    if (!URL_RE.test(s)) return null;
+    let u; try { u = new URL(s); } catch { return null; }
+    // A bare origin is really a domain question; anything with a path or query is a URL question.
+    if (hint !== 'domain' && (u.pathname !== '/' || u.search || u.username)) return { type: 'url', value: s };
+    const host = u.hostname.toLowerCase().replace(/^www\./, '');
+    if (isIP(host)) return { type: 'ip', value: host };
+    return DOMAIN_RE.test(host) ? { type: 'domain', value: host } : null;
+  }
+  if (s.length > 253) return null;
+  if (EMAIL_RE.test(lower)) return { type: 'email', value: lower };
   if (isIP(lower)) return { type: 'ip', value: lower };
+  if (ETH_RE.test(s)) return { type: 'eth', value: s };
+  if (BTC_RE.test(s) && !/^[0-9]+$/.test(s)) return { type: 'btc', value: s };
   if (HASH_RE.test(lower)) return { type: 'hash', value: lower };
-  const noScheme = lower.replace(/^[a-z]+:\/\//, '').split(/[/?#]/)[0].replace(/^www\./, '');
+  if (/^\+[0-9][0-9 .()-]{6,}$/.test(s) && PHONE_RE.test(s)) return { type: 'phone', value: s };
+  const noScheme = lower.replace(/^www\./, '').split(/[/?#]/)[0];
   if (DOMAIN_RE.test(noScheme)) return { type: 'domain', value: noScheme };
+  // Bare words are ambiguous (hostnames, typos); only an explicit @handle auto-classifies as a username.
+  if (/^@[a-z0-9][a-z0-9._-]{1,38}$/i.test(s)) return { type: 'username', value: s.slice(1) };
   return null;
 }
 
@@ -235,6 +265,41 @@ function scoreDossier(d) {
   const exposed = (d.hosts || []).flatMap(h => (h.ports || []).filter(p => riskyPorts.has(p)));
   if (exposed.length) { score += Math.min(15, exposed.length * 5); flags.push(`Sensitive services exposed: ${[...new Set(exposed)].join(', ')}`); }
   if (d.typosquats?.registered?.length) { score += 5; flags.push(`${d.typosquats.registered.length} registered look-alike domain(s)`); }
+  if (d.otx?.pulseCount > 0 && !d.otx.whitelisted) { score += Math.min(25, 5 + d.otx.pulseCount); flags.push(`Appears in ${d.otx.pulseCount} OTX threat pulse(s)${d.otx.malwareFamilies?.length ? ': ' + d.otx.malwareFamilies.slice(0, 3).join(', ') : ''}`); }
+  else if (d.otx?.pulseCount > 0) flags.push(`${d.otx.pulseCount} OTX pulse(s) but indicator is OTX-whitelisted (${d.otx.validation?.find(v => /whitelist/i.test(v)) || 'likely benign'})`);
+  if (d.tor?.isTorExit) { score += 15; flags.push('Tor exit node'); }
+  if (d.web?.securityHeaders?.grade === 'F' && d.web?.status) { score += 3; flags.push('No HTTP security headers'); }
+  if (!d.otx?.whitelisted && d.urlscan?.scans?.some(s => (s.tags || []).some(t => /phish|malicious|threat/i.test(t)))) { score += 15; flags.push('Tagged phishing/malicious in urlscan.io submissions'); }
+  // Email
+  if (d.type === 'email') {
+    if (!d.deliverable) { score += 20; flags.push('Domain has no MX records: address cannot receive mail'); }
+    if (d.disposable) { score += 30; flags.push('Disposable / throwaway mail provider'); }
+    if (d.breaches?.status === 'ok' && d.breaches.total > 0) { score += Math.min(30, 10 + d.breaches.total * 3); flags.push(`Present in ${d.breaches.total} known data breach(es)`); }
+    if (d.mx?.length && !d.spf) { score += 5; flags.push('Sender domain has no SPF'); }
+    if (d.mx?.length && !d.dmarc) { score += 5; flags.push('Sender domain has no DMARC (spoofable)'); }
+    if (d.domainHistory && d.domainHistory.archived === false) { score += 5; flags.push('Domain has no Wayback history'); }
+  }
+  if (d.type === 'username') {
+    if (d.foundCount === 0) flags.push('Handle not found on any checked platform');
+    if (d.github?.commitEmails?.length) flags.push(`${d.github.commitEmails.length} email address(es) leaked via public commits`);
+    if (d.foundCount >= 8) flags.push(`Handle reused across ${d.foundCount} platforms (strong cross-platform identity)`);
+  }
+  if (d.type === 'phone') {
+    if (!d.valid) { score += 20; flags.push('Number does not parse as a valid E.164 number'); }
+    for (const f of d.flags || []) flags.push(f);
+    if (d.lineType === 'premium-rate') score += 20;
+    if (d.numverify?.status === 'ok' && d.numverify.valid === false) { score += 30; flags.push('Carrier lookup reports number invalid'); }
+  }
+  if (d.type === 'url') {
+    score = Math.max(score, d.phishScore || 0);
+    for (const f of d.heuristics || []) flags.push(f);
+    if (d.redirects >= 3) { score += 10; flags.push(`${d.redirects} redirect hops`); }
+  }
+  if (d.type === 'btc' || d.type === 'eth') {
+    if (d.ofac?.sanctioned) { score = 100; flags.push('ADDRESS IS ON THE OFAC SDN LIST'); }
+    if (d.opensanctions?.status === 'ok' && d.opensanctions.matches?.length) { score = 100; flags.push(`Sanctions match: ${d.opensanctions.matches[0].caption}`); }
+    if (d.txCount === 0) flags.push('Address has never transacted');
+  }
   score = Math.min(100, score);
   const level = score >= 60 ? 'critical' : score >= 35 ? 'high' : score >= 15 ? 'elevated' : 'low';
   return { score, level, flags };
@@ -255,22 +320,27 @@ async function investigateDomain(domain) {
     })(),
   ]);
   const ips = [...new Set((dns.A || []).length ? dns.A : (dns.AAAA || []))].slice(0, 4);
-  const hosts = await Promise.all(ips.map(async ip => {
-    const [idb, ipWhois, shodan] = await Promise.all([internetDb(ip), rdapIp(ip), shodanHost(ip)]);
-    return { ...idb, network: ipWhois, shodan };
-  }));
-  return { whois, dns, certificates: ct, virustotal: vt, typosquats: typo, hosts };
+  const [hosts, history, threat, scans, web] = await Promise.all([
+    Promise.all(ips.map(async ip => {
+      const [idb, ipWhois, shodan, geo, tor] = await Promise.all([internetDb(ip), rdapIp(ip), shodanHost(ip), geolocate(ip), torExitCheck(ip)]);
+      return { ...idb, network: ipWhois, shodan, geo, tor };
+    })),
+    wayback(domain), otx('domain', domain), urlscan(domain), ips.length ? httpFingerprint(`https://${domain}/`) : Promise.resolve(null),
+  ]);
+  return { whois, dns, certificates: ct, virustotal: vt, typosquats: typo, hosts, history, otx: threat, urlscan: scans, web, tor: hosts.find(h => h.tor?.isTorExit)?.tor || null };
 }
 
 async function investigateIp(ip) {
-  const [idb, network, ptr, vt, shodan] = await Promise.all([
-    internetDb(ip), rdapIp(ip), reverseDns(ip), virusTotal('ip', ip), shodanHost(ip),
+  const [idb, network, ptr, vt, shodan, geo, tor, threat] = await Promise.all([
+    internetDb(ip), rdapIp(ip), reverseDns(ip), virusTotal('ip', ip), shodanHost(ip), geolocate(ip), torExitCheck(ip), otx('ip', ip),
   ]);
-  return { hosts: [{ ...idb, network, shodan }], reverseDns: ptr, virustotal: vt };
+  return { hosts: [{ ...idb, network, shodan, geo, tor }], reverseDns: ptr, virustotal: vt, geo, tor, otx: threat };
 }
 
+const HASH_ALGO = { 32: 'MD5', 40: 'SHA-1', 64: 'SHA-256' };
 async function investigateHash(hash) {
-  return { virustotal: await virusTotal('hash', hash) };
+  const [vt, threat] = await Promise.all([virusTotal('hash', hash), otx('hash', hash)]);
+  return { algorithm: HASH_ALGO[hash.length] || 'unknown', virustotal: vt, otx: threat };
 }
 
 async function investigateCompany(name) {
@@ -282,6 +352,7 @@ export function keyedSourceStatus() {
     virustotal: !!process.env.VIRUSTOTAL_API_KEY,
     shodan: !!process.env.SHODAN_API_KEY,
     opencorporates: !!process.env.OPENCORPORATES_API_TOKEN,
+    ...osintKeyedStatus(),
   };
 }
 
@@ -291,7 +362,11 @@ export async function investigate(target) {
   if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return { ...cached.dossier, cached: true };
 
   const start = Date.now();
-  const runner = { domain: investigateDomain, ip: investigateIp, hash: investigateHash, company: investigateCompany }[target.type];
+  const runner = {
+    domain: investigateDomain, ip: investigateIp, hash: investigateHash, company: investigateCompany,
+    email: investigateEmail, username: investigateUsername, phone: investigatePhone, url: investigateUrl,
+    btc: v => investigateWallet('btc', v), eth: v => investigateWallet('eth', v),
+  }[target.type];
   const result = await runner(target.value);
   const dossier = {
     target: target.value,
@@ -310,7 +385,7 @@ export async function investigate(target) {
 
 // Standalone test: node apis/sources/investigate.mjs example.com
 if (process.argv[1]?.endsWith('investigate.mjs')) {
-  const target = classifyTarget(process.argv[2] || 'example.com');
+  const target = classifyTarget(process.argv[2] || 'example.com', process.argv[3]);
   if (!target) { console.error('Invalid target'); process.exit(1); }
   investigate(target).then(d => console.log(JSON.stringify(d, null, 2)));
 }

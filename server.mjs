@@ -34,7 +34,8 @@ import { computeDefcon } from './apis/sources/defcon.mjs';
 
 // Phase 6: Osiris-Ported Features
 import { getRegionDossier } from './apis/sources/regiondossier.mjs';
-import { classifyTarget, investigate, keyedSourceStatus } from './apis/sources/investigate.mjs';
+import { classifyTarget, investigate, keyedSourceStatus, TARGET_HINTS, TARGET_TYPES } from './apis/sources/investigate.mjs';
+import { parseImageMetadata, PLATFORMS } from './apis/sources/osint.mjs';
 import { briefing as typosquatBriefing, getWatchlist as typosquatWatchlist } from './apis/sources/typosquat.mjs';
 import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_KEYS as BORDER_TOPICS, PLACE_BY_KEY as BORDER_PLACES } from './apis/sources/bordernews.mjs';
 
@@ -442,17 +443,34 @@ app.get('/api/region-dossier', async (req, res) => {
   }
 });
 
-// API: Investigate pivot — on-demand OSINT enrichment for a domain / IP / hash / company
-const INVESTIGATE_TYPES = new Set(['auto', 'company']);
+// API: Investigate pivot — on-demand OSINT enrichment for a selector
+// (domain / IP / hash / company / email / username / phone / URL / BTC / ETH).
+// Per-client token bucket: investigations fan out to many third-party APIs.
+const INV_RATE = { windowMs: 60_000, max: 20 };
+const _invBuckets = new Map();
+function investigateRateLimited(ip) {
+  const now = Date.now();
+  const b = _invBuckets.get(ip) || { start: now, n: 0 };
+  if (now - b.start > INV_RATE.windowMs) { b.start = now; b.n = 0; }
+  b.n++;
+  _invBuckets.set(ip, b);
+  if (_invBuckets.size > 5000) for (const [k, v] of _invBuckets) if (now - v.start > INV_RATE.windowMs) _invBuckets.delete(k);
+  return b.n > INV_RATE.max;
+}
+
 app.get('/api/investigate', async (req, res) => {
   const raw = typeof req.query.target === 'string' ? req.query.target.trim() : '';
   const hint = typeof req.query.type === 'string' ? req.query.type : 'auto';
-  if (!raw || raw.length > 253 || !INVESTIGATE_TYPES.has(hint)) {
+  if (!raw || raw.length > 2048 || !TARGET_HINTS.has(hint)) {
     return res.status(400).json({ error: 'Invalid request' });
   }
-  const target = classifyTarget(raw, hint === 'company' ? 'company' : undefined);
+  if (investigateRateLimited(req.ip)) {
+    console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate_rate_limited', ip: req.ip }));
+    return res.status(429).json({ error: 'Too many investigations; wait a minute' });
+  }
+  const target = classifyTarget(raw, hint === 'auto' ? undefined : hint);
   if (!target) {
-    return res.status(400).json({ error: 'Target must be a domain, IPv4/IPv6 address, MD5/SHA1/SHA256 hash, or company name' });
+    return res.status(400).json({ error: 'Selector not recognized. Supported: domain, URL, IPv4/IPv6, MD5/SHA1/SHA256 hash, email, @username, +phone, BTC/ETH address, or company name (choose CO.)' });
   }
   console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate', ip: req.ip, type: target.type, target: target.value }));
   try {
@@ -464,7 +482,22 @@ app.get('/api/investigate', async (req, res) => {
 });
 
 app.get('/api/investigate/status', (req, res) => {
-  res.json({ keyed: keyedSourceStatus(), typosquatWatchlist: typosquatWatchlist() });
+  res.json({ keyed: keyedSourceStatus(), types: TARGET_TYPES, platformProbes: PLATFORMS.length, typosquatWatchlist: typosquatWatchlist() });
+});
+
+// API: Image / document metadata — parsed in-process, nothing is written to disk or forwarded upstream.
+const META_MAX_BYTES = 12 * 1024 * 1024;
+app.post('/api/investigate/metadata', express.raw({ type: () => true, limit: META_MAX_BYTES }), (req, res) => {
+  if (!Buffer.isBuffer(req.body) || req.body.length < 16) return res.status(400).json({ error: 'Invalid request' });
+  if (investigateRateLimited(req.ip)) return res.status(429).json({ error: 'Too many investigations; wait a minute' });
+  const name = String(req.get('x-file-name') || '').replace(/[^\w. -]/g, '').slice(0, 120);
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate_metadata', ip: req.ip, bytes: req.body.length }));
+  try {
+    res.json({ name, ...parseImageMetadata(req.body) });
+  } catch (err) {
+    console.error('[Crucix] Metadata parse error:', err);
+    res.status(500).json({ error: 'Metadata extraction failed' });
+  }
 });
 
 // API: Typosquat Watch — look-alike domains registered against the watchlist
