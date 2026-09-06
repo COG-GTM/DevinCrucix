@@ -1386,11 +1386,21 @@ const FRONT_TYPES=['front-poly','front-attack','front-change','front-unit','fron
 const FRONT_STYLE={
   occupied:{fill:'rgba(229,57,53,0.30)',stroke:'rgba(255,110,64,0.95)',label:'Occupied since 2022'},
   occupied_pre2022:{fill:'rgba(140,30,30,0.28)',stroke:'rgba(229,115,115,0.6)',label:'Occupied pre-2022 (Crimea, ORDLO)'},
-  contested:{fill:'rgba(255,193,7,0.26)',stroke:'rgba(255,213,79,0.9)',label:'Contested / grey zone'},
+  contested:{fill:'rgba(158,158,158,0.30)',stroke:'rgba(207,207,207,0.9)',label:'Contested / grey zone'},
   liberated:{fill:'rgba(66,165,245,0.14)',stroke:'rgba(100,181,246,0.7)',label:'Liberated'},
 };
 const FRONT_CHANGE_COLOR={advance:'rgba(255,110,64,0.95)',regain:'rgba(100,181,246,0.95)',other:'rgba(200,200,200,0.8)'};
 function frontWanted(){return FRONT_TYPES.some(t=>layerOn(t))}
+// One label per update, and none within ~0.3° of an already-labelled point; every change still gets a dot.
+function frontLabelled(changes){
+  const kept=[],texts=new Set();
+  return (changes||[]).map(c=>{
+    const near=kept.some(k=>Math.hypot(k.lat-c.lat,k.lon-c.lon)<0.3);
+    const label=!near&&!texts.has(c.text||c.name)&&Boolean(c.name);
+    if(label){kept.push(c);texts.add(c.text||c.name);}
+    return {...c,label};
+  });
+}
 // Returns geometry when loaded for the current map; otherwise kicks off one fetch and returns null.
 function frontGeoNow(){
   if(!frontWanted())return null;
@@ -1951,11 +1961,11 @@ function plotMarkers(){
         popHead:'Attack direction', popMeta:'DeepStateMAP', popText:`${esc(p.name||'')}${Number.isFinite(p.heading)?`<br>Heading ${Math.round(p.heading)}°`:''}<br><span style="color:var(--dim)">Assessed axis of Russian pressure.</span>` });
       if(Number.isFinite(p.heading)) frontPaths.push({ pts: frontArrow(p.lat, p.lon, p.heading, 18), color:'rgba(255,110,64,0.9)', stroke:0.7 });
     });
-    if(layerOn('front-change')) (fg.changes||[]).forEach(c => {
+    if(layerOn('front-change')) frontLabelled(fg.changes).forEach(c => {
       const pop = frontChangePop(c);
-      points.push({ lat:c.lat, lng:c.lon, size:0.28, alt:0.02, color:FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other, type:'front-change', priority:1,
+      points.push({ lat:c.lat, lng:c.lon, size:0.22, alt:0.02, color:FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other, type:'front-change', priority:1,
         popHead:pop.head, popMeta:pop.meta, popText:pop.text });
-      labels.push({ type:'front-change', lat:c.lat, lng:c.lon+0.25, text:c.name||'', size:0.22, color:FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other });
+      if(c.label) labels.push({ type:'front-change', lat:c.lat, lng:c.lon+0.25, text:c.name||'', size:0.22, color:FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other });
     });
     if(layerOn('front-unit')) fg.points.filter(p => p.cat === 'unit').forEach(u => {
       const pop = frontUnitPop(u);
@@ -2165,7 +2175,7 @@ function drawFlatMap(){
 // Keep marker labels at constant screen size and damp circle growth as the flat map zooms.
 function scaleFlatMarkers(k){
   if(!flatG)return;
-  flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/Math.sqrt(k)});
+  flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/k}).attr('stroke-width',function(){return (this.classList.contains('conflict-ring')?1.5:0.8)/k});
   flatG.selectAll('.marker-label').style('font-size',(9/k)+'px').style('display',k>=2.5?'block':'none');
 }
 
@@ -2202,10 +2212,10 @@ function plotFlatMarkers(){
       const pop={head:'Attack direction',text:`${esc(p.name||'')}${Number.isFinite(p.heading)?'<br>Heading '+Math.round(p.heading)+'\u00b0':''}`,meta:'DeepStateMAP'};
       addPt(p.lat,p.lon,1.6,'rgba(255,110,64,0.95)','rgba(255,110,64,0.4)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),1,'front-attack');
     });
-    (fg.changes||[]).forEach(c=>{
+    frontLabelled(fg.changes).forEach(c=>{
       const pop=frontChangePop(c);const clr=FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other;
-      const g=addPt(c.lat,c.lon,3.2,clr,'rgba(255,255,255,0.35)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),1,'front-change');
-      if(g) g.append('text').attr('class','marker-label').attr('x',5).attr('y',3).attr('fill',clr).attr('font-size','8px').attr('font-family','var(--mono)').text(c.name||'');
+      const g=addPt(c.lat,c.lon,2.4,clr,'rgba(255,255,255,0.35)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),1,'front-change');
+      if(g&&c.label) g.append('text').attr('class','marker-label').attr('x',5).attr('y',3).attr('fill',clr).attr('font-size','8px').attr('font-family','var(--mono)').text(c.name||'');
     });
     fg.points.filter(p=>p.cat==='unit').forEach(u=>{
       const pop=frontUnitPop(u);
@@ -2269,7 +2279,7 @@ function plotFlatMarkers(){
     const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',1)
       .on('click',ev=>{ev.stopPropagation();showPopup(ev,e.type||'CONFLICT',`${e.fatalities} fatalities<br>${e.location}, ${e.country}`,'ACLED')});
     g.append('circle').attr('class','conflict-ring marker-circle').attr('r',r).attr('data-base-r',r).attr('fill','none').attr('stroke','rgba(255,120,80,0.7)').attr('stroke-width',1.5);
-    g.append('circle').attr('r',r*0.4).attr('fill','rgba(255,120,80,0.3)');
+    g.append('circle').attr('class','marker-circle').attr('r',r*0.4).attr('data-base-r',r*0.4).attr('fill','rgba(255,120,80,0.3)').attr('stroke','none');
   });
   // Flight corridors
   if(flightsVisible){
@@ -2682,6 +2692,8 @@ const FRONT_SITE_URL='https://deepstatemap.live/en';
 function focusMapAt(lat,lon){
   if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
   closePopup();
+  currentRegion=null;
+  document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('active'));
   if(isFlat&&flatSvg&&flatZoom&&flatProjection){
     const p=flatProjection([lon,lat]);if(!p)return;const k=9;
     flatSvg.transition().duration(750).call(flatZoom.transform,d3.zoomIdentity.translate(flatW/2-k*p[0],flatH/2-k*p[1]).scale(k));
