@@ -77,6 +77,9 @@ import { briefing as livenews } from './sources/livenews.mjs';
 import { briefing as typosquat } from './sources/typosquat.mjs';
 import { briefing as cartels } from './sources/cartels.mjs';
 
+// Border-region news ingestion + structured baselines (Python service bridge)
+import { briefing as borderingest } from './sources/borderingest.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -192,6 +195,9 @@ export async function fullBriefing() {
 
     // Tier 15: Cartels — crowd-sourced Mexico areas-of-influence map (KML)
     runSource('Cartels', cartels),
+
+    // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
+    runSource('BorderIngest', borderingest),
   ];
   console.error(`[Crucix] Starting intelligence sweep — ${allPromises.length} sources...`);
 

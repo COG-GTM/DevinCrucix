@@ -4,7 +4,30 @@ services:
     ports:
       - "${PORT:-3117}:${PORT:-3117}"
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      # Node reads the Border Watch data over the compose network, read-only GET paths only.
+      INGEST_API_URL: http://ingest:3118
     volumes:
       - ./runs:/app/runs
+    depends_on:
+      - ingest
+    restart: unless-stopped
+
+  ingest:
+    build: ./ingest
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      INGEST_API_HOST: 0.0.0.0
+      INGEST_API_PORT: "3118"
+      INGEST_DB_PATH: /app/runs/ingest/crucix_ingest.sqlite3
+      INGEST_SNAPSHOT_DIR: /app/runs/ingest/snapshots
+    volumes:
+      - ./runs:/app/runs
+    # Not published to the host: the JSON API is only reachable from the crucix service.
+    expose:
+      - "3118"
     restart: unless-stopped
