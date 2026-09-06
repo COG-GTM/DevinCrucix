@@ -403,7 +403,7 @@ crucix/
 | Source | What It Tracks | Auth |
 |--------|---------------|------|
 | **GDELT** | Global news events, conflict mapping (100+ languages) via the 15-minute export/GKG snapshots | None |
-| **OpenSky** | Real-time ADS-B flight tracking across 10 hotspot regions (falls back to adsb.lol point samples, marked `fallback`, when OpenSky is unreachable) | None |
+| **OpenSky** | Real-time ADS-B flight tracking, one global pull partitioned into 10 hotspot regions (falls back to adsb.lol point samples, marked `fallback`, when OpenSky is unreachable) | Optional (OAuth2, 10x quota) |
 | **NASA FIRMS** | Satellite fire/thermal anomaly detection (3hr latency) | Free key |
 | **Maritime/AIS** | Vessel tracking, dark ships, sanctions evasion | Free key |
 | **Safecast** | Citizen-science radiation monitoring near 6 nuclear sites | None |
@@ -472,6 +472,8 @@ All settings are in `.env` with sensible defaults:
 |----------|---------|-------------|
 | `PORT` | `3117` | Dashboard server port |
 | `REFRESH_INTERVAL_MINUTES` | `15` | Auto-refresh interval |
+| `OPENSKY_CLIENT_ID` / `OPENSKY_CLIENT_SECRET` | anonymous | OpenSky OAuth2 API client (raises quota 400 → 4,000 credits/day) |
+| `OPENSKY_MIN_INTERVAL_MINUTES` | `15` | Minimum spacing between OpenSky global pulls (4 credits each) |
 | `LLM_PROVIDER` | disabled | `anthropic`, `openai`, `gemini`, `codex`, `openrouter`, `minimax`, `mistral`, or `grok` |
 | `LLM_API_KEY` | — | API key (not needed for codex) |
 | `LLM_MODEL` | per-provider default | Override model selection |
@@ -556,7 +558,7 @@ This is normal — the first sweep takes 30–60 seconds to query all 27 sources
 
 Expected behavior. Sources that require API keys will return structured errors if the key isn't set. The rest of the sweep continues normally. Check the Source Integrity section in the dashboard (or the server logs) to see which sources failed and why. The 3 most impactful free keys to add are `FRED_API_KEY`, `FIRMS_MAP_KEY`, and `EIA_API_KEY`.
 
-OpenSky can also return `HTTP 429` when its public hotspots are queried too aggressively. Crucix does not try to evade that limit. Instead, it surfaces the throttle/error in source health and preserves the most recent non-empty air traffic snapshot from `runs/` so the dashboard flight layer does not suddenly go blank on a throttled sweep.
+OpenSky meters `/states/all` in credits: 400/day anonymous, 4,000/day with an OAuth2 API client, and a global pull costs 4 credits. Crucix makes exactly one global pull per sweep (≈384 credits/day at the default 15-minute interval), so anonymous use fits under the cap with little headroom. If the sweep interval is shorter, or another process on the same IP is also hitting OpenSky, you will see `HTTP 429` with a cooldown of several hours. Crucix does not try to evade that limit: it honors the `x-rate-limit-retry-after-seconds` header, skips OpenSky until the cooldown expires, and keeps serving the last good snapshot (flagged `status: stale` in source health) so the flight layer does not go blank. To lift the ceiling, create an API client at https://opensky-network.org/my-opensky (Account → API Client) and set `OPENSKY_CLIENT_ID` / `OPENSKY_CLIENT_SECRET`.
 
 ### Telegram bot not responding to commands
 
