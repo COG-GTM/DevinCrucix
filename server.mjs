@@ -269,6 +269,7 @@ if (discordAlerter.isConfigured) {
 // === Express Server ===
 const app = express();
 app.set('trust proxy', true);
+app.disable('x-powered-by');
 app.use(securityHeaders());
 const authGateEnabled = installAuthGate(app);
 if (authGateEnabled) console.log('[Crucix] Password gate enabled (CRUCIX_PASSWORD set)');
