@@ -265,7 +265,7 @@ function scoreDossier(d) {
   if (exposed.length) { score += Math.min(15, exposed.length * 5); flags.push(`Sensitive services exposed: ${[...new Set(exposed)].join(', ')}`); }
   if (d.typosquats?.registered?.length) { score += 5; flags.push(`${d.typosquats.registered.length} registered look-alike domain(s)`); }
   if (d.otx?.pulseCount > 0 && !d.otx.whitelisted) { score += Math.min(25, 5 + d.otx.pulseCount); flags.push(`Appears in ${d.otx.pulseCount} OTX threat pulse(s)${d.otx.malwareFamilies?.length ? ': ' + d.otx.malwareFamilies.slice(0, 3).join(', ') : ''}`); }
-  else if (d.otx?.pulseCount > 0) flags.push(`${d.otx.pulseCount} OTX pulse(s) but domain is OTX-whitelisted (likely benign infrastructure)`);
+  else if (d.otx?.pulseCount > 0) flags.push(`${d.otx.pulseCount} OTX pulse(s) but indicator is OTX-whitelisted (${d.otx.validation?.find(v => /whitelist/i.test(v)) || 'likely benign'})`);
   if (d.tor?.isTorExit) { score += 15; flags.push('Tor exit node'); }
   if (d.web?.securityHeaders?.grade === 'F' && d.web?.status) { score += 3; flags.push('No HTTP security headers'); }
   if (!d.otx?.whitelisted && d.urlscan?.scans?.some(s => (s.tags || []).some(t => /phish|malicious|threat/i.test(t)))) { score += 15; flags.push('Tagged phishing/malicious in urlscan.io submissions'); }
