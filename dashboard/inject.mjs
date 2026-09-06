@@ -1134,14 +1134,41 @@ export async function synthesize(data) {
       };
     })(),
     frontlines: (() => {
+      // Geometry stays out of the dashboard payload; the browser pulls /api/frontlines/geo on demand.
       const flData = data.sources.Frontlines || {};
+      const area = flData.areaKm2 || {};
+      const hist = flData.history || {};
       return {
         source: 'Frontlines',
+        provider: flData.provider || 'DeepStateMAP',
+        siteUrl: flData.siteUrl || 'https://deepstatemap.live/en',
         status: flData.status || 'unavailable',
+        stale: Boolean(flData.stale),
+        mapId: flData.mapId || null,
+        mapUpdatedAt: flData.mapUpdatedAt || null,
+        mapAgeH: Number.isFinite(flData.mapAgeH) ? flData.mapAgeH : null,
         featureCount: flData.featureCount || 0,
-        totalCoords: flData.totalCoords || 0,
-        featureTypes: flData.featureTypes || {},
-        geojson: flData.geojson || null,
+        polyCats: flData.polyCats || {},
+        pointCats: flData.pointCats || {},
+        areaKm2: {
+          occupied: area.occupied || 0,
+          occupied_pre2022: area.occupied_pre2022 || 0,
+          contested: area.contested || 0,
+          liberated: area.liberated || 0,
+        },
+        occupiedKm2: flData.occupiedKm2 || 0,
+        contestedKm2: flData.contestedKm2 || 0,
+        attackDirections: flData.attackDirections || 0,
+        units: flData.units || 0,
+        airfields: flData.airfields || 0,
+        history: {
+          total: hist.total || 0,
+          recent7d: hist.recent7d || 0,
+          advances7d: hist.advances7d || 0,
+          regains7d: hist.regains7d || 0,
+          latestAt: hist.latestAt || null,
+          updates: Array.isArray(hist.updates) ? hist.updates.slice(0, 12) : [],
+        },
         signals: flData.signals || [],
       };
     })(),
