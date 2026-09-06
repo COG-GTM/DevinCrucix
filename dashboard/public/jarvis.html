@@ -2788,6 +2788,17 @@ function renderCarriersPanel(){
 // === UKRAINE FRONT PANEL (DeepStateMAP) ===
 // All names/text are third-party feed strings and go through esc(); the link-out is the fixed provider URL.
 const FRONT_SITE_URL='https://deepstatemap.live/en';
+const FRONT_CENTER={lat:48.3,lon:37.2};
+// DeepStateMAP deep link: #zoom/lat/lon. Coordinates are clamped numbers, never feed strings.
+function deepStateUrl(lat,lon,zoom){
+  const la=Number.isFinite(lat)?Math.max(-90,Math.min(90,lat)):FRONT_CENTER.lat;
+  const lo=Number.isFinite(lon)?Math.max(-180,Math.min(180,lon)):FRONT_CENTER.lon;
+  const z=Number.isFinite(zoom)?zoom:(Number.isFinite(lat)?10:7);
+  return `${FRONT_SITE_URL}#${z}/${la.toFixed(6)}/${lo.toFixed(6)}`;
+}
+function openDeepState(lat,lon){
+  window.open(deepStateUrl(lat,lon),'_blank','noopener,noreferrer');
+}
 function focusMapAt(lat,lon){
   if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
   closePopup();
@@ -2806,7 +2817,7 @@ function showFrontLayer(lat,lon){
   const rows=layerRows();
   if(rows){const act=activeLayerIds();const row=rows.find(r=>r.id==='front');
     if(row&&row.state!=='none'&&!act.has('front')){act.add('front');layerOverride=[...act];try{localStorage.setItem(LAYER_STORE,JSON.stringify(layerOverride))}catch{}renderMapLegend();replotMap();}}
-  const go=()=>focusMapAt(Number.isFinite(lat)?lat:48.3,Number.isFinite(lon)?lon:37.2);
+  const go=()=>focusMapAt(Number.isFinite(lat)?lat:FRONT_CENTER.lat,Number.isFinite(lon)?lon:FRONT_CENTER.lon);
   if(currentTab!=='situation'){setTab('situation',{keepScroll:true});setTimeout(go,350);} else go();
 }
 function renderFrontPanel(){
@@ -2821,7 +2832,7 @@ function renderFrontPanel(){
   const stale=ageH!=null&&ageH>72;
   const upd=(h.updates||[]).slice(0,8).map(u=>{
     const pl=(u.places||[])[0];
-    const onclick=pl?` onclick="showFrontLayer(${Number(pl.lat)},${Number(pl.lon)})" title="Show on map"`:'';
+    const onclick=pl?` onclick="openDeepState(${Number(pl.lat)},${Number(pl.lon)})" title="Open in DeepStateMAP"`:'';
     const kind=['advance','regain'].includes(u.kind)?u.kind:'other';
     return `<div class="front-row"${onclick}><span class="front-kind ${kind}">${kind.toUpperCase()}</span><span style="flex:1;min-width:0">${esc(u.text||'')}</span><span class="front-when">${esc(getAge(u.at))}</span></div>`;
   }).join('');
@@ -2837,7 +2848,7 @@ function renderFrontPanel(){
       </div>
       <div class="front-legend">${legend}</div>
       ${upd||'<div class="g-off-why">No DeepState update log entries in the last 7 days.</div>'}
-      <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><button type="button" class="lchip on" style="--lc:#ff6e40" onclick="showFrontLayer()"><span class="ldot"></span>SHOW FRONT ON MAP</button><a href="${FRONT_SITE_URL}" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:9px;color:var(--accent2)">deepstatemap.live \u2197</a></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><a class="lchip on" style="--lc:#ff6e40;text-decoration:none" href="${deepStateUrl()}" target="_blank" rel="noopener noreferrer" title="Open the live DeepStateMAP in a new tab"><span class="ldot"></span>OPEN DEEPSTATEMAP \u2197</a><button type="button" class="lchip" style="--lc:#ff6e40" onclick="showFrontLayer()" title="Overlay the front polygons on the CRUCIX globe"><span class="ldot"></span>CRUCIX MAP LAYER</button><span style="font-family:var(--mono);font-size:9px;color:var(--dim)">rows open DeepStateMAP at the place</span></div>
       <div class="sh-note">Map data \u00a9 DeepStateMAP (deepstatemap.live), polled every sweep; last map ${esc(frontAsOf())}${stale?' \u2014 more than 3 days old, treat as stale':''}. Areas are computed from its polygons; \u201coccupied\u201d includes Crimea and pre-2022 ORDLO.</div>
     </div>`;
 }
