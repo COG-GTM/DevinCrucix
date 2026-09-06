@@ -147,6 +147,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.tglive{background:#00bcd4;box-shadow:0 0 6px rgba(0,188,212,0.4)}
 .ldot.polymarket{background:#7c4dff;box-shadow:0 0 6px rgba(124,77,255,0.4)}
 .ldot.defcon{background:#ff5252;box-shadow:0 0 6px rgba(255,82,82,0.4)}
+.ldot.seismic{background:#ffb74d;box-shadow:0 0 6px rgba(255,183,77,0.4)}
 /* Phase 4: CII Panel */
 .cii-row{display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s}
 .cii-row:hover{background:rgba(100,240,200,0.04)}
@@ -1150,6 +1151,7 @@ const PANEL_CAPTIONS={
   'osint stream':'Public Telegram posts flagged urgent by keyword. Unverified and unedited beyond HTML escaping.',
   'space watch':'Newly catalogued objects (30d) and station positions. Military-satellite count is a name-pattern estimate.',
   'nuclear watch':'Safecast citizen sensors near sites, counts per minute. Anomaly = above that site\u2019s baseline; one reading is not a release.',
+  'seismic monitor':'USGS M2.5+ events from the last 24h. SUSPECT = shallow (\u226415 km) event within 250 km of a historic nuclear test site \u2014 a screening cue, not a detonation determination.',
   'signal intelligence':'Pattern counts aggregated across feeds by type. Statistics about signals, not intercepts.',
   'polymarket geopolitical':'Prediction-market odds on geopolitical questions. Crowd estimates, not intelligence.',
   'pentagon pizza index':'Novelty indicator from a sidecar service; shown only when configured.',
@@ -1264,7 +1266,8 @@ function renderLeftRail(){
     {name:'Cyber KEV',count:D.cyberKev?.totalVulnerabilities||0,dot:'cyber',sub:`${D.cyberKev?.ransomwareCount||0} ransomware`,src:'CyberKEV'},
     {name:'Telegram Live',count:D.telegramLive?.totalMessages||0,dot:'tglive',sub:`${D.telegramLive?.channels||0} channels`,src:'TelegramLive'},
     {name:'Polymarket',count:D.polymarket?.totalGeoMarkets||0,dot:'polymarket',sub:'geopolitical odds',src:'Polymarket'},
-    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing',src:'DEFCON'}
+    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing',src:'DEFCON'},
+    {name:'Seismic Monitor',count:D.seismic?.totalEvents||0,dot:'seismic',sub:`${D.seismic?.suspectCount||0} suspect · max M${D.seismic?.maxMagnitude??'--'}`}
   ];
   const layerRow=l=>{
     if(l.src&&shHidden(l.src))return '';
@@ -1312,7 +1315,7 @@ function renderLeftRail(){
 
   // Sensor Grid is filtered per tab so each view only lists the layers it is about.
   const TAB_LAYERS={
-    military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
+    military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
     cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
     macro:['Market Intel','Polymarket','Instability Index'],
     regional:['Border Watch','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
@@ -1329,6 +1332,17 @@ function renderLeftRail(){
       <div class="sec-head"><h3>${shDot('Safecast')}${t('panels.nuclearWatch','Nuclear Watch')}</h3><span class="badge">${t('badges.radiation','RADIATION')}</span></div>
       <div class="nuke-ok">${allNormal?'&#9679; '+t('nuclear.allSitesNormal','ALL SITES NORMAL'):'&#9888; '+t('nuclear.anomalyDetected','ANOMALY DETECTED')}</div>
       ${nukeHtml}
+    </div>`;
+  const seismicPanel=`<div class="g-panel seismic-panel">
+      <div class="sec-head"><h3>Seismic Monitor</h3><span class="badge">USGS</span></div>
+      ${D.seismic ? `
+        <div class="nuke-ok" style="${D.seismic.suspectCount>0?'color:var(--warn)':''}">${D.seismic.suspectCount>0?'&#9888; '+D.seismic.suspectCount+' SUSPECT EVENT(S) NEAR TEST SITES':'&#9679; NO TEST-SITE SIGNATURES'}</div>
+        <div class="econ-row"><span class="elabel">Events (24h, M2.5+)</span><span class="eval">${D.seismic.totalEvents}</span></div>
+        <div class="econ-row"><span class="elabel">Max Magnitude</span><span class="eval" style="color:${D.seismic.maxMagnitude>=6?'var(--warn)':'var(--accent)'}">M${D.seismic.maxMagnitude??'--'}</span></div>
+        <div class="econ-row"><span class="elabel">Significant (M5+)</span><span class="eval">${D.seismic.significantCount||0}</span></div>
+        ${(D.seismic.events||[]).slice(0,4).map(e=>`<div class="site-row"><span>${esc((e.place||'').substring(0,28))}</span><span class="site-val">M${e.mag} · ${e.depthKm}km</span></div>`).join('')}
+        ${(D.seismic.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(255,183,77,0.25);background:rgba(255,183,77,0.05);font-family:var(--mono);font-size:9px;color:#ffb74d;line-height:1.5">${D.seismic.signals.slice(0,2).map(esc).join('<br>')}</div>` : ''}
+      ` : '<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">AWAITING USGS FEED</div>'}
     </div>`;
   const riskPanel=`<div class="g-panel risk-gauges">
       <div class="sec-head"><h3>${shDot(['FRED','Treasury'])}${t('panels.riskGauges','Risk Gauges')}</h3><span class="badge">${t('badges.stress','STRESS')}</span></div>
@@ -1349,7 +1363,7 @@ function renderLeftRail(){
     </div>`;
   const byTab={
     situation:[renderDeltaPanel(),sensorGridPanel,renderSourceHealthPanel()],
-    military:[sensorGridPanel,nuclearPanel,spacePanel],
+    military:[sensorGridPanel,nuclearPanel,seismicPanel,spacePanel],
     cyber:[sensorGridPanel,renderSignalIntelPanel()],
     macro:[riskPanel,sensorGridPanel],
     regional:[sensorGridPanel,renderSourceHealthPanel()],
@@ -2015,6 +2029,32 @@ function plotMarkers(){
     });
   });
 
+  // === Seismic Events (USGS — amber dots scaled by magnitude, red if suspect) ===
+  (D.seismic?.events||[]).forEach(e=>{
+    if(e.lat==null||e.lng==null) return;
+    const mag = e.mag||2.5;
+    points.push({
+      lat:e.lat, lng:e.lng, size:Math.max(0.15, (mag-2)*0.13), alt:0.012,
+      color:e.suspect?'rgba(255,23,68,0.95)':'rgba(255,183,77,0.8)',
+      type:'seismic', priority:e.suspect?1:(mag>=5?2:3),
+      popHead:e.suspect?'SUSPECT SEISMIC EVENT':'SEISMIC EVENT M'+mag,
+      popMeta:'USGS · '+(e.time?new Date(e.time).toUTCString():''),
+      popText:`${esc(e.place)}<br>Magnitude: M${mag} · Depth: ${e.depthKm}km`+
+        (e.suspect?`<br><span style="color:#ff1744">${e.nearSite.km}km from ${esc(e.nearSite.name)} test site (${esc(e.nearSite.country)}) — shallow event</span>`:'')+
+        (e.tsunami?'<br><span style="color:var(--warn)">TSUNAMI FLAG</span>':'')
+    });
+    if(e.suspect||mag>=6) labels.push({type:'seismic', lat:e.lat, lng:e.lng+2, text:(e.suspect?'SUSPECT ':'')+'M'+mag, size:0.35, color:e.suspect?'rgba(255,23,68,0.9)':'rgba(255,183,77,0.8)'});
+  });
+  // Nuclear test site reference markers
+  (D.seismic?.testSites||[]).forEach(s=>{
+    points.push({
+      lat:s.lat, lng:s.lng, size:0.22, alt:0.008,
+      color:'rgba(255,23,68,0.45)', type:'seismic-site', priority:2,
+      popHead:'NUCLEAR TEST SITE', popMeta:s.name+' · '+s.country,
+      popText:'Historic nuclear test range — monitored for shallow seismic signatures'
+    });
+  });
+
   // === UKRAINE FRONT (DeepStateMAP polygons, attack arrows, recent changes, units/airfields) ===
   const fg = frontGeoNow();
   const frontPolys = [], frontPaths = [];
@@ -2340,6 +2380,24 @@ function plotFlatMarkers(){
   });
   // GDELT geo events
   (D.gdelt?.geoPoints||[]).forEach(g=>{addPt(g.lat,g.lon,2.5,'rgba(100,149,237,0.5)','rgba(100,149,237,0.2)',ev=>showPopup(ev,'GDELT Event',g.name||'','GDELT · '+g.count+' reports'),3,'gdelt')});
+  // Seismic events (USGS — amber scaled by magnitude, red if suspect)
+  (D.seismic?.events||[]).forEach(e=>{
+    if(e.lat==null||e.lng==null) return;
+    const mag=e.mag||2.5;
+    addPt(e.lat,e.lng,Math.max(2.5,(mag-2)*1.4),
+      e.suspect?'rgba(255,23,68,0.85)':'rgba(255,183,77,0.7)',
+      e.suspect?'rgba(255,23,68,0.4)':'rgba(255,183,77,0.3)',
+      ev=>showPopup(ev,e.suspect?'SUSPECT SEISMIC EVENT':'SEISMIC EVENT M'+mag,
+        `${esc(e.place)}<br>Magnitude: M${mag} · Depth: ${e.depthKm}km`+
+        (e.suspect?`<br><span style="color:#ff1744">${e.nearSite.km}km from ${esc(e.nearSite.name)} test site (${esc(e.nearSite.country)}) — shallow event</span>`:'')+
+        (e.tsunami?'<br><span style="color:var(--warn)">TSUNAMI FLAG</span>':''),'USGS Seismic'),
+      e.suspect?1:(mag>=5?2:3),'seismic');
+  });
+  // Nuclear test site reference markers
+  (D.seismic?.testSites||[]).forEach(s=>{
+    addPt(s.lat,s.lng,3,'rgba(255,23,68,0.35)','rgba(255,23,68,0.5)',
+      ev=>showPopup(ev,'NUCLEAR TEST SITE',s.name+' · '+s.country+'<br>Historic nuclear test range — monitored for shallow seismic signatures','Seismic Watch'),2,'seismic-site');
+  });
   // ACLED
   if(layerOn('acled')) (D.acled?.deadliestEvents||[]).filter(e=>e.lat&&e.lon).forEach(e=>{
     const[x,y]=proj([e.lon,e.lat]);if(!x||!y)return;

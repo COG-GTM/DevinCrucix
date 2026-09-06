@@ -39,6 +39,9 @@ import { parseImageMetadata, PLATFORMS } from './apis/sources/osint.mjs';
 import { briefing as typosquatBriefing, getWatchlist as typosquatWatchlist } from './apis/sources/typosquat.mjs';
 import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_KEYS as BORDER_TOPICS, PLACE_BY_KEY as BORDER_PLACES } from './apis/sources/bordernews.mjs';
 
+// Phase 7: Seismic Event Monitor
+import { collectSeismic } from './apis/sources/seismic.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
@@ -56,6 +59,7 @@ let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
 let marketRefreshInProgress = false;
+let seismicData = null;      // Seismic Event Monitor state (refreshed independently)
 const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
@@ -550,6 +554,11 @@ app.get('/api/border/articles', (req, res) => {
   }
 });
 
+// API: Seismic Event Monitor (USGS live feed + nuclear-test discrimination)
+app.get('/api/seismic', (req, res) => {
+  res.json(seismicData || { status: 'pending', totalEvents: 0, events: [] });
+});
+
 // API: Satellite Tracking (SGP4)
 app.get('/api/satellites', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
@@ -706,6 +715,7 @@ async function runSweepCycle() {
     // 4. Delta computation + memory
     const delta = memory.addRun(synthesized);
     synthesized.delta = delta;
+    synthesized.seismic = seismicData;
     synthesized.situation = buildSituation(synthesized);
 
     // 5. LLM-powered trade ideas (LLM-only feature) — isolated so failures don't kill sweep
@@ -875,6 +885,7 @@ async function start() {
       if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
       const data = await synthesize(existing);
       data.delta = memory.getLastDelta() || null;
+      data.seismic = seismicData;
       data.situation = buildSituation(data);
       currentData = data;
       console.log('[Crucix] Loaded existing data from runs/latest.json — dashboard ready instantly');
@@ -895,6 +906,29 @@ async function start() {
     // Schedule fast market-only refresh (every 60s by default)
     console.log(`[Crucix] Market ticker refresh: every ${MARKET_REFRESH_SECONDS}s`);
     setInterval(runMarketRefresh, MARKET_REFRESH_SECONDS * 1000);
+
+    // Seismic Event Monitor — refresh every 5 minutes, independent of the sweep. The result is
+    // attached to the sweep payload (and the map-layer ranking re-run) so the dashboard sees it
+    // on /api/data and SSE without waiting for the next full sweep.
+    const refreshSeismic = async () => {
+      try {
+        seismicData = await collectSeismic();
+        if (seismicData?.suspectCount > 0) {
+          console.log(`[Seismic] ${seismicData.suspectCount} SUSPECT event(s) near nuclear test sites`);
+        } else {
+          console.log(`[Seismic] ${seismicData?.totalEvents || 0} events (max M${seismicData?.maxMagnitude ?? '--'})`);
+        }
+        if (currentData) {
+          currentData.seismic = seismicData;
+          currentData.situation = buildSituation(currentData);
+          broadcast({ type: 'update', data: currentData });
+        }
+      } catch (err) {
+        console.error('[Seismic] Refresh failed:', err.message);
+      }
+    };
+    refreshSeismic();
+    setInterval(refreshSeismic, 5 * 60 * 1000);
   });
 }
 
