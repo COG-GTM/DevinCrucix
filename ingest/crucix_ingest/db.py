@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (
@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS articles (
   ner_model TEXT,
   border_regions_json TEXT NOT NULL DEFAULT '[]',
   violence_score REAL NOT NULL DEFAULT 0,
+  violence_terms_json TEXT NOT NULL DEFAULT '[]', -- matched lexicon terms, for explainability
   is_violence INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -194,6 +195,12 @@ CREATE TABLE IF NOT EXISTS anomalies (
 CREATE INDEX IF NOT EXISTS idx_anomalies_detected ON anomalies(detected_at);
 """
 
+# Additive column migrations for databases created by earlier schema versions: (table, column, DDL).
+COLUMN_MIGRATIONS: tuple[tuple[str, str, str], ...] = (
+    ("sources", "content_policy", "TEXT NOT NULL DEFAULT 'full'"),
+    ("articles", "violence_terms_json", "TEXT NOT NULL DEFAULT '[]'"),
+)
+
 
 def utcnow() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -214,9 +221,10 @@ class Database:
     def _init_schema(self) -> None:
         with self.transaction() as cur:
             cur.executescript(SCHEMA)
-            cols = {r["name"] for r in cur.execute("PRAGMA table_info(sources)").fetchall()}
-            if "content_policy" not in cols:
-                cur.execute("ALTER TABLE sources ADD COLUMN content_policy TEXT NOT NULL DEFAULT 'full'")
+            for table, column, ddl in COLUMN_MIGRATIONS:
+                cols = {r["name"] for r in cur.execute(f"PRAGMA table_info({table})").fetchall()}  # noqa: S608 - constant
+                if column not in cols:
+                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")  # noqa: S608 - constant
             cur.execute(
                 "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)",
                 ("schema_version", str(SCHEMA_VERSION)),

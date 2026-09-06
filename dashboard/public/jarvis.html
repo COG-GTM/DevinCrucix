@@ -337,6 +337,29 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .narco-entity{font-family:var(--mono);font-size:8px;padding:1px 5px;background:rgba(255,64,129,0.08);border:1px solid rgba(255,64,129,0.2);color:#ff80ab}
 .narco-entity.location{color:#80cbc4;border-color:rgba(128,203,196,0.25);background:rgba(128,203,196,0.06)}
 .narco-entity.org{color:#ffab40;border-color:rgba(255,171,64,0.25);background:rgba(255,171,64,0.06)}
+/* Border Watch (ingestion service) */
+.border-panel{flex:1.6 1 320px;max-width:520px}
+.bw-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px}
+.bw-stat{padding:5px 6px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03)}
+.bw-stat .v{font-family:var(--mono);font-size:15px;color:#c8d8d2}
+.bw-stat .k{font-family:var(--mono);font-size:7px;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase}
+.bw-stat.hot .v{color:#ff4081}
+.bw-sec{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;margin:6px 0 3px;display:flex;justify-content:space-between}
+.bw-anom{padding:5px 8px;border-left:3px solid #ff9800;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;color:#c8d8d2}
+.bw-anom.critical{border-left-color:#ff5252}.bw-anom.elevated{border-left-color:#ff4081}.bw-anom.watch{border-left-color:#ffd54f}
+.bw-anom .z{font-family:var(--mono);font-size:9px;color:#ff9800;margin-left:6px}
+.bw-anom .m{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.bw-art{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:3px solid rgba(0,229,255,0.3)}
+.bw-art.violence{border-left-color:#ff4081}
+.bw-art .t{font-size:11px;line-height:1.35;color:#c8d8d2;margin-top:2px}.bw-art .t a{color:#c8d8d2;text-decoration:none}.bw-art .t a:hover{color:var(--accent)}
+.bw-tag{font-family:var(--mono);font-size:7px;letter-spacing:0.06em;text-transform:uppercase;padding:1px 4px;display:inline-block;margin-right:3px;border:1px solid rgba(255,255,255,0.15);color:var(--dim)}
+.bw-tag.lang{color:#00e5ff;border-color:rgba(0,229,255,0.3)}.bw-tag.pay{color:#ffd54f;border-color:rgba(255,213,79,0.35)}.bw-tag.viol{color:#ff4081;border-color:rgba(255,64,129,0.35)}.bw-tag.mt{color:#b39ddb;border-color:rgba(179,157,219,0.35)}.bw-tag.cit{color:#ff9800;border-color:rgba(255,152,0,0.35)}
+.bw-region{font-family:var(--mono);font-size:8px;color:#4caf50;margin-right:4px}
+.bw-base{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;padding:2px 0;color:var(--dim);border-bottom:1px solid rgba(255,255,255,0.03)}
+.bw-base .updated,.bw-base .unchanged{color:#4caf50}.bw-base .error,.bw-base .blocked,.bw-base .robots_blocked{color:#ff9800}.bw-base .skipped,.bw-base .never{color:var(--dim)}
+.bw-scroll{max-height:340px;overflow-y:auto}
+.bw-scroll::-webkit-scrollbar{width:3px}.bw-scroll::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+.bw-foot{font-family:var(--mono);font-size:7px;color:var(--dim);margin-top:4px;word-break:break-all}
 .narco-scroll{max-height:320px;overflow-y:auto}
 .narco-scroll::-webkit-scrollbar{width:3px}
 .narco-scroll::-webkit-scrollbar-thumb{background:rgba(255,64,129,0.2);border-radius:2px}
@@ -1988,7 +2011,64 @@ function renderLower(){
       <div class="sec-head"><h3>Market Intelligence</h3><span class="badge" style="background:rgba(0,229,255,0.1);color:#00e5ff;border-color:rgba(0,229,255,0.3)">OFFLINE</span></div>
       <div style="padding:16px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">Unusual Whales data unavailable</div>
     </div>`;
-  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${narcoPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+  const borderPanel = renderBorderPanel();
+  document.getElementById('lowerGrid').innerHTML=`${tickerPanel}${borderPanel}${narcoPanel}${marketPanel}${osintPanel}${macroPanel}${ideasPanel}`;
+}
+
+// === Border Watch panel (Python ingestion service) ===
+// Every string below originates from third-party publishers or datasets and goes through esc().
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function safeHref(u){return /^https?:\/\//i.test(String(u||''))?esc(u):''}
+function renderBorderPanel(){
+  const bw = D.borderIngest || {};
+  const head = (badge, color) => `<div class="sec-head"><h3>Border Watch</h3><span class="badge" style="background:rgba(${color},0.1);color:rgb(${color});border-color:rgba(${color},0.3)">${badge}</span></div>`;
+  if (bw.status !== 'live') {
+    return `<div class="g-panel border-panel">${head('OFFLINE','255,152,0')}<div style="padding:16px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">Ingestion service unavailable${bw.error?` \u2014 ${esc(bw.error)}`:''}<br><span style="font-size:8px">start with: python -m crucix_ingest serve</span></div></div>`;
+  }
+  const t = bw.totals || {};
+  const stats = `<div class="bw-stats">
+    <div class="bw-stat"><div class="v">${esc(t.articles24h)}</div><div class="k">articles 24h</div></div>
+    <div class="bw-stat hot"><div class="v">${esc(t.violence24h)}</div><div class="k">violence 24h</div></div>
+    <div class="bw-stat"><div class="v">${esc(t.articles)}</div><div class="k">total \u00b7 ${esc(t.paywalled)} paywalled</div></div>
+    <div class="bw-stat"><div class="v">${esc((bw.sources||{}).enabled)}</div><div class="k">sources \u00b7 ${esc(((bw.sources||{}).degraded||[]).length)} degraded</div></div>
+  </div>`;
+  const anomHtml = (bw.anomalies||[]).slice(0,6).map(a => {
+    const sev = ['critical','elevated','watch'].includes(a.severity) ? a.severity : 'watch';
+    return `<div class="bw-anom ${sev}"><span>${esc(a.regionName||a.regionCode)}${a.country?` <span class="m">(${esc(a.country)})</span>`:''}</span><span class="z">z=${Number(a.zScore||0).toFixed(1)}</span><div class="m">${esc(a.metric)} \u00b7 observed ${esc(a.observed)} vs baseline ${Number(a.baselineMean||0).toFixed(1)}\u00b1${Number(a.baselineStd||0).toFixed(1)} (n=${esc(a.baselineN)}) \u00b7 ${esc((a.windowStart||'').substring(0,10))} \u2192 ${esc((a.windowEnd||'').substring(0,10))}</div></div>`;
+  }).join('');
+  const artHtml = (bw.articles||[]).slice(0,14).map(a => {
+    const href = safeHref(a.url);
+    const open = href ? `<a href="${href}" target="_blank" rel="noopener noreferrer">` : '';
+    const close = href ? '</a>' : '';
+    const tags = [
+      `<span class="bw-tag lang">${esc(a.language||'?')}</span>`,
+      a.paywalled ? '<span class="bw-tag pay">paywalled \u00b7 headline only</span>' : '',
+      a.fetchStatus === 'metadata_only' ? '<span class="bw-tag pay">feed metadata only</span>' : '',
+      a.isViolence ? `<span class="bw-tag viol" title="${esc('matched: '+(a.violenceTerms||[]).join(', '))}">violence ${Number(a.violenceScore||0).toFixed(1)}${(a.violenceTerms||[]).length?` \u00b7 ${esc(a.violenceTerms.slice(0,3).join(', '))}`:''}</span>` : '',
+      a.sourceType === 'citizen-aggregated' ? '<span class="bw-tag cit">citizen-aggregated</span>' : '',
+      a.hasMachineTranslation ? '<span class="bw-tag mt" title="English text is a derived machine translation; original-language text is the source of record">MT available</span>' : '',
+    ].join('');
+    const regions = (a.regions||[]).slice(0,3).map(r => `<span class="bw-region">\u25b8 ${esc(r.name)}</span>`).join('');
+    return `<div class="bw-art${a.isViolence?' violence':''}">${tags}<span class="na-date">${esc(a.outlet)}${a.publishedAt?` \u00b7 ${getAge(a.publishedAt)}`:''}</span><div class="t">${open}${esc(a.title)}${close}</div>${regions?`<div>${regions}</div>`:''}</div>`;
+  }).join('');
+  const baseHtml = (bw.baselines||[]).map(b => {
+    const st = ['updated','unchanged','error','blocked','robots_blocked','skipped'].includes(b.status) ? b.status : 'never';
+    return `<div class="bw-base"><span>${esc(b.dataset)} <span style="opacity:.6">${esc(b.schedule)}</span></span><span><span class="${st}">${esc(b.status||'never')}</span> \u00b7 ${Number(b.records||0).toLocaleString()} rec${b.lastUpdatedAt?` \u00b7 ${getAge(b.lastUpdatedAt)}`:''}</span></div>`;
+  }).join('');
+  const regionsHtml = (bw.regions||[]).slice(0,8).map(r => `<span class="bw-tag" style="color:#c8d8d2">${esc(r.name)} ${esc(r.violence)}/${esc(r.articles)}</span>`).join('');
+  return `<div class="g-panel border-panel">${head(`${esc(t.violence)} VIOLENCE`,'0,229,255')}
+    ${stats}
+    <div class="bw-scroll">
+      <div class="bw-sec"><span>Anomalies (30d)</span><span>${esc((bw.anomalies||[]).length)}</span></div>
+      ${anomHtml || '<div style="padding:6px;color:var(--dim);font-family:var(--mono);font-size:9px">No anomalies above threshold</div>'}
+      ${regionsHtml ? `<div class="bw-sec"><span>Regions 7d \u00b7 violence/articles</span></div><div style="display:flex;flex-wrap:wrap;gap:3px">${regionsHtml}</div>` : ''}
+      <div class="bw-sec"><span>Recent reporting</span><span>${esc((bw.articles||[]).length)}</span></div>
+      ${artHtml || '<div style="padding:6px;color:var(--dim);font-family:var(--mono);font-size:9px">No articles in the last 3 days</div>'}
+      <div class="bw-sec"><span>Structured baselines</span><span>${esc((bw.baselines||[]).length)}</span></div>
+      ${baseHtml || '<div style="padding:6px;color:var(--dim);font-family:var(--mono);font-size:9px">No baseline datasets loaded</div>'}
+    </div>
+    <div class="bw-foot">robots.txt-compliant crawler \u00b7 ${esc(bw.userAgent)} \u00b7 poll ${esc(bw.pollIntervalMinutes)}m \u00b7 NER ${esc(bw.nerBackend)}${bw.lastSweepAt?` \u00b7 swept ${getAge(bw.lastSweepAt)}`:''} \u00b7 <span style="color:#3969CA;font-weight:600">Cognition</span> ingestion pipeline</div>
+  </div>`;
 }
 
 // === Phase 5: Panel Renderers ===

@@ -35,8 +35,8 @@ class BaselineRecord:
     region_code: str
     region_name: str
     country: str
-    period_start: str          # YYYY-MM-DD
-    period_end: str            # YYYY-MM-DD
+    period_start: str  # YYYY-MM-DD
+    period_end: str  # YYYY-MM-DD
     value: float | None
     unit: str
     source_url: str
@@ -47,15 +47,21 @@ class BaselineRecord:
 @dataclass
 class LoadResult:
     dataset: str
-    status: str                # updated | unchanged | blocked | error | skipped
+    status: str  # updated | unchanged | blocked | error | skipped
     records: int = 0
     version: str | None = None
     error: str | None = None
     detail: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"dataset": self.dataset, "status": self.status, "records": self.records, "version": self.version,
-                "error": self.error, "detail": self.detail}
+        return {
+            "dataset": self.dataset,
+            "status": self.status,
+            "records": self.records,
+            "version": self.version,
+            "error": self.error,
+            "detail": self.detail,
+        }
 
 
 class BaselineLoader:
@@ -109,11 +115,14 @@ class BaselineLoader:
         return d
 
     def known_artifact(self, url: str, sha256: str) -> bool:
-        return self.db.query_one("SELECT 1 FROM baseline_artifacts WHERE dataset = ? AND url = ? AND sha256 = ?",
-                                 (self.dataset, url, sha256)) is not None
+        return (
+            self.db.query_one("SELECT 1 FROM baseline_artifacts WHERE dataset = ? AND url = ? AND sha256 = ?", (self.dataset, url, sha256))
+            is not None
+        )
 
-    def save_artifact(self, url: str, body: bytes, etag: str | None = None, last_modified: str | None = None,
-                      suffix: str = ".bin") -> tuple[str, Path]:
+    def save_artifact(
+        self, url: str, body: bytes, etag: str | None = None, last_modified: str | None = None, suffix: str = ".bin"
+    ) -> tuple[str, Path]:
         digest = hashlib.sha256(body).hexdigest()
         path = self.artifact_dir() / f"{digest[:24]}{suffix}.gz"
         if not path.exists():
@@ -140,9 +149,22 @@ class BaselineLoader:
                          period_end=excluded.period_end, value=excluded.value, unit=excluded.unit, region_name=excluded.region_name,
                          metadata_json=excluded.metadata_json, source_url=excluded.source_url,
                          source_version=excluded.source_version, retrieved_at=excluded.retrieved_at""",
-                    (self.dataset, r.series, r.region_type, r.region_code, r.region_name[:200], r.country, r.period_start,
-                     r.period_end, r.value, r.unit, json.dumps(r.metadata, ensure_ascii=False, default=str)[:4000],
-                     r.source_url[:2048], r.source_version, now),
+                    (
+                        self.dataset,
+                        r.series,
+                        r.region_type,
+                        r.region_code,
+                        r.region_name[:200],
+                        r.country,
+                        r.period_start,
+                        r.period_end,
+                        r.value,
+                        r.unit,
+                        json.dumps(r.metadata, ensure_ascii=False, default=str)[:4000],
+                        r.source_url[:2048],
+                        r.source_version,
+                        now,
+                    ),
                 )
                 n += 1
         return n
@@ -196,8 +218,12 @@ def run_loader(loader: BaselineLoader) -> LoadResult:
         result = LoadResult(dataset=loader.dataset, status="robots_blocked", error="robots.txt disallows artifact URL")
     except Exception as e:
         log_event(
-            logger, "baseline_loader_crashed", logging.ERROR, dataset=loader.dataset,
-            error_type=type(e).__name__, error=str(e)[:300],
+            logger,
+            "baseline_loader_crashed",
+            logging.ERROR,
+            dataset=loader.dataset,
+            error_type=type(e).__name__,
+            error=str(e)[:300],
         )
         result = LoadResult(dataset=loader.dataset, status="error", error="internal error")
     loader.record_status(result)
@@ -214,6 +240,6 @@ def run_due_loaders(db: Database, settings: Settings, http: PoliteHttpClient, fo
 
 
 def _import_builtin_loaders() -> None:
-    if _LOADERS:
-        return
+    # Importing is idempotent; never short-circuit on a partially populated registry
+    # (a caller may have imported one loader module directly before asking for all of them).
     from . import acled, cbp, fra, insightcrime, justiceinmexico, sesnsp  # noqa: F401

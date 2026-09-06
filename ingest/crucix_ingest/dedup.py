@@ -79,9 +79,14 @@ def title_date_key(title: str, published_at: str | None) -> str | None:
     return "td:" + sha256_hex(f"{norm}|{published_at[:10]}")
 
 
-def content_key(text: str | None) -> str | None:
+def content_key(text: str | None, title: str | None = None) -> str | None:
+    """Body-hash key. A leading line equal to the headline is dropped so re-headlined wire copy still matches."""
     if not text:
         return None
+    if title:
+        first, _, rest = text.strip().partition("\n")
+        if rest and normalize_text(first) == normalize_text(title):
+            text = rest
     norm = normalize_text(text)
     if len(norm) < 200:
         return None

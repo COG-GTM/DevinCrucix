@@ -43,9 +43,9 @@ class FeedItem:
     title: str
     guid: str | None = None
     summary: str = ""
-    published_at: str | None = None   # ISO-8601 UTC
+    published_at: str | None = None  # ISO-8601 UTC
     updated_at: str | None = None
-    content_html: str | None = None   # full content when the feed/API carries it
+    content_html: str | None = None  # full content when the feed/API carries it
     language: str | None = None
     categories: list[str] = field(default_factory=list)
     publisher_tags: list[str] = field(default_factory=list)
@@ -309,8 +309,16 @@ def parse_wp_api(body: bytes) -> list[FeedItem]:
                 title=title,
                 guid=guid,
                 summary=_clean_summary(excerpt.get("rendered") if isinstance(excerpt, dict) else excerpt),
-                published_at=parse_datetime(published + ("Z" if published and "T" in published and not re.search(r"[+-]\d\d:\d\d$|Z$", published) else "") if published else None),
-                updated_at=parse_datetime(modified + ("Z" if modified and "T" in modified and not re.search(r"[+-]\d\d:\d\d$|Z$", modified) else "") if modified else None),
+                published_at=parse_datetime(
+                    published + ("Z" if published and "T" in published and not re.search(r"[+-]\d\d:\d\d$|Z$", published) else "")
+                    if published
+                    else None
+                ),
+                updated_at=parse_datetime(
+                    modified + ("Z" if modified and "T" in modified and not re.search(r"[+-]\d\d:\d\d$|Z$", modified) else "")
+                    if modified
+                    else None
+                ),
                 content_html=content_html,
                 categories=categories[:20],
                 publisher_tags=tags[:40],

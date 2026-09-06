@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dataset", help="run one dataset")
     p.add_argument("--force", action="store_true", help="ignore refresh schedule")
     p.add_argument("--list", action="store_true", help="list registered loaders")
-    sub.add_parser("anomalies", help="recompute and print news anomalies")
+    sub.add_parser("anomalies", help="recompute and print news + baseline anomalies")
     p = sub.add_parser("seed", help="seed the source registry from bundled JSON")
     p.add_argument("--refresh", action="store_true", help="also update metadata of existing sources from the seed (poll state is kept)")
     args = parser.parse_args(argv)
@@ -80,8 +80,12 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "baselines":
             http = build_http_client(settings)
             if args.list:
-                _print([{"dataset": ld.dataset, "name": ld.name, "schedule": ld.refresh_schedule, "source": ld.source_url}
-                        for ld in all_loaders(db, settings, http)])
+                _print(
+                    [
+                        {"dataset": ld.dataset, "name": ld.name, "schedule": ld.refresh_schedule, "source": ld.source_url}
+                        for ld in all_loaders(db, settings, http)
+                    ]
+                )
             elif args.dataset:
                 loader = get_loader(args.dataset, db, settings, http)
                 if not loader:
@@ -92,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print([r.to_dict() for r in run_due_loaders(db, settings, http, force=args.force)])
         elif args.cmd == "anomalies":
             svc = IngestService(settings, db)
-            detect_news_anomalies(svc.db, settings)
+            svc.detect_all_anomalies()
             _print(list_anomalies(svc.db, limit=50))
     finally:
         db.close()

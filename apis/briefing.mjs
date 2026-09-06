@@ -74,6 +74,9 @@ import { briefing as regiondossier } from './sources/regiondossier.mjs';
 import { briefing as satellites } from './sources/satellites.mjs';
 import { briefing as livenews } from './sources/livenews.mjs';
 
+// Border-region news ingestion + structured baselines (Python service bridge)
+import { briefing as borderingest } from './sources/borderingest.mjs';
+
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
 
@@ -181,6 +184,9 @@ export async function fullBriefing() {
     runSource('RegionDossier', regiondossier),
     runSource('SatTracking', satellites),
     runSource('LiveNews', livenews),
+
+    // Tier 13: Border Watch — ingestion service bridge
+    runSource('BorderIngest', borderingest),
   ];
 
   // Each runSource has its own 30s timeout, so allSettled will resolve

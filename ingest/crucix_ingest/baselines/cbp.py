@@ -62,7 +62,7 @@ _FY_RE = re.compile(r"(\d{4})")
 MONTHS = {"OCT": 10, "NOV": 11, "DEC": 12, "JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6, "JUL": 7, "AUG": 8, "SEP": 9}
 # Monthly in-year files carry a month token (…-fy23-fy26-jul-aor.csv); completed multi-year files do not (…-fy22-fy25-aor.csv).
 _MONTHLY_FILE_RE = re.compile(r"-fy\d{2}-fy\d{2}-(?:oct|nov|dec|jan|feb|mar|apr|may|jun|jul|aug|sep)(?:[-_.]|$)", re.IGNORECASE)
-MAX_ARCHIVE_FILES = 2         # most recent completed multi-year files, for baseline depth
+MAX_ARCHIVE_FILES = 2  # most recent completed multi-year files, for baseline depth
 MAX_CSV_BYTES = 300_000_000
 
 
@@ -151,9 +151,18 @@ def parse_encounters_csv(data: bytes, source_url: str, version: str) -> list[Bas
         name = _aor_name(row.get(c_aor) or "")
         if not d or n is None or not name:
             continue
-        e = agg.setdefault((_aor_code(name), d.isoformat()),
-                           {"name": name, "abbv": (row.get(c_abbv) or "").strip() if c_abbv else "", "value": 0.0,
-                            "by_component": {}, "by_type": {}, "by_demographic": {}, "by_authority": {}})
+        e = agg.setdefault(
+            (_aor_code(name), d.isoformat()),
+            {
+                "name": name,
+                "abbv": (row.get(c_abbv) or "").strip() if c_abbv else "",
+                "value": 0.0,
+                "by_component": {},
+                "by_type": {},
+                "by_demographic": {},
+                "by_authority": {},
+            },
+        )
         e["value"] += n
         _bump(e["by_component"], (row.get(c_component) or "unknown").strip() if c_component else "unknown", n)
         if c_type:
@@ -165,10 +174,28 @@ def parse_encounters_csv(data: bytes, source_url: str, version: str) -> list[Bas
     out = []
     for (code, ps), e in agg.items():
         d = date.fromisoformat(ps)
-        out.append(BaselineRecord("encounters", "cbp_aor", code, e["name"], "US", ps, _month_end(d).isoformat(), e["value"],
-                                  "encounters", source_url, version,
-                                  {"aor_abbv": e["abbv"], "by_component": _top(e["by_component"]), "by_type": _top(e["by_type"]),
-                                   "by_demographic": _top(e["by_demographic"]), "by_authority": _top(e["by_authority"])}))
+        out.append(
+            BaselineRecord(
+                "encounters",
+                "cbp_aor",
+                code,
+                e["name"],
+                "US",
+                ps,
+                _month_end(d).isoformat(),
+                e["value"],
+                "encounters",
+                source_url,
+                version,
+                {
+                    "aor_abbv": e["abbv"],
+                    "by_component": _top(e["by_component"]),
+                    "by_type": _top(e["by_type"]),
+                    "by_demographic": _top(e["by_demographic"]),
+                    "by_authority": _top(e["by_authority"]),
+                },
+            )
+        )
     return out
 
 
@@ -199,8 +226,10 @@ def parse_drugs_csv(data: bytes, source_url: str, version: str) -> list[Baseline
         lbs = _num(row.get(c_lbs)) if c_lbs else None
         drug = (row.get(c_type) or "unknown").strip()
         component = (row.get(c_component) or "unknown").strip() if c_component else "unknown"
-        e = agg.setdefault((_aor_code(name), d.isoformat()),
-                           {"name": name, "events": 0.0, "lbs": 0.0, "events_by_drug": {}, "lbs_by_drug": {}, "by_component": {}})
+        e = agg.setdefault(
+            (_aor_code(name), d.isoformat()),
+            {"name": name, "events": 0.0, "lbs": 0.0, "events_by_drug": {}, "lbs_by_drug": {}, "by_component": {}},
+        )
         if events is not None:
             e["events"] += events
             _bump(e["events_by_drug"], drug, events)
@@ -212,11 +241,39 @@ def parse_drugs_csv(data: bytes, source_url: str, version: str) -> list[Baseline
     for (code, ps), e in agg.items():
         pe = _month_end(date.fromisoformat(ps)).isoformat()
         if c_events:
-            out.append(BaselineRecord("drug_seizure_events", "cbp_aor", code, e["name"], "US", ps, pe, e["events"], "seizure_events",
-                                      source_url, version, {"by_drug_type": _top(e["events_by_drug"]), "by_component": _top(e["by_component"])}))
+            out.append(
+                BaselineRecord(
+                    "drug_seizure_events",
+                    "cbp_aor",
+                    code,
+                    e["name"],
+                    "US",
+                    ps,
+                    pe,
+                    e["events"],
+                    "seizure_events",
+                    source_url,
+                    version,
+                    {"by_drug_type": _top(e["events_by_drug"]), "by_component": _top(e["by_component"])},
+                )
+            )
         if c_lbs:
-            out.append(BaselineRecord("drug_seizures_lbs", "cbp_aor", code, e["name"], "US", ps, pe, round(e["lbs"], 3), "lbs",
-                                      source_url, version, {"by_drug_type": {k: round(v, 3) for k, v in _top(e["lbs_by_drug"]).items()}}))
+            out.append(
+                BaselineRecord(
+                    "drug_seizures_lbs",
+                    "cbp_aor",
+                    code,
+                    e["name"],
+                    "US",
+                    ps,
+                    pe,
+                    round(e["lbs"], 3),
+                    "lbs",
+                    source_url,
+                    version,
+                    {"by_drug_type": {k: round(v, 3) for k, v in _top(e["lbs_by_drug"]).items()}},
+                )
+            )
     return out
 
 
@@ -270,9 +327,11 @@ class CbpLoader(BaselineLoader):
     name = "CBP Enforcement Statistics — Southwest border encounters and drug seizures by sector/field office"
     source_url = PORTAL_URL
     refresh_schedule = "monthly"
-    notes = ("Monthly. Follows the CBP Public Data Portal to its document pages and loads the published nationwide "
-             "encounters (AOR) and drug-seizure CSVs; reports `blocked` (never evades) when the site WAF returns 403. "
-             "Operator-downloaded CSV supported via INGEST_CBP_LOCAL_PATH.")
+    notes = (
+        "Monthly. Follows the CBP Public Data Portal to its document pages and loads the published nationwide "
+        "encounters (AOR) and drug-seizure CSVs; reports `blocked` (never evades) when the site WAF returns 403. "
+        "Operator-downloaded CSV supported via INGEST_CBP_LOCAL_PATH."
+    )
 
     def _parse_any(self, data: bytes, src: str, version: str) -> list[BaselineRecord]:
         errors = []
@@ -304,8 +363,11 @@ class CbpLoader(BaselineLoader):
 
         portal = self.http.fetch(PORTAL_URL, accept="text/html")
         if portal.status == 403:
-            return LoadResult(self.dataset, "blocked",
-                              error="cbp.gov returned HTTP 403 to the crawler; supply INGEST_CBP_LOCAL_PATH with a manually downloaded CSV")
+            return LoadResult(
+                self.dataset,
+                "blocked",
+                error="cbp.gov returned HTTP 403 to the crawler; supply INGEST_CBP_LOCAL_PATH with a manually downloaded CSV",
+            )
         pages = discover_document_pages(portal.text() if portal.ok else "", PORTAL_URL)
 
         total = 0
@@ -347,5 +409,6 @@ class CbpLoader(BaselineLoader):
         if not loaded:
             status = "blocked" if blocked else "error"
             return LoadResult(self.dataset, status, error="; ".join(errors)[:400] or "no CBP CSV loaded", detail={"pages": pages})
-        return LoadResult(self.dataset, "updated", records=total, version=newest_version,
-                          detail={"files": loaded, "errors": errors, "pages": pages})
+        return LoadResult(
+            self.dataset, "updated", records=total, version=newest_version, detail={"files": loaded, "errors": errors, "pages": pages}
+        )

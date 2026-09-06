@@ -12,8 +12,7 @@ INGEST_DIR = PACKAGE_DIR.parent
 REPO_ROOT = INGEST_DIR.parent
 
 DEFAULT_USER_AGENT = (
-    "CrucixBorderWatch/1.0 (+https://crucix.fly.dev/crawler; "
-    "border-region OSINT research crawler; contact: ops@crucix.fly.dev)"
+    "CrucixBorderWatch/1.0 (+https://crucix.fly.dev/crawler; border-region OSINT research crawler; contact: ops@crucix.fly.dev)"
 )
 
 
@@ -41,14 +40,14 @@ def _env_float(name: str, default: float, lo: float = 0.0, hi: float = 1e9) -> f
 
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.environ.get(name)
-    if raw is None:
+    if raw is None or raw.strip() == "":
         return default
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _env_str(name: str, default: str, max_len: int = 1024) -> str:
     raw = os.environ.get(name)
-    if raw is None:
+    if raw is None or raw.strip() == "":
         return default
     return raw.strip()[:max_len]
 
@@ -76,14 +75,10 @@ DEFAULT_DATASET_DOWNLOAD_HOSTS: tuple[str, ...] = ("sspcgob-my.sharepoint.com",)
 @dataclass
 class Settings:
     db_path: Path = field(
-        default_factory=lambda: Path(
-            _env_str("INGEST_DB_PATH", str(REPO_ROOT / "runs" / "ingest" / "crucix_ingest.sqlite3"))
-        )
+        default_factory=lambda: Path(_env_str("INGEST_DB_PATH", str(REPO_ROOT / "runs" / "ingest" / "crucix_ingest.sqlite3")))
     )
     snapshot_dir: Path = field(
-        default_factory=lambda: Path(
-            _env_str("INGEST_SNAPSHOT_DIR", str(REPO_ROOT / "runs" / "ingest" / "snapshots"))
-        )
+        default_factory=lambda: Path(_env_str("INGEST_SNAPSHOT_DIR", str(REPO_ROOT / "runs" / "ingest" / "snapshots")))
     )
     user_agent: str = field(default_factory=lambda: _env_str("INGEST_USER_AGENT", DEFAULT_USER_AGENT, 512))
     dataset_download_hosts: tuple[str, ...] = field(
@@ -91,12 +86,8 @@ class Settings:
     )
     # Feed polling
     poll_interval_minutes: int = field(default_factory=lambda: _env_int("INGEST_POLL_INTERVAL_MINUTES", 15, 1, 1440))
-    per_host_delay_seconds: float = field(
-        default_factory=lambda: _env_float("INGEST_PER_HOST_DELAY_SECONDS", 2.0, 0.0, 600.0)
-    )
-    request_timeout_seconds: float = field(
-        default_factory=lambda: _env_float("INGEST_REQUEST_TIMEOUT_SECONDS", 20.0, 1.0, 300.0)
-    )
+    per_host_delay_seconds: float = field(default_factory=lambda: _env_float("INGEST_PER_HOST_DELAY_SECONDS", 2.0, 0.0, 600.0))
+    request_timeout_seconds: float = field(default_factory=lambda: _env_float("INGEST_REQUEST_TIMEOUT_SECONDS", 20.0, 1.0, 300.0))
     max_items_per_poll: int = field(default_factory=lambda: _env_int("INGEST_MAX_ITEMS_PER_POLL", 40, 1, 500))
     max_article_bytes: int = field(default_factory=lambda: _env_int("INGEST_MAX_ARTICLE_BYTES", 3_000_000, 10_000))
     max_feed_bytes: int = field(default_factory=lambda: _env_int("INGEST_MAX_FEED_BYTES", 10_000_000, 10_000))
@@ -111,9 +102,7 @@ class Settings:
     translation_provider: str = field(default_factory=lambda: _env_str("INGEST_TRANSLATION_PROVIDER", "none", 32))
     libretranslate_url: str = field(default_factory=lambda: _env_str("INGEST_LIBRETRANSLATE_URL", "", 512))
     libretranslate_api_key: str = field(default_factory=lambda: _env_str("INGEST_LIBRETRANSLATE_API_KEY", "", 256))
-    translation_api_base: str = field(
-        default_factory=lambda: _env_str("INGEST_TRANSLATION_API_BASE", "https://api.openai.com/v1", 512)
-    )
+    translation_api_base: str = field(default_factory=lambda: _env_str("INGEST_TRANSLATION_API_BASE", "https://api.openai.com/v1", 512))
     translation_api_key: str = field(
         default_factory=lambda: _env_str("INGEST_TRANSLATION_API_KEY", "", 512) or _env_str("LLM_API_KEY", "", 512)
     )
@@ -129,9 +118,7 @@ class Settings:
     acled_snapshot_path: str = field(default_factory=lambda: _env_str("INGEST_ACLED_SNAPSHOT_PATH", "", 1024))
     # Optional operator-downloaded CBP CSV (used when cbp.gov blocks automated clients from this network).
     cbp_local_path: str = field(default_factory=lambda: _env_str("INGEST_CBP_LOCAL_PATH", "", 1024))
-    baseline_check_interval_minutes: int = field(
-        default_factory=lambda: _env_int("INGEST_BASELINE_CHECK_INTERVAL_MINUTES", 360, 5, 10080)
-    )
+    baseline_check_interval_minutes: int = field(default_factory=lambda: _env_int("INGEST_BASELINE_CHECK_INTERVAL_MINUTES", 360, 5, 10080))
     log_json: bool = field(default_factory=lambda: _env_bool("INGEST_LOG_JSON", True))
 
     def ensure_dirs(self) -> None:

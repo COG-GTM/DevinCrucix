@@ -49,13 +49,28 @@ def profiles_to_records(posts: list[dict], series: str, source_url: str, version
         if not modified:
             continue
         title = _clean((p.get("title") or {}).get("rendered", ""))
-        out.append(BaselineRecord(
-            series=series, region_type="national", region_code="MX", region_name=title[:200] or "profile", country="MX",
-            period_start=published or modified, period_end=modified, value=None, unit="profile", source_url=str(p["link"]),
-            source_version=version,
-            metadata={"title": title[:200], "excerpt": _clean((p.get("excerpt") or {}).get("rendered", ""))[:500],
-                      "modified": modified, "post_id": p.get("id"), "tags": p.get("tags", [])},
-        ))
+        out.append(
+            BaselineRecord(
+                series=series,
+                region_type="national",
+                region_code="MX",
+                region_name=title[:200] or "profile",
+                country="MX",
+                period_start=published or modified,
+                period_end=modified,
+                value=None,
+                unit="profile",
+                source_url=str(p["link"]),
+                source_version=version,
+                metadata={
+                    "title": title[:200],
+                    "excerpt": _clean((p.get("excerpt") or {}).get("rendered", ""))[:500],
+                    "modified": modified,
+                    "post_id": p.get("id"),
+                    "tags": p.get("tags", []),
+                },
+            )
+        )
     return out
 
 
@@ -73,8 +88,20 @@ def weekly_counts(posts: list[dict], source_url: str, version: str) -> list[Base
         if TAG_BORDER in (p.get("tags") or []):
             e["border"] += 1
     return [
-        BaselineRecord("mexico_publications_weekly", "national", "MX", "Mexico", "MX", ws, e["end"], float(e["n"]), "articles",
-                       source_url, version, {"border_tagged": e["border"]})
+        BaselineRecord(
+            "mexico_publications_weekly",
+            "national",
+            "MX",
+            "Mexico",
+            "MX",
+            ws,
+            e["end"],
+            float(e["n"]),
+            "articles",
+            source_url,
+            version,
+            {"border_tagged": e["border"]},
+        )
         for ws, e in counts.items()
     ]
 
@@ -135,7 +162,9 @@ class InsightCrimeLoader(BaselineLoader):
         records += profiles_to_records(people, "criminal_personality_profile", url, version)
 
         after = (datetime.now(timezone.utc) - timedelta(weeks=13)).strftime("%Y-%m-%dT%H:%M:%S")
-        recent, err, url = self._all_pages({"tags": f"{TAG_MEXICO},{TAG_BORDER}", "after": after, "_fields": "id,link,date_gmt,title,tags"}, max_pages=10)
+        recent, err, url = self._all_pages(
+            {"tags": f"{TAG_MEXICO},{TAG_BORDER}", "after": after, "_fields": "id,link,date_gmt,title,tags"}, max_pages=10
+        )
         if err and not recent:
             errors.append(f"recent: {err}")
         records += weekly_counts(recent, url, version)

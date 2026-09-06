@@ -26,7 +26,7 @@ from urllib.parse import parse_qs, urlparse
 
 from . import __version__
 from .anomaly import detect_baseline_anomalies, detect_news_anomalies, list_anomalies
-from .baselines import run_due_loaders
+from .baselines import all_loaders, run_due_loaders
 from .config import Settings
 from .db import Database, row_to_dict, rows_to_dicts
 from .http_client import build_http_client
@@ -42,7 +42,11 @@ _CODE_RE = re.compile(r"^[A-Za-z0-9:_./ -]{1,64}$")
 _LANG_RE = re.compile(r"^[a-z]{2}$")
 _DATASET_RE = re.compile(r"^[a-z0-9_]{1,64}$")
 
-BASELINE_ANOMALY_SERIES = [("sesnsp_municipal", "homicidio_doloso"), ("cbp_encounters", "encounters"), ("fra_rail_incidents", "rail_equipment_incidents")]
+BASELINE_ANOMALY_SERIES = [
+    ("sesnsp_municipal", "homicidio_doloso"),
+    ("cbp_encounters", "encounters"),
+    ("fra_rail_incidents", "rail_equipment_incidents"),
+]
 
 
 class IngestService:
@@ -52,6 +56,8 @@ class IngestService:
         self.db = db or Database(settings.db_path)
         seed_registry(self.db)
         self.http = build_http_client(settings)
+        for loader in all_loaders(self.db, settings, self.http):
+            loader.ensure_registered()  # /baselines and /health list every dataset before the first refresh
         self.pipeline = Pipeline(self.db, settings, http=self.http)
         self._lock = threading.Lock()
         self._stop = threading.Event()
@@ -76,26 +82,47 @@ class IngestService:
                 "anomalies": len(anomalies),
             }
             self.last_sweep = result
-            log_event(logger, "sweep_complete", new_articles=result["new_articles"], anomalies=result["anomalies"], duration_ms=result["duration_ms"])
+            log_event(
+                logger,
+                "sweep_complete",
+                new_articles=result["new_articles"],
+                anomalies=result["anomalies"],
+                duration_ms=result["duration_ms"],
+            )
             return result
         finally:
             self._lock.release()
 
     def check_baselines(self, force: bool = False) -> list[dict[str, Any]]:
         results = run_due_loaders(self.db, self.settings, self.http, force=force)
-        for dataset, series in BASELINE_ANOMALY_SERIES:
-            if force or any(r.dataset == dataset and r.status == "updated" for r in results):
-                detect_baseline_anomalies(self.db, self.settings, dataset, series)
+        updated = {r.dataset for r in results if r.status == "updated"}
+        self.detect_baseline_anomalies(only=None if force else updated)
         self.last_baseline_check = datetime.now(timezone.utc).isoformat(timespec="seconds")
         return [r.to_dict() for r in results]
+
+    def detect_baseline_anomalies(self, only: set[str] | None = None) -> list[dict[str, Any]]:
+        """Recompute structured-baseline anomalies (all series, or only the given datasets)."""
+        found: list[dict[str, Any]] = []
+        for dataset, series in BASELINE_ANOMALY_SERIES:
+            if only is None or dataset in only:
+                found.extend(detect_baseline_anomalies(self.db, self.settings, dataset, series))
+        return found
+
+    def detect_all_anomalies(self) -> list[dict[str, Any]]:
+        return detect_news_anomalies(self.db, self.settings) + self.detect_baseline_anomalies()
 
     def run_scheduler(self) -> None:
         poll_every = self.settings.poll_interval_minutes * 60
         baseline_every = self.settings.baseline_check_interval_minutes * 60
         next_poll = 0.0
         next_baseline = 0.0
-        log_event(logger, "scheduler_started", poll_interval_minutes=self.settings.poll_interval_minutes,
-                  baseline_check_interval_minutes=self.settings.baseline_check_interval_minutes, user_agent=self.settings.user_agent)
+        log_event(
+            logger,
+            "scheduler_started",
+            poll_interval_minutes=self.settings.poll_interval_minutes,
+            baseline_check_interval_minutes=self.settings.baseline_check_interval_minutes,
+            user_agent=self.settings.user_agent,
+        )
         while not self._stop.is_set():
             now = time.monotonic()
             if now >= next_poll:
@@ -122,7 +149,8 @@ class IngestService:
         datasets = rows_to_dicts(self.db.query("SELECT * FROM baseline_datasets ORDER BY dataset"))
         counts = self.db.query_one(
             "SELECT COUNT(*) AS articles, SUM(paywalled) AS paywalled, SUM(is_violence) AS violence, "
-            "SUM(CASE WHEN language != 'en' THEN 1 ELSE 0 END) AS non_english FROM articles")
+            "SUM(CASE WHEN language != 'en' THEN 1 ELSE 0 END) AS non_english FROM articles"
+        )
         return {
             "status": "ok",
             "version": __version__,
@@ -136,7 +164,22 @@ class IngestService:
             "articles": dict(counts) if counts else {},
             "last_sweep": {k: v for k, v in (self.last_sweep or {}).items() if k != "sources"},
             "last_baseline_check": self.last_baseline_check,
-            "baselines": [{k: d.get(k) for k in ("dataset", "refresh_schedule", "last_checked_at", "last_updated_at", "last_status", "last_error", "record_count", "version")} for d in datasets],
+            "baselines": [
+                {
+                    k: d.get(k)
+                    for k in (
+                        "dataset",
+                        "refresh_schedule",
+                        "last_checked_at",
+                        "last_updated_at",
+                        "last_status",
+                        "last_error",
+                        "record_count",
+                        "version",
+                    )
+                }
+                for d in datasets
+            ],
         }
 
     def sources(self) -> list[dict[str, Any]]:
@@ -166,30 +209,43 @@ class IngestService:
         rows = self.db.query(
             f"""SELECT a.id, a.title, a.summary, a.url, a.canonical_url, a.published_at, a.discovered_at, a.language,
                        a.country_of_publication, a.reliability, a.source_type, a.region_tag, a.paywalled, a.fetch_status,
-                       a.extraction_method, a.text_language, a.violence_score, a.is_violence, a.border_regions_json,
+                       a.extraction_method, a.text_language, a.violence_score, a.violence_terms_json, a.is_violence, a.border_regions_json,
                        a.entities_json, a.translation_engine, s.slug AS source_slug, s.outlet_name,
                        (a.translation_text IS NOT NULL) AS has_translation, length(a.text) AS text_chars
                 FROM articles a JOIN sources s ON s.id = a.source_id
-                WHERE {' AND '.join(where)}
+                WHERE {" AND ".join(where)}
                 ORDER BY COALESCE(a.published_at, a.discovered_at) DESC, a.id DESC LIMIT ?""",  # noqa: S608 - clauses are fixed strings
             params + [limit],
         )
-        return rows_to_dicts(rows, json_fields=("border_regions_json", "entities_json"))
+        return rows_to_dicts(rows, json_fields=("border_regions_json", "entities_json", "violence_terms_json"))
 
     def article(self, article_id: int) -> dict[str, Any] | None:
         row = self.db.query_one(
             "SELECT a.*, s.slug AS source_slug, s.outlet_name FROM articles a JOIN sources s ON s.id = a.source_id WHERE a.id = ?",
-            (article_id,))
+            (article_id,),
+        )
         if not row:
             return None
-        d = row_to_dict(row, json_fields=("border_regions_json", "entities_json"))
+        d = row_to_dict(row, json_fields=("border_regions_json", "entities_json", "violence_terms_json"))
         assert d is not None
-        d["translation"] = {
-            "text": d.pop("translation_text"), "engine": d.pop("translation_engine"), "model": d.pop("translation_model"),
-            "is_machine_translation": bool(d.pop("translation_is_machine")), "translated_at": d.pop("translated_at"),
-            "label": "MACHINE TRANSLATION — derived field; original-language text is the source of record",
-        } if d.get("translation_text") else None
-        d["regions"] = [dict(r) for r in self.db.query("SELECT region_code, region_type, region_name, country FROM article_regions WHERE article_id = ?", (article_id,))]
+        d["translation"] = (
+            {
+                "text": d.pop("translation_text"),
+                "engine": d.pop("translation_engine"),
+                "model": d.pop("translation_model"),
+                "is_machine_translation": bool(d.pop("translation_is_machine")),
+                "translated_at": d.pop("translated_at"),
+                "label": "MACHINE TRANSLATION — derived field; original-language text is the source of record",
+            }
+            if d.get("translation_text")
+            else None
+        )
+        d["regions"] = [
+            dict(r)
+            for r in self.db.query(
+                "SELECT region_code, region_type, region_name, country FROM article_regions WHERE article_id = ?", (article_id,)
+            )
+        ]
         return d
 
     def baselines(self) -> list[dict[str, Any]]:
@@ -212,7 +268,8 @@ class IngestService:
             params.append(q["since"][:10])
         rows = self.db.query(
             f"SELECT * FROM baseline_records WHERE {' AND '.join(where)} ORDER BY period_start DESC, region_code LIMIT ?",  # noqa: S608
-            params + [limit])
+            params + [limit],
+        )
         return rows_to_dicts(rows, json_fields=("metadata_json",))
 
     def summary(self) -> dict[str, Any]:
@@ -224,14 +281,18 @@ class IngestService:
                       SUM(a.is_violence) AS violence
                FROM article_regions ar JOIN articles a ON a.id = ar.article_id
                WHERE COALESCE(a.published_at, a.discovered_at) >= ?
-               GROUP BY ar.region_code ORDER BY violence DESC, articles DESC LIMIT 15""", (week_ago,))
+               GROUP BY ar.region_code ORDER BY violence DESC, articles DESC LIMIT 15""",
+            (week_ago,),
+        )
         by_lang = self.db.query("SELECT language, COUNT(*) AS n, SUM(paywalled) AS paywalled FROM articles GROUP BY language")
         recent = self.articles({"limit": "40", "since": (now - timedelta(days=3)).isoformat(timespec="seconds")})
         return {
             "generated_at": now.isoformat(timespec="seconds"),
             "health": self.health(),
             "articles_24h": (self.db.query_one("SELECT COUNT(*) AS n FROM articles WHERE discovered_at >= ?", (day_ago,)) or {"n": 0})["n"],
-            "violence_24h": (self.db.query_one("SELECT COUNT(*) AS n FROM articles WHERE discovered_at >= ? AND is_violence = 1", (day_ago,)) or {"n": 0})["n"],
+            "violence_24h": (
+                self.db.query_one("SELECT COUNT(*) AS n FROM articles WHERE discovered_at >= ? AND is_violence = 1", (day_ago,)) or {"n": 0}
+            )["n"],
             "by_language": [dict(r) for r in by_lang],
             "top_regions_7d": [dict(r) for r in top_regions],
             "anomalies": list_anomalies(self.db, limit=25, since=(now - timedelta(days=30)).date().isoformat()),
@@ -259,6 +320,7 @@ def make_handler(service: IngestService):
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("X-Frame-Options", "DENY")
             self.send_header("Referrer-Policy", "no-referrer")

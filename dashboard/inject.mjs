@@ -1092,12 +1092,89 @@ export async function synthesize(data) {
         signals: lnData.signals || [],
       };
     })(),
+    // Border Watch: Python ingestion service summary (news + structured baselines + anomalies)
+    borderIngest: synthesizeBorderIngest(data.sources.BorderIngest),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
   };
 
   return V2;
+}
+
+// === Border Watch (Python ingestion service) ===
+// Shapes the ingest /summary payload for the dashboard. Everything here is third-party text
+// (headlines, outlet names, region names) and MUST be HTML-escaped by the frontend before insertion.
+const str = (v, max) => (typeof v === 'string' ? v.substring(0, max) : '');
+const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+const isoDate = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? v.substring(0, 25) : null);
+
+export function synthesizeBorderIngest(raw) {
+  if (!raw || raw.status !== 'live') {
+    return { status: raw?.status || 'offline', error: str(raw?.error, 200), anomalies: [], regions: [], articles: [], baselines: [], sources: { enabled: 0, degraded: [] } };
+  }
+  const health = raw.health || {};
+  const articleCounts = health.articles || {};
+  return {
+    status: 'live',
+    generatedAt: isoDate(raw.generated_at),
+    userAgent: str(health.user_agent, 200),
+    pollIntervalMinutes: num(health.poll_interval_minutes),
+    nerBackend: str(health.ner_backend, 40),
+    translationProvider: str(health.translation_provider, 40),
+    lastSweepAt: isoDate(health.last_sweep?.finished_at),
+    lastBaselineCheckAt: isoDate(health.last_baseline_check),
+    sources: {
+      enabled: num(health.sources_enabled),
+      degraded: (Array.isArray(health.sources_degraded) ? health.sources_degraded : []).slice(0, 30).map(s => str(s, 64)),
+    },
+    totals: {
+      articles: num(articleCounts.articles),
+      paywalled: num(articleCounts.paywalled),
+      violence: num(articleCounts.violence),
+      nonEnglish: num(articleCounts.non_english),
+      articles24h: num(raw.articles_24h),
+      violence24h: num(raw.violence_24h),
+    },
+    byLanguage: (Array.isArray(raw.by_language) ? raw.by_language : []).slice(0, 10).map(l => ({
+      language: str(l.language, 8), count: num(l.n), paywalled: num(l.paywalled),
+    })),
+    regions: (Array.isArray(raw.top_regions_7d) ? raw.top_regions_7d : []).slice(0, 15).map(r => ({
+      code: str(r.region_code, 64), name: str(r.region_name, 120), country: str(r.country, 2),
+      articles: num(r.articles), violence: num(r.violence),
+    })),
+    anomalies: (Array.isArray(raw.anomalies) ? raw.anomalies : []).slice(0, 25).map(a => ({
+      metric: str(a.metric, 80), regionCode: str(a.region_code, 64), regionName: str(a.region_name, 120),
+      country: str(a.country, 2), regionType: str(a.region_type, 32),
+      windowStart: isoDate(a.window_start), windowEnd: isoDate(a.window_end),
+      observed: num(a.observed), baselineMean: num(a.baseline_mean), baselineStd: num(a.baseline_std),
+      baselineN: num(a.baseline_n), zScore: num(a.z_score), severity: str(a.severity, 16),
+      articleIds: (Array.isArray(a.article_ids) ? a.article_ids : []).slice(0, 20).filter(Number.isInteger),
+    })),
+    articles: (Array.isArray(raw.recent_articles) ? raw.recent_articles : []).slice(0, 30).map(a => ({
+      id: Number.isInteger(a.id) ? a.id : null,
+      title: str(a.title, 200), summary: str(a.summary, 280), url: str(a.url, 2048),
+      publishedAt: isoDate(a.published_at) || isoDate(a.discovered_at),
+      language: str(a.language, 8), country: str(a.country_of_publication, 2),
+      outlet: str(a.outlet_name, 120), sourceSlug: str(a.source_slug, 64),
+      reliability: str(a.reliability, 32), sourceType: str(a.source_type, 32),
+      paywalled: !!a.paywalled, fetchStatus: str(a.fetch_status, 24),
+      isViolence: !!a.is_violence, violenceScore: num(a.violence_score),
+      violenceTerms: (Array.isArray(a.violence_terms_json) ? a.violence_terms_json : []).slice(0, 6).map(t => str(t, 40)),
+      regions: (Array.isArray(a.border_regions_json) ? a.border_regions_json : []).slice(0, 5).map(r => ({
+        code: str(r.code, 64), name: str(r.name, 120), country: str(r.country, 2),
+      })),
+      entities: (Array.isArray(a.entities_json) ? a.entities_json : []).slice(0, 8).map(e => ({
+        text: str(e.text, 80), label: str(e.label, 16),
+      })),
+      hasMachineTranslation: !!a.has_translation,
+    })),
+    baselines: (Array.isArray(health.baselines) ? health.baselines : []).slice(0, 12).map(b => ({
+      dataset: str(b.dataset, 64), schedule: str(b.refresh_schedule, 32), status: str(b.last_status, 24),
+      error: str(b.last_error, 200), records: num(b.record_count), version: str(b.version, 64),
+      lastCheckedAt: isoDate(b.last_checked_at), lastUpdatedAt: isoDate(b.last_updated_at),
+    })),
+  };
 }
 
 // === Unified News Feed for Ticker ===

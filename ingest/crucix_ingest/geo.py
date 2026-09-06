@@ -19,14 +19,20 @@ GAZETTEER_PATH = PACKAGE_DIR / "data" / "border_regions.json"
 class Region:
     code: str
     name: str
-    type: str          # county | municipality
-    country: str       # US | MX
+    type: str  # county | municipality
+    country: str  # US | MX
     state: str
     on_border: bool
 
     def to_dict(self) -> dict:
-        return {"code": self.code, "name": self.name, "type": self.type, "country": self.country,
-                "state": self.state, "on_border": self.on_border}
+        return {
+            "code": self.code,
+            "name": self.name,
+            "type": self.type,
+            "country": self.country,
+            "state": self.state,
+            "on_border": self.on_border,
+        }
 
 
 def _fold(value: str) -> str:
@@ -42,7 +48,9 @@ class Gazetteer:
         self.regions: dict[str, Region] = {}
         patterns: list[tuple[str, str]] = []
         for r in data["regions"]:
-            region = Region(code=r["code"], name=r["name"], type=r["type"], country=r["country"], state=r["state"], on_border=bool(r["on_border"]))
+            region = Region(
+                code=r["code"], name=r["name"], type=r["type"], country=r["country"], state=r["state"], on_border=bool(r["on_border"])
+            )
             self.regions[region.code] = region
             for alias in r["aliases"]:
                 patterns.append((_fold(alias), region.code))
@@ -95,29 +103,146 @@ def default_gazetteer() -> Gazetteer:
 # ---------------------------------------------------------------------------
 _VIOLENCE_TERMS: dict[str, float] = {
     # English
-    "homicide": 3, "murder": 3, "murdered": 3, "killed": 2.5, "killing": 2.5, "shooting": 3, "shot dead": 3, "shot and killed": 3,
-    "gunfire": 2.5, "gunmen": 3, "gunman": 3, "massacre": 4, "beheaded": 4, "decapitated": 4, "dismembered": 4, "bodies found": 3,
-    "body found": 2, "mass grave": 4, "clandestine grave": 4, "kidnapping": 3, "kidnapped": 3, "abducted": 3, "extortion": 2,
-    "cartel": 2, "cartel violence": 4, "sicario": 3, "sicarios": 3, "hitmen": 3, "shootout": 3.5, "firefight": 3, "armed attack": 3.5,
-    "ambush": 3, "grenade": 3, "explosive": 1, "car bomb": 4, "ied": 2, "narco": 1.5, "drug violence": 3, "femicide": 3,
-    "human smuggling": 1.5, "stash house": 1.5, "assassinated": 4, "assassination": 4, "executed": 1.5, "execution-style": 4,
-    "torture": 3, "tortured": 3, "disappeared": 2, "disappearances": 2, "violence": 1.5, "violent": 1, "stabbed": 2.5, "stabbing": 2.5,
-    "narcobloqueo": 3, "blockade": 1, "burned vehicles": 2, "armed men": 2.5, "gunned down": 3.5,
+    "homicide": 3,
+    "murder": 3,
+    "murdered": 3,
+    "killed": 2.5,
+    "killing": 2.5,
+    "shooting": 3,
+    "shot dead": 3,
+    "shot and killed": 3,
+    "gunfire": 2.5,
+    "gunmen": 3,
+    "gunman": 3,
+    "massacre": 4,
+    "beheaded": 4,
+    "decapitated": 4,
+    "dismembered": 4,
+    "bodies found": 3,
+    "body found": 2,
+    "mass grave": 4,
+    "clandestine grave": 4,
+    "kidnapping": 3,
+    "kidnapped": 3,
+    "abducted": 3,
+    "extortion": 2,
+    "cartel": 2,
+    "cartel violence": 4,
+    "sicario": 3,
+    "sicarios": 3,
+    "hitmen": 3,
+    "shootout": 3.5,
+    "firefight": 3,
+    "armed attack": 3.5,
+    "ambush": 3,
+    "grenade": 3,
+    "explosive": 1,
+    "car bomb": 4,
+    "ied": 2,
+    "narco": 1.5,
+    "drug violence": 3,
+    "femicide": 3,
+    "human smuggling": 1.5,
+    "stash house": 1.5,
+    "assassinated": 4,
+    "assassination": 4,
+    "executed": 1.5,
+    "execution-style": 4,
+    "torture": 3,
+    "tortured": 3,
+    "disappeared": 2,
+    "disappearances": 2,
+    "violence": 1.5,
+    "violent": 1,
+    "stabbed": 2.5,
+    "stabbing": 2.5,
+    "narcobloqueo": 3,
+    "blockade": 1,
+    "burned vehicles": 2,
+    "armed men": 2.5,
+    "gunned down": 3.5,
     # Spanish
-    "homicidio": 3, "homicidios": 3, "asesinado": 3, "asesinada": 3, "asesinados": 3, "asesinato": 3, "asesinatos": 3, "ejecutado": 2,
-    "ejecutados": 2, "ejecución": 1, "ejecuciones": 2, "balacera": 3.5, "balaceras": 3.5, "tiroteo": 3, "enfrentamiento armado": 3.5,
-    "enfrentamiento": 2, "hombres armados": 2.5, "sujetos armados": 2.5, "civiles armados": 2.5,
-    "cártel": 2, "narcobloqueos": 3, "secuestro": 3, "secuestrado": 3, "secuestrados": 3, "secuestran": 3,
-    "extorsión": 2, "extorsiones": 2, "cobro de piso": 2.5, "fosa clandestina": 4, "fosas clandestinas": 4, "restos humanos": 3,
-    "cadáver": 2.5, "cadáveres": 3, "descuartizado": 4, "decapitado": 4, "embolsado": 3.5, "encobijado": 3.5,
-    "narcomanta": 3, "narcomantas": 3, "granada": 2.5, "explosivo": 2, "artefacto explosivo": 3, "ataque armado": 3.5,
-    "emboscada": 3, "feminicidio": 3, "desaparecido": 2, "desaparecidos": 2, "desaparición": 2, "violencia": 1.5, "levantón": 3,
-    "levantados": 3, "acribillado": 3.5, "acribillados": 3.5, "abatido": 2.5, "abatidos": 2.5, "grupo armado": 2.5, "célula criminal": 2,
-    "quema de vehículos": 2.5, "vehículos incendiados": 2.5, "bloqueos": 1, "matan": 3, "asesinan": 3, "hallan cuerpo": 3,
-    "hallan cuerpos": 3.5, "localizan cuerpo": 3, "sin vida": 2.5, "privado de la vida": 3, "privan de la vida": 3, "lesionado por arma de fuego": 3,
-    "herido de bala": 3, "heridos de bala": 3, "disparos": 2.5, "arma de fuego": 2, "armas largas": 2,
+    "homicidio": 3,
+    "homicidios": 3,
+    "asesinado": 3,
+    "asesinada": 3,
+    "asesinados": 3,
+    "asesinato": 3,
+    "asesinatos": 3,
+    "ejecutado": 2,
+    "ejecutados": 2,
+    "ejecución": 1,
+    "ejecuciones": 2,
+    "balacera": 3.5,
+    "balaceras": 3.5,
+    "tiroteo": 3,
+    "enfrentamiento armado": 3.5,
+    "enfrentamiento": 2,
+    "hombres armados": 2.5,
+    "sujetos armados": 2.5,
+    "civiles armados": 2.5,
+    "cártel": 2,
+    "narcobloqueos": 3,
+    "secuestro": 3,
+    "secuestrado": 3,
+    "secuestrados": 3,
+    "secuestran": 3,
+    "extorsión": 2,
+    "extorsiones": 2,
+    "cobro de piso": 2.5,
+    "fosa clandestina": 4,
+    "fosas clandestinas": 4,
+    "restos humanos": 3,
+    "cadáver": 2.5,
+    "cadáveres": 3,
+    "descuartizado": 4,
+    "decapitado": 4,
+    "embolsado": 3.5,
+    "encobijado": 3.5,
+    "narcomanta": 3,
+    "narcomantas": 3,
+    "granada": 2.5,
+    "explosivo": 2,
+    "artefacto explosivo": 3,
+    "ataque armado": 3.5,
+    "emboscada": 3,
+    "feminicidio": 3,
+    "desaparecido": 2,
+    "desaparecidos": 2,
+    "desaparición": 2,
+    "violencia": 1.5,
+    "levantón": 3,
+    "levantados": 3,
+    "acribillado": 3.5,
+    "acribillados": 3.5,
+    "abatido": 2.5,
+    "abatidos": 2.5,
+    "grupo armado": 2.5,
+    "célula criminal": 2,
+    "quema de vehículos": 2.5,
+    "vehículos incendiados": 2.5,
+    "bloqueos": 1,
+    "matan": 3,
+    "asesinan": 3,
+    "hallan cuerpo": 3,
+    "hallan cuerpos": 3.5,
+    "localizan cuerpo": 3,
+    "sin vida": 2.5,
+    "privado de la vida": 3,
+    "privan de la vida": 3,
+    "lesionado por arma de fuego": 3,
+    "herido de bala": 3,
+    "heridos de bala": 3,
+    "disparos": 2.5,
+    "arma de fuego": 2,
+    "armas largas": 2,
 }
-_NEGATION_CONTEXT = re.compile(r"\b(film|movie|película|novela|serie|series|video game|videojuego|book review|reseña)\b", re.IGNORECASE)
+# Title contexts where violence vocabulary is not a violence report: fiction/entertainment and wildlife/hunting.
+_NEGATION_CONTEXT = re.compile(
+    r"\b(film|movie|película|novela|serie|series|video game|videojuego|book review|reseña"
+    r"|wolf|wolves|lobo|lobos|wildlife|fauna|vida silvestre|hunting|caza|cacería|cattle|ganado)\b",
+    re.IGNORECASE,
+)
 
 
 @lru_cache(maxsize=1)
@@ -157,7 +282,18 @@ def violence_score(title: str, text: str | None) -> tuple[float, list[str]]:
 
 
 VIOLENCE_THRESHOLD = 6.0
+STRONG_TERM_WEIGHT = 2.5
 
 
-def is_violence_report(score: float) -> bool:
-    return score >= VIOLENCE_THRESHOLD
+def is_violence_report(score: float, terms: list[str] | None = None) -> bool:
+    """Score above threshold AND corroborated: either one unambiguous (strong) term or two distinct terms.
+
+    A lone low-weight, ambiguous word (``ejecutados`` in "proyectos ejecutados", ``violence`` in a policy
+    essay) can cross the score threshold on a short article; requiring corroboration keeps those out.
+    """
+    if score < VIOLENCE_THRESHOLD:
+        return False
+    if terms is None:
+        return True
+    weights = _folded_terms()
+    return len(terms) >= 2 or any(weights.get(_fold(t), 0.0) >= STRONG_TERM_WEIGHT for t in terms)

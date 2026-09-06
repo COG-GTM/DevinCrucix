@@ -28,8 +28,17 @@ _EN_STOP = {"the", "and", "of", "to", "in", "that", "for", "with", "was", "were"
 _ES_STOP = {"el", "la", "los", "las", "de", "del", "que", "en", "y", "por", "con", "para", "una", "un", "se", "su", "fue", "como"}
 _WORD_RE = re.compile(r"[a-záéíóúñü]+", re.IGNORECASE)
 
-LABEL_MAP = {"PER": "PERSON", "PERSON": "PERSON", "LOC": "LOCATION", "GPE": "LOCATION", "ORG": "ORGANIZATION", "MISC": "MISC",
-             "FAC": "LOCATION", "NORP": "GROUP", "EVENT": "EVENT"}
+LABEL_MAP = {
+    "PER": "PERSON",
+    "PERSON": "PERSON",
+    "LOC": "LOCATION",
+    "GPE": "LOCATION",
+    "ORG": "ORGANIZATION",
+    "MISC": "MISC",
+    "FAC": "LOCATION",
+    "NORP": "GROUP",
+    "EVENT": "EVENT",
+}
 
 
 def detect_language(text: str, default: str = "en") -> str:
@@ -107,8 +116,33 @@ class NerEngine:
         return ents[:MAX_ENTITIES]
 
 
-_CAP_SPAN_RE = re.compile(r"\b(?:[A-ZÁÉÍÓÚÑ][\wáéíóúñü'’-]+)(?:\s+(?:de|del|la|las|los|of|the|y|and|el)\s+)?(?:\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñü'’-]+){0,3}")
-_SENTENCE_START_STOP = {"The", "A", "An", "In", "On", "At", "El", "La", "Los", "Las", "Un", "Una", "En", "De", "Por", "This", "That", "It", "He", "She", "They", "We"}
+_CAP_SPAN_RE = re.compile(
+    r"\b(?:[A-ZÁÉÍÓÚÑ][\wáéíóúñü'’-]+)(?:\s+(?:de|del|la|las|los|of|the|y|and|el)\s+)?(?:\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñü'’-]+){0,3}"
+)
+_SENTENCE_START_STOP = {
+    "The",
+    "A",
+    "An",
+    "In",
+    "On",
+    "At",
+    "El",
+    "La",
+    "Los",
+    "Las",
+    "Un",
+    "Una",
+    "En",
+    "De",
+    "Por",
+    "This",
+    "That",
+    "It",
+    "He",
+    "She",
+    "They",
+    "We",
+}
 
 
 def _fallback_capitalized_spans(text: str, language: str) -> list[str]:
@@ -182,8 +216,12 @@ class Translator:
         translated = data.get("translatedText")
         if not translated:
             return None
-        return Translation(text=str(translated), engine="libretranslate", model="libretranslate",
-                           translated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+        return Translation(
+            text=str(translated),
+            engine="libretranslate",
+            model="libretranslate",
+            translated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        )
 
     def _openai(self, text: str, source_lang: str, target_lang: str) -> Translation | None:
         url = self.settings.translation_api_base.rstrip("/") + "/chat/completions"
@@ -191,9 +229,13 @@ class Translator:
             "model": self.settings.translation_model,
             "temperature": 0,
             "messages": [
-                {"role": "system", "content": (
-                    f"You are a professional news translator. Translate the user's text from {source_lang} to {target_lang}. "
-                    "Preserve names, places and figures exactly. Output only the translation.")},
+                {
+                    "role": "system",
+                    "content": (
+                        f"You are a professional news translator. Translate the user's text from {source_lang} to {target_lang}. "
+                        "Preserve names, places and figures exactly. Output only the translation."
+                    ),
+                },
                 {"role": "user", "content": text},
             ],
         }
@@ -204,8 +246,12 @@ class Translator:
         content = (choices[0].get("message") or {}).get("content")
         if not content:
             return None
-        return Translation(text=str(content).strip(), engine="openai-compatible", model=self.settings.translation_model,
-                           translated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+        return Translation(
+            text=str(content).strip(),
+            engine="openai-compatible",
+            model=self.settings.translation_model,
+            translated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        )
 
     def _argos_translate(self, text: str, source_lang: str, target_lang: str) -> Translation | None:
         import argostranslate.translate  # type: ignore
@@ -213,5 +259,9 @@ class Translator:
         translated = argostranslate.translate.translate(text, source_lang, target_lang)
         if not translated:
             return None
-        return Translation(text=translated, engine="argos-translate", model=f"{source_lang}-{target_lang}",
-                           translated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+        return Translation(
+            text=translated,
+            engine="argos-translate",
+            model=f"{source_lang}-{target_lang}",
+            translated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        )

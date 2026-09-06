@@ -36,7 +36,7 @@ def _mean_std(values: list[float]) -> tuple[float, float]:
 
 
 def _severity(z: float, observed: float, mean: float) -> str:
-    if z >= 5 or (mean > 0 and observed >= mean * 4):
+    if z >= 5 or (mean >= 1 and observed >= mean * 4):
         return "critical"
     if z >= 3.5:
         return "elevated"
@@ -104,7 +104,9 @@ def detect_news_anomalies(db: Database, settings: Settings, as_of: date | None =
         region = gaz.get(code)
         if region is None:
             continue
-        res = evaluate_region_series(daily, as_of, settings.anomaly_baseline_weeks, settings.anomaly_z_threshold, settings.anomaly_min_count)
+        res = evaluate_region_series(
+            daily, as_of, settings.anomaly_baseline_weeks, settings.anomaly_z_threshold, settings.anomaly_min_count
+        )
         if not res:
             continue
         article_rows = db.query(
@@ -129,6 +131,34 @@ def detect_news_anomalies(db: Database, settings: Settings, as_of: date | None =
     return found
 
 
+def _month_range(start: str, end: str) -> list[str]:
+    y, m = int(start[:4]), int(start[5:7])
+    out: list[str] = []
+    while (cur := f"{y:04d}-{m:02d}-01") <= end:
+        out.append(cur)
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return out
+
+
+def densify_monthly(recs: list[dict], through: str) -> list[dict]:
+    """Fill months a region has no row for (from its first observation through ``through``) with 0.
+
+    Event-count datasets (e.g. FRA incidents) only emit rows for months in which something happened;
+    without zero-filling, a region's baseline would be the mean of its *busy* months only. ``through``
+    is the latest period the publisher has released for the whole dataset, so no future month is ever
+    inferred. Series whose periods are not first-of-month are returned unchanged.
+    """
+    if not recs or any(not str(r["period_start"]).endswith("-01") for r in recs):
+        return recs
+    by_period = {r["period_start"]: r for r in recs}
+    template = recs[-1]
+    out: list[dict] = []
+    for period in _month_range(recs[0]["period_start"], through):
+        row = by_period.get(period)
+        out.append(row if row is not None else {**template, "period_start": period, "value": 0.0, "filled": True})
+    return out
+
+
 def detect_baseline_anomalies(db: Database, settings: Settings, dataset: str, series: str, months: int = 24) -> list[dict]:
     """Month-over-history anomaly scan for a structured baseline series (per region)."""
     rows = db.query(
@@ -137,12 +167,14 @@ def detect_baseline_anomalies(db: Database, settings: Settings, dataset: str, se
            ORDER BY region_code, period_start""",
         (dataset, series),
     )
-    by_region: dict[str, list] = {}
+    by_region: dict[str, list[dict]] = {}
+    latest_period = ""
     for r in rows:
-        by_region.setdefault(r["region_code"], []).append(r)
+        by_region.setdefault(r["region_code"], []).append(dict(r))
+        latest_period = max(latest_period, r["period_start"])
     found: list[dict] = []
-    for code, recs in by_region.items():
-        recs = recs[-(months + 1):]
+    for code, region_rows in by_region.items():
+        recs = densify_monthly(region_rows, latest_period)[-(months + 1) :]
         if len(recs) < 7:
             continue
         latest = recs[-1]
@@ -187,9 +219,21 @@ def _store_anomaly(db: Database, rec: dict) -> None:
                  z_score=excluded.z_score, severity=excluded.severity, article_ids_json=excluded.article_ids_json,
                  detail_json=excluded.detail_json""",
             (
-                utcnow(), rec["metric"], rec["region_type"], rec["region_code"], rec["region_name"], rec["country"],
-                rec["window_start"], rec["window_end"], rec["observed"], rec["baseline_mean"], rec["baseline_std"],
-                rec["baseline_n"], rec["z_score"], rec["severity"], json.dumps(rec.get("article_ids", [])),
+                utcnow(),
+                rec["metric"],
+                rec["region_type"],
+                rec["region_code"],
+                rec["region_name"],
+                rec["country"],
+                rec["window_start"],
+                rec["window_end"],
+                rec["observed"],
+                rec["baseline_mean"],
+                rec["baseline_std"],
+                rec["baseline_n"],
+                rec["z_score"],
+                rec["severity"],
+                json.dumps(rec.get("article_ids", [])),
                 json.dumps({"history": rec.get("weekly_history", [])}),
             ),
         )
@@ -198,7 +242,10 @@ def _store_anomaly(db: Database, rec: dict) -> None:
 def list_anomalies(db: Database, limit: int = 100, since: str | None = None) -> list[dict]:
     limit = max(1, min(int(limit), 500))
     if since:
-        rows = db.query("SELECT * FROM anomalies WHERE window_end >= ? ORDER BY z_score DESC, detected_at DESC LIMIT ?", (since, limit))
+        rows = db.query(
+            "SELECT * FROM anomalies WHERE window_end >= ? OR detected_at >= ? ORDER BY z_score DESC, detected_at DESC LIMIT ?",
+            (since, since, limit),
+        )
     else:
         rows = db.query("SELECT * FROM anomalies ORDER BY detected_at DESC, z_score DESC LIMIT ?", (limit,))
     out = []

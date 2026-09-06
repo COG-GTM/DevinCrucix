@@ -19,6 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import urllib.robotparser
+import zlib
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -33,6 +34,7 @@ logger = logging.getLogger(__name__)
 ALLOWED_SCHEMES = {"http", "https"}
 ROBOTS_CACHE_TTL_SECONDS = 6 * 3600
 MAX_URL_LENGTH = 2048
+ACCEPT_ENCODING = "gzip, deflate"
 
 
 class RobotsDisallowedError(Exception):
@@ -145,10 +147,13 @@ class PoliteHttpClient:
         crawl_delay: float | None = None
         try:
             self._wait_for_host(parsed.netloc)
-            req = urllib.request.Request(robots_url, headers={"User-Agent": self.user_agent, "Accept": "text/plain,*/*;q=0.5"})
+            req = urllib.request.Request(
+                robots_url,
+                headers={"User-Agent": self.user_agent, "Accept": "text/plain,*/*;q=0.5", "Accept-Encoding": ACCEPT_ENCODING},
+            )
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310 - scheme validated
                 status = resp.status
-                body = resp.read(512_000)
+                body = _read_body(resp, 512_000)
             parser.parse(body.decode("utf-8", errors="replace").splitlines())
             try:
                 cd = parser.crawl_delay(self.user_agent)
@@ -157,10 +162,10 @@ class PoliteHttpClient:
                 crawl_delay = None
         except urllib.error.HTTPError as e:
             status = e.code
-            if e.code in (401, 403):
-                # Per RFC 9309 a 4xx robots response means unrestricted, but a
-                # 401/403 is a clear signal the site does not want automated
-                # clients; treat conservatively as fully disallowed.
+            if e.code in (401, 403) or e.code >= 500:
+                # RFC 9309 treats other 4xx as unrestricted, but 401/403 signal the
+                # site does not want automated clients and 5xx means the policy is
+                # unavailable (RFC 9309 §2.3.1.4): both fail closed for one TTL window.
                 parser.disallow_all = True  # type: ignore[attr-defined]
             else:
                 parser.allow_all = True  # type: ignore[attr-defined]
@@ -189,7 +194,10 @@ class PoliteHttpClient:
         ok = host.lower() in self.dataset_download_hosts
         if ok:
             log_event(
-                logger, "dataset_direct_download", host=host, url=url[:300],
+                logger,
+                "dataset_direct_download",
+                host=host,
+                url=url[:300],
                 reason="published open-data artifact on allowlisted host; robots.txt not consulted",
             )
         return ok
@@ -197,8 +205,12 @@ class PoliteHttpClient:
     def robots_status(self, url: str) -> dict:
         parsed = validate_url(url)
         entry = self._robots_for(parsed)
-        return {"host": parsed.netloc, "http_status": entry.status, "crawl_delay": entry.crawl_delay,
-                "allowed": entry.parser.can_fetch(self.user_agent, url) if entry.parser else True}
+        return {
+            "host": parsed.netloc,
+            "http_status": entry.status,
+            "crawl_delay": entry.crawl_delay,
+            "allowed": entry.parser.can_fetch(self.user_agent, url) if entry.parser else True,
+        }
 
     # ----- rate limiting ------------------------------------------------
     def _host_state(self, host: str) -> HostState:
@@ -255,7 +267,7 @@ class PoliteHttpClient:
         headers = {
             "User-Agent": self.user_agent,
             "Accept": accept,
-            "Accept-Encoding": "identity",
+            "Accept-Encoding": ACCEPT_ENCODING,
         }
         if etag:
             headers["If-None-Match"] = etag[:512]
@@ -277,12 +289,13 @@ class PoliteHttpClient:
                 with opener.open(req, timeout=self.timeout) as resp:
                     status = resp.status
                     hdrs = {k.lower(): v for k, v in resp.headers.items()}
-                    body = resp.read(cap + 1)
+                    body = _read_body(resp, cap + 1)
+                    hdrs.pop("content-encoding", None)
             except urllib.error.HTTPError as e:
                 status = e.code
                 hdrs = {k.lower(): v for k, v in e.headers.items()} if e.headers else {}
                 try:
-                    body = e.read(65_536)
+                    body = _read_body(e, 65_536)
                 except Exception:
                     body = b""
             except Exception as e:
@@ -296,11 +309,7 @@ class PoliteHttpClient:
                     return FetchResult(url=url, final_url=current, status=status, headers=hdrs, body=b"", error="too many redirects")
                 nxt = urllib.parse.urljoin(current, hdrs["location"])
                 nparsed = validate_url(nxt)
-                if (
-                    self.enforce_robots
-                    and not self._direct_download_ok(nparsed.netloc, dataset_download, nxt)
-                    and not self.is_allowed(nxt)
-                ):
+                if self.enforce_robots and not self._direct_download_ok(nparsed.netloc, dataset_download, nxt) and not self.is_allowed(nxt):
                     raise RobotsDisallowedError(nxt)
                 if nparsed.netloc != urllib.parse.urlparse(current).netloc:
                     self._wait_for_host(nparsed.netloc)
@@ -320,9 +329,34 @@ class PoliteHttpClient:
             log_event(logger, "http_body_truncated", logging.WARNING, url=url[:300], cap=cap)
         log_event(logger, "http_fetch", url=url[:300], final_url=current[:300], http_status=status, bytes=len(body), elapsed_ms=elapsed)
         return FetchResult(
-            url=url, final_url=current, status=status, headers=hdrs, body=body,
-            not_modified=(status == 304), elapsed_ms=elapsed,
+            url=url,
+            final_url=current,
+            status=status,
+            headers=hdrs,
+            body=body,
+            not_modified=(status == 304),
+            elapsed_ms=elapsed,
         )
+
+
+def _read_body(resp, limit: int) -> bytes:
+    """Read at most ``limit`` bytes of the (decoded) body, inflating gzip/deflate transfer encodings.
+
+    Both the compressed read and the inflated output are capped so a hostile or misconfigured
+    server cannot exhaust memory via a compression bomb.
+    """
+    encoding = (resp.headers.get("Content-Encoding") or "").strip().lower()
+    raw = resp.read(limit)
+    if encoding in ("gzip", "x-gzip", "deflate"):
+        wbits = 47 if encoding != "deflate" else 15  # 47 = auto-detect zlib/gzip headers
+        try:
+            return zlib.decompressobj(wbits).decompress(raw, limit)
+        except zlib.error:
+            try:  # raw deflate without a zlib header
+                return zlib.decompressobj(-15).decompress(raw, limit)
+            except zlib.error:
+                return raw
+    return raw
 
 
 def build_http_client(settings: Settings) -> PoliteHttpClient:

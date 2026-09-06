@@ -44,6 +44,7 @@ class _Chained(io.RawIOBase):
         b[: len(chunk)] = chunk
         return len(chunk)
 
+
 PAGE_URL = "https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva"
 BORDER_STATES = {"02": "Baja California", "05": "Coahuila", "08": "Chihuahua", "19": "Nuevo León", "26": "Sonora", "28": "Tamaulipas"}
 MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
@@ -101,7 +102,7 @@ def find_historical_link(page_html: str) -> tuple[str, str] | None:
 
 
 def last_published_month(label: str) -> tuple[int, int] | None:
-    """"Enero - julio 2026" -> (2026, 7). None when the label is a multi-year range."""
+    """ "Enero - julio 2026" -> (2026, 7). None when the label is a multi-year range."""
     years = [int(y) for y in re.findall(r"(20\d\d)", label)]
     if len(set(years)) != 1:
         return None
@@ -126,7 +127,10 @@ def _detect_encoding(sample: bytes) -> str:
 
 
 def parse_municipal_csv(
-    data: bytes | IO[bytes], source_url: str, version: str, states: Iterable[str] = tuple(BORDER_STATES),
+    data: bytes | IO[bytes],
+    source_url: str,
+    version: str,
+    states: Iterable[str] = tuple(BORDER_STATES),
     cutoff: tuple[int, int] | None = None,
 ) -> list[BaselineRecord]:
     """``cutoff=(year, month)`` drops cells after the last published month (the release CSV carries
@@ -169,12 +173,22 @@ def parse_municipal_csv(
     for (series, mun_code, period_start), entry in agg.items():
         y, m = int(period_start[:4]), int(period_start[5:7])
         last_day = (date(y + (m // 12), (m % 12) + 1, 1) - date.resolution) if m < 12 else date(y, 12, 31)
-        records.append(BaselineRecord(
-            series=series, region_type="municipality", region_code=mun_code, region_name=entry["name"], country="MX",
-            period_start=period_start, period_end=last_day.isoformat(), value=entry["value"], unit="incidents",
-            source_url=source_url, source_version=version,
-            metadata={"state": entry["state"], "state_code": entry["ent"], "fuero": "comun"},
-        ))
+        records.append(
+            BaselineRecord(
+                series=series,
+                region_type="municipality",
+                region_code=mun_code,
+                region_name=entry["name"],
+                country="MX",
+                period_start=period_start,
+                period_end=last_day.isoformat(),
+                value=entry["value"],
+                unit="incidents",
+                source_url=source_url,
+                source_version=version,
+                metadata={"state": entry["state"], "state_code": entry["ent"], "fuero": "comun"},
+            )
+        )
     return records
 
 
@@ -225,15 +239,24 @@ class SesnspLoader(BaselineLoader):
         # robots.txt is a blanket Disallow aimed at crawlers; the zip is the agency's own published
         # open-data artifact, fetched under the audited dataset_download allowlist (see config).
         res = self.http.fetch(
-            dl_url, accept="application/zip,application/octet-stream,*/*", allow_cookies=True,
-            max_bytes=200_000_000, dataset_download=True,
+            dl_url,
+            accept="application/zip,application/octet-stream,*/*",
+            allow_cookies=True,
+            max_bytes=200_000_000,
+            dataset_download=True,
         )
         if not res.ok:
-            return LoadResult(self.dataset, "blocked" if res.status in (401, 403) else "error", error=f"download HTTP {res.status}", detail={"label": label})
+            return LoadResult(
+                self.dataset,
+                "blocked" if res.status in (401, 403) else "error",
+                error=f"download HTTP {res.status}",
+                detail={"label": label},
+            )
         version = _version_from_label(label, res.final_url)
         digest, _ = self.save_artifact(res.final_url, res.body, res.etag, res.last_modified, suffix=".zip")
         if self.known_artifact(res.final_url, digest) and self.db.query_one(
-                "SELECT 1 FROM baseline_records WHERE dataset = ? AND source_version = ? LIMIT 1", (self.dataset, version)):
+            "SELECT 1 FROM baseline_records WHERE dataset = ? AND source_version = ? LIMIT 1", (self.dataset, version)
+        ):
             return LoadResult(self.dataset, "unchanged", version=version, detail={"label": label})
         try:
             with zipfile.ZipFile(io.BytesIO(res.body)) as zf:

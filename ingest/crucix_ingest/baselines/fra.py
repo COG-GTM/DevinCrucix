@@ -61,9 +61,22 @@ def aggregate_equipment(rows: list[dict], source_url: str, version: str) -> list
         period_start, period_end = _month_bounds(d)
         code = _county_fips(BORDER_STATES[state], r.get("countycode") or "")
         key = (code, period_start)
-        e = agg.setdefault(key, {"name": f"{(r.get('countyname') or '').title()} County", "state": state, "period_end": period_end,
-                                 "incidents": 0, "killed": 0.0, "injured": 0.0, "hazmat_released_cars": 0.0, "damage_usd": 0.0,
-                                 "border_carrier_incidents": 0, "by_railroad": defaultdict(int), "by_type": defaultdict(int)})
+        e = agg.setdefault(
+            key,
+            {
+                "name": f"{(r.get('countyname') or '').title()} County",
+                "state": state,
+                "period_end": period_end,
+                "incidents": 0,
+                "killed": 0.0,
+                "injured": 0.0,
+                "hazmat_released_cars": 0.0,
+                "damage_usd": 0.0,
+                "border_carrier_incidents": 0,
+                "by_railroad": defaultdict(int),
+                "by_type": defaultdict(int),
+            },
+        )
         e["incidents"] += 1
         e["killed"] += _to_float(r.get("totalpersonskilled"))
         e["injured"] += _to_float(r.get("totalpersonsinjured"))
@@ -76,13 +89,48 @@ def aggregate_equipment(rows: list[dict], source_url: str, version: str) -> list
         e["by_type"][(r.get("accidenttype") or "unknown")[:60]] += 1
     out: list[BaselineRecord] = []
     for (code, period_start), e in agg.items():
-        meta = {"state": e["state"], "by_railroad": dict(e["by_railroad"]), "by_type": dict(e["by_type"]),
-                "killed": e["killed"], "injured": e["injured"], "hazmat_released_cars": e["hazmat_released_cars"],
-                "damage_usd": round(e["damage_usd"], 2), "border_carrier_incidents": e["border_carrier_incidents"]}
-        out.append(BaselineRecord("rail_equipment_incidents", "county", code, e["name"], "US", period_start, e["period_end"],
-                                  float(e["incidents"]), "incidents", source_url, version, meta))
-        out.append(BaselineRecord("rail_hazmat_release_cars", "county", code, e["name"], "US", period_start, e["period_end"],
-                                  e["hazmat_released_cars"], "cars", source_url, version, {"state": e["state"]}))
+        meta = {
+            "state": e["state"],
+            "by_railroad": dict(e["by_railroad"]),
+            "by_type": dict(e["by_type"]),
+            "killed": e["killed"],
+            "injured": e["injured"],
+            "hazmat_released_cars": e["hazmat_released_cars"],
+            "damage_usd": round(e["damage_usd"], 2),
+            "border_carrier_incidents": e["border_carrier_incidents"],
+        }
+        out.append(
+            BaselineRecord(
+                "rail_equipment_incidents",
+                "county",
+                code,
+                e["name"],
+                "US",
+                period_start,
+                e["period_end"],
+                float(e["incidents"]),
+                "incidents",
+                source_url,
+                version,
+                meta,
+            )
+        )
+        out.append(
+            BaselineRecord(
+                "rail_hazmat_release_cars",
+                "county",
+                code,
+                e["name"],
+                "US",
+                period_start,
+                e["period_end"],
+                e["hazmat_released_cars"],
+                "cars",
+                source_url,
+                version,
+                {"state": e["state"]},
+            )
+        )
     return out
 
 
@@ -101,14 +149,35 @@ def aggregate_crossings(rows: list[dict], source_url: str, version: str) -> list
         period_start, period_end = _month_bounds(d)
         code = _county_fips(state_code, r.get("countycode") or "")
         key = (code, period_start)
-        e = agg.setdefault(key, {"name": f"{(r.get('countyname') or '').title()} County", "state": state, "period_end": period_end,
-                                 "incidents": 0, "killed": 0.0, "injured": 0.0})
+        e = agg.setdefault(
+            key,
+            {
+                "name": f"{(r.get('countyname') or '').title()} County",
+                "state": state,
+                "period_end": period_end,
+                "incidents": 0,
+                "killed": 0.0,
+                "injured": 0.0,
+            },
+        )
         e["incidents"] += 1
         e["killed"] += _to_float(r.get("crossinguserskilled")) + _to_float(r.get("employeeskilled"))
         e["injured"] += _to_float(r.get("crossingusersinjured"))
     return [
-        BaselineRecord("grade_crossing_incidents", "county", code, e["name"], "US", ps, e["period_end"], float(e["incidents"]),
-                       "incidents", source_url, version, {"state": e["state"], "killed": e["killed"], "injured": e["injured"]})
+        BaselineRecord(
+            "grade_crossing_incidents",
+            "county",
+            code,
+            e["name"],
+            "US",
+            ps,
+            e["period_end"],
+            float(e["incidents"]),
+            "incidents",
+            source_url,
+            version,
+            {"state": e["state"], "killed": e["killed"], "injured": e["injured"]},
+        )
         for (code, ps), e in agg.items()
     ]
 
@@ -149,7 +218,9 @@ class FraLoader(BaselineLoader):
         since = (datetime.now(timezone.utc).date().replace(day=1) - timedelta(days=LOOKBACK_MONTHS * 31)).replace(day=1)
         version = datetime.now(timezone.utc).strftime("%Y-%m")
         states_sql = ",".join(f"'{s}'" for s in BORDER_STATES)
-        eq_rows, err = self._fetch_all(EQUIPMENT_DATASET, f"date >= '{since.isoformat()}T00:00:00' AND stateabbr in({states_sql})", "date ASC")
+        eq_rows, err = self._fetch_all(
+            EQUIPMENT_DATASET, f"date >= '{since.isoformat()}T00:00:00' AND stateabbr in({states_sql})", "date ASC"
+        )
         if err and not eq_rows:
             return LoadResult(self.dataset, "blocked" if "403" in err else "error", error=f"equipment dataset: {err}")
         codes_sql = ",".join(f"'{c}'" for c in STATE_CODES)

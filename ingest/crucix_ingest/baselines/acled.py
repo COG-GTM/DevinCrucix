@@ -80,8 +80,18 @@ def parse_acled_csv(data: bytes, source_url: str, version: str) -> list[Baseline
             fat = float(row[headers["fatalities"]] or 0)
         except ValueError:
             fat = 0.0
-        e = agg.setdefault((code, ps), {"name": admin2 or admin1, "country": "MX" if country == "Mexico" else "US", "type": rtype,
-                                        "events": 0, "violent": 0, "fatalities": 0.0, "by_type": {}})
+        e = agg.setdefault(
+            (code, ps),
+            {
+                "name": admin2 or admin1,
+                "country": "MX" if country == "Mexico" else "US",
+                "type": rtype,
+                "events": 0,
+                "violent": 0,
+                "fatalities": 0.0,
+                "by_type": {},
+            },
+        )
         e["events"] += 1
         et = (row[headers["event_type"]] or "").strip()
         e["by_type"][et] = e["by_type"].get(et, 0) + 1
@@ -93,8 +103,38 @@ def parse_acled_csv(data: bytes, source_url: str, version: str) -> list[Baseline
         d = date.fromisoformat(ps)
         end = (date(d.year + (d.month // 12), (d.month % 12) + 1, 1) - timedelta(days=1)) if d.month < 12 else date(d.year, 12, 31)
         meta = {"by_type": e["by_type"], "admin_name": e["name"]}
-        out.append(BaselineRecord("acled_violent_events", e["type"], code, e["name"], e["country"], ps, end.isoformat(), float(e["violent"]), "events", source_url, version, meta))
-        out.append(BaselineRecord("acled_fatalities", e["type"], code, e["name"], e["country"], ps, end.isoformat(), e["fatalities"], "fatalities", source_url, version, {}))
+        out.append(
+            BaselineRecord(
+                "acled_violent_events",
+                e["type"],
+                code,
+                e["name"],
+                e["country"],
+                ps,
+                end.isoformat(),
+                float(e["violent"]),
+                "events",
+                source_url,
+                version,
+                meta,
+            )
+        )
+        out.append(
+            BaselineRecord(
+                "acled_fatalities",
+                e["type"],
+                code,
+                e["name"],
+                e["country"],
+                ps,
+                end.isoformat(),
+                e["fatalities"],
+                "fatalities",
+                source_url,
+                version,
+                {},
+            )
+        )
     return out
 
 
@@ -115,7 +155,8 @@ class AcledLoader(BaselineLoader):
         data = p.read_bytes()
         digest, _ = self.save_artifact(f"file://{p.name}", data, suffix=".csv")
         if self.known_artifact(f"file://{p.name}", digest) and self.db.query_one(
-                "SELECT 1 FROM baseline_records WHERE dataset = ? LIMIT 1", (self.dataset,)):
+            "SELECT 1 FROM baseline_records WHERE dataset = ? LIMIT 1", (self.dataset,)
+        ):
             return LoadResult(self.dataset, "unchanged", version=digest[:12])
         try:
             records = parse_acled_csv(data, f"file://{p.name}", digest[:12])

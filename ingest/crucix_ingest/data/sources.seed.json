@@ -32,7 +32,7 @@
       "discovery_date": "2026-09-06",
       "discovery_method": "Google News sitemap; robots.txt disallows /feeds/ for all agents, so RSS is not used",
       "terms_url": "https://cm.usatoday.com/terms/",
-      "notes": "Gannett; metered paywall. Paywalled items are stored headline/summary/URL only. Site bot management may answer robots.txt with HTTP 403 for non-browser clients; the poller then records robots_blocked and skips the source rather than working around it.",
+      "notes": "Gannett; metered paywall. Paywalled items are stored headline/summary/URL only. The site's edge returns HTTP 403 to clients that do not accept compressed responses; the crawler advertises gzip/deflate like any standard HTTP client. If robots.txt still answers 403 the poller records robots_blocked and skips the source rather than working around it.",
       "content_policy": "full"
     },
     {
@@ -133,7 +133,7 @@
       "phase": 1,
       "discovery_date": "2026-09-06",
       "discovery_method": "Public WordPress REST API (preferred over scraping); returns full content, categories and entity-typed tags",
-      "terms_url": "https://www.texastribune.org/about/republishing/",
+      "terms_url": "https://www.texastribune.org/republishing-guidelines/",
       "notes": "API carries full article HTML, so article pages are not fetched. Republishing allowed under CC BY-NC-ND.",
       "content_policy": "full"
     },
@@ -151,7 +151,7 @@
       "enabled": 0,
       "discovery_date": "2026-09-06",
       "discovery_method": "/feeds/main/ redirect target",
-      "terms_url": "https://www.texastribune.org/about/republishing/",
+      "terms_url": "https://www.texastribune.org/republishing-guidelines/",
       "notes": "Fallback only; disabled while the WP REST API source is healthy.",
       "content_policy": "full"
     },

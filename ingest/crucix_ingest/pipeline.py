@@ -39,13 +39,25 @@ class PollSummary:
     new_article_ids: list[int] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"slug": self.slug, "status": self.status, "http_status": self.http_status, "items_total": self.items_total,
-                "items_new": self.items_new, "error": self.error}
+        return {
+            "slug": self.slug,
+            "status": self.status,
+            "http_status": self.http_status,
+            "items_total": self.items_total,
+            "items_new": self.items_new,
+            "error": self.error,
+        }
 
 
 class Pipeline:
-    def __init__(self, db: Database, settings: Settings, http: PoliteHttpClient | None = None,
-                 ner: NerEngine | None = None, translator: Translator | None = None):
+    def __init__(
+        self,
+        db: Database,
+        settings: Settings,
+        http: PoliteHttpClient | None = None,
+        ner: NerEngine | None = None,
+        translator: Translator | None = None,
+    ):
         self.db = db
         self.settings = settings
         self.http = http or build_http_client(settings)
@@ -70,8 +82,13 @@ class Pipeline:
         slug = src["slug"]
         summary = PollSummary(slug=slug, status="error")
         try:
-            result = self.http.fetch(src["feed_url"], etag=src.get("etag"), last_modified=src.get("last_modified"),
-                                     accept=FEED_ACCEPT, max_bytes=self.settings.max_feed_bytes)
+            result = self.http.fetch(
+                src["feed_url"],
+                etag=src.get("etag"),
+                last_modified=src.get("last_modified"),
+                accept=FEED_ACCEPT,
+                max_bytes=self.settings.max_feed_bytes,
+            )
         except RobotsDisallowedError:
             robots = self.http.robots_status(src["feed_url"])
             reason = (
@@ -96,7 +113,8 @@ class Pipeline:
             summary.status = "blocked" if result.status in (401, 403) else "error"
             summary.error = result.error or (
                 f"HTTP {result.status}: publisher refused the crawler; not retried with altered identity"
-                if summary.status == "blocked" else f"HTTP {result.status}"
+                if summary.status == "blocked"
+                else f"HTTP {result.status}"
             )
             self._finish(src, started, summary, None, None)
             return summary
@@ -149,24 +167,38 @@ class Pipeline:
             try:
                 res = self.http.fetch(child_url, accept=FEED_ACCEPT, max_bytes=self.settings.max_feed_bytes)
             except (RobotsDisallowedError, InvalidUrlError) as e:
-                log_event(logger, "sitemap_child_skipped", logging.WARNING, slug=src["slug"], url=child_url[:300],
-                          reason=type(e).__name__)
+                log_event(logger, "sitemap_child_skipped", logging.WARNING, slug=src["slug"], url=child_url[:300], reason=type(e).__name__)
                 continue
             if not res.ok or res.error:
-                log_event(logger, "sitemap_child_failed", logging.WARNING, slug=src["slug"], url=child_url[:300],
-                          http_status=res.status, error=(res.error or "")[:200])
+                log_event(
+                    logger,
+                    "sitemap_child_failed",
+                    logging.WARNING,
+                    slug=src["slug"],
+                    url=child_url[:300],
+                    http_status=res.status,
+                    error=(res.error or "")[:200],
+                )
                 continue
             try:
                 items.extend(parse_feed(res.body, "news_sitemap"))
             except FeedParseError as e:
-                log_event(logger, "sitemap_child_parse_failed", logging.WARNING, slug=src["slug"], url=child_url[:300],
-                          error=str(e)[:200])
+                log_event(logger, "sitemap_child_parse_failed", logging.WARNING, slug=src["slug"], url=child_url[:300], error=str(e)[:200])
         return items
 
     def _finish(self, src: dict[str, Any], started: str, summary: PollSummary, etag: str | None, last_modified: str | None) -> None:
-        record_poll(self.db, int(src["id"]), started_at=started, status=summary.status, http_status=summary.http_status,
-                    items_total=summary.items_total, items_new=summary.items_new, error=summary.error, etag=etag,
-                    last_modified=last_modified)
+        record_poll(
+            self.db,
+            int(src["id"]),
+            started_at=started,
+            status=summary.status,
+            http_status=summary.http_status,
+            items_total=summary.items_total,
+            items_new=summary.items_new,
+            error=summary.error,
+            etag=etag,
+            last_modified=last_modified,
+        )
         log_event(logger, "poll_finished", **summary.to_dict())
 
     # ------------------------------------------------------------------ items
@@ -242,7 +274,9 @@ class Pipeline:
 
         # Feed-only fallback for text when the page yielded nothing but the feed carried a body.
         if (
-            record["text"] is None and not record["paywalled"] and item.content_html
+            record["text"] is None
+            and not record["paywalled"]
+            and item.content_html
             and record["fetch_status"] not in ("robots_disallowed", "metadata_only")
         ):
             text = extract_from_html_fragment(item.content_html)
@@ -251,7 +285,7 @@ class Pipeline:
 
         # 2. Dedup on content hash across sources (wire copy, syndication).
         if record["text"]:
-            ck = content_key(record["text"])
+            ck = content_key(record["text"], record["title"])
             if ck:
                 dup = self._existing_article_id([ck])
                 if dup is not None:
@@ -279,13 +313,22 @@ class Pipeline:
         score, terms = violence_score(record["title"], analysis_text)
         record["violence_score"] = score
         record["violence_terms"] = terms
-        record["is_violence"] = 1 if is_violence_report(score) else 0
+        record["is_violence"] = 1 if is_violence_report(score, terms) else 0
 
         article_id = self._insert(record, keys)
-        log_event(logger, "article_stored", slug=src["slug"], article_id=article_id, url=canonical[:300],
-                  fetch_status=record["fetch_status"], paywalled=bool(record["paywalled"]),
-                  extraction=record["extraction_method"], language=detected, regions=[r.code for r in regions],
-                  violence_score=score)
+        log_event(
+            logger,
+            "article_stored",
+            slug=src["slug"],
+            article_id=article_id,
+            url=canonical[:300],
+            fetch_status=record["fetch_status"],
+            paywalled=bool(record["paywalled"]),
+            extraction=record["extraction_method"],
+            language=detected,
+            regions=[r.code for r in regions],
+            violence_score=score,
+        )
         return article_id
 
     def _fetch_and_extract(self, src: dict[str, Any], item: FeedItem, record: dict[str, Any], canonical: str) -> None:
@@ -331,8 +374,15 @@ class Pipeline:
 
     def _mark_paywalled(self, record: dict[str, Any], signals: list[str]) -> None:
         # Policy: headline, feed summary, URL and timestamps only. No HTML, no text.
-        record.update(paywalled=1, fetch_status="paywalled", text=None, raw_html_path=None, raw_html_sha256=None,
-                      extraction_method="none", fetch_error=";".join(signals)[:300])
+        record.update(
+            paywalled=1,
+            fetch_status="paywalled",
+            text=None,
+            raw_html_path=None,
+            raw_html_sha256=None,
+            extraction_method="none",
+            fetch_error=";".join(signals)[:300],
+        )
 
     def _store_snapshot(self, record: dict[str, Any], slug: str, body: bytes, canonical: str) -> None:
         digest = sha256_hex(body)
@@ -362,18 +412,48 @@ class Pipeline:
                      language, country_of_publication, reliability, source_type, region_tag, paywalled, fetch_status, fetch_error,
                      extraction_method, raw_html_path, raw_html_sha256, text, text_hash, text_language,
                      translation_text, translation_engine, translation_model, translation_is_machine, translated_at,
-                     entities_json, entity_source_language, ner_model, border_regions_json, violence_score, is_violence,
-                     created_at, updated_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     entities_json, entity_source_language, ner_model, border_regions_json, violence_score, violence_terms_json,
+                     is_violence, created_at, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    r["source_id"], r["dedup_key"], r["guid"], r["url"], r["canonical_url"], r["title"], r["summary"],
-                    r["published_at"], r["discovered_at"], r["fetched_at"], r["language"], r["country_of_publication"],
-                    r["reliability"], r["source_type"], r["region_tag"], r["paywalled"], r["fetch_status"], r["fetch_error"],
-                    r["extraction_method"], r["raw_html_path"], r["raw_html_sha256"], r["text"], r["text_hash"], r["text_language"],
-                    tr.text if tr else None, tr.engine if tr else None, tr.model if tr else None, 1, tr.translated_at if tr else None,
-                    json.dumps(r["entities"], ensure_ascii=False), r["text_language"] if r["entities"] else None, r["ner_model"],
-                    json.dumps([reg.to_dict() for reg in r["regions"]], ensure_ascii=False), r["violence_score"], r["is_violence"],
-                    now, now,
+                    r["source_id"],
+                    r["dedup_key"],
+                    r["guid"],
+                    r["url"],
+                    r["canonical_url"],
+                    r["title"],
+                    r["summary"],
+                    r["published_at"],
+                    r["discovered_at"],
+                    r["fetched_at"],
+                    r["language"],
+                    r["country_of_publication"],
+                    r["reliability"],
+                    r["source_type"],
+                    r["region_tag"],
+                    r["paywalled"],
+                    r["fetch_status"],
+                    r["fetch_error"],
+                    r["extraction_method"],
+                    r["raw_html_path"],
+                    r["raw_html_sha256"],
+                    r["text"],
+                    r["text_hash"],
+                    r["text_language"],
+                    tr.text if tr else None,
+                    tr.engine if tr else None,
+                    tr.model if tr else None,
+                    1,
+                    tr.translated_at if tr else None,
+                    json.dumps(r["entities"], ensure_ascii=False),
+                    r["text_language"] if r["entities"] else None,
+                    r["ner_model"],
+                    json.dumps([reg.to_dict() for reg in r["regions"]], ensure_ascii=False),
+                    r["violence_score"],
+                    json.dumps(r["violence_terms"], ensure_ascii=False),
+                    r["is_violence"],
+                    now,
+                    now,
                 ),
             )
             article_id = int(cur.lastrowid or 0)

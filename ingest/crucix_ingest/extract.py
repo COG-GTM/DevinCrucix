@@ -31,11 +31,27 @@ MIN_ARTICLE_CHARS = 300
 
 _JSONLD_RE = re.compile(r"<script[^>]+type=[\"']application/ld\+json[\"'][^>]*>(.*?)</script>", re.IGNORECASE | re.DOTALL)
 _PAYWALL_MARKERS = (
-    "isaccessibleforfree\":false", "isaccessibleforfree\": false", "isaccessibleforfree\":\"false\"",
-    "\"contentprotectionstate\":\"premium\"", "\"ispremium\":true", "\"premium\":true",
-    "subscriber-only", "subscriber_only", "subscribers-only", "meter-wall", "metered-paywall",
-    "id=\"paywall\"", "class=\"paywall", "data-paywall", "tp-modal", "piano-paywall", "regwall",
-    "\"paywall\":true", "\"paywalled\":true", "contenido exclusivo para suscriptores", "solo para suscriptores",
+    'isaccessibleforfree":false',
+    'isaccessibleforfree": false',
+    'isaccessibleforfree":"false"',
+    '"contentprotectionstate":"premium"',
+    '"ispremium":true',
+    '"premium":true',
+    "subscriber-only",
+    "subscriber_only",
+    "subscribers-only",
+    "meter-wall",
+    "metered-paywall",
+    'id="paywall"',
+    'class="paywall',
+    "data-paywall",
+    "tp-modal",
+    "piano-paywall",
+    "regwall",
+    '"paywall":true',
+    '"paywalled":true',
+    "contenido exclusivo para suscriptores",
+    "solo para suscriptores",
 )
 _PAYWALL_TEXT_RE = re.compile(
     r"(subscribe to (continue|read|keep reading)|to continue reading|already a subscriber|"
@@ -51,7 +67,7 @@ _HTML_LANG_RE = re.compile(r"<html[^>]+lang=[\"']([a-zA-Z]{2})", re.IGNORECASE)
 @dataclass
 class ExtractionResult:
     text: str | None
-    method: str                    # trafilatura | news-please | none
+    method: str  # trafilatura | news-please | none
     title: str | None = None
     author: str | None = None
     date: str | None = None
@@ -110,8 +126,13 @@ def _extract_trafilatura(html: str, url: str) -> ExtractionResult | None:
         return None
     try:
         text = trafilatura.extract(
-            html, url=url, include_comments=False, include_tables=False, favor_precision=True,
-            deduplicate=True, output_format="txt",
+            html,
+            url=url,
+            include_comments=False,
+            include_tables=False,
+            favor_precision=True,
+            deduplicate=True,
+            output_format="txt",
         )
         meta = trafilatura.extract_metadata(html, default_url=url)
     except Exception as e:  # pragma: no cover - library failure path

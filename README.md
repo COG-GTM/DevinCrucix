@@ -105,6 +105,57 @@ docker compose up -d
 
 Dashboard at `http://localhost:3117`. Sweep data persists in `./runs/` via volume mount. Includes a health check endpoint.
 
+Compose starts two services: the Node dashboard (`crucix`) and the Python Border Watch ingestion service (`ingest`, see below). The ingestion API is only reachable from the dashboard container; it is not published to the host.
+
+---
+
+## Border Watch Ingestion (Python)
+
+`ingest/` is a standalone Python 3.10+ service that continuously collects, cleans, deduplicates and entity-extracts border-region reporting from English- and Spanish-language outlets, loads government/research datasets as historical baselines, and flags anomalies (e.g. a spike in violence reporting in a border county relative to its own history). The Node dashboard reads its JSON API and renders the **Border Watch** panel.
+
+```bash
+cd ingest
+python -m venv .venv && . .venv/bin/activate
+pip install -e '.[dev]'
+python -m spacy download xx_ent_wiki_sm   # multilingual NER model (optional; NER degrades gracefully without it)
+
+python -m crucix_ingest sources           # source registry (data, not code: crucix_ingest/data/sources.seed.json)
+python -m crucix_ingest poll              # one polling pass over every enabled source
+python -m crucix_ingest baselines --list  # structured baseline loaders and their refresh schedules
+python -m crucix_ingest serve             # scheduler (feeds every 15 min, baselines on their own schedules) + JSON API on 127.0.0.1:3118
+```
+
+Then start the dashboard as usual (`npm run dev`); it discovers the service through `INGEST_API_URL`. The Python service reads its configuration from environment variables only, so export the `INGEST_*` block from `.env` (`set -a; . ./.env; set +a`) or run everything via Docker Compose.
+
+### Collection policy
+
+- **Publisher-advertised endpoints only** — RSS/Atom, Google News sitemaps, and WordPress REST APIs (the Texas Tribune and InSight Crime are read through their APIs, not scraped).
+- **robots.txt is enforced on every request**, including redirects and sitemap children; an unavailable robots policy fails closed.
+- **Conditional requests** (`ETag` / `Last-Modified`), a per-host delay, bounded response sizes and a fixed, descriptive User-Agent (`CrucixBorderWatch/1.0 (+https://crucix.fly.dev/crawler; …)`).
+- **No paywall bypass.** Paywalled items keep headline, feed summary, URL and timestamp only and are tagged `paywalled: true`. HTTP 401/403 are recorded as blocked and never retried with a different identity.
+- **Terms of use are data.** Outlets whose terms prohibit crawling (Nexstar, Hearst, KRGV, Milenio) are registered with `content_policy: metadata_only` — only the advertised feed is read and article pages are never requested. Every entry in `sources.seed.json` records its terms URL, discovery method and the reason for its policy.
+- **No stealth techniques** — no proxies, no rotating identities, no headless browsers.
+- Spanish text is the record of truth; machine translation is a separate, labelled derived field, and NER runs on the original language.
+
+### Baselines
+
+Structured datasets are loaded on their own schedules and exposed under `/baselines`: SESNSP municipal crime incidence (monthly), CBP nationwide encounters and drug seizures by AOR (monthly), FRA rail equipment and grade-crossing incidents for border states (monthly), InSight Crime publications and criminal-group profiles (weekly), Justice in Mexico *Organized Crime and Violence in Mexico* releases (quarterly check), and an optional one-time ACLED snapshot from a manually downloaded export (`INGEST_ACLED_SNAPSHOT_PATH`). Anomalies are computed per region/series against each dataset's own history and persisted alongside the news-reporting anomalies.
+
+### Ingestion API (`INGEST_API_URL`, default `http://127.0.0.1:3118`)
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Service status, degraded sources, last sweep, baseline status (always HTTP 200) |
+| `GET /sources` | Source registry with polling state |
+| `GET /articles?limit=&since=&region=&violence=1&language=&source=` | Cleaned article metadata, regions, entities and violence terms |
+| `GET /articles/<id>` | Full record incl. original text and derived translation |
+| `GET /anomalies?limit=&since=` | News and baseline anomalies |
+| `GET /baselines`, `GET /baselines/<dataset>/records?series=&region=&limit=` | Baseline datasets and records |
+| `GET /summary` | Dashboard summary |
+| `POST /poll`, `POST /baselines/check` | Trigger a run — loopback clients only |
+
+The dashboard proxies the read-only routes at `/api/ingest/*` (allow-list in `apis/sources/borderingest.mjs`) and serves the synthesized panel data at `/api/border`. Tests: `cd ingest && pytest` (recorded fixtures under `ingest/tests/fixtures/`), `ruff check .`, `mypy crucix_ingest`.
+
 ---
 
 ## What You Get
@@ -291,6 +342,7 @@ crucix/
 │   │   ├── fetch.mjs          # safeFetch() — timeout, retries, abort, auto-JSON
 │   │   └── env.mjs            # .env loader (no dotenv dependency)
 │   └── sources/               # 27 self-contained source modules
+│       ├── borderingest.mjs   # Border Watch: read-only bridge to the Python ingestion API
 │       ├── gdelt.mjs          # Each exports briefing() → structured data
 │       ├── fred.mjs           # Can run standalone: node apis/sources/fred.mjs
 │       ├── space.mjs          # CelesTrak satellite tracking
@@ -323,9 +375,15 @@ crucix/
 │       ├── telegram.mjs       # Multi-tier alerts (FLASH/PRIORITY/ROUTINE) + two-way bot commands
 │       └── discord.mjs        # Discord bot (slash commands, rich embeds) + webhook fallback
 │
+├── ingest/                    # Border Watch ingestion service (Python, own Dockerfile)
+│   ├── crucix_ingest/         # registry, polite HTTP client, feed parsers, extraction, NER, geo/violence scoring, baselines, API
+│   │   └── data/              # sources.seed.json (source registry) + border_regions.json (gazetteer)
+│   └── tests/                 # pytest suite with recorded feed/dataset fixtures
+│
 └── runs/                      # Runtime data (gitignored)
     ├── latest.json            # Most recent sweep output
-    └── memory/                # Delta memory (hot.json + cold/YYYY-MM-DD.json)
+    ├── memory/                # Delta memory (hot.json + cold/YYYY-MM-DD.json)
+    └── ingest/                # Ingestion SQLite DB + raw HTML snapshots
 ```
 
 ### Design Principles
@@ -403,6 +461,9 @@ crucix/
 | `npm run inject` | `node dashboard/inject.mjs` | Inject latest data into static HTML |
 | `npm run brief:save` | `node apis/save-briefing.mjs` | Run sweep + save timestamped JSON |
 | `npm run diag` | `node diag.mjs` | Run diagnostics (Node version, imports, port check) |
+| `npm run ingest` | `python -m crucix_ingest serve` | Start the Border Watch ingestion service (needs the `ingest/` venv active) |
+| `npm run ingest:poll` | `python -m crucix_ingest poll` | One polling pass over every enabled source |
+| `npm run ingest:test` | `cd ingest && python -m pytest` | Ingestion test suite (recorded fixtures, no network) |
 
 ---
 
@@ -414,6 +475,8 @@ All settings are in `.env` with sensible defaults:
 |----------|---------|-------------|
 | `PORT` | `3117` | Dashboard server port |
 | `REFRESH_INTERVAL_MINUTES` | `15` | Auto-refresh interval |
+| `INGEST_API_URL` | `http://127.0.0.1:3118` | Border Watch ingestion service the dashboard reads from |
+| `INGEST_*` | see `.env.example` | Python ingestion service: bind address, poll interval, NER, translation, anomaly thresholds |
 | `LLM_PROVIDER` | disabled | `anthropic`, `openai`, `gemini`, `codex`, `openrouter`, `minimax`, `mistral`, or `grok` |
 | `LLM_API_KEY` | — | API key (not needed for codex) |
 | `LLM_MODEL` | per-provider default | Override model selection |
@@ -438,7 +501,9 @@ When running `npm run dev`:
 |----------|-------------|
 | `GET /` | Jarvis HUD dashboard |
 | `GET /api/data` | Current synthesized intelligence data (JSON) |
-| `GET /api/health` | Server status, uptime, source count, LLM status |
+| `GET /api/health` | Server status, uptime, source count, LLM status, ingestion service status |
+| `GET /api/border` | Border Watch panel data (anomalies, regions, articles, baselines) from the last sweep |
+| `GET /api/ingest/*` | Read-only proxy to the ingestion API (allow-listed paths and query params only) |
 | `GET /events` | SSE stream for live push updates |
 
 ---

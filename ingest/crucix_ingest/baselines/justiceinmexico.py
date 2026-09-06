@@ -43,9 +43,17 @@ def parse_publications(payload: list[dict], source_url: str) -> list[BaselineRec
         link = str(post.get("link") or source_url)
         published = str(post.get("date_gmt") or post.get("date") or "")[:10] or f"{year}-01-01"
         out[year] = BaselineRecord(
-            series="ocvm_annual_report", region_type="national", region_code="MX", region_name="Mexico", country="MX",
-            period_start=f"{year}-01-01", period_end=f"{year}-12-31", value=None, unit="report",
-            source_url=link, source_version=f"ocvm-{year}",
+            series="ocvm_annual_report",
+            region_type="national",
+            region_code="MX",
+            region_name="Mexico",
+            country="MX",
+            period_start=f"{year}-01-01",
+            period_end=f"{year}-12-31",
+            value=None,
+            unit="report",
+            source_url=link,
+            source_version=f"ocvm-{year}",
             metadata={"title": title[:200], "published": published, "pdf_links": pdfs, "post_id": post.get("id")},
         )
     return list(out.values())
@@ -60,8 +68,10 @@ class JusticeInMexicoLoader(BaselineLoader):
     notes = "Quarterly check for new editions via the site's public WordPress REST API; stores edition pointers and PDF links."
 
     def load(self) -> LoadResult:
-        before = {r["source_version"] for r in self.db.query(
-            "SELECT DISTINCT source_version FROM baseline_records WHERE dataset = ?", (self.dataset,))}
+        before = {
+            r["source_version"]
+            for r in self.db.query("SELECT DISTINCT source_version FROM baseline_records WHERE dataset = ?", (self.dataset,))
+        }
         records: dict[str, BaselineRecord] = {}
         last_err = None
         for term in SEARCH_TERMS:
@@ -88,6 +98,14 @@ class JusticeInMexicoLoader(BaselineLoader):
         new_editions = sorted(set(records) - before)
         latest = max(records)
         status = "updated" if new_editions else "unchanged"
-        return LoadResult(self.dataset, status, records=n, version=latest,
-                          detail={"editions": sorted(records), "new_editions": new_editions,
-                                  "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+        return LoadResult(
+            self.dataset,
+            status,
+            records=n,
+            version=latest,
+            detail={
+                "editions": sorted(records),
+                "new_editions": new_editions,
+                "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            },
+        )
