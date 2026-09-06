@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns3="http://purl.org/dc/terms/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" version="2.0">
+
+<channel>
+	<title>BorderReport</title>
+	<atom:link href="https://www.borderreport.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.borderreport.com</link>
+	<description />
+	<lastBuildDate>Sat, 05 Sep 2026 22:18:53 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.8.8</generator>
+
+<image>
+	<url>https://www.borderreport.com/wp-content/uploads/sites/28/2019/07/cropped-FAVICON_final-2.png?w=32</url>
+	<title>BorderReport</title>
+	<link>https://www.borderreport.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>From Juárez tunnel to El Paso drains: Underground crossings remain border enforcement challenge</title>
+		<link>https://www.borderreport.com/news/from-juarez-tunnel-to-el-paso-drains-underground-crossings-remain-border-enforcement-challenge/</link>
+		
+		<dc:creator>Aracely Lazcano</dc:creator>
+		<pubDate>Sat, 05 Sep 2026 00:08:42 +0000</pubDate>
+				<category>Border Crime</category>
+		<category>Border Report Correspondents</category>
+		<category>Hot Topics</category>
+		<category>Immigration</category>
+		<category>Mexico</category>
+		<category>News</category>
+		<category>Regions</category>
+		<category>Texas</category>
+		<category>Top Stories</category>
+		<guid isPermaLink="false">https://www.borderreport.com/?p=3078323</guid>
+
+					<description>U.S. Customs and Border Patrol video posted on their social platforms showing migrants detected in underground tunnels.</description>
+		
+		
+		
+		<enclosure url="https://www.borderreport.com/wp-content/uploads/sites/28/2026/09/BP-TUNNEL-VIDEO.mp4.00_00_15_12.Still002.jpg?w=900" type="image/jpeg" length="292969" />
+<ns3:modified>2026-09-05T00:09:59+00:00</ns3:modified>
+	</item>
+		<item>
+		<title>Tetris suggests White House 'Build the Wall' game infringes copyright</title>
+		<link>https://www.borderreport.com/border-report-tour/the-border-wall/tetris-suggests-white-house-build-the-wall-game-infringes-copyright/</link>
+		
+		<dc:creator>Finya Swai</dc:creator>
+		<pubDate>Sat, 05 Sep 2026 22:18:51 +0000</pubDate>
+		<category>Border Wall</category>		<category>Border Crime</category>
+		
+		<category>Hot Topics</category>
+		<category>Immigration</category>
+		<category>News</category>
+		<category>Politics</category>
+		<category>Top Stories</category>
+		<category>Washington, D.C.</category>
+		<guid isPermaLink="false">https://www.borderreport.com/?p=3078387</guid>
+
+					<description>“Zombie Border Siege,” instructs players to “protect the border from the coming horde," according to its description. Allowing blocks to reach the top of the screen, much like in Tetris, ends the game.</description>
+		
+		
+		
+		<enclosure url="https://www.borderreport.com/wp-content/uploads/sites/28/2026/09/trump_donald_09042026_AP26247672251104-2_4e53e8-e1788574002728.jpg?w=900" type="image/jpeg" length="80873" />
+<ns3:modified>2026-09-05T22:18:53+00:00</ns3:modified>
+	</item>
+		<item>
+		<title>White House website launches retro arcade games promoting Trump's agenda</title>
+		<link>https://www.borderreport.com/news/white-house-website-launches-retro-arcade-games-promoting-trumps-agenda/</link>
+		
+		<dc:creator>The Associated Press</dc:creator>
+		<pubDate>Fri, 04 Sep 2026 22:03:26 +0000</pubDate>
+				<category>Border Wall</category>
+		<category>California</category>
+		<category>Immigration</category>
+		<category>New Mexico/Arizona</category>
+		<category>News</category>
+		<category>Texas</category>
+		<category>Top Stories</category>
+		<guid isPermaLink="false">https://www.borderreport.com/?p=3078212</guid>
+
+					<description>The White House announced Arcade on social media with a series of animations parodying Xbox, PlayStation and Nintendo loading screens.</description>
+		
+		
+		
+		<enclosure url="https://www.borderreport.com/wp-content/uploads/sites/28/2026/09/White-House-arcade-games-e1788528672453.jpg?w=900" type="image/jpeg" length="127988" />
+<ns3:modified>2026-09-04T22:03:27+00:00</ns3:modified>
+	</item>
+		</channel>
+</rss>

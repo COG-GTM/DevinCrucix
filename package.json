@@ -12,6 +12,9 @@
     "brief:save": "node apis/save-briefing.mjs",
     "diag": "node diag.mjs",
     "clean": "node scripts/clean.mjs",
+    "ingest": "python -m crucix_ingest serve",
+    "ingest:poll": "python -m crucix_ingest poll",
+    "ingest:test": "cd ingest && python -m pytest",
     "fresh-start": "npm run clean && npm start"
   },
   "keywords": [

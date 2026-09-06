@@ -41,6 +41,7 @@ import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_
 
 // Phase 7: Seismic Event Monitor
 import { collectSeismic } from './apis/sources/seismic.mjs';
+import { ingestGet } from './apis/sources/borderingest.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -291,6 +292,21 @@ app.get('/', (req, res) => {
 app.get('/api/data', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   res.json(currentData);
+});
+
+// API: Border Watch (synthesized from the Python ingestion service during the sweep)
+app.get('/api/border', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.borderIngest || { status: 'offline', anomalies: [], regions: [], articles: [], baselines: [] });
+});
+
+// API: read-only proxy to the Python ingestion service. Only allow-listed GET paths/params are
+// forwarded (see apis/sources/borderingest.mjs); the service's POST endpoints stay loopback-only.
+app.get(/^\/api\/ingest(\/.*)?$/, async (req, res) => {
+  const upstreamPath = (req.params[0] || '/health').substring(0, 200);
+  const { status, body, detail } = await ingestGet(upstreamPath, req.query);
+  if (detail) console.error(`[Crucix] ingest proxy ${upstreamPath}: ${detail}`);
+  res.status(status).set('Cache-Control', 'no-store').json(body);
 });
 
 // API: carrier strike groups
@@ -612,6 +628,12 @@ app.get('/api/health', (req, res) => {
     refreshIntervalMinutes: config.refreshIntervalMinutes,
     marketRefreshSeconds: MARKET_REFRESH_SECONDS,
     language: currentLanguage,
+    ingest: {
+      status: currentData?.borderIngest?.status || 'unknown',
+      sourcesEnabled: currentData?.borderIngest?.sources?.enabled || 0,
+      sourcesDegraded: currentData?.borderIngest?.sources?.degraded?.length || 0,
+      lastSweepAt: currentData?.borderIngest?.lastSweepAt || null,
+    },
   });
 });
 

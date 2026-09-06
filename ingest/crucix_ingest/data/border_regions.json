@@ -1,0 +1,867 @@
+{
+  "_comment": "Border-region gazetteer. US counties keyed by FIPS, Mexican municipalities keyed by INEGI 5-digit code (verified against SESNSP RNID-Delitos_Municipal CSV, Aug 2026 release). `aliases` are matched as whole words/phrases, case- and accent-insensitive, against article text. Ambiguous short names (e.g. bare 'Hidalgo', 'Guerrero', 'Guadalupe') are deliberately not aliases; qualified forms are used instead. `on_border` marks jurisdictions touching the international boundary; the rest are border-region hubs.",
+  "regions": [
+    {
+      "code": "06073",
+      "name": "San Diego County",
+      "type": "county",
+      "country": "US",
+      "state": "CA",
+      "on_border": true,
+      "aliases": [
+        "San Diego County",
+        "San Diego",
+        "Chula Vista",
+        "San Ysidro",
+        "Otay Mesa",
+        "Tecate, California"
+      ]
+    },
+    {
+      "code": "06025",
+      "name": "Imperial County",
+      "type": "county",
+      "country": "US",
+      "state": "CA",
+      "on_border": true,
+      "aliases": [
+        "Imperial County",
+        "Calexico",
+        "El Centro, California",
+        "El Centro, Calif",
+        "Imperial Valley"
+      ]
+    },
+    {
+      "code": "04027",
+      "name": "Yuma County",
+      "type": "county",
+      "country": "US",
+      "state": "AZ",
+      "on_border": true,
+      "aliases": [
+        "Yuma County",
+        "Yuma",
+        "San Luis, Arizona",
+        "Somerton"
+      ]
+    },
+    {
+      "code": "04019",
+      "name": "Pima County",
+      "type": "county",
+      "country": "US",
+      "state": "AZ",
+      "on_border": true,
+      "aliases": [
+        "Pima County",
+        "Tucson",
+        "Ajo",
+        "Sasabe",
+        "Lukeville"
+      ]
+    },
+    {
+      "code": "04023",
+      "name": "Santa Cruz County",
+      "type": "county",
+      "country": "US",
+      "state": "AZ",
+      "on_border": true,
+      "aliases": [
+        "Santa Cruz County",
+        "Nogales, Arizona",
+        "Nogales, Ariz",
+        "Rio Rico"
+      ]
+    },
+    {
+      "code": "04003",
+      "name": "Cochise County",
+      "type": "county",
+      "country": "US",
+      "state": "AZ",
+      "on_border": true,
+      "aliases": [
+        "Cochise County",
+        "Douglas, Arizona",
+        "Sierra Vista",
+        "Bisbee",
+        "Naco, Arizona"
+      ]
+    },
+    {
+      "code": "35023",
+      "name": "Hidalgo County (NM)",
+      "type": "county",
+      "country": "US",
+      "state": "NM",
+      "on_border": true,
+      "aliases": [
+        "Hidalgo County, New Mexico",
+        "Hidalgo County, N.M.",
+        "Lordsburg",
+        "Antelope Wells"
+      ]
+    },
+    {
+      "code": "35029",
+      "name": "Luna County",
+      "type": "county",
+      "country": "US",
+      "state": "NM",
+      "on_border": true,
+      "aliases": [
+        "Luna County",
+        "Deming",
+        "Columbus, New Mexico"
+      ]
+    },
+    {
+      "code": "35013",
+      "name": "Doña Ana County",
+      "type": "county",
+      "country": "US",
+      "state": "NM",
+      "on_border": true,
+      "aliases": [
+        "Doña Ana County",
+        "Dona Ana County",
+        "Las Cruces",
+        "Sunland Park",
+        "Santa Teresa"
+      ]
+    },
+    {
+      "code": "48141",
+      "name": "El Paso County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "El Paso County",
+        "El Paso",
+        "Socorro, Texas",
+        "Fabens",
+        "Tornillo",
+        "Fort Bliss"
+      ]
+    },
+    {
+      "code": "48229",
+      "name": "Hudspeth County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Hudspeth County",
+        "Sierra Blanca",
+        "Fort Hancock"
+      ]
+    },
+    {
+      "code": "48243",
+      "name": "Jeff Davis County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": false,
+      "aliases": [
+        "Jeff Davis County",
+        "Fort Davis"
+      ]
+    },
+    {
+      "code": "48377",
+      "name": "Presidio County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Presidio County",
+        "Presidio, Texas",
+        "Marfa"
+      ]
+    },
+    {
+      "code": "48043",
+      "name": "Brewster County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Brewster County",
+        "Alpine, Texas",
+        "Big Bend National Park",
+        "Terlingua"
+      ]
+    },
+    {
+      "code": "48443",
+      "name": "Terrell County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Terrell County",
+        "Sanderson, Texas"
+      ]
+    },
+    {
+      "code": "48465",
+      "name": "Val Verde County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Val Verde County",
+        "Del Rio",
+        "Laughlin Air Force Base"
+      ]
+    },
+    {
+      "code": "48271",
+      "name": "Kinney County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Kinney County",
+        "Brackettville"
+      ]
+    },
+    {
+      "code": "48323",
+      "name": "Maverick County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Maverick County",
+        "Eagle Pass",
+        "Shelby Park"
+      ]
+    },
+    {
+      "code": "48479",
+      "name": "Webb County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Webb County",
+        "Laredo",
+        "Laredo, Texas",
+        "World Trade Bridge",
+        "Colombia Solidarity Bridge"
+      ]
+    },
+    {
+      "code": "48505",
+      "name": "Zapata County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Zapata County",
+        "Zapata, Texas",
+        "Falcon Lake",
+        "San Ygnacio"
+      ]
+    },
+    {
+      "code": "48427",
+      "name": "Starr County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Starr County",
+        "Rio Grande City",
+        "Roma, Texas",
+        "La Grulla",
+        "Escobares"
+      ]
+    },
+    {
+      "code": "48215",
+      "name": "Hidalgo County (TX)",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Hidalgo County",
+        "Hidalgo County, Texas",
+        "McAllen",
+        "Edinburg",
+        "Mission, Texas",
+        "Pharr",
+        "Weslaco",
+        "Mercedes, Texas",
+        "Donna, Texas",
+        "Alamo, Texas",
+        "San Juan, Texas",
+        "Hidalgo, Texas",
+        "Anzalduas",
+        "Pharr International Bridge"
+      ]
+    },
+    {
+      "code": "48061",
+      "name": "Cameron County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": true,
+      "aliases": [
+        "Cameron County",
+        "Brownsville",
+        "Harlingen",
+        "San Benito",
+        "Los Fresnos",
+        "Port Isabel",
+        "South Padre Island",
+        "Boca Chica",
+        "Los Indios"
+      ]
+    },
+    {
+      "code": "48489",
+      "name": "Willacy County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": false,
+      "aliases": [
+        "Willacy County",
+        "Raymondville",
+        "Sebastian, Texas"
+      ]
+    },
+    {
+      "code": "48029",
+      "name": "Bexar County",
+      "type": "county",
+      "country": "US",
+      "state": "TX",
+      "on_border": false,
+      "aliases": [
+        "Bexar County",
+        "San Antonio",
+        "Joint Base San Antonio"
+      ]
+    },
+    {
+      "code": "02004",
+      "name": "Tijuana",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Baja California",
+      "on_border": true,
+      "aliases": [
+        "Tijuana",
+        "San Ysidro crossing",
+        "Otay",
+        "El Chaparral"
+      ]
+    },
+    {
+      "code": "02002",
+      "name": "Mexicali",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Baja California",
+      "on_border": true,
+      "aliases": [
+        "Mexicali",
+        "Los Algodones"
+      ]
+    },
+    {
+      "code": "02003",
+      "name": "Tecate",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Baja California",
+      "on_border": true,
+      "aliases": [
+        "Tecate",
+        "Tecate, Baja California"
+      ]
+    },
+    {
+      "code": "02005",
+      "name": "Playas de Rosarito",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Baja California",
+      "on_border": false,
+      "aliases": [
+        "Playas de Rosarito",
+        "Rosarito"
+      ]
+    },
+    {
+      "code": "02001",
+      "name": "Ensenada",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Baja California",
+      "on_border": false,
+      "aliases": [
+        "Ensenada"
+      ]
+    },
+    {
+      "code": "26055",
+      "name": "San Luis Río Colorado",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "San Luis Río Colorado",
+        "San Luis Rio Colorado",
+        "San Luis R.C."
+      ]
+    },
+    {
+      "code": "26048",
+      "name": "Puerto Peñasco",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": false,
+      "aliases": [
+        "Puerto Peñasco",
+        "Puerto Penasco",
+        "Rocky Point"
+      ]
+    },
+    {
+      "code": "26070",
+      "name": "General Plutarco Elías Calles",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Sonoyta",
+        "Plutarco Elías Calles",
+        "Plutarco Elias Calles"
+      ]
+    },
+    {
+      "code": "26017",
+      "name": "Caborca",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Caborca"
+      ]
+    },
+    {
+      "code": "26004",
+      "name": "Altar",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": false,
+      "aliases": [
+        "Altar, Sonora",
+        "El Sásabe",
+        "Sasabe, Sonora"
+      ]
+    },
+    {
+      "code": "26060",
+      "name": "Sáric",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Sáric",
+        "Saric, Sonora"
+      ]
+    },
+    {
+      "code": "26043",
+      "name": "Nogales (Sonora)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Nogales, Sonora",
+        "Nogales"
+      ]
+    },
+    {
+      "code": "26059",
+      "name": "Santa Cruz (Sonora)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Santa Cruz, Sonora"
+      ]
+    },
+    {
+      "code": "26039",
+      "name": "Naco",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Naco, Sonora"
+      ]
+    },
+    {
+      "code": "26002",
+      "name": "Agua Prieta",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": true,
+      "aliases": [
+        "Agua Prieta"
+      ]
+    },
+    {
+      "code": "26019",
+      "name": "Cananea",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Sonora",
+      "on_border": false,
+      "aliases": [
+        "Cananea"
+      ]
+    },
+    {
+      "code": "08037",
+      "name": "Juárez",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Ciudad Juárez",
+        "Ciudad Juarez",
+        "Cd. Juárez",
+        "Cd. Juarez",
+        "Juárez, Chihuahua",
+        "Juarez, Chihuahua",
+        "Juárez"
+      ]
+    },
+    {
+      "code": "08053",
+      "name": "Praxedis G. Guerrero",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Praxedis G. Guerrero",
+        "Práxedis G. Guerrero",
+        "Praxedis Guerrero"
+      ]
+    },
+    {
+      "code": "08028",
+      "name": "Guadalupe (Chihuahua)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Guadalupe, Chihuahua",
+        "Guadalupe Distrito Bravos"
+      ]
+    },
+    {
+      "code": "08052",
+      "name": "Ojinaga",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Ojinaga"
+      ]
+    },
+    {
+      "code": "08042",
+      "name": "Manuel Benavides",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Manuel Benavides"
+      ]
+    },
+    {
+      "code": "08005",
+      "name": "Ascensión",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Ascensión, Chihuahua",
+        "Puerto Palomas",
+        "Palomas, Chihuahua"
+      ]
+    },
+    {
+      "code": "08035",
+      "name": "Janos",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Janos, Chihuahua",
+        "Janos"
+      ]
+    },
+    {
+      "code": "08015",
+      "name": "Coyame del Sotol",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Chihuahua",
+      "on_border": true,
+      "aliases": [
+        "Coyame del Sotol",
+        "Coyame"
+      ]
+    },
+    {
+      "code": "05002",
+      "name": "Acuña",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Coahuila",
+      "on_border": true,
+      "aliases": [
+        "Ciudad Acuña",
+        "Acuña, Coahuila",
+        "Acuña"
+      ]
+    },
+    {
+      "code": "05025",
+      "name": "Piedras Negras",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Coahuila",
+      "on_border": true,
+      "aliases": [
+        "Piedras Negras"
+      ]
+    },
+    {
+      "code": "05014",
+      "name": "Jiménez (Coahuila)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Coahuila",
+      "on_border": true,
+      "aliases": [
+        "Jiménez, Coahuila",
+        "Jimenez, Coahuila"
+      ]
+    },
+    {
+      "code": "05012",
+      "name": "Guerrero (Coahuila)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Coahuila",
+      "on_border": true,
+      "aliases": [
+        "Guerrero, Coahuila"
+      ]
+    },
+    {
+      "code": "05013",
+      "name": "Hidalgo (Coahuila)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Coahuila",
+      "on_border": true,
+      "aliases": [
+        "Hidalgo, Coahuila"
+      ]
+    },
+    {
+      "code": "05023",
+      "name": "Ocampo (Coahuila)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Coahuila",
+      "on_border": true,
+      "aliases": [
+        "Ocampo, Coahuila",
+        "Boquillas del Carmen"
+      ]
+    },
+    {
+      "code": "19005",
+      "name": "Anáhuac",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Nuevo León",
+      "on_border": true,
+      "aliases": [
+        "Anáhuac, Nuevo León",
+        "Anahuac, Nuevo Leon",
+        "Colombia, Nuevo León",
+        "Puente Colombia"
+      ]
+    },
+    {
+      "code": "28027",
+      "name": "Nuevo Laredo",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Nuevo Laredo"
+      ]
+    },
+    {
+      "code": "28014",
+      "name": "Guerrero (Tamaulipas)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Guerrero, Tamaulipas",
+        "Nueva Ciudad Guerrero"
+      ]
+    },
+    {
+      "code": "28024",
+      "name": "Mier",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Ciudad Mier",
+        "Mier, Tamaulipas"
+      ]
+    },
+    {
+      "code": "28025",
+      "name": "Miguel Alemán",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Miguel Alemán, Tamaulipas",
+        "Ciudad Miguel Alemán",
+        "Miguel Aleman, Tamaulipas"
+      ]
+    },
+    {
+      "code": "28007",
+      "name": "Camargo (Tamaulipas)",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Camargo, Tamaulipas",
+        "Ciudad Camargo",
+        "Comales"
+      ]
+    },
+    {
+      "code": "28015",
+      "name": "Gustavo Díaz Ordaz",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Gustavo Díaz Ordaz",
+        "Díaz Ordaz, Tamaulipas",
+        "Diaz Ordaz, Tamaulipas"
+      ]
+    },
+    {
+      "code": "28032",
+      "name": "Reynosa",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Reynosa"
+      ]
+    },
+    {
+      "code": "28033",
+      "name": "Río Bravo",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Río Bravo, Tamaulipas",
+        "Rio Bravo, Tamaulipas",
+        "Ciudad Río Bravo",
+        "Ciudad Rio Bravo"
+      ]
+    },
+    {
+      "code": "28040",
+      "name": "Valle Hermoso",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": false,
+      "aliases": [
+        "Valle Hermoso"
+      ]
+    },
+    {
+      "code": "28022",
+      "name": "Matamoros",
+      "type": "municipality",
+      "country": "MX",
+      "state": "Tamaulipas",
+      "on_border": true,
+      "aliases": [
+        "Matamoros",
+        "Heroica Matamoros",
+        "Matamoros, Tamaulipas"
+      ]
+    }
+  ]
+}

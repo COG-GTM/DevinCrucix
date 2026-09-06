@@ -12,3 +12,9 @@ docs/
 *.md
 !README.md
 LICENSE
+ingest/.venv
+ingest/**/__pycache__
+ingest/*.egg-info
+ingest/.mypy_cache
+ingest/.ruff_cache
+ingest/.pytest_cache

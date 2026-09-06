@@ -9,8 +9,24 @@ import { generatePermutations, getWatchlist } from '../apis/sources/typosquat.mj
 describe('classifyTarget', () => {
   it('classifies and normalizes domains', () => {
     assert.deepEqual(classifyTarget('Example.COM'), { type: 'domain', value: 'example.com' });
-    assert.deepEqual(classifyTarget('https://www.example.com/path?q=1'), { type: 'domain', value: 'example.com' });
+    assert.deepEqual(classifyTarget('https://www.example.com/'), { type: 'domain', value: 'example.com' });
+    assert.deepEqual(classifyTarget('https://www.example.com/path?q=1', 'domain'), { type: 'domain', value: 'example.com' });
     assert.deepEqual(classifyTarget('sub.example.co.uk'), { type: 'domain', value: 'sub.example.co.uk' });
+  });
+
+  it('classifies URLs with a path or query as url selectors', () => {
+    assert.deepEqual(classifyTarget('https://www.example.com/path?q=1'), { type: 'url', value: 'https://www.example.com/path?q=1' });
+    assert.equal(classifyTarget('https://1.2.3.4/').type, 'ip');
+  });
+
+  it('classifies emails, @handles, phones and wallets', () => {
+    assert.deepEqual(classifyTarget('Alice@Example.com'), { type: 'email', value: 'alice@example.com' });
+    assert.deepEqual(classifyTarget('@torvalds'), { type: 'username', value: 'torvalds' });
+    assert.equal(classifyTarget('torvalds'), null);
+    assert.deepEqual(classifyTarget('torvalds', 'username'), { type: 'username', value: 'torvalds' });
+    assert.equal(classifyTarget('+1 202 555 0143').type, 'phone');
+    assert.equal(classifyTarget('1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa').type, 'btc');
+    assert.equal(classifyTarget('0xdAC17F958D2ee523a2206206994597C13D831ec7').type, 'eth');
   });
 
   it('classifies IPv4 and IPv6', () => {
@@ -44,7 +60,7 @@ describe('classifyTarget', () => {
 describe('keyedSourceStatus', () => {
   it('reports each keyed provider as a boolean', () => {
     const s = keyedSourceStatus();
-    assert.deepEqual(Object.keys(s).sort(), ['opencorporates', 'shodan', 'virustotal']);
+    assert.deepEqual(Object.keys(s).sort(), ['github', 'hibp', 'numverify', 'opencorporates', 'opensanctions', 'shodan', 'virustotal']);
     for (const v of Object.values(s)) assert.equal(typeof v, 'boolean');
   });
 });
