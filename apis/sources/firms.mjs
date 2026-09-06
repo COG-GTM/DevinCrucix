@@ -3,6 +3,7 @@
 // Detects military strikes, explosions, wildfires, industrial fires.
 
 import '../utils/env.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const FIRMS_BASE = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv';
 
@@ -35,7 +36,7 @@ async function fetchFires(opts = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25000);
   try {
-    const res = await fetch(url, {
+    const res = await safeOutboundFetch(url, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Crucix/1.0' },
     });

@@ -6,6 +6,7 @@
 
 import { safeFetch } from '../utils/fetch.mjs';
 import '../utils/env.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -25,7 +26,7 @@ async function getToken() {
 
   try {
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    const res = await fetch('https://www.reddit.com/api/v1/access_token', {
+    const res = await safeOutboundFetch('https://www.reddit.com/api/v1/access_token', {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,

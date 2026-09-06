@@ -11,6 +11,9 @@
 import { isIP } from 'net';
 import { createHash } from 'crypto';
 import { safeFetch } from '../utils/fetch.mjs';
+import { safeOutboundFetch, SafeFetchError, assertPublicHost } from '../../lib/safeOutboundFetch.mjs';
+
+export { assertPublicHost };
 
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) Crucix/1.0 OSINT';
 
@@ -33,61 +36,22 @@ function providerError(source, raw) {
   return 'unavailable';
 }
 
-// Bounded fetch that returns status + a slice of the body instead of throwing.
+// Bounded fetch that returns status + a slice of the body instead of throwing. Goes through
+// safeOutboundFetch, so every hop (including redirects) is checked against the private-range policy.
+// `redirect: 'manual'` returns the 3xx response itself so callers can walk the chain hop by hop.
 async function probe(url, { timeout = 8000, method = 'GET', headers = {}, maxBytes = 65536, redirect = 'follow' } = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(url, { method, redirect, signal: controller.signal, headers: { 'User-Agent': UA, Accept: '*/*', ...headers } });
-    let body = '';
-    if (method !== 'HEAD' && res.body) {
-      const reader = res.body.getReader();
-      const chunks = []; let got = 0;
-      while (got < maxBytes) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value); got += value.length;
-      }
-      reader.cancel().catch(() => {});
-      body = Buffer.concat(chunks).toString('utf8');
-    }
+    const res = await safeOutboundFetch(url, {
+      method, timeout, maxBytes, truncate: true, followRedirects: redirect !== 'manual',
+      headers: { 'User-Agent': UA, Accept: '*/*', ...headers },
+    });
+    const body = method === 'HEAD' ? '' : await res.text();
     return { ok: true, status: res.status, headers: res.headers, body, url: res.url };
   } catch (e) {
-    return { ok: false, status: 0, error: e.name === 'AbortError' ? 'timed out' : 'unreachable', headers: new Headers(), body: '' };
-  } finally { clearTimeout(timer); }
-}
-
-// ─── SSRF guard ─────────────────────────────────────────────────────────────
-
-const DOH = 'https://cloudflare-dns.com/dns-query';
-
-function isPrivateIp(ip) {
-  const v = isIP(ip);
-  if (v === 4) {
-    const [a, b] = ip.split('.').map(Number);
-    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+    const blocked = e instanceof SafeFetchError && e.code === 'blocked' ? e.message : null;
+    const timedOut = (e instanceof SafeFetchError && e.code === 'timeout') || e.name === 'AbortError' || e.name === 'TimeoutError';
+    return { ok: false, status: 0, error: blocked ? 'blocked' : timedOut ? 'timed out' : 'unreachable', blocked, headers: new Headers(), body: '' };
   }
-  if (v === 6) {
-    const l = ip.toLowerCase();
-    return l === '::1' || l === '::' || l.startsWith('fe80') || l.startsWith('fc') || l.startsWith('fd') || l.startsWith('::ffff:');
-  }
-  return true;
-}
-
-// Resolve a hostname via DoH and refuse anything that lands on a private network.
-export async function assertPublicHost(hostname) {
-  const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
-  if (!host) return { ok: false, reason: 'empty host' };
-  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.internal') || host.endsWith('.local')) return { ok: false, reason: 'internal hostname' };
-  if (isIP(host)) return isPrivateIp(host) ? { ok: false, reason: 'private address' } : { ok: true, ips: [host] };
-  const ips = [];
-  for (const type of ['A', 'AAAA']) {
-    const data = await safeFetch(`${DOH}?name=${encodeURIComponent(host)}&type=${type}`, { timeout: 6000, retries: 0, headers: { Accept: 'application/dns-json' } });
-    for (const a of data.Answer || []) if (isIP(a.data)) ips.push(a.data);
-  }
-  if (!ips.length) return { ok: false, reason: 'does not resolve' };
-  if (ips.some(isPrivateIp)) return { ok: false, reason: 'resolves to private address' };
-  return { ok: true, ips };
 }
 
 // ─── Enrichers (shared by domain / IP / URL dossiers) ───────────────────────
@@ -444,17 +408,18 @@ function urlHeuristics(u) {
   return flags;
 }
 
+// Redirect hops walked one at a time (each hop is host-checked by probe → safeOutboundFetch).
+const MAX_CHAIN_REDIRECTS = 5;
+
 export async function investigateUrl(raw) {
   let u;
   try { u = new URL(raw); } catch { return { error: 'invalid URL' }; }
   const chain = [];
   let current = u.href;
   let finalResp = null;
-  for (let hop = 0; hop < 8; hop++) {
-    const cu = new URL(current);
-    const guard = await assertPublicHost(cu.hostname);
-    if (!guard.ok) { chain.push({ url: current, status: null, blocked: guard.reason }); break; }
+  for (let hop = 0; hop <= MAX_CHAIN_REDIRECTS; hop++) {
     const r = await probe(current, { timeout: 10000, redirect: 'manual', maxBytes: 65536 });
+    if (r.blocked) { chain.push({ url: current.slice(0, 300), status: null, blocked: r.blocked }); break; }
     chain.push({ url: current.slice(0, 300), status: r.status || null, error: r.ok ? null : r.error, server: r.headers.get('server') || null });
     finalResp = r;
     const loc = r.headers.get('location');

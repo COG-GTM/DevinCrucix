@@ -6,6 +6,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_FILE = join(__dirname, '../../runs/telegram_live.json');
@@ -46,7 +47,7 @@ async function fetchHTML(url, timeoutMs = 15000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
+    const res = await safeOutboundFetch(url, {
       signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',

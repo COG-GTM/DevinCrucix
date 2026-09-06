@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { parseFeed, feedMeta } from '../utils/rss.mjs';
 import { extractArticle, htmlToText, bodyParagraphs } from '../utils/article.mjs';
 import { checkRobots, CRAWLER_UA } from '../utils/robots.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -460,7 +461,7 @@ export function classifyHttp(status) {
 }
 
 // Poll one feed with conditional headers. Never throws.
-export async function pollFeed(source, feedState, fetchImpl = fetch, { politeDelayMs = POLITE_DELAY_MS } = {}) {
+export async function pollFeed(source, feedState, fetchImpl = safeOutboundFetch, { politeDelayMs = POLITE_DELAY_MS } = {}) {
   const host = hostOf(source.feedUrl);
   const polledAt = new Date().toISOString();
   try {

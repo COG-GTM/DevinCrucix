@@ -6,6 +6,8 @@
 // Configure with INGEST_API_URL (default http://127.0.0.1:3118). When the service is not running the
 // source reports status 'offline' and the dashboard panel degrades gracefully.
 
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
+
 export const INGEST_API_URL = (process.env.INGEST_API_URL || 'http://127.0.0.1:3118').replace(/\/+$/, '');
 const TIMEOUT_MS = 10_000;
 
@@ -42,7 +44,7 @@ export async function ingestGet(path, query = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
+    const res = await safeOutboundFetch(url, { signal: controller.signal, allowPrivate: true, headers: { Accept: 'application/json' } });
     const text = await res.text();
     let body;
     try { body = JSON.parse(text); } catch { body = { error: 'upstream returned non-JSON' }; }
