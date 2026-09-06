@@ -51,6 +51,7 @@ for (const dir of [RUNS_DIR, MEMORY_DIR, join(MEMORY_DIR, 'cold')]) {
 
 // === State ===
 let currentData = null;    // Current synthesized dashboard data
+let frontGeo = null;       // DeepStateMAP geometry from the last sweep (served separately from /api/data)
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
@@ -421,10 +422,16 @@ app.get('/api/space-weather', (req, res) => {
   res.json(currentData.spaceWeather || { kp: { current: 0, level: 'Quiet' }, flares: [], alerts: [] });
 });
 
-// API: Ukraine Frontlines
+// API: Ukraine Frontlines (DeepStateMAP) — summary in /api/data, geometry on demand
 app.get('/api/frontlines', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
-  res.json(currentData.frontlines || { status: 'unavailable', geojson: null });
+  res.json(currentData.frontlines || { status: 'unavailable' });
+});
+
+app.get('/api/frontlines/geo', (req, res) => {
+  if (!frontGeo) return res.status(404).json({ error: 'No frontline geometry yet' });
+  res.set('Cache-Control', 'private, max-age=300');
+  res.json(frontGeo);
 });
 
 // API: Region Dossier (on-demand, not from sweep)
@@ -635,6 +642,7 @@ async function runSweepCycle() {
     // 2. Save to runs/latest.json
     writeFileSync(join(RUNS_DIR, 'latest.json'), JSON.stringify(rawData, null, 2));
     lastSweepTime = new Date().toISOString();
+    if (rawData.sources?.Frontlines?.geo) frontGeo = rawData.sources.Frontlines.geo;
 
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
@@ -864,6 +872,7 @@ async function start() {
     // Try to load existing data first for instant display (await so dashboard shows immediately)
     try {
       const existing = JSON.parse(readFileSync(join(RUNS_DIR, 'latest.json'), 'utf8'));
+      if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
       const data = await synthesize(existing);
       data.delta = memory.getLastDelta() || null;
       data.situation = buildSituation(data);

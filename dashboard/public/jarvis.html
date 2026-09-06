@@ -201,6 +201,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 #flatMapSvg .land:hover{fill:rgba(100,240,200,0.08)}
 #flatMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.04);stroke-width:0.4}
 #flatMapSvg .border{fill:none;stroke:rgba(200,220,230,0.08);stroke-width:0.3}
+#flatMapSvg .front-poly{cursor:pointer;vector-effect:non-scaling-stroke;stroke-width:0.9}
+#flatMapSvg .front-poly:hover{filter:brightness(1.35)}
+#flatMapSvg .front-arrow{fill:none;vector-effect:non-scaling-stroke;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.front-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}
+.front-kpi{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:3px;padding:6px 7px}
+.front-kpi .k{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.06em;text-transform:uppercase}
+.front-kpi .v{font-family:var(--mono);font-size:15px;font-weight:600;line-height:1.3}
+.front-kpi .s{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.front-row{display:flex;gap:7px;align-items:flex-start;padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;line-height:1.4;cursor:pointer}
+.front-row:hover{background:rgba(100,240,200,0.04)}
+.front-kind{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:2px;flex:0 0 auto;margin-top:2px;letter-spacing:0.05em}
+.front-kind.advance{color:#ff8a65;border:1px solid rgba(255,110,64,0.45)}
+.front-kind.regain{color:#64b5f6;border:1px solid rgba(100,181,246,0.45)}
+.front-kind.other{color:var(--dim);border:1px solid rgba(255,255,255,0.15)}
+.front-when{font-family:var(--mono);font-size:8px;color:var(--dim);flex:0 0 auto;margin-top:3px}
+.front-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin:4px 0 2px;font-family:var(--mono);font-size:8px;color:var(--dim)}
+.front-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:4px}
 @keyframes pulse-conflict{0%,100%{opacity:0.5;stroke-width:1.5}50%{opacity:0.9;stroke-width:2.5}}
 .conflict-ring{animation:pulse-conflict 2.5s ease-in-out infinite}
 @keyframes dash-flow{to{stroke-dashoffset:-20}}
@@ -1141,6 +1158,7 @@ const PANEL_CAPTIONS={
   'cisa kev threats':'CISA Known Exploited Vulnerabilities, newest first. Click a CVE or vendor to pivot into Investigate.',
   'cross-source signals':'<b>Derived.</b> Zones where two or more independent feeds overlap. Built from the panels above; adds no new data.',
   'carrier strike groups':'Positions estimated from public reporting (USNI, GDELT). Fallback positions are last known, not tracked.',
+  'ukraine front':'DeepStateMAP\u2019s assessment of occupied, contested and liberated ground plus its update log. An observational map product with attribution \u2014 not verified ground truth, and km\u00b2 are computed from its polygons.',
   'country instability index':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'country instability':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'border watch':'US\u2013Mexico border reporting from public feeds (Border Report, Texas Tribune). A spike is a place mentioned above its own baseline.',
@@ -1427,6 +1445,80 @@ function renderMapLegend(){
     +rows.map(chip).join('');
 }
 
+// === UKRAINE FRONT (DeepStateMAP geometry) ===
+// The sweep payload only carries the summary (D.frontlines); polygons/points are pulled from
+// /api/frontlines/geo the first time a front layer is on and re-pulled when the map id changes.
+let frontGeo=null, frontGeoKey=null, frontGeoBusy=false;
+const FRONT_TYPES=['front-poly','front-attack','front-change','front-unit','front-airfield'];
+const FRONT_STYLE={
+  occupied:{fill:'rgba(229,57,53,0.30)',stroke:'rgba(255,110,64,0.95)',label:'Occupied since 2022'},
+  occupied_pre2022:{fill:'rgba(140,30,30,0.28)',stroke:'rgba(229,115,115,0.6)',label:'Occupied pre-2022 (Crimea, ORDLO)'},
+  contested:{fill:'rgba(158,158,158,0.30)',stroke:'rgba(207,207,207,0.9)',label:'Contested / grey zone'},
+  liberated:{fill:'rgba(66,165,245,0.14)',stroke:'rgba(100,181,246,0.7)',label:'Liberated'},
+};
+const FRONT_CHANGE_COLOR={advance:'rgba(255,110,64,0.95)',regain:'rgba(100,181,246,0.95)',other:'rgba(200,200,200,0.8)'};
+function frontWanted(){return FRONT_TYPES.some(t=>layerOn(t))}
+// One label per update, and none within ~0.3° of an already-labelled point; every change still gets a dot.
+function frontLabelled(changes){
+  const kept=[],texts=new Set();
+  return (changes||[]).map(c=>{
+    const near=kept.some(k=>Math.hypot(k.lat-c.lat,k.lon-c.lon)<0.3);
+    const label=!near&&!texts.has(c.text||c.name)&&Boolean(c.name);
+    if(label){kept.push(c);texts.add(c.text||c.name);}
+    return {...c,label};
+  });
+}
+// Returns geometry when loaded for the current map; otherwise kicks off one fetch and returns null.
+function frontGeoNow(){
+  if(!frontWanted())return null;
+  const key=String(D.frontlines?.mapId||'latest');
+  if(frontGeo&&frontGeoKey===key)return frontGeo;
+  if(frontGeo&&!frontGeoBusy)setTimeout(loadFrontGeo,0);
+  else if(!frontGeoBusy)loadFrontGeo();
+  return frontGeo;
+}
+// d3-geo treats a polygon whose exterior ring is wound the "wrong" way as covering the rest of the
+// sphere (it would paint the whole flat map). Reverse rings whose spherical area exceeds a hemisphere.
+function windForD3(p){
+  if(!Array.isArray(p.rings)||!p.rings.length||!window.d3)return;
+  const area=r=>d3.geoArea({type:'Polygon',coordinates:[r]});
+  p.rings=p.rings.map((r,i)=>{
+    const big=area(r)>2*Math.PI;
+    return (i===0?big:!big)?r.slice().reverse():r;
+  });
+}
+function loadFrontGeo(){
+  if(frontGeoBusy)return;frontGeoBusy=true;
+  const key=String(D.frontlines?.mapId||'latest');
+  fetch('/api/frontlines/geo',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(g=>{
+    frontGeoBusy=false;
+    if(!g||!Array.isArray(g.polygons))return;
+    g.polygons.forEach(windForD3);
+    const changed=!frontGeo||frontGeo.mapId!==g.mapId;
+    frontGeo=g;frontGeoKey=key;
+    if(changed)replotMap();
+  }).catch(()=>{frontGeoBusy=false});
+}
+// Short arrow (polyline lat/lon pairs) from a point along a compass heading.
+function frontArrow(lat,lon,heading,lenKm){
+  const step=(la,lo,h,d)=>{const r=h*Math.PI/180;return [la+d*Math.cos(r)/111.32,lo+d*Math.sin(r)/(111.32*Math.cos(la*Math.PI/180))]};
+  const tip=step(lat,lon,heading,lenKm);
+  const b1=step(tip[0],tip[1],heading+150,lenKm*0.35), b2=step(tip[0],tip[1],heading-150,lenKm*0.35);
+  return [[lat,lon],tip,b1,tip,b2];
+}
+function frontPolyPop(p){
+  const st=FRONT_STYLE[p.cat]||{label:p.cat};
+  return {head:st.label,text:`${esc(p.name||'DeepStateMAP polygon')}<br>Assessed by DeepStateMAP as of ${esc(frontAsOf())}.<br><span style="color:var(--dim)">Observational map product — not verified ground truth.</span>`,meta:'DeepStateMAP · Ukraine Front'};
+}
+function frontAsOf(){const ts=D.frontlines?.mapUpdatedAt;const d=ts?new Date(ts):null;return d&&!isNaN(d)?d.toISOString().slice(0,16).replace('T',' ')+'Z':'latest'}
+function frontUnitPop(u){
+  const ech=u.echelon&&u.echelon!=='other'?` (${String(u.echelon)})`:'';
+  return {head:'RU unit'+ech,text:`${esc(u.name||'Unit')}<br><span style="color:var(--dim)">Placement per DeepStateMAP, not confirmed ORBAT.</span>`,meta:'DeepStateMAP'};
+}
+function frontChangePop(c){
+  return {head:(c.kind==='advance'?'Advance near ':c.kind==='regain'?'Regained: ':'Update: ')+String(c.name||''),text:`${esc(c.text||'')}<br><span style="color:var(--dim)">${esc(getAge(c.at))}</span>`,meta:'DeepStateMAP update'};
+}
+
 function initMap(){
   bindMapLifecycleEvents();
   if(isFlat){
@@ -1508,6 +1600,23 @@ function initGlobe(){
     .labelDotRadius(0)
     .labelAltitude(0.012)
     .labelResolution(2)
+    // Polygons layer (Ukraine front control areas)
+    .polygonsTransitionDuration(0)
+    .polygonGeoJsonGeometry(d => d.geometry)
+    .polygonCapColor(d => d.fill)
+    .polygonSideColor(() => 'rgba(0,0,0,0)')
+    .polygonStrokeColor(d => d.stroke)
+    .polygonAltitude(0.006)
+    .polygonLabel(d => `<b>${esc(d.head)}</b><br><span style="opacity:0.7">${esc(d.meta)}</span>`)
+    .onPolygonClick((p, ev, c) => { showPopup(ev, p.head, p.text, p.meta, c?.lat, c?.lng, 0.01); })
+    // Paths layer (attack-direction arrows)
+    .pathTransitionDuration(0)
+    .pathPoints(d => d.pts)
+    .pathPointLat(p => p[0])
+    .pathPointLng(p => p[1])
+    .pathPointAlt(0.012)
+    .pathColor(d => d.color)
+    .pathStroke(d => d.stroke || 0.6)
     (document.getElementById('globeViz'));
 
   // Style the WebGL scene
@@ -1905,6 +2014,38 @@ function plotMarkers(){
     });
   });
 
+  // === UKRAINE FRONT (DeepStateMAP polygons, attack arrows, recent changes, units/airfields) ===
+  const fg = frontGeoNow();
+  const frontPolys = [], frontPaths = [];
+  if(fg){
+    if(layerOn('front-poly')) fg.polygons.forEach(p => {
+      const st = FRONT_STYLE[p.cat]; if(!st || !Array.isArray(p.rings) || !p.rings.length) return;
+      const pop = frontPolyPop(p);
+      frontPolys.push({ geometry:{type:'Polygon', coordinates:p.rings}, fill:st.fill, stroke:st.stroke, ...pop });
+    });
+    if(layerOn('front-attack')) fg.points.filter(p => p.cat === 'attack').forEach(p => {
+      points.push({ lat:p.lat, lng:p.lon, size:0.16, alt:0.012, color:'rgba(255,110,64,0.95)', type:'front-attack', priority:1,
+        popHead:'Attack direction', popMeta:'DeepStateMAP', popText:`${esc(p.name||'')}${Number.isFinite(p.heading)?`<br>Heading ${Math.round(p.heading)}°`:''}<br><span style="color:var(--dim)">Assessed axis of Russian pressure.</span>` });
+      if(Number.isFinite(p.heading)) frontPaths.push({ pts: frontArrow(p.lat, p.lon, p.heading, 18), color:'rgba(255,110,64,0.9)', stroke:0.7 });
+    });
+    if(layerOn('front-change')) frontLabelled(fg.changes).forEach(c => {
+      const pop = frontChangePop(c);
+      points.push({ lat:c.lat, lng:c.lon, size:0.22, alt:0.02, color:FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other, type:'front-change', priority:1,
+        popHead:pop.head, popMeta:pop.meta, popText:pop.text });
+      if(c.label) labels.push({ type:'front-change', lat:c.lat, lng:c.lon+0.25, text:c.name||'', size:0.22, color:FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other });
+    });
+    if(layerOn('front-unit')) fg.points.filter(p => p.cat === 'unit').forEach(u => {
+      const pop = frontUnitPop(u);
+      points.push({ lat:u.lat, lng:u.lon, size:0.1, alt:0.008, color:'rgba(255,171,145,0.75)', type:'front-unit', priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
+    });
+    if(layerOn('front-airfield')) fg.points.filter(p => p.cat === 'airfield').forEach(a => {
+      points.push({ lat:a.lat, lng:a.lon, size:0.14, alt:0.008, color:'rgba(255,224,178,0.8)', type:'front-airfield', priority:2,
+        popHead:'Airfield / air base', popMeta:'DeepStateMAP', popText:esc(a.name||'') });
+    });
+  }
+  globe.polygonsData(frontPolys);
+  globe.pathsData(frontPaths);
+
   // Layer filter: only marker types whose layer is on this sweep are drawn
   const shown = points.filter(p => layerOn(p.type));
   globe.pointsData(shown);
@@ -1975,10 +2116,11 @@ function plotMarkers(){
   }
   globe.arcsData(arcs);
 
-  // Zoom-aware marker sizing: scale markers and labels with camera altitude
+  // Zoom-aware marker sizing: pointRadius is angular, so shrink it with altitude to keep
+  // markers near-constant on screen instead of ballooning over the terrain when zoomed in.
   const onGlobeZoom = () => {
     const alt = globe.pointOfView().altitude;
-    const sf = Math.max(0.6, Math.min(2.5, 1.5 / alt));
+    const sf = Math.max(0.25, Math.min(1.2, alt / 1.5));
     globe.pointRadius(d => (d.size || 0.3) * sf);
     // Hide labels when zoomed far out to reduce clutter
     const showLabels = alt < 1.8;
@@ -2080,10 +2222,7 @@ function initFlatMap(){
   flatG = flatSvg.append('g');
   flatZoom = d3.zoom().scaleExtent([1,12]).on('zoom',(event)=>{
     flatG.attr('transform',event.transform);
-    const k=event.transform.k;
-    flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/Math.sqrt(k)});
-    flatG.selectAll('.marker-label').style('font-size',Math.max(7,9/Math.sqrt(k))+'px')
-      .style('display',k>=2.5?'block':'none');
+    scaleFlatMarkers(event.transform.k);
   });
   flatSvg.call(flatZoom);
   drawFlatMap();
@@ -2100,7 +2239,30 @@ function drawFlatMap(){
     });
 }
 
+// Keep marker labels at constant screen size and damp circle growth as the flat map zooms.
+function scaleFlatMarkers(k){
+  if(!flatG)return;
+  flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/k}).attr('stroke-width',function(){return (this.classList.contains('conflict-ring')?1.5:0.8)/k});
+  flatG.selectAll('.marker-label').style('font-size',(9/k)+'px').style('display',k>=2.5?'block':'none');
+}
+
 function plotFlatMarkers(){
+  // Ukraine front polygons sit under every marker group
+  const fg=frontGeoNow();
+  if(fg){
+    const fgG=flatG.append('g').attr('class','front-layer');
+    if(layerOn('front-poly')) fg.polygons.forEach(p=>{
+      const st=FRONT_STYLE[p.cat];if(!st||!Array.isArray(p.rings)||!p.rings.length)return;
+      const pop=frontPolyPop(p);
+      fgG.append('path').datum({type:'Feature',geometry:{type:'Polygon',coordinates:p.rings}}).attr('class','front-poly').attr('d',flatPath)
+        .attr('fill',st.fill).attr('stroke',st.stroke)
+        .on('click',ev=>{ev.stopPropagation();showPopup(ev,pop.head,pop.text,pop.meta)});
+    });
+    if(layerOn('front-attack')) fg.points.filter(p=>p.cat==='attack'&&Number.isFinite(p.heading)).forEach(p=>{
+      const pts=frontArrow(p.lat,p.lon,p.heading,18).map(([la,lo])=>[lo,la]);
+      fgG.append('path').datum({type:'Feature',geometry:{type:'LineString',coordinates:pts}}).attr('class','front-arrow').attr('d',flatPath).attr('stroke','rgba(255,110,64,0.9)');
+    });
+  }
   const mg=flatG.append('g').attr('class','markers');
   const proj=flatProjection;
   flightsVisible = layerOn('air');
@@ -2112,6 +2274,24 @@ function plotFlatMarkers(){
     g.append('circle').attr('class','marker-circle').attr('r',r).attr('data-base-r',r).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',0.8);
     return g;
   };
+  if(fg){
+    fg.points.filter(p=>p.cat==='attack').forEach(p=>{
+      const pop={head:'Attack direction',text:`${esc(p.name||'')}${Number.isFinite(p.heading)?'<br>Heading '+Math.round(p.heading)+'\u00b0':''}`,meta:'DeepStateMAP'};
+      addPt(p.lat,p.lon,1.6,'rgba(255,110,64,0.95)','rgba(255,110,64,0.4)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),1,'front-attack');
+    });
+    frontLabelled(fg.changes).forEach(c=>{
+      const pop=frontChangePop(c);const clr=FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other;
+      const g=addPt(c.lat,c.lon,2.4,clr,'rgba(255,255,255,0.35)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),1,'front-change');
+      if(g&&c.label) g.append('text').attr('class','marker-label').attr('x',5).attr('y',3).attr('fill',clr).attr('font-size','8px').attr('font-family','var(--mono)').text(c.name||'');
+    });
+    fg.points.filter(p=>p.cat==='unit').forEach(u=>{
+      const pop=frontUnitPop(u);
+      addPt(u.lat,u.lon,1.2,'rgba(255,171,145,0.7)','rgba(255,171,145,0.25)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,'front-unit');
+    });
+    fg.points.filter(p=>p.cat==='airfield').forEach(a=>{
+      addPt(a.lat,a.lon,1.8,'rgba(255,224,178,0.8)','rgba(255,224,178,0.3)',ev=>showPopup(ev,'Airfield / air base',esc(a.name||''),'DeepStateMAP'),2,'front-airfield');
+    });
+  }
   // Air
   const airCoords=[{lat:30,lon:44},{lat:24,lon:120},{lat:49,lon:32},{lat:57,lon:24},{lat:14,lon:114},{lat:37,lon:127},{lat:25,lon:-80},{lat:4,lon:2},{lat:-34,lon:18},{lat:10,lon:51}];
   if(flightsVisible){
@@ -2166,7 +2346,7 @@ function plotFlatMarkers(){
     const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',1)
       .on('click',ev=>{ev.stopPropagation();showPopup(ev,e.type||'CONFLICT',`${e.fatalities} fatalities<br>${e.location}, ${e.country}`,'ACLED')});
     g.append('circle').attr('class','conflict-ring marker-circle').attr('r',r).attr('data-base-r',r).attr('fill','none').attr('stroke','rgba(255,120,80,0.7)').attr('stroke-width',1.5);
-    g.append('circle').attr('r',r*0.4).attr('fill','rgba(255,120,80,0.3)');
+    g.append('circle').attr('class','marker-circle').attr('r',r*0.4).attr('data-base-r',r*0.4).attr('fill','rgba(255,120,80,0.3)').attr('stroke','none');
   });
   // Flight corridors
   if(flightsVisible){
@@ -2214,6 +2394,7 @@ function plotFlatMarkers(){
     addPt(c.lat,c.lng,2,'rgba(102,187,106,0.6)','rgba(102,187,106,0.2)',
       ev=>showPopup(ev,'CCTV: '+(c.name||'Camera'),`Source: ${c.source}<br>Type: ${c.feedType}${c.feedUrl?'<br><a href="'+c.feedUrl+'" target="_blank" style="color:var(--accent2)">View Feed</a>':''}`,c.source),3,'cctv');
   });
+  if(flatSvg) scaleFlatMarkers(d3.zoomTransform(flatSvg.node()).k);
 }
 
 // Update setRegion for flat mode
@@ -2519,10 +2700,10 @@ function renderLower(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
-    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderFrontPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    regional:[wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
   };
@@ -2570,6 +2751,63 @@ function renderCarriersPanel(){
   if(!groups.length)return offPanel('Carrier Strike Groups','Carriers','No carrier group estimates this sweep');
   const rows=groups.slice(0,12).map(g=>`<div class="fp-row" title="${esc(g.name||g.hull||'')}: ${esc(g.desc||'')} — ${esc(g.source||'')}"><span class="fp-urgency" style="color:var(--accent2);border:1px solid rgba(68,204,255,0.3)">${esc(g.hull||'CVN')}</span><span class="fp-name">${esc(g.name||'')}</span><span class="fp-signals" style="font-size:9px;color:var(--dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.desc||g.homeport||'')}</span><span class="fp-score" style="color:var(--dim);font-size:9px">${g.lastUpdate?getAge(g.lastUpdate):''}</span></div>`).join('');
   return `<div class="g-panel carriers-panel"><div class="sec-head"><h3>${shDot('Carriers')}Carrier Strike Groups</h3><span class="badge">${c.totalCarriers||groups.length} TRACKED</span></div>${rows}<div class="sh-note">OSINT-estimated positions from GDELT export mentions and open reporting — not AIS. Treat as last-reported region, not a live fix.</div></div>`;
+}
+
+// === UKRAINE FRONT PANEL (DeepStateMAP) ===
+// All names/text are third-party feed strings and go through esc(); the link-out is the fixed provider URL.
+const FRONT_SITE_URL='https://deepstatemap.live/en';
+function focusMapAt(lat,lon){
+  if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  closePopup();
+  currentRegion=null;
+  document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('active'));
+  if(isFlat&&flatSvg&&flatZoom&&flatProjection){
+    const p=flatProjection([lon,lat]);if(!p)return;const k=9;
+    flatSvg.transition().duration(750).call(flatZoom.transform,d3.zoomIdentity.translate(flatW/2-k*p[0],flatH/2-k*p[1]).scale(k));
+  } else if(globe){
+    globe.controls().autoRotate=false;
+    globe.pointOfView({lat,lng:lon,altitude:0.35},1000);
+  }
+  const map=document.getElementById('mapContainer');if(map)map.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function showFrontLayer(lat,lon){
+  const rows=layerRows();
+  if(rows){const act=activeLayerIds();const row=rows.find(r=>r.id==='front');
+    if(row&&row.state!=='none'&&!act.has('front')){act.add('front');layerOverride=[...act];try{localStorage.setItem(LAYER_STORE,JSON.stringify(layerOverride))}catch{}renderMapLegend();replotMap();}}
+  const go=()=>focusMapAt(Number.isFinite(lat)?lat:48.3,Number.isFinite(lon)?lon:37.2);
+  if(currentTab!=='situation'){setTab('situation',{keepScroll:true});setTimeout(go,350);} else go();
+}
+function renderFrontPanel(){
+  const f=D.frontlines||{};
+  if(f.status!=='live'||!f.featureCount){
+    return offPanel('Ukraine Front','Frontlines',f.error||'DeepStateMAP returned no map this sweep','front-panel');
+  }
+  const a=f.areaKm2||{};const h=f.history||{};
+  const km=v=>Number.isFinite(v)?Math.round(v).toLocaleString('en-US'):'—';
+  const ageH=Number.isFinite(f.mapAgeH)?f.mapAgeH:null;
+  const ageTxt=ageH==null?'':ageH<1?'<1h old':ageH<48?`${ageH}h old`:`${Math.round(ageH/24)}d old`;
+  const stale=ageH!=null&&ageH>72;
+  const upd=(h.updates||[]).slice(0,8).map(u=>{
+    const pl=(u.places||[])[0];
+    const onclick=pl?` onclick="showFrontLayer(${Number(pl.lat)},${Number(pl.lon)})" title="Show on map"`:'';
+    const kind=['advance','regain'].includes(u.kind)?u.kind:'other';
+    return `<div class="front-row"${onclick}><span class="front-kind ${kind}">${kind.toUpperCase()}</span><span style="flex:1;min-width:0">${esc(u.text||'')}</span><span class="front-when">${esc(getAge(u.at))}</span></div>`;
+  }).join('');
+  const legend=Object.keys(FRONT_STYLE).map(k=>`<span><i style="background:${FRONT_STYLE[k].fill};border:1px solid ${FRONT_STYLE[k].stroke}"></i>${esc(FRONT_STYLE[k].label)}</span>`).join('')
+    +`<span><i style="background:${FRONT_CHANGE_COLOR.advance};border-radius:50%"></i>advance</span><span><i style="background:${FRONT_CHANGE_COLOR.regain};border-radius:50%"></i>regain</span><span style="color:#ff8a65">→ attack axis</span>`;
+  return `<div class="g-panel front-panel">
+      <div class="sec-head"><h3>${shDot('Frontlines')}Ukraine Front</h3><span class="badge ${stale?'warn':''}">${f.mapId?'MAP '+esc(String(f.mapId)):'LIVE'}${ageTxt?' \u00b7 '+ageTxt:''}</span></div>
+      <div class="front-kpis">
+        <div class="front-kpi"><div class="k">Occupied</div><div class="v" style="color:#ff8a65">${km(f.occupiedKm2)}</div><div class="s">km\u00b2 \u00b7 ${km(a.occupied)} since 2022 + ${km(a.occupied_pre2022)} pre-2022</div></div>
+        <div class="front-kpi"><div class="k">Contested</div><div class="v" style="color:#ffd54f">${km(f.contestedKm2)}</div><div class="s">km\u00b2 grey zone</div></div>
+        <div class="front-kpi"><div class="k">Updates 7d</div><div class="v">${h.recent7d|0}</div><div class="s">${h.advances7d|0} advances \u00b7 ${h.regains7d|0} regains</div></div>
+        <div class="front-kpi"><div class="k">Attack axes</div><div class="v">${f.attackDirections|0}</div><div class="s">${f.units|0} unit markers \u00b7 ${f.airfields|0} airfields</div></div>
+      </div>
+      <div class="front-legend">${legend}</div>
+      ${upd||'<div class="g-off-why">No DeepState update log entries in the last 7 days.</div>'}
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><button type="button" class="lchip on" style="--lc:#ff6e40" onclick="showFrontLayer()"><span class="ldot"></span>SHOW FRONT ON MAP</button><a href="${FRONT_SITE_URL}" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:9px;color:var(--accent2)">deepstatemap.live \u2197</a></div>
+      <div class="sh-note">Map data \u00a9 DeepStateMAP (deepstatemap.live), polled every sweep; last map ${esc(frontAsOf())}${stale?' \u2014 more than 3 days old, treat as stale':''}. Areas are computed from its polygons; \u201coccupied\u201d includes Crimea and pre-2022 ORDLO.</div>
+    </div>`;
 }
 
 // === SOURCES TAB: full table of every source and its state ===
