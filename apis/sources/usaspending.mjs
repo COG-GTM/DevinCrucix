@@ -2,6 +2,7 @@
 // No auth required. Updated daily.
 
 import { safeFetch, daysAgo } from '../utils/fetch.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const BASE = 'https://api.usaspending.gov/api/v2';
 
@@ -50,7 +51,7 @@ export async function searchAwards(opts = {}) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(`${BASE}/search/spending_by_award/`, {
+    const res = await safeOutboundFetch(`${BASE}/search/spending_by_award/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

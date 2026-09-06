@@ -15,6 +15,7 @@
 // api.adsb.lol aggregator instead (250 nm radius circles) and flagged as a sample.
 
 import { safeFetch } from '../utils/fetch.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const BASE = 'https://opensky-network.org/api';
 const ADSB_LOL = 'https://api.adsb.lol/v2';
@@ -81,7 +82,7 @@ async function getAccessToken() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await fetch(TOKEN_URL, {
+    const res = await safeOutboundFetch(TOKEN_URL, {
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Crucix/1.0' },
@@ -136,7 +137,7 @@ async function openskyGet(path, { timeout = 30000 } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(`${BASE}${path}`, { signal: controller.signal, headers });
+    const res = await safeOutboundFetch(`${BASE}${path}`, { signal: controller.signal, headers });
     recordQuota(res);
 
     if (res.status === 429) {

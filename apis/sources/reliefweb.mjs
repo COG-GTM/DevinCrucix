@@ -5,6 +5,7 @@
 
 import { safeFetch } from '../utils/fetch.mjs';
 import { parseFeed, stripTags } from '../utils/rss.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const BASE = 'https://api.reliefweb.int/v2';
 const APPNAME = process.env.RELIEFWEB_APPNAME || '';
@@ -30,7 +31,7 @@ async function rwPost(endpoint, body) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(url, {
+    const res = await safeOutboundFetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'User-Agent': UA },
       body: JSON.stringify(body),

@@ -2,6 +2,7 @@
 // No auth required. Disease outbreak monitoring.
 
 import { safeFetch } from '../utils/fetch.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const GHO_BASE = 'https://ghoapi.azureedge.net/api';
 const DON_API = 'https://www.who.int/api/news/diseaseoutbreaknews';
@@ -30,7 +31,7 @@ export async function getOutbreakNews() {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(DON_API, {
+    const res = await safeOutboundFetch(DON_API, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Crucix/1.0' },
     });

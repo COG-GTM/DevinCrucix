@@ -6,6 +6,7 @@
 // their 15-minute timestamp so each sweep only downloads what is new.
 
 import { inflateRawSync, constants as Z } from 'node:zlib';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const FEED_BASE = 'https://data.gdeltproject.org/gdeltv2';
 const UA = 'CRUCIX/2.0 (+https://github.com/COG-GTM/DevinCrucix)';
@@ -74,7 +75,7 @@ async function fetchBuffer(url, timeout) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': UA } });
+    const res = await safeOutboundFetch(url, { signal: controller.signal, maxBytes: MAX_ZIP_BYTES, headers: { 'User-Agent': UA } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const len = Number(res.headers.get('content-length') || 0);
     if (len > MAX_ZIP_BYTES) throw new Error(`Payload too large (${len} bytes)`);
