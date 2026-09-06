@@ -2,6 +2,8 @@
 // most specific matching User-agent group, per-host cache, fail-open on network
 // errors (a missing or unreachable robots.txt means "no restrictions").
 
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
+
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const _cache = new Map(); // origin -> { rules, ts }
 
@@ -95,7 +97,7 @@ async function loadRobots(origin, fetchImpl) {
 
 // { allowed: boolean, crawlDelay: number|null }
 export async function checkRobots(url, opts = {}) {
-  const fetchImpl = opts.fetch || fetch;
+  const fetchImpl = opts.fetch || safeOutboundFetch;
   let u;
   try { u = new URL(url); } catch { return { allowed: false, crawlDelay: null }; }
   const rules = await loadRobots(u.origin, fetchImpl);

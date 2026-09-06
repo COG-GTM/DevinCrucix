@@ -6,6 +6,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_FILE = join(__dirname, '../../runs/telegram_live.json');
@@ -13,6 +14,11 @@ const DB_FILE = join(__dirname, '../../runs/telegram_live.json');
 const DEFAULT_CHANNELS = process.env.TELEGRAM_OSINT_CHANNELS
   ? process.env.TELEGRAM_OSINT_CHANNELS.split(',').map(c => c.trim()).filter(Boolean)
   : ['ConflictsTracker', 'OSINTWarfare', 'monitor_the_situation', 'inaboringworld'];
+
+// Telegram public channel usernames: 5–32 chars of [A-Za-z0-9_]. Enforced here (not only at the
+// HTTP route) so no caller can push an arbitrary string into the t.me/s/{channel} URL.
+export const TELEGRAM_CHANNEL_RE = /^[A-Za-z0-9_]{5,32}$/;
+export const MAX_CHANNELS = 20;
 
 const MIN_POLL_INTERVAL_MS = 15_000; // 15s min between polls per channel
 const POLL_CYCLE_MS = 30_000;        // 30s between full poll cycles
@@ -41,7 +47,7 @@ async function fetchHTML(url, timeoutMs = 15000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
+    const res = await safeOutboundFetch(url, {
       signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -257,12 +263,12 @@ export function getTelegramChannels() {
 
 // Update channel list
 export function setTelegramChannels(channels) {
-  if (!Array.isArray(channels) || channels.length === 0) {
-    return { error: 'channels must be a non-empty array' };
+  if (!Array.isArray(channels) || channels.length === 0 || channels.length > MAX_CHANNELS) {
+    return { error: `channels must be an array of 1–${MAX_CHANNELS} channel names` };
   }
-  const cleaned = channels.map(c => (typeof c === 'string' ? c.trim() : String(c).trim())).filter(Boolean);
-  if (cleaned.length === 0) {
-    return { error: 'channels must contain at least one non-empty value' };
+  const cleaned = channels.map(c => (typeof c === 'string' ? c.trim() : ''));
+  if (!cleaned.every(c => TELEGRAM_CHANNEL_RE.test(c))) {
+    return { error: 'channels must be Telegram usernames (5–32 letters, digits or underscores)' };
   }
   _channels = cleaned;
   saveState();

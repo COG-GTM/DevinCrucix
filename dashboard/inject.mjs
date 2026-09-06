@@ -107,7 +107,7 @@ function sanitizeExternalUrl(raw) {
 function airSourceLabel(openSky) {
   const c = openSky?.coverage;
   if (!c || openSky.method === 'opensky') return 'OpenSky';
-  if (openSky.method === 'adsb_sample') return 'ADS-B sample (OpenSky unreachable)';
+  if (openSky.method === 'adsb_sample') return `ADS-B sample (${(openSky.openskyError || 'OpenSky unavailable').split(':')[0]})`;
   return `OpenSky ${c.opensky}/${c.total} · ADS-B sample ${c.adsbSample}/${c.total}`;
 }
 

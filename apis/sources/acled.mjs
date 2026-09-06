@@ -8,6 +8,7 @@
 
 import { daysAgo } from '../utils/fetch.mjs';
 import '../utils/env.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const LOGIN_URL = 'https://acleddata.com/user/login?_format=json';
 const TOKEN_URL = 'https://acleddata.com/oauth/token';
@@ -21,7 +22,7 @@ async function loginCookie(email, password) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await fetch(LOGIN_URL, {
+    const res = await safeOutboundFetch(LOGIN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: email, pass: password }),
@@ -64,7 +65,7 @@ async function loginOAuth(email, password) {
       client_id: 'acled',
     });
 
-    const res = await fetch(TOKEN_URL, {
+    const res = await safeOutboundFetch(TOKEN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -196,7 +197,7 @@ export async function getEvents(opts = {}) {
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 25000);
-    const res = await fetch(url, {
+    const res = await safeOutboundFetch(url, {
       headers: hdrs,
       signal: controller.signal,
     });

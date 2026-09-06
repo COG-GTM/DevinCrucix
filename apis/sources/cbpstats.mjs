@@ -22,6 +22,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkRobots, CRAWLER_UA } from '../utils/robots.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const DEFAULT_DATA_DIR = join(__dirname, '../../runs/cbp');
@@ -394,7 +395,7 @@ async function loadDataset(dataset, { fetchImpl, dataDir, state, now }) {
 // ---------------------------------------------------------------------------
 
 export async function briefing(opts = {}) {
-  const fetchImpl = opts.fetch || fetch;
+  const fetchImpl = opts.fetch || safeOutboundFetch;
   const dataDir = opts.dataDir || DEFAULT_DATA_DIR;
   const now = opts.now || Date.now();
   const persist = opts.persist !== false;

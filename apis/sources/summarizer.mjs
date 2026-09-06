@@ -4,6 +4,7 @@
 
 import '../utils/env.mjs';
 import { classifyAll } from './threatclassifier.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 // === LLM Provider Chain ===
 
@@ -13,7 +14,7 @@ async function callGroq(systemPrompt, userMessage, opts = {}) {
   if (!apiKey) return null;
 
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await safeOutboundFetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ async function callOllama(systemPrompt, userMessage, opts = {}) {
     let model = process.env.OLLAMA_MODEL || opts.model;
     if (!model) {
       try {
-        const tagRes = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(5000) });
+        const tagRes = await safeOutboundFetch(`${baseUrl}/api/tags`, { timeout: 5000, allowPrivate: true });
         if (tagRes.ok) {
           const tags = await tagRes.json();
           const models = tags.models || [];
@@ -76,8 +77,9 @@ async function callOllama(systemPrompt, userMessage, opts = {}) {
     }
     if (!model) return null;
 
-    const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+    const res = await safeOutboundFetch(`${baseUrl}/v1/chat/completions`, {
       method: 'POST',
+      allowPrivate: true,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model,
@@ -117,7 +119,7 @@ async function callOpenRouter(systemPrompt, userMessage, opts = {}) {
   if (!apiKey) return null;
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await safeOutboundFetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

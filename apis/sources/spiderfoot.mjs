@@ -4,6 +4,7 @@
 // Results are surfaced in a dedicated SpiderFoot panel on the dashboard.
 
 import { safeFetch } from '../utils/fetch.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const SF_BASE = process.env.SPIDERFOOT_URL || 'http://localhost:5001';
 
@@ -36,8 +37,9 @@ export async function startScan(target, opts = {}) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(`${SF_BASE}/api?${params}`, {
+    const res = await safeOutboundFetch(`${SF_BASE}/api?${params}`, {
       method: 'POST',
+      allowPrivate: true,
       signal: controller.signal,
       headers: { 'User-Agent': 'Crucix/1.0' },
     });

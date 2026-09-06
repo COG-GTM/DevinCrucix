@@ -3,6 +3,7 @@
 // v2 with registration key supports more requests; v1 is rate-limited but functional.
 
 import { safeFetch, daysAgo } from '../utils/fetch.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const V1_BASE = 'https://api.bls.gov/publicAPI/v1/timeseries/data/';
 const V2_BASE = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
@@ -39,7 +40,7 @@ export async function getSeries(seriesIds, opts = {}) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(base, {
+    const res = await safeOutboundFetch(base, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
