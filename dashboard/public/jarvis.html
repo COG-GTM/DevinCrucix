@@ -1116,9 +1116,9 @@ function renderTopbar(){
       ${(() => {
         const dc = D.defcon || {};
         const level = dc.level || 5;
-        const color = dc.color || '#00ff41';
+        const color = /^#[0-9a-f]{3,8}$/i.test(dc.color||'') ? dc.color : '#00ff41';
         const pulseClass = dc.pulse ? ' pulse' : '';
-        return `<span class="defcon-badge${pulseClass}" style="color:${color};border-color:${color}40;background:${color}10">DEFCON ${level}</span>`;
+        return `<span class="defcon-badge${pulseClass}" style="color:${color};border-color:${color}40;background:${color}10">DEFCON ${esc(level)}</span>`;
       })()}
       <span class="alert-badge">${t('dashboard.highAlert','HIGH ALERT')}</span>
     </div>`;
@@ -1360,7 +1360,7 @@ function renderLeftRail(){
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`,src:'Space'},
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`,src:'InSightCrime'},
     {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
-    {name:'CBP Enforcement Stats',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${D.cbpStats.encounters.latest.label}`:'official monthly CSVs',src:'CBPStats'},
+    {name:'CBP Enforcement Stats',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${esc(D.cbpStats.encounters.latest?.label)}`:'official monthly CSVs',src:'CBPStats'},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
@@ -1369,11 +1369,11 @@ function renderLeftRail(){
     {name:'Convergence',count:D.convergence?.totalZones||0,dot:'convergence',sub:'multi-source zones',src:'Convergence'},
     {name:'Signal Intel',count:D.signals?.totalSignals||0,dot:'sigint',sub:`${Object.keys(D.signals?.byType||{}).length} types`,src:'Signals'},
     {name:'Focal Points',count:D.focalPoints?.totalFocalPoints||0,dot:'focal',sub:`${((D.focalPoints?.focalPoints||[]).filter(f=>f.urgency==='Critical').length)||0} critical`,src:'FocalPoints'},
-    {name:'Pizza Index',count:D.pizzaIndex?.doughcon!=null?'DC'+D.pizzaIndex.doughcon:'--',dot:'pizza',sub:D.pizzaIndex?.trend||'awaiting data',src:'PizzaIndex'},
+    {name:'Pizza Index',count:D.pizzaIndex?.doughcon!=null?'DC'+esc(D.pizzaIndex.doughcon):'--',dot:'pizza',sub:esc(D.pizzaIndex?.trend||'awaiting data'),src:'PizzaIndex'},
     {name:'Cyber KEV',count:D.cyberKev?.totalVulnerabilities||0,dot:'cyber',sub:`${D.cyberKev?.ransomwareCount||0} ransomware`,src:'CyberKEV'},
     {name:'Telegram Live',count:D.telegramLive?.totalMessages||0,dot:'tglive',sub:`${D.telegramLive?.channels||0} channels`,src:'TelegramLive'},
     {name:'Polymarket',count:D.polymarket?.totalGeoMarkets||0,dot:'polymarket',sub:'geopolitical odds',src:'Polymarket'},
-    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+D.defcon.level:'--',dot:'defcon',sub:D.defcon?.label||'computing',src:'DEFCON'},
+    {name:'DEFCON',count:D.defcon?.level!=null?'Level '+esc(D.defcon.level):'--',dot:'defcon',sub:esc(D.defcon?.label||'computing'),src:'DEFCON'},
     {name:'Seismic Monitor',count:D.seismic?.totalEvents||0,dot:'seismic',sub:`${D.seismic?.suspectCount||0} suspect · max M${D.seismic?.maxMagnitude??'--'}`}
   ];
   const layerRow=l=>{
@@ -1400,7 +1400,7 @@ function renderLeftRail(){
   const prcLayerHtml = prcLayers.map(l => `<div class="layer-item"><div class="layer-left"><div class="ldot ${l.dot}"></div><div><div class="layer-name">${l.name}</div><div class="layer-sub">${l.sub}</div></div></div><div class="layer-count">${l.count}</div></div>`).join('');
   const prcSectionHtml = `<div style="margin-top:8px;border-top:1px solid rgba(244,67,54,0.2);padding-top:8px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;color:#f44336;margin-bottom:6px;display:flex;align-items:center;gap:4px"><span class="blink" style="background:#f44336;box-shadow:0 0 4px rgba(244,67,54,0.5);width:5px;height:5px;border-radius:50%;display:inline-block"></span>PRC INTELLIGENCE</div>${prcLayerHtml}</div>`;
   const allNormal=D.nuke.every(s=>!s.anom);
-  const nukeHtml=D.nuke.map(s=>`<div class="site-row"><span>${s.site}</span><span class="site-val">${s.n>0?(s.cpm?.toFixed(1)||'--')+' CPM':'No data'}</span></div>`).join('');
+  const nukeHtml=D.nuke.map(s=>`<div class="site-row"><span>${esc(s.site)}</span><span class="site-val">${s.n>0?(s.cpm?.toFixed(1)||'--')+' CPM':'No data'}</span></div>`).join('');
   const vix=D.fred.find(f=>f.id==='VIXCLS');
   const hy=D.fred.find(f=>f.id==='BAMLH0A0HYM2');
   const usd=D.fred.find(f=>f.id==='DTWEXBGS');
@@ -1465,7 +1465,7 @@ function renderLeftRail(){
         <div class="econ-row"><span class="elabel">OneWeb</span><span class="eval">${D.space.constellations?.oneweb||0}</span></div>
         ${D.space.iss ? `<div class="econ-row"><span class="elabel">ISS</span><span class="eval" style="color:var(--accent)">ALT ${((D.space.iss.apogee+D.space.iss.perigee)/2).toFixed(0)} km</span></div>` : ''}
         ${Object.entries(D.space.militaryByCountry||{}).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([c,n])=>`<div class="econ-row"><span class="elabel" style="padding-left:8px">${c}</span><span class="eval" style="font-size:10px">${n} mil sats</span></div>`).join('')}
-        ${(D.space.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(68,204,255,0.2);background:rgba(68,204,255,0.04);font-family:var(--mono);font-size:9px;color:var(--accent2);line-height:1.5">${D.space.signals.slice(0,2).join('<br>')}</div>` : ''}
+        ${(D.space.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(68,204,255,0.2);background:rgba(68,204,255,0.04);font-family:var(--mono);font-size:9px;color:var(--accent2);line-height:1.5">${D.space.signals.slice(0,2).map(esc).join('<br>')}</div>` : ''}
       ` : '<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">NO SPACE DATA</div>'}
     </div>`;
   const byTab={
@@ -1700,7 +1700,7 @@ function initGlobe(){
     .pointAltitude(d => d.alt || 0.01)
     .pointRadius(d => d.size || 0.3)
     .pointColor(d => d.color)
-    .pointLabel(d => `<b>${d.popHead||''}</b><br><span style="opacity:0.7">${d.popMeta||''}</span>`)
+    .pointLabel(d => `<b>${esc(d.popHead||'')}</b><br><span style="opacity:0.7">${esc(d.popMeta||'')}</span>`)
     .onPointClick((pt, ev) => { showPopup(ev, pt.popHead, pt.popText, pt.popMeta, pt.lat, pt.lng, pt.alt); })
     .onPointHover(pt => { document.getElementById('globeViz').style.cursor = pt ? 'pointer' : 'grab'; })
     // Arcs layer (flight corridors)
@@ -1822,7 +1822,7 @@ function plotMarkers(){
       color:'rgba(100,240,200,0.8)', type:'air', priority:1,
       label: a.region.replace(' Region','')+' '+a.total,
       popHead: a.region, popMeta: 'Air Activity',
-      popText: `${a.total} aircraft tracked<br>No callsign: ${a.noCallsign}<br>High altitude: ${a.highAlt}<br>Top: ${a.top.slice(0,3).map(t=>t[0]+' ('+t[1]+')').join(', ')}`
+      popText: `${a.total} aircraft tracked<br>No callsign: ${a.noCallsign}<br>High altitude: ${a.highAlt}<br>Top: ${esc(a.top.slice(0,3).map(t=>t[0]+' ('+t[1]+')').join(', '))}`
     });
     labels.push({type:'air', lat:c.lat, lng:c.lon+2, text:a.region.replace(' Region','')+' '+a.total, size:0.35, color:'rgba(106,138,130,0.8)'});
   });
@@ -1834,7 +1834,7 @@ function plotMarkers(){
         lat:f.lat, lng:f.lon, size:0.12+Math.min(f.frp/200,0.3), alt:0.008,
         color:'rgba(255,95,99,0.7)', type:'thermal', priority:3,
         popHead:'Thermal Detection', popMeta:'FIRMS Satellite',
-        popText:`Region: ${t.region}<br>FRP: ${f.frp.toFixed(1)} MW<br>Total: ${t.det.toLocaleString()}<br>Night: ${t.night.toLocaleString()}`
+        popText:`Region: ${esc(t.region)}<br>FRP: ${f.frp.toFixed(1)} MW<br>Total: ${t.det.toLocaleString()}<br>Night: ${t.night.toLocaleString()}`
       });
     });
   });
@@ -1844,7 +1844,7 @@ function plotMarkers(){
     points.push({
       lat:cp.lat, lng:cp.lon, size:0.35, alt:0.02,
       color:'rgba(179,136,255,0.8)', type:'maritime', priority:1,
-      popHead:cp.label, popMeta:'Maritime Intelligence', popText:cp.note
+      popHead:cp.label, popMeta:'Maritime Intelligence', popText:esc(cp.note||'')
     });
     labels.push({type:'maritime', lat:cp.lat, lng:cp.lon+1.5, text:cp.label, size:0.3, color:'rgba(179,136,255,0.6)'});
   });
@@ -1868,7 +1868,7 @@ function plotMarkers(){
         lat:r.lat, lng:r.lon, size:0.15, alt:0.005,
         color:'rgba(68,204,255,0.6)', type:'sdr', priority:3,
         popHead:'SDR Receiver', popMeta:'KiwiSDR Network',
-        popText:`${r.name}<br>Zone: ${z.region}<br>${z.count} in zone`
+        popText:`${esc(r.name)}<br>Zone: ${esc(z.region)}<br>${z.count} in zone`
       });
     });
   });
@@ -1892,7 +1892,7 @@ function plotMarkers(){
     points.push({
       lat:c.lat, lng:c.lon, size:0.25, alt:0.01,
       color:'rgba(105,240,174,0.7)', type:'health', priority:2,
-      popHead:w.title, popMeta:'WHO Outbreak', popText:w.summary||''
+      popHead:w.title, popMeta:'WHO Outbreak', popText:esc(w.summary||'')
     });
   });
 
@@ -1912,7 +1912,7 @@ function plotMarkers(){
       lat:a.lat, lng:a.lon, size:0.22, alt:0.01,
       color:'rgba(255,152,0,0.8)', type:'weather', priority:2,
       popHead:a.event, popMeta:'NOAA/NWS · '+a.severity,
-      popText:a.headline||''
+      popText:esc(a.headline||'')
     });
   });
 
@@ -1922,7 +1922,7 @@ function plotMarkers(){
       lat:s.lat, lng:s.lon, size:0.18, alt:0.006,
       color:'rgba(205,220,57,0.7)', type:'radiation', priority:3,
       popHead:'RadNet: '+s.location, popMeta:'EPA Radiation Monitor',
-      popText:`${s.analyte||'--'}: ${s.result||'--'} ${s.unit||''}<br>State: ${s.state}`
+      popText:`${esc(s.analyte||'--')}: ${esc(s.result||'--')} ${esc(s.unit||'')}<br>State: ${esc(s.state)}`
     });
   });
 
@@ -1943,7 +1943,7 @@ function plotMarkers(){
       lat:g.lat, lng:g.lon, size:0.15+Math.min(g.count/50,0.2), alt:0.007,
       color:'rgba(100,149,237,0.6)', type:'gdelt', priority:3,
       popHead:'GDELT Event', popMeta:g.count+' reports',
-      popText:g.name||'Global event detection'
+      popText:esc(g.name||'Global event detection')
     });
   });
 
@@ -1953,7 +1953,7 @@ function plotMarkers(){
       lat:c.lat, lng:c.lon, size:0.2+Math.min(c.count/30,0.4), alt:0.012,
       color:'rgba(65,105,225,0.8)', type:'gdelt-cluster', priority:2,
       popHead:'GDELT Cluster', popMeta:c.count+' events',
-      popText:c.label||'Event cluster'
+      popText:esc(c.label||'Event cluster')
     });
   });
 
@@ -1966,7 +1966,7 @@ function plotMarkers(){
       lat:a.lat, lng:a.lon, size:0.35, alt:0.025,
       color:'rgba(0,255,200,0.9)', type:'military-isr', priority:1,
       popHead:(a.callsign||'UNKNOWN')+' ISR', popMeta:'ADS-B Military · '+a.country,
-      popText:`${a.type||'Unknown'}<br>Alt: ${a.altitude||'?'}ft<br>Speed: ${a.speed||'?'}kts`
+      popText:`${esc(a.type||'Unknown')}<br>Alt: ${esc(a.altitude||'?')}ft<br>Speed: ${esc(a.speed||'?')}kts`
     });
     labels.push({type:'military-isr', lat:a.lat, lng:a.lon+2, text:a.callsign||'MIL', size:0.3, color:'rgba(0,255,200,0.7)'});
   });
@@ -1977,7 +1977,7 @@ function plotMarkers(){
       lat:a.lat, lng:a.lon, size:0.4, alt:0.03,
       color:'rgba(255,50,50,0.9)', type:'military-bomber', priority:1,
       popHead:(a.callsign||'UNKNOWN')+' BOMBER', popMeta:'ADS-B Military · '+a.country,
-      popText:`${a.type||'Strategic Bomber'}<br>Alt: ${a.altitude||'?'}ft`
+      popText:`${esc(a.type||'Strategic Bomber')}<br>Alt: ${esc(a.altitude||'?')}ft`
     });
     labels.push({type:'military-bomber', lat:a.lat, lng:a.lon+2, text:a.callsign||'BOMBER', size:0.35, color:'rgba(255,50,50,0.8)'});
   });
@@ -1988,7 +1988,7 @@ function plotMarkers(){
       lat:a.lat, lng:a.lon, size:0.3, alt:0.02,
       color:'rgba(255,191,0,0.8)', type:'military-tanker', priority:2,
       popHead:(a.callsign||'UNKNOWN')+' TANKER', popMeta:'ADS-B Military · '+a.country,
-      popText:`${a.type||'Aerial Refueling'}<br>Alt: ${a.altitude||'?'}ft`
+      popText:`${esc(a.type||'Aerial Refueling')}<br>Alt: ${esc(a.altitude||'?')}ft`
     });
   });
   // VIP/Transport (white-gold)
@@ -1998,7 +1998,7 @@ function plotMarkers(){
       lat:a.lat, lng:a.lon, size:0.45, alt:0.035,
       color:'rgba(255,215,0,0.95)', type:'military-vip', priority:1,
       popHead:(a.callsign||'VIP')+' TRANSPORT', popMeta:'ADS-B Military · '+a.country,
-      popText:`${a.type||'VIP/Government Aircraft'}<br>Alt: ${a.altitude||'?'}ft`
+      popText:`${esc(a.type||'VIP/Government Aircraft')}<br>Alt: ${esc(a.altitude||'?')}ft`
     });
     labels.push({type:'military-vip', lat:a.lat, lng:a.lon+2, text:a.callsign||'VIP', size:0.4, color:'rgba(255,215,0,0.9)'});
   });
@@ -2027,7 +2027,7 @@ function plotMarkers(){
       size: 0.25, alt: 0.015,
       color: regionColor, type: 'narco-intel', priority: 2,
       popHead: 'NARCO INTEL', popMeta: 'InSight Crime · ' + feed,
-      popText: (a.title||'').substring(0,80) + (a.entities?.length ? '<br>Entities: ' + a.entities.slice(0,3).join(', ') : '')
+      popText: esc((a.title||'').substring(0,80)) + (a.entities?.length ? '<br>Entities: ' + esc(a.entities.slice(0,3).join(', ')) : '')
     });
   });
   // Add a master label for the narco region
@@ -2070,7 +2070,7 @@ function plotMarkers(){
         lat: a.lat, lng: a.lon, size: 0.5, alt: 0.03,
         color: 'rgba(244,67,54,1.0)', type: 'prc-military', priority: 1,
         popHead: (a.callsign||'PRC MILITARY') + ' ISR', popMeta: 'PRC Military · ADS-B',
-        popText: `${a.type||'Military Aircraft'}<br>Alt: ${a.altitude||'?'}ft<br>Country: ${a.country||'China'}`
+        popText: `${esc(a.type||'Military Aircraft')}<br>Alt: ${esc(a.altitude||'?')}ft<br>Country: ${esc(a.country||'China')}`
       });
       labels.push({type:'prc-military', lat:a.lat, lng:a.lon+2, text:a.callsign||'PRC', size:0.4, color:'rgba(244,67,54,0.9)'});
     }
@@ -2093,7 +2093,7 @@ function plotMarkers(){
       color: markerColor, type: 'market-intel', priority: 2,
       popHead: m.type === 'darkpool' ? 'DARK POOL' : 'OPTIONS FLOW',
       popMeta: `Unusual Whales · ${m.company || m.ticker}`,
-      popText: `${m.label}<br>${m.city || ''}`
+      popText: `${esc(m.label)}<br>${esc(m.city || '')}`
     });
   });
   if (uwMarkers.length > 0) {
@@ -2107,7 +2107,7 @@ function plotMarkers(){
       lat:c.lat, lng:c.lng, size:0.5, alt:0.025,
       color:'rgba(79,195,247,0.95)', type:'carrier', priority:1,
       popHead:c.name, popMeta:'Carrier Strike Group · '+c.source,
-      popText:`Region: ${c.desc}<br>Homeport: ${c.homeport}<br>Last update: ${c.lastUpdate?new Date(c.lastUpdate).toLocaleString():''}<br>${c.wiki?'<a href="'+c.wiki+'" target="_blank" style="color:var(--accent2)">Wikipedia</a>':''}`
+      popText:`Region: ${esc(c.desc)}<br>Homeport: ${esc(c.homeport)}<br>Last update: ${c.lastUpdate?new Date(c.lastUpdate).toLocaleString():''}<br>${extLink(c.wiki,'Wikipedia','color:var(--accent2)')}`
     });
     labels.push({type:'carrier', lat:c.lat, lng:c.lng+2, text:c.hull||c.name.split('(')[0].trim(), size:0.35, color:'rgba(79,195,247,0.8)'});
   });
@@ -2121,7 +2121,7 @@ function plotMarkers(){
       lat:z.lat, lng:z.lng, size:sevSize, alt:0.01,
       color:sevColor, type:'gps-jamming', priority:1,
       popHead:'GPS JAMMING — '+z.severity.toUpperCase(), popMeta:`NACp Analysis · ${z.pctLabel} degraded`,
-      popText:`Region: ${z.region}<br>Degraded aircraft: ${z.degraded}/${z.total}<br>Severity: ${z.severity}<br>Grid: [${z.gridLat}, ${z.gridLng}]`
+      popText:`Region: ${esc(z.region)}<br>Degraded aircraft: ${z.degraded}/${z.total}<br>Severity: ${esc(z.severity)}<br>Grid: [${z.gridLat}, ${z.gridLng}]`
     });
     labels.push({type:'gps-jamming', lat:z.lat, lng:z.lng+1, text:z.pctLabel+' JAM', size:0.3, color:sevColor});
   });
@@ -2133,7 +2133,7 @@ function plotMarkers(){
       lat:c.lat, lng:c.lng, size:0.12, alt:0.004,
       color:'rgba(102,187,106,0.7)', type:'cctv', priority:3,
       popHead:'CCTV: '+(c.name||'Camera'), popMeta:c.source+' · '+c.feedType,
-      popText:`${c.direction?'Direction: '+c.direction+'<br>':''}${c.feedUrl?'<a href="'+c.feedUrl+'" target="_blank" style="color:var(--accent2)">View Feed</a>':''}`
+      popText:`${c.direction?'Direction: '+esc(c.direction)+'<br>':''}${extLink(c.feedUrl,'View Feed','color:var(--accent2)')}`
     });
   });
 
@@ -2221,7 +2221,7 @@ function plotMarkers(){
       speed: 1.5 + Math.random(),
       period: 600 + Math.random()*600,
       popHead: e.type || 'CONFLICT', popMeta: 'ACLED Conflict Data',
-      popText: `${e.fatalities} fatalities<br>${e.location}, ${e.country}<br>Date: ${e.date}`
+      popText: `${esc(e.fatalities)} fatalities<br>${esc(e.location)}, ${esc(e.country)}<br>Date: ${esc(e.date)}`
     };
   });
   globe.ringsData(conflictRings);
@@ -2495,13 +2495,13 @@ function plotFlatMarkers(){
   // Thermal
   D.thermal.forEach(t=>t.fires.forEach(f=>{
     addPt(f.lat,f.lon,2+Math.min(f.frp/50,5),'rgba(255,95,99,0.6)','rgba(255,95,99,0.2)',
-      ev=>showPopup(ev,'Thermal',`${t.region}<br>FRP: ${f.frp.toFixed(1)} MW`,'FIRMS'),3,'thermal');
+      ev=>showPopup(ev,'Thermal',`${esc(t.region)}<br>FRP: ${f.frp.toFixed(1)} MW`,'FIRMS'),3,'thermal');
   }));
   // Chokepoints
   if(layerOn('maritime')) D.chokepoints.forEach(cp=>{
     const[x,y]=proj([cp.lon,cp.lat]);if(!x||!y)return;
     const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',1)
-      .on('click',ev=>{ev.stopPropagation();showPopup(ev,cp.label,cp.note,'Maritime')});
+      .on('click',ev=>{ev.stopPropagation();showPopup(ev,cp.label,esc(cp.note||''),'Maritime')});
     g.append('rect').attr('x',-4).attr('y',-4).attr('width',8).attr('height',8).attr('fill','rgba(179,136,255,0.7)').attr('stroke','rgba(179,136,255,0.3)').attr('stroke-width',0.5).attr('transform','rotate(45)');
     g.append('text').attr('class','marker-label').attr('x',8).attr('y',3).attr('fill','var(--dim)').attr('font-size','8px').attr('font-family','var(--mono)').text(cp.label);
   });
@@ -2509,26 +2509,26 @@ function plotFlatMarkers(){
   const nukeCoords=[{lat:47.5,lon:34.6},{lat:51.4,lon:30.1},{lat:28.8,lon:50.9},{lat:39.8,lon:125.8},{lat:37.4,lon:141},{lat:31.0,lon:35.1}];
   D.nuke.forEach((n,i)=>{const c=nukeCoords[i];if(!c)return;addPt(c.lat,c.lon,4,'rgba(255,224,130,0.7)','rgba(255,224,130,0.3)',ev=>showPopup(ev,n.site,`CPM: ${n.cpm?.toFixed(1)||'--'}`,'Radiation'),2,'nuke')});
   // SDR
-  D.sdr.zones.forEach(z=>z.receivers.forEach(r=>{addPt(r.lat,r.lon,2.5,'rgba(68,204,255,0.5)','rgba(68,204,255,0.2)',ev=>showPopup(ev,'SDR',`${r.name}<br>${z.region}`,'KiwiSDR'),3,'sdr')}));
+  D.sdr.zones.forEach(z=>z.receivers.forEach(r=>{addPt(r.lat,r.lon,2.5,'rgba(68,204,255,0.5)','rgba(68,204,255,0.2)',ev=>showPopup(ev,'SDR',`${esc(r.name)}<br>${esc(z.region)}`,'KiwiSDR'),3,'sdr')}));
   // OSINT
   const osintGeo=[{lat:45,lon:41,idx:0},{lat:48,lon:37,idx:1},{lat:48.5,lon:37.5,idx:2},{lat:45,lon:40.2,idx:3},{lat:50.6,lon:36.6,idx:5},{lat:48.5,lon:35,idx:6}];
   osintGeo.forEach(o=>{const p=D.tg.urgent[o.idx];if(!p)return;addPt(o.lat,o.lon,4,'rgba(255,184,76,0.7)','rgba(255,184,76,0.3)',ev=>showPopup(ev,(p.channel||'').toUpperCase(),cleanText(p.text?.substring(0,200)||''),`${p.views||'?'} views`),2,'osint')});
   // WHO
   const whoGeo=[{lat:0.3,lon:32.6},{lat:-6.2,lon:106.8},{lat:-4.3,lon:15.3},{lat:35,lon:105},{lat:12.5,lon:105},{lat:35,lon:105},{lat:28,lon:84},{lat:24,lon:45},{lat:30,lon:70},{lat:-0.8,lon:11.6}];
-  D.who.slice(0,10).forEach((w,i)=>{const c=whoGeo[i];if(!c)return;addPt(c.lat,c.lon,3.5,'rgba(105,240,174,0.6)','rgba(105,240,174,0.2)',ev=>showPopup(ev,w.title,w.summary||'','WHO'),2,'health')});
+  D.who.slice(0,10).forEach((w,i)=>{const c=whoGeo[i];if(!c)return;addPt(c.lat,c.lon,3.5,'rgba(105,240,174,0.6)','rgba(105,240,174,0.2)',ev=>showPopup(ev,w.title,esc(w.summary||''),'WHO'),2,'health')});
   // News
   (D.news||[]).forEach(n=>{addPt(n.lat,n.lon,3,'rgba(129,212,250,0.6)','rgba(129,212,250,0.2)',ev=>showPopup(ev,n.source+' NEWS',cleanText(n.title),n.region),3,'news')});
   // NOAA weather
-  (D.noaa?.alerts||[]).forEach(a=>{addPt(a.lat,a.lon,4,'rgba(255,152,0,0.7)','rgba(255,152,0,0.3)',ev=>showPopup(ev,a.event,a.headline||'','NOAA/NWS'),2,'weather')});
+  (D.noaa?.alerts||[]).forEach(a=>{addPt(a.lat,a.lon,4,'rgba(255,152,0,0.7)','rgba(255,152,0,0.3)',ev=>showPopup(ev,a.event,esc(a.headline||''),'NOAA/NWS'),2,'weather')});
   // EPA RadNet
-  (D.epa?.stations||[]).forEach(s=>{addPt(s.lat,s.lon,3,'rgba(205,220,57,0.6)','rgba(205,220,57,0.2)',ev=>showPopup(ev,'RadNet: '+s.location,`${s.analyte||'--'}: ${s.result||'--'} ${s.unit||''}`,'EPA'),3,'radiation')});
+  (D.epa?.stations||[]).forEach(s=>{addPt(s.lat,s.lon,3,'rgba(205,220,57,0.6)','rgba(205,220,57,0.2)',ev=>showPopup(ev,'RadNet: '+s.location,`${esc(s.analyte||'--')}: ${esc(s.result||'--')} ${esc(s.unit||'')}`,'EPA'),3,'radiation')});
   // Space stations
   (D.space?.stationPositions||[]).forEach(s=>{
     const g=addPt(s.lat,s.lon,5,'rgba(255,255,255,0.9)','rgba(255,255,255,0.4)',ev=>showPopup(ev,s.name,'Orbital position estimate','Space Station'),1,'space');
     if(g) g.append('text').attr('class','marker-label').attr('x',8).attr('y',3).attr('fill','rgba(255,255,255,0.7)').attr('font-size','8px').attr('font-family','var(--mono)').text(s.name.split('(')[0].trim());
   });
   // GDELT geo events
-  (D.gdelt?.geoPoints||[]).forEach(g=>{addPt(g.lat,g.lon,2.5,'rgba(100,149,237,0.5)','rgba(100,149,237,0.2)',ev=>showPopup(ev,'GDELT Event',g.name||'','GDELT · '+g.count+' reports'),3,'gdelt')});
+  (D.gdelt?.geoPoints||[]).forEach(g=>{addPt(g.lat,g.lon,2.5,'rgba(100,149,237,0.5)','rgba(100,149,237,0.2)',ev=>showPopup(ev,'GDELT Event',esc(g.name||''),'GDELT · '+g.count+' reports'),3,'gdelt')});
   // Seismic events (USGS — amber scaled by magnitude, red if suspect)
   (D.seismic?.events||[]).forEach(e=>{
     if(e.lat==null||e.lng==null) return;
@@ -2545,14 +2545,14 @@ function plotFlatMarkers(){
   // Nuclear test site reference markers
   (D.seismic?.testSites||[]).forEach(s=>{
     addPt(s.lat,s.lng,3,'rgba(255,23,68,0.35)','rgba(255,23,68,0.5)',
-      ev=>showPopup(ev,'NUCLEAR TEST SITE',s.name+' · '+s.country+'<br>Historic nuclear test range — monitored for shallow seismic signatures','Seismic Watch'),2,'seismic-site');
+      ev=>showPopup(ev,'NUCLEAR TEST SITE',esc(s.name+' · '+s.country)+'<br>Historic nuclear test range — monitored for shallow seismic signatures','Seismic Watch'),2,'seismic-site');
   });
   // ACLED
   if(layerOn('acled')) (D.acled?.deadliestEvents||[]).filter(e=>e.lat&&e.lon).forEach(e=>{
     const[x,y]=proj([e.lon,e.lat]);if(!x||!y)return;
     const r=Math.max(4,Math.min(14,2+Math.log2(Math.max(e.fatalities,1))*1.5));
     const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',1)
-      .on('click',ev=>{ev.stopPropagation();showPopup(ev,e.type||'CONFLICT',`${e.fatalities} fatalities<br>${e.location}, ${e.country}`,'ACLED')});
+      .on('click',ev=>{ev.stopPropagation();showPopup(ev,e.type||'CONFLICT',`${esc(e.fatalities)} fatalities<br>${esc(e.location)}, ${esc(e.country)}`,'ACLED')});
     g.append('circle').attr('class','conflict-ring marker-circle').attr('r',r).attr('data-base-r',r).attr('fill','none').attr('stroke','rgba(255,120,80,0.7)').attr('stroke-width',1.5);
     g.append('circle').attr('class','marker-circle').attr('r',r*0.4).attr('data-base-r',r*0.4).attr('fill','rgba(255,120,80,0.3)').attr('stroke','none');
   });
@@ -2583,7 +2583,7 @@ function plotFlatMarkers(){
     if(!c.lat||!c.lng) return;
     const[x,y]=proj([c.lng,c.lat]);if(!x||!y)return;
     const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',1)
-      .on('click',ev=>{ev.stopPropagation();showPopup(ev,c.name,`Region: ${c.desc||''}<br>Homeport: ${c.homeport||''}<br>Source: ${c.source||''}`,'Carrier Strike Group')});
+      .on('click',ev=>{ev.stopPropagation();showPopup(ev,c.name,`Region: ${esc(c.desc||'')}<br>Homeport: ${esc(c.homeport||'')}<br>Source: ${esc(c.source||'')}`,'Carrier Strike Group')});
     g.append('rect').attr('x',-5).attr('y',-5).attr('width',10).attr('height',10).attr('fill','rgba(79,195,247,0.85)').attr('stroke','rgba(79,195,247,0.4)').attr('stroke-width',1).attr('transform','rotate(45)');
     g.append('text').attr('class','marker-label').attr('x',10).attr('y',3).attr('fill','rgba(79,195,247,0.8)').attr('font-size','8px').attr('font-family','var(--mono)').text(c.hull||c.name);
   });
@@ -2593,14 +2593,14 @@ function plotFlatMarkers(){
     const sevClr = z.severity==='high'?'rgba(239,83,80,0.6)':z.severity==='medium'?'rgba(255,152,0,0.5)':'rgba(255,235,59,0.4)';
     const sevR = z.severity==='high'?8:z.severity==='medium'?6:4;
     const g=addPt(z.lat,z.lng,sevR,sevClr,z.severity==='high'?'rgba(239,83,80,0.3)':'rgba(255,152,0,0.2)',
-      ev=>showPopup(ev,'GPS JAMMING — '+z.severity.toUpperCase(),`Region: ${z.region}<br>Degraded: ${z.degraded}/${z.total} (${z.pctLabel})`,'NACp Analysis'),1,'gps-jamming');
+      ev=>showPopup(ev,'GPS JAMMING — '+z.severity.toUpperCase(),`Region: ${esc(z.region)}<br>Degraded: ${z.degraded}/${z.total} (${esc(z.pctLabel)})`,'NACp Analysis'),1,'gps-jamming');
     if(g) g.append('text').attr('class','marker-label').attr('x',sevR+2).attr('y',3).attr('fill',sevClr).attr('font-size','8px').attr('font-family','var(--mono)').text(z.pctLabel);
   });
   // CCTV Cameras (small green dots)
   (D.cctvMesh?.cameras||[]).forEach(c=>{
     if(!c.lat||!c.lng) return;
     addPt(c.lat,c.lng,2,'rgba(102,187,106,0.6)','rgba(102,187,106,0.2)',
-      ev=>showPopup(ev,'CCTV: '+(c.name||'Camera'),`Source: ${c.source}<br>Type: ${c.feedType}${c.feedUrl?'<br><a href="'+c.feedUrl+'" target="_blank" style="color:var(--accent2)">View Feed</a>':''}`,c.source),3,'cctv');
+      ev=>showPopup(ev,'CCTV: '+(c.name||'Camera'),`Source: ${esc(c.source)}<br>Type: ${esc(c.feedType)}${c.feedUrl?'<br>'+extLink(c.feedUrl,'View Feed','color:var(--accent2)'):''}`,c.source),3,'cctv');
   });
   if(flatSvg) scaleFlatMarkers(d3.zoomTransform(flatSvg.node()).k);
 }
@@ -2685,7 +2685,7 @@ function renderLower(){
       : isIndex
         ? q.price.toLocaleString(undefined, {maximumFractionDigits: 2})
         : `$${q.price}`;
-    return `<div class="mc"><div class="ml">${q.name||q.symbol}</div><span class="mv" style="color:${clr}">${price}</span><span class="ms" style="color:${clr}">${arrow} ${q.changePct>=0?'+':''}${q.changePct}%</span></div>`;
+    return `<div class="mc"><div class="ml">${esc(q.name||q.symbol)}</div><span class="mv" style="color:${clr}">${price}</span><span class="ms" style="color:${clr}">${arrow} ${q.changePct>=0?'+':''}${q.changePct}%</span></div>`;
   };
 
   // VIX from Yahoo Finance live data (fallback to FRED)
@@ -2750,8 +2750,9 @@ function renderLower(){
   const tickerCards = feed.map(n => {
     const sc = srcClass(n.source);
     const age = n.timestamp ? getAge(n.timestamp) : '';
-    const urlAttr = n.url ? ` data-url="${String(n.url).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"` : '';
-    return `<div class="tk-card ${n.urgent?'urgent':''} ${n.url?'clickable':''}"${urlAttr}><span class="tk-src ${sc}">${(n.source||'NEWS').substring(0,12)}</span><span class="tk-time">${age}</span><div class="tk-head">${cleanText(n.headline||'')}</div>${n.url?'<span class="tk-link">&#8599;</span>':''}</div>`;
+    const safeNewsUrl = safeExternalUrl(n.url);
+    const urlAttr = safeNewsUrl ? ` data-url="${esc(safeNewsUrl)}"` : '';
+    return `<div class="tk-card ${n.urgent?'urgent':''} ${safeNewsUrl?'clickable':''}"${urlAttr}><span class="tk-src ${sc}">${esc((n.source||'NEWS').substring(0,12))}</span><span class="tk-time">${age}</span><div class="tk-head">${cleanText(n.headline||'')}</div>${safeNewsUrl?'<span class="tk-link">&#8599;</span>':''}</div>`;
   }).join('');
   const tickerDuration = Math.max(20, feed.length * 2.5);
 
@@ -2759,13 +2760,13 @@ function renderLower(){
   const hasIdeas = D.ideas && D.ideas.length > 0;
   const ideasHtml = hasIdeas ? (D.ideas||[]).map(idea=>`
     <div class="idea-card">
-      <span class="idea-type ${(idea.type||'').toLowerCase()}">${(idea.type||'').toUpperCase()}</span>
-      ${idea.ticker ? `<span class="idea-horizon">${idea.ticker}</span>` : ''}
-      ${idea.horizon ? `<span class="idea-horizon">${idea.horizon}</span>` : ''}
-      <span class="idea-conf">${idea.confidence} confidence</span>
-      <div class="idea-title">${idea.title}</div>
-      <div class="idea-text">${idea.text||idea.rationale||''}</div>
-      ${idea.risk ? `<div class="idea-text" style="color:var(--warn);margin-top:3px">Risk: ${idea.risk}</div>` : ''}
+      <span class="idea-type ${esc((idea.type||'').toLowerCase())}">${esc((idea.type||'').toUpperCase())}</span>
+      ${idea.ticker ? `<span class="idea-horizon">${esc(idea.ticker)}</span>` : ''}
+      ${idea.horizon ? `<span class="idea-horizon">${esc(idea.horizon)}</span>` : ''}
+      <span class="idea-conf">${esc(idea.confidence)} confidence</span>
+      <div class="idea-title">${esc(idea.title)}</div>
+      <div class="idea-text">${esc(idea.text||idea.rationale||'')}</div>
+      ${idea.risk ? `<div class="idea-text" style="color:var(--warn);margin-top:3px">Risk: ${esc(idea.risk)}</div>` : ''}
     </div>`).join('') : `<div style="padding:20px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:11px">
       <div style="font-size:24px;margin-bottom:8px;opacity:0.3">&#9888;</div>
       <div>LLM NOT CONFIGURED</div>
@@ -2794,7 +2795,7 @@ function renderLower(){
         <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px;letter-spacing:1px">ENERGY + METALS + MACRO</div>
         <div class="metrics-row">${metrics.map(m=>{
           const sparkSvg = m.spark ? mkSparkSvg(m.spark, m.sparkUp) : '';
-          return `<div class="mc"><div class="ml">${m.l}</div><span class="mv">${m.v}${sparkSvg}</span><span class="ms">${m.s}</span><div class="mbar"><span style="width:${m.p}%"></span></div></div>`;
+          return `<div class="mc"><div class="ml">${esc(m.l)}</div><span class="mv">${esc(m.v)}${sparkSvg}</span><span class="ms">${esc(m.s)}</span><div class="mbar"><span style="width:${m.p}%"></span></div></div>`;
         }).join('')}</div>
       </div>
       <div style="margin-top:6px">
@@ -2837,9 +2838,10 @@ function renderLower(){
     const rc = regionClass(a.feed);
     const age = a.date ? getAge(a.date) : '';
     const entHtml = (a.entities||[]).slice(0,4).map(e => `<span class="narco-entity ${entityType(e)}">${cleanText(e)}</span>`).join('');
-    const linkOpen = a.link ? `<a href="${String(a.link).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" target="_blank" rel="noopener">` : '';
-    const linkClose = a.link ? '</a>' : '';
-    return `<div class="narco-article ${rc}"><span class="na-feed ${fc}">${(a.feed||'MAIN').toUpperCase()}</span><span class="na-date">${age}</span><div class="na-title">${linkOpen}${cleanText(a.title||'')}${linkClose}</div>${entHtml?`<div class="na-entities">${entHtml}</div>`:''}</div>`;
+    const narcoHref = safeExternalUrl(a.link);
+    const linkOpen = narcoHref ? `<a href="${esc(narcoHref)}" target="_blank" rel="noopener noreferrer">` : '';
+    const linkClose = narcoHref ? '</a>' : '';
+    return `<div class="narco-article ${rc}"><span class="na-feed ${fc}">${esc((a.feed||'MAIN').toUpperCase())}</span><span class="na-date">${age}</span><div class="na-title">${linkOpen}${cleanText(a.title||'')}${linkClose}</div>${entHtml?`<div class="na-entities">${entHtml}</div>`:''}</div>`;
   }).join('');
   const narcoEntityBadges = narcoEntities.slice(0,10).map(e => `<span class="narco-entity ${entityType(e)}">${cleanText(e)}</span>`).join('');
   const narcoPanel = `<div class="g-panel narco-panel">
@@ -2863,9 +2865,9 @@ function renderLower(){
     const premClass = o.premium >= 1e6 ? ' large' : '';
     return `<div class="mi-row">
       <span class="mi-ticker">${cleanText(o.ticker||'')}</span>
-      <span class="mi-type ${typeClass}">${(o.type||'').toUpperCase()}</span>
+      <span class="mi-type ${typeClass}">${esc((o.type||'').toUpperCase())}</span>
       ${o.hasSweep ? '<span class="mi-sweep">SWEEP</span>' : ''}
-      <span class="mi-detail">${o.strike||''} ${o.expiry||''}</span>
+      <span class="mi-detail">${esc(o.strike||'')} ${esc(o.expiry||'')}</span>
       <span class="mi-premium${premClass}">${fmtPremium(o.premium)}</span>
     </div>`;
   }).join('');
@@ -2875,7 +2877,7 @@ function renderLower(){
     const dcClass = t.isDefenseCommittee ? ' defense-committee' : '';
     return `<div class="mi-row">
       <span class="mi-congress-name${dcClass}">${cleanText(t.name||'')}${t.isDefenseCommittee ? ' \u2605' : ''}</span>
-      <span class="mi-type ${txnClass}">${(t.txnType||'').toUpperCase()}</span>
+      <span class="mi-type ${txnClass}">${esc((t.txnType||'').toUpperCase())}</span>
       <span class="mi-ticker">${cleanText(t.ticker||'')}</span>
       <span class="mi-premium">${cleanText(t.amounts||'')}</span>
     </div>`;
@@ -3606,7 +3608,7 @@ function renderPizzaPanel(){
     const pct = Math.max(10, Math.min(100, v * 20));
     return `<div class="pizza-spark-bar" style="height:${pct}%"></div>`;
   }).join('');
-  return `<div class="g-panel right-pizza"><div class="sec-head"><h3>${shDot('PizzaIndex')}Pentagon Pizza Index</h3><span class="badge" style="background:rgba(255,152,0,0.1);color:#ff9800;border-color:rgba(255,152,0,0.3)">DOUGHCON</span></div><div class="pizza-widget"><div class="pizza-doughcon" style="color:${dcColor}">DOUGHCON ${pi.doughcon}</div><div class="pizza-trend" style="color:${trendColor}">${trendArrow} ${pi.trend || 'stable'} &middot; ${pi.storesOpen}/${pi.totalStores} stores &middot; ${pi.avgWait}min wait</div>${sparkBars ? `<div class="pizza-spark">${sparkBars}</div>` : ''}</div></div>`;
+  return `<div class="g-panel right-pizza"><div class="sec-head"><h3>${shDot('PizzaIndex')}Pentagon Pizza Index</h3><span class="badge" style="background:rgba(255,152,0,0.1);color:#ff9800;border-color:rgba(255,152,0,0.3)">DOUGHCON</span></div><div class="pizza-widget"><div class="pizza-doughcon" style="color:${dcColor}">DOUGHCON ${pi.doughcon}</div><div class="pizza-trend" style="color:${trendColor}">${trendArrow} ${esc(pi.trend || 'stable')} &middot; ${esc(pi.storesOpen)}/${esc(pi.totalStores)} stores &middot; ${esc(pi.avgWait)}min wait</div>${sparkBars ? `<div class="pizza-spark">${sparkBars}</div>` : ''}</div></div>`;
 }
 
 function renderPolymarketPanel(){
@@ -3632,7 +3634,7 @@ function renderTelegramLivePanel(){
   }
   const msgs = (tl.recentMessages || []).slice(0, 12).map(m => {
     const age = m.timestamp ? getAge(m.timestamp) : '';
-    return `<div class="tg-live-msg"><div class="tg-live-ch"><span>${(m.channel || 'UNKNOWN').toUpperCase()}</span><span class="tg-live-time">${age}</span></div><div class="tg-live-text">${cleanText((m.text || '').substring(0, 180))}</div></div>`;
+    return `<div class="tg-live-msg"><div class="tg-live-ch"><span>${esc((m.channel || 'UNKNOWN').toUpperCase())}</span><span class="tg-live-time">${age}</span></div><div class="tg-live-text">${cleanText((m.text || '').substring(0, 180))}</div></div>`;
   }).join('');
   return `<div class="g-panel right-telegram"><div class="sec-head"><h3>${shDot('TelegramLive')}Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
 }
@@ -3658,6 +3660,7 @@ const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null
 if(INV.case.lastKey&&INV.case.dossiers[INV.case.lastKey]){INV.dossier=INV.case.dossiers[INV.case.lastKey];INV.graphFocus=INV.case.lastKey;INV.query=INV.dossier.target||''}
 function invSaveCase(){try{localStorage.setItem('crucix_case',JSON.stringify(INV.case))}catch(e){console.warn('case too large for localStorage',e)}}
 function esc(v){return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+const escAttr=esc;
 function invLink(v,hint){const s=esc(v);return `<a class="inv-link" data-inv="${s}"${hint?` data-hint="${esc(hint)}"`:''}>${s}</a>`}
 function invExt(url,label){const u=String(url||'');if(!/^https?:\/\//i.test(u))return esc(label||u);return `<a class="inv-link ext" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label||u.replace(/^https?:\/\//,'').slice(0,60))}</a>`}
 function invChips(items,cls=''){return items&&items.length?`<div class="inv-chips">${items.map(i=>`<span class="inv-chip ${cls}">${esc(i)}</span>`).join('')}</div>`:'<span style="color:var(--dim)">none</span>'}
@@ -4223,10 +4226,10 @@ function renderCyberKevPanel(){
   const vulns = (ck.vulnerabilities || []).slice(0, 15).map(v => {
     const sevClass = v.severity || 'low';
     const tags = [];
-    if (v.severity) tags.push(`<span class="kev-tag ${sevClass}">${v.severity}</span>`);
+    if (v.severity) tags.push(`<span class="kev-tag ${esc(sevClass)}">${esc(v.severity)}</span>`);
     if (v.ransomware) tags.push('<span class="kev-tag ransomware">RANSOMWARE</span>');
     if (v.prcRelevant) tags.push('<span class="kev-tag prc">PRC</span>');
-    (v.categories || []).slice(0, 2).forEach(c => tags.push(`<span class="kev-tag low">${c}</span>`));
+    (v.categories || []).slice(0, 2).forEach(c => tags.push(`<span class="kev-tag low">${esc(c)}</span>`));
     return `<div class="kev-row"><div class="kev-cve">${cleanText(v.cveID || '')} &middot; ${cleanText(v.vendor || '')}</div><div class="kev-name">${cleanText(v.name || '')}</div><div class="kev-meta">${tags.join('')}</div></div>`;
   }).join('');
   const prcBadge = ck.prcRelevantCount > 0 ? ` &middot; <span style="color:#ff4081">${ck.prcRelevantCount} PRC</span>` : '';
@@ -4247,7 +4250,7 @@ function renderCIIPanel(){
   const rows = countries.map(c => {
     const color = levelColors[c.level] || '#9e9e9e';
     const opacity = cii.warmingUp ? 'opacity:0.6' : '';
-    return `<div class="cii-row" style="${opacity}" title="${c.name}: ${c.score}/100 (${c.level})"><span class="cii-name">${c.name}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${c.score}%;background:${color}"></div></div><span class="cii-score" style="color:${color}">${c.score}</span><span class="cii-trend" style="color:${trendColors[c.trend]||'var(--dim)'}">${trendArrows[c.trend]||'\u2192'}</span><span class="cii-level" style="color:${color};border:1px solid ${color}40;background:${color}15">${c.level}</span></div>`;
+    return `<div class="cii-row" style="${opacity}" title="${esc(c.name)}: ${esc(c.score)}/100 (${esc(c.level)})"><span class="cii-name">${esc(c.name)}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${Number(c.score)||0}%;background:${color}"></div></div><span class="cii-score" style="color:${color}">${esc(c.score)}</span><span class="cii-trend" style="color:${trendColors[c.trend]||'var(--dim)'}">${trendArrows[c.trend]||'\u2192'}</span><span class="cii-level" style="color:${color};border:1px solid ${color}40;background:${color}15">${esc(c.level)}</span></div>`;
   }).join('');
   const critCount = countries.filter(c => c.level === 'Critical').length;
   const highCount = countries.filter(c => c.level === 'High').length;
@@ -4266,8 +4269,8 @@ function renderSignalIntelPanel(){
   const rows = signals.map(s => {
     const color = typeColors[s.type] || '#ffd54f';
     const typeLabel = (s.type || '').replace(/_/g, ' ');
-    const propFlags = (s.propagandaFlags || []).map(f => `<span class="sig-propaganda">${f}</span>`).join('');
-    return `<div class="sig-row"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="sig-type" style="color:${color};border:1px solid ${color}40;background:${color}15">${typeLabel}</span><span class="sig-conf" style="color:${color}">${s.confidence}%</span>${propFlags}</div><div class="sig-title">${(s.title || '').substring(0, 120)}</div><div class="sig-meta">${s.sources ? s.sources.slice(0,3).join(' \u00b7 ') : ''}</div></div>`;
+    const propFlags = (s.propagandaFlags || []).map(f => `<span class="sig-propaganda">${esc(f)}</span>`).join('');
+    return `<div class="sig-row"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="sig-type" style="color:${color};border:1px solid ${color}40;background:${color}15">${esc(typeLabel)}</span><span class="sig-conf" style="color:${color}">${esc(s.confidence)}%</span>${propFlags}</div><div class="sig-title">${esc((s.title || '').substring(0, 120))}</div><div class="sig-meta">${s.sources ? esc(s.sources.slice(0,3).join(' \u00b7 ')) : ''}</div></div>`;
   }).join('');
   return `<div class="g-panel right-sigint"><div class="sec-head"><h3>${shDot('Signals')}Signal Intelligence</h3><span class="badge">${sig.totalSignals||0} ACTIVE</span></div>${rows}</div>`;
 }
@@ -4283,7 +4286,7 @@ function renderFocalPointsPanel(){
   const rows = points.map(f => {
     const color = urgencyColors[f.urgency] || '#ffd54f';
     const icons = (f.signalTypes || []).map(st => signalIcons[st] || '\u26A0\uFE0F').join('');
-    return `<div class="fp-row" title="${f.name}: score ${f.score} (${f.urgency})"><span class="fp-urgency" style="color:${color};border:1px solid ${color}40;background:${color}15">${f.urgency}</span><span class="fp-name">${f.name}</span><span class="fp-signals">${icons}</span><span class="fp-score" style="color:${color}">${f.score}</span></div>`;
+    return `<div class="fp-row" title="${esc(f.name)}: score ${esc(f.score)} (${esc(f.urgency)})"><span class="fp-urgency" style="color:${color};border:1px solid ${color}40;background:${color}15">${esc(f.urgency)}</span><span class="fp-name">${esc(f.name)}</span><span class="fp-signals">${icons}</span><span class="fp-score" style="color:${color}">${esc(f.score)}</span></div>`;
   }).join('');
   const critCount = points.filter(f => f.urgency === 'Critical').length;
   return `<div class="g-panel right-focal"><div class="sec-head"><h3>${shDot('FocalPoints')}Focal Points</h3><span class="badge">${critCount > 0 ? critCount + ' CRITICAL' : points.length + ' TRACKED'}</span></div>${rows}</div>`;
@@ -4301,16 +4304,16 @@ function renderDeltaPanel(){
   const newSigs = (delta.signals?.new || []).slice(0,4);
   const deltaRows = [];
   for(const s of newSigs){
-    deltaRows.push(`<div class="delta-row new"><span class="delta-badge new">NEW</span><span class="delta-label">${s.reason||s.label||s.key}</span></div>`);
+    deltaRows.push(`<div class="delta-row new"><span class="delta-badge new">NEW</span><span class="delta-label">${esc(s.reason||s.label||s.key)}</span></div>`);
   }
   for(const s of escalated){
     const sev = s.severity==='critical'?'style="color:var(--warn);font-weight:600"':s.severity==='high'?'style="color:#ffab40"':'';
     const val = s.pctChange!==undefined?`${s.pctChange>0?'+':''}${s.pctChange}%`:`${s.change>0?'+':''}${s.change}`;
-    deltaRows.push(`<div class="delta-row"><span class="delta-badge up">&#9650;</span><span class="delta-label" ${sev}>${s.label}</span><span class="delta-val">${s.from}→${s.to} (${val})</span></div>`);
+    deltaRows.push(`<div class="delta-row"><span class="delta-badge up">&#9650;</span><span class="delta-label" ${sev}>${esc(s.label)}</span><span class="delta-val">${esc(s.from)}→${esc(s.to)} (${esc(val)})</span></div>`);
   }
   for(const s of deescalated){
     const val = s.pctChange!==undefined?`${s.pctChange}%`:`${s.change}`;
-    deltaRows.push(`<div class="delta-row"><span class="delta-badge down">&#9660;</span><span class="delta-label">${s.label||s.key}</span><span class="delta-val">${s.from}→${s.to} (${val})</span></div>`);
+    deltaRows.push(`<div class="delta-row"><span class="delta-badge down">&#9660;</span><span class="delta-label">${esc(s.label||s.key)}</span><span class="delta-val">${esc(s.from)}→${esc(s.to)} (${esc(val)})</span></div>`);
   }
   const deltaHtml = hasDelta ? deltaRows.join('') : `<div style="padding:12px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:10px">${D.delta?t('delta.noChanges','No changes since last sweep'):'First sweep since restart — deltas appear from the second sweep'}</div>`;
   return `<div class="g-panel right-delta" id="whatChanged">
@@ -4364,22 +4367,25 @@ function renderRight(){
 
 // === HELPERS ===
 function getAge(d){const ms=Date.now()-new Date(d).getTime();const h=Math.floor(ms/3600000);if(h<1)return 'just now';if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago'}
-function cleanText(t){return t.replace(/&#39;/g,"'").replace(/&#33;/g,"!").replace(/&amp;/g,"&").replace(/<[^>]+>/g,'')}
+// Third-party text → HTML-safe inline text: decode the entities feeds commonly emit, drop markup, then escape.
+function cleanText(t){return esc(String(t??'').replace(/&#39;/g,"'").replace(/&#33;/g,"!").replace(/&amp;/g,"&").replace(/<[^>]+>/g,''))}
+// Anchor for a third-party URL: only http(s) survives; anything else renders as plain text or nothing.
+function extLink(url,label,style=''){const u=safeExternalUrl(url);if(!u)return label?esc(label):'';return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"${style?` style="${style}"`:''}>${esc(label||u)}</a>`}
 function safeExternalUrl(raw){try{const u=new URL(raw,location.href);return u.protocol==='http:'||u.protocol==='https:'?u.toString():null}catch{return null}}
 
 // === BOOT SEQUENCE ===
 function runBoot(){
-  const acledStatus = D.acled?.totalEvents > 0 ? `<span class="ok">${D.acled.totalEvents} EVENTS</span>` : '<span style="color:var(--warn)">DEGRADED</span>';
+  const acledStatus = D.acled?.totalEvents > 0 ? `<span class="ok">${esc(D.acled.totalEvents)} EVENTS</span>` : '<span style="color:var(--warn)">DEGRADED</span>';
   const lines=[
     {text:t('boot.initializing','INITIALIZING CRUCIX ENGINE v2.1.0'),delay:0},
-    {text:t('boot.connecting','CONNECTING {count} OSINT SOURCES...').replace('{count}',D.meta.sourcesQueried),delay:400},
+    {text:t('boot.connecting','CONNECTING {count} OSINT SOURCES...').replace('{count}',esc(D.meta.sourcesQueried)),delay:400},
     {text:'&#9500;&#9472; '+t('boot.sourceGroup1','OPENSKY · FIRMS · KIWISDR · MARITIME'),delay:700},
     {text:'&#9500;&#9472; '+t('boot.sourceGroup2','FRED · BLS · EIA · TREASURY · GSCPI'),delay:900},
     {text:'&#9500;&#9472; '+t('boot.sourceGroup3','TELEGRAM · SAFECAST · EPA · WHO · OFAC'),delay:1100},
     {text:'&#9492;&#9472; '+t('boot.sourceGroup4','GDELT · NOAA · PATENTS · BLUESKY · REDDIT'),delay:1300},
     {text:D.meta.health
-      ? `SWEEP COMPLETE \u2014 <span class="count">${D.meta.health.live}</span> LIVE \u00b7 <span class="count">${D.meta.health.degraded}</span> DEGRADED \u00b7 <span class="count">${D.meta.health.no_key+D.meta.health.off+D.meta.health.error}</span> NOT REPORTING`
-      : t('boot.sweepComplete','SWEEP COMPLETE — {ok}/{total} SOURCES').replace('{ok}',`<span class="count">${D.meta.sourcesOk}</span>`).replace('{total}',D.meta.sourcesQueried)+' <span class="ok">'+t('boot.ok','OK')+'</span>',delay:1700},
+      ? `SWEEP COMPLETE \u2014 <span class="count">${esc(D.meta.health.live)}</span> LIVE \u00b7 <span class="count">${esc(D.meta.health.degraded)}</span> DEGRADED \u00b7 <span class="count">${esc(D.meta.health.no_key+D.meta.health.off+D.meta.health.error)}</span> NOT REPORTING`
+      : t('boot.sweepComplete','SWEEP COMPLETE — {ok}/{total} SOURCES').replace('{ok}',`<span class="count">${esc(D.meta.sourcesOk)}</span>`).replace('{total}',esc(D.meta.sourcesQueried))+' <span class="ok">'+t('boot.ok','OK')+'</span>',delay:1700},
     {text:t('boot.acledLayer','ACLED CONFLICT LAYER')+': '+acledStatus,delay:1900},
     {text:t('boot.flightCorridors','FLIGHT CORRIDORS')+': <span class="ok">'+t('boot.active','ACTIVE')+'</span> &#183; '+t('boot.dualProjection','DUAL PROJECTION')+': <span class="ok">'+t('boot.ready','READY')+'</span>',delay:2100},
     {text:t('boot.intelligenceSynthesis','INTELLIGENCE SYNTHESIS')+': <span class="ok">'+t('boot.active','ACTIVE')+'</span>',delay:2400},
@@ -4426,9 +4432,9 @@ function buildOsintPanel(panelClass='', maxHeight=260){
     const isU=p.urgentFlags&&p.urgentFlags.length>0;
     const views=p.views?p.views>=1000?`${(p.views/1000).toFixed(0)}K`:p.views:'';
     const age=p.date?getAge(p.date):'';
-    const flags=(p.urgentFlags||[]).map(f=>`<span class="tk-src tg" style="margin-right:2px">${f}</span>`).join('');
+    const flags=(p.urgentFlags||[]).map(f=>`<span class="tk-src tg" style="margin-right:2px">${esc(f)}</span>`).join('');
     const srcCls=p.isWho?'style="color:#69f0ae;border-color:rgba(105,240,174,0.4)"':'class="tk-src tg"';
-    return `<div class="tk-card ${isU?'urgent':''}"><span ${srcCls}>${(p.channel||'OSINT').toUpperCase().substring(0,14)}</span>${views?`<span class="tk-src other">${views}</span>`:''}<span class="tk-time">${age}</span>${flags}<div class="tk-head">${cleanText((p.text||'').substring(0,160))}</div></div>`;
+    return `<div class="tk-card ${isU?'urgent':''}"><span ${srcCls}>${esc((p.channel||'OSINT').toUpperCase().substring(0,14))}</span>${views?`<span class="tk-src other">${esc(views)}</span>`:''}<span class="tk-time">${age}</span>${flags}<div class="tk-head">${cleanText((p.text||'').substring(0,160))}</div></div>`;
   }).join('');
   const osintDuration=Math.max(25,osintItems.length*3);
   return `<div class="g-panel ${panelClass}" style="display:flex;flex-direction:column">
