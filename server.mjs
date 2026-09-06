@@ -55,6 +55,7 @@ for (const dir of [RUNS_DIR, MEMORY_DIR, join(MEMORY_DIR, 'cold')]) {
 // === State ===
 let currentData = null;    // Current synthesized dashboard data
 let frontGeo = null;       // DeepStateMAP geometry from the last sweep (served separately from /api/data)
+let cartelGeo = null;      // Cartel-map KML geometry from the last sweep (served separately from /api/data)
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
@@ -438,6 +439,18 @@ app.get('/api/frontlines/geo', (req, res) => {
   res.json(frontGeo);
 });
 
+// API: Cartels (crowd-sourced Mexico influence map) — summary + START 2020 baseline; geometry on demand
+app.get('/api/cartels', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.cartels || { status: 'unavailable' });
+});
+
+app.get('/api/cartels/geo', (req, res) => {
+  if (!cartelGeo) return res.status(404).json({ error: 'No cartel geometry yet' });
+  res.set('Cache-Control', 'private, max-age=600');
+  res.json(cartelGeo);
+});
+
 // API: Region Dossier (on-demand, not from sweep)
 app.get('/api/region-dossier', async (req, res) => {
   const lat = parseFloat(req.query.lat);
@@ -652,6 +665,7 @@ async function runSweepCycle() {
     writeFileSync(join(RUNS_DIR, 'latest.json'), JSON.stringify(rawData, null, 2));
     lastSweepTime = new Date().toISOString();
     if (rawData.sources?.Frontlines?.geo) frontGeo = rawData.sources.Frontlines.geo;
+    if (rawData.sources?.Cartels?.geo) cartelGeo = rawData.sources.Cartels.geo;
 
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
@@ -883,6 +897,7 @@ async function start() {
     try {
       const existing = JSON.parse(readFileSync(join(RUNS_DIR, 'latest.json'), 'utf8'));
       if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
+      if (existing.sources?.Cartels?.geo) cartelGeo = existing.sources.Cartels.geo;
       const data = await synthesize(existing);
       data.delta = memory.getLastDelta() || null;
       data.seismic = seismicData;

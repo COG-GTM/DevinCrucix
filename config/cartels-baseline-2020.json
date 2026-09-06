@@ -1,0 +1,833 @@
+{
+  "_comment": "Historical baseline transcribed from START's Tracking Cartels infographic series (June 2020). This is a point-in-time research product, NOT current control of territory. State classes were read from the printed choropleth legend; cities/ports/flows were interpreted from map symbol positions and are approximate. State classes were sampled from the printed choropleth at each state's centroid; Chihuahua and Guanajuato were read visually (centroid covered by a label/arrow).",
+  "provider": "START (National Consortium for the Study of Terrorism and Responses to Terrorism), University of Maryland",
+  "series": "Tracking Cartels Infographic Series",
+  "asOf": "2020-06",
+  "seriesUrl": "https://www.start.umd.edu/tracking-cartels-infographic-series",
+  "briefs": [
+    {
+      "id": "operational_zones",
+      "title": "Major Cartel Operational Zones in Mexico",
+      "url": "https://www.start.umd.edu/pubs/JointCOEProject_TrackingCartels01_OperationalZonesMexico_ResearchBrief_June2020.pdf",
+      "keyPoints": [
+        "Major cartel fragmentation has led to increasingly adaptable, agile, and competitively violent criminal organizations.",
+        "The geographical expansion of cartels has led to greater territorial contestation over drug plazas, trafficking routes, and illicit markets.",
+        "Seeking greater profit, cartels are diversifying and increasing in criminal density through extortion, kidnapping, and money laundering.",
+        "An estimated 90 percent of illicit drugs entering the United States pass through Mexico and the Central American isthmus."
+      ]
+    },
+    {
+      "id": "cjng",
+      "title": "The Violent Rise of Cártel de Jalisco Nueva Generación (CJNG)",
+      "url": "https://www.start.umd.edu/pubs/JointCOEProject_TrackingCartels02_CJNG_ResearchBrief_June2020.pdf",
+      "keyPoints": [
+        "CJNG is one of the youngest cartels in Mexico yet considered one of, if not the, most powerful and violent.",
+        "CJNG's assets are thought to be worth over $20 billion.",
+        "Operationally present in 23 of Mexico's 32 states (with allies in all 32); led by founder Nemesio Oseguera Cervantes, 'El Mencho'.",
+        "Captured the key ports of Veracruz, Manzanillo, and Lázaro Cárdenas; battles the Sinaloa Federation for Ciudad Juárez and Tijuana."
+      ]
+    },
+    {
+      "id": "avocado",
+      "title": "The Pits: Violence in Michoacán Over Control of Avocado Trade",
+      "url": "https://www.start.umd.edu/pubs/JointCOEProject_TrackingCartels03_AvocadoTrade_ResearchBrief_June2020.pdf",
+      "keyPoints": [
+        "Michoacán produces more than 1.5 million metric tons of avocados yearly (80 percent of Mexican production); Uruapan is the heart of the trade.",
+        "CJNG competes violently with Nueva Familia Michoacana, the Tepalcatepec Cartel, and the Zicuirán Cartel to dominate this criminal economy.",
+        "Extortion ('derecho de piso') of producers is charged monthly, often by hectares cultivated or kilograms exported; extortion is the highest reported crime in 14 of 32 states.",
+        "August 2019: CJNG massacred 19 members of Los Viagras in Uruapan as the war over avocado territory expanded."
+      ]
+    },
+    {
+      "id": "huachicol",
+      "title": "Huachicoleros: Violence in Guanajuato Over Control of Illicit Petroleum",
+      "url": "https://www.start.umd.edu/pubs/JointCOEProject_TrackingCartels04_GuanajuatoIllicitPetroleum_June2020.pdf",
+      "keyPoints": [
+        "At least 22 of 32 states deal with fuel theft; highest concentration in Hidalgo, Puebla, Querétaro, Jalisco, Veracruz, México, Tamaulipas, and Guanajuato.",
+        "CJNG and Cártel Santa Rosa de Lima (CSRL, a CJNG splinter) battle for the second 'Triángulo Rojo' of huachicol: Salamanca, Irapuato, and Celaya.",
+        "Financial losses from fuel theft amount to around $1.1 billion annually; more than 15,000 illegal taps were identified in 2018.",
+        "PEMEX operates over 14,000 km of pipelines; the Guanajuato triangle hosts a major refinery and multiple storage/distribution terminals."
+      ]
+    }
+  ],
+  "densityClasses": {
+    "1-2": {
+      "label": "1–2 major cartels",
+      "rank": 1
+    },
+    "3": {
+      "label": "3 major cartels",
+      "rank": 2
+    },
+    "4": {
+      "label": "4 major cartels",
+      "rank": 3
+    },
+    "5-6": {
+      "label": "5–6 major cartels",
+      "rank": 4
+    },
+    "7-8": {
+      "label": "7–8 major cartels",
+      "rank": 5
+    }
+  },
+  "states": [
+    {
+      "name": "Baja California",
+      "lat": 30.8,
+      "lon": -115.3,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Baja California Sur",
+      "lat": 25.5,
+      "lon": -111.6,
+      "density": "1-2",
+      "cjng": true
+    },
+    {
+      "name": "Sonora",
+      "lat": 29.6,
+      "lon": -110.9,
+      "density": "4",
+      "cjng": false
+    },
+    {
+      "name": "Chihuahua",
+      "lat": 28.6,
+      "lon": -106.1,
+      "density": "7-8",
+      "cjng": false,
+      "note": "Class read visually (centroid covered by a label on the printed map) — treat as approximate."
+    },
+    {
+      "name": "Coahuila",
+      "lat": 27.3,
+      "lon": -102.0,
+      "density": "1-2",
+      "cjng": false
+    },
+    {
+      "name": "Nuevo León",
+      "lat": 25.6,
+      "lon": -99.9,
+      "density": "3",
+      "cjng": false
+    },
+    {
+      "name": "Tamaulipas",
+      "lat": 24.3,
+      "lon": -98.6,
+      "density": "3",
+      "cjng": false
+    },
+    {
+      "name": "Sinaloa",
+      "lat": 25.0,
+      "lon": -107.5,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Durango",
+      "lat": 24.6,
+      "lon": -104.7,
+      "density": "1-2",
+      "cjng": false
+    },
+    {
+      "name": "Zacatecas",
+      "lat": 23.3,
+      "lon": -102.7,
+      "density": "4",
+      "cjng": true
+    },
+    {
+      "name": "San Luis Potosí",
+      "lat": 22.6,
+      "lon": -100.4,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Aguascalientes",
+      "lat": 22.0,
+      "lon": -102.3,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Nayarit",
+      "lat": 21.8,
+      "lon": -105.0,
+      "density": "1-2",
+      "cjng": false
+    },
+    {
+      "name": "Jalisco",
+      "lat": 20.6,
+      "lon": -103.7,
+      "density": "5-6",
+      "cjng": true,
+      "cjngBase": true
+    },
+    {
+      "name": "Colima",
+      "lat": 19.1,
+      "lon": -104.0,
+      "density": "5-6",
+      "cjng": true,
+      "cjngBase": true
+    },
+    {
+      "name": "Michoacán",
+      "lat": 19.2,
+      "lon": -101.9,
+      "density": "5-6",
+      "cjng": true,
+      "cjngBase": true
+    },
+    {
+      "name": "Guanajuato",
+      "lat": 21.0,
+      "lon": -101.3,
+      "density": "5-6",
+      "cjng": true,
+      "note": "Class read visually (centroid covered by a flow arrow on the printed map) — treat as approximate."
+    },
+    {
+      "name": "Querétaro",
+      "lat": 20.8,
+      "lon": -99.9,
+      "density": "1-2",
+      "cjng": true
+    },
+    {
+      "name": "Hidalgo",
+      "lat": 20.5,
+      "lon": -98.9,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Estado de México",
+      "lat": 19.4,
+      "lon": -99.9,
+      "density": "5-6",
+      "cjng": true
+    },
+    {
+      "name": "Ciudad de México",
+      "lat": 19.43,
+      "lon": -99.13,
+      "density": null,
+      "cjng": true,
+      "note": "Class obscured by the Mexico City marker on the printed map"
+    },
+    {
+      "name": "Morelos",
+      "lat": 18.8,
+      "lon": -99.1,
+      "density": "5-6",
+      "cjng": true
+    },
+    {
+      "name": "Tlaxcala",
+      "lat": 19.4,
+      "lon": -98.2,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Puebla",
+      "lat": 18.9,
+      "lon": -98.0,
+      "density": "4",
+      "cjng": true
+    },
+    {
+      "name": "Veracruz",
+      "lat": 19.5,
+      "lon": -96.7,
+      "density": "3",
+      "cjng": true
+    },
+    {
+      "name": "Guerrero",
+      "lat": 17.6,
+      "lon": -99.9,
+      "density": "7-8",
+      "cjng": true
+    },
+    {
+      "name": "Oaxaca",
+      "lat": 17.0,
+      "lon": -96.5,
+      "density": "4",
+      "cjng": true
+    },
+    {
+      "name": "Tabasco",
+      "lat": 17.9,
+      "lon": -92.6,
+      "density": "4",
+      "cjng": true
+    },
+    {
+      "name": "Chiapas",
+      "lat": 16.5,
+      "lon": -92.5,
+      "density": "5-6",
+      "cjng": true
+    },
+    {
+      "name": "Campeche",
+      "lat": 18.9,
+      "lon": -90.4,
+      "density": "1-2",
+      "cjng": false
+    },
+    {
+      "name": "Yucatán",
+      "lat": 20.7,
+      "lon": -89.0,
+      "density": "1-2",
+      "cjng": false
+    },
+    {
+      "name": "Quintana Roo",
+      "lat": 19.6,
+      "lon": -88.0,
+      "density": "7-8",
+      "cjng": true
+    }
+  ],
+  "cities": [
+    {
+      "name": "Hermosillo",
+      "lat": 29.07,
+      "lon": -110.96
+    },
+    {
+      "name": "Chihuahua",
+      "lat": 28.63,
+      "lon": -106.07
+    },
+    {
+      "name": "Culiacán",
+      "lat": 24.81,
+      "lon": -107.39
+    },
+    {
+      "name": "Monterrey",
+      "lat": 25.69,
+      "lon": -100.32
+    },
+    {
+      "name": "Tampico",
+      "lat": 22.25,
+      "lon": -97.86
+    },
+    {
+      "name": "Guadalajara",
+      "lat": 20.66,
+      "lon": -103.35
+    },
+    {
+      "name": "Mexico City",
+      "lat": 19.43,
+      "lon": -99.13,
+      "hub": true
+    }
+  ],
+  "portsIntoMexico": [
+    {
+      "name": "Mazatlán",
+      "lat": 23.22,
+      "lon": -106.42
+    },
+    {
+      "name": "Puerto Vallarta",
+      "lat": 20.65,
+      "lon": -105.23
+    },
+    {
+      "name": "Manzanillo",
+      "lat": 19.05,
+      "lon": -104.32
+    },
+    {
+      "name": "Lázaro Cárdenas",
+      "lat": 17.96,
+      "lon": -102.2
+    },
+    {
+      "name": "Acapulco",
+      "lat": 16.86,
+      "lon": -99.88
+    },
+    {
+      "name": "Veracruz",
+      "lat": 19.19,
+      "lon": -96.15
+    },
+    {
+      "name": "Progreso",
+      "lat": 21.28,
+      "lon": -89.66
+    },
+    {
+      "name": "Cancún",
+      "lat": 21.16,
+      "lon": -86.85
+    }
+  ],
+  "pointsOfEntryUS": [
+    {
+      "name": "Tijuana – San Diego",
+      "lat": 32.54,
+      "lon": -117.03
+    },
+    {
+      "name": "Mexicali – Calexico",
+      "lat": 32.66,
+      "lon": -115.47
+    },
+    {
+      "name": "Nogales",
+      "lat": 31.33,
+      "lon": -110.94
+    },
+    {
+      "name": "Agua Prieta – Douglas",
+      "lat": 31.33,
+      "lon": -109.55
+    },
+    {
+      "name": "Ciudad Juárez – El Paso",
+      "lat": 31.74,
+      "lon": -106.49
+    },
+    {
+      "name": "Piedras Negras – Eagle Pass",
+      "lat": 28.7,
+      "lon": -100.52
+    },
+    {
+      "name": "Nuevo Laredo – Laredo",
+      "lat": 27.48,
+      "lon": -99.51
+    },
+    {
+      "name": "Reynosa / Matamoros – McAllen / Brownsville",
+      "lat": 26.05,
+      "lon": -98.15
+    }
+  ],
+  "flows": [
+    {
+      "name": "Pacific ports → Guadalajara",
+      "path": [
+        [
+          -104.32,
+          19.05
+        ],
+        [
+          -103.35,
+          20.66
+        ]
+      ]
+    },
+    {
+      "name": "Puerto Vallarta → Guadalajara",
+      "path": [
+        [
+          -105.23,
+          20.65
+        ],
+        [
+          -103.35,
+          20.66
+        ]
+      ]
+    },
+    {
+      "name": "Lázaro Cárdenas → Mexico City",
+      "path": [
+        [
+          -102.2,
+          17.96
+        ],
+        [
+          -99.13,
+          19.43
+        ]
+      ]
+    },
+    {
+      "name": "Acapulco → Mexico City",
+      "path": [
+        [
+          -99.88,
+          16.86
+        ],
+        [
+          -99.13,
+          19.43
+        ]
+      ]
+    },
+    {
+      "name": "Mexico City → Guadalajara",
+      "path": [
+        [
+          -99.13,
+          19.43
+        ],
+        [
+          -103.35,
+          20.66
+        ]
+      ]
+    },
+    {
+      "name": "Guadalajara → Culiacán",
+      "path": [
+        [
+          -103.35,
+          20.66
+        ],
+        [
+          -107.39,
+          24.81
+        ]
+      ]
+    },
+    {
+      "name": "Mazatlán → Culiacán",
+      "path": [
+        [
+          -106.42,
+          23.22
+        ],
+        [
+          -107.39,
+          24.81
+        ]
+      ]
+    },
+    {
+      "name": "Culiacán → Hermosillo",
+      "path": [
+        [
+          -107.39,
+          24.81
+        ],
+        [
+          -110.96,
+          29.07
+        ]
+      ]
+    },
+    {
+      "name": "Hermosillo → Nogales",
+      "path": [
+        [
+          -110.96,
+          29.07
+        ],
+        [
+          -110.94,
+          31.33
+        ]
+      ]
+    },
+    {
+      "name": "Hermosillo → Agua Prieta",
+      "path": [
+        [
+          -110.96,
+          29.07
+        ],
+        [
+          -109.55,
+          31.33
+        ]
+      ]
+    },
+    {
+      "name": "Hermosillo → Tijuana",
+      "path": [
+        [
+          -110.96,
+          29.07
+        ],
+        [
+          -115.47,
+          32.66
+        ],
+        [
+          -117.03,
+          32.54
+        ]
+      ]
+    },
+    {
+      "name": "Culiacán → Chihuahua",
+      "path": [
+        [
+          -107.39,
+          24.81
+        ],
+        [
+          -106.07,
+          28.63
+        ]
+      ]
+    },
+    {
+      "name": "Chihuahua → Ciudad Juárez",
+      "path": [
+        [
+          -106.07,
+          28.63
+        ],
+        [
+          -106.49,
+          31.74
+        ]
+      ]
+    },
+    {
+      "name": "Guadalajara → Monterrey",
+      "path": [
+        [
+          -103.35,
+          20.66
+        ],
+        [
+          -100.32,
+          25.69
+        ]
+      ]
+    },
+    {
+      "name": "Mexico City → Monterrey",
+      "path": [
+        [
+          -99.13,
+          19.43
+        ],
+        [
+          -100.32,
+          25.69
+        ]
+      ]
+    },
+    {
+      "name": "Monterrey → Piedras Negras",
+      "path": [
+        [
+          -100.32,
+          25.69
+        ],
+        [
+          -100.52,
+          28.7
+        ]
+      ]
+    },
+    {
+      "name": "Monterrey → Nuevo Laredo",
+      "path": [
+        [
+          -100.32,
+          25.69
+        ],
+        [
+          -99.51,
+          27.48
+        ]
+      ]
+    },
+    {
+      "name": "Monterrey → Reynosa",
+      "path": [
+        [
+          -100.32,
+          25.69
+        ],
+        [
+          -98.15,
+          26.05
+        ]
+      ]
+    },
+    {
+      "name": "Veracruz → Tampico",
+      "path": [
+        [
+          -96.15,
+          19.19
+        ],
+        [
+          -97.86,
+          22.25
+        ]
+      ]
+    },
+    {
+      "name": "Tampico → Reynosa",
+      "path": [
+        [
+          -97.86,
+          22.25
+        ],
+        [
+          -98.15,
+          26.05
+        ]
+      ]
+    },
+    {
+      "name": "Cancún / Progreso → Isthmus",
+      "path": [
+        [
+          -86.85,
+          21.16
+        ],
+        [
+          -89.66,
+          21.28
+        ],
+        [
+          -92.6,
+          18.0
+        ],
+        [
+          -94.5,
+          18.1
+        ]
+      ]
+    },
+    {
+      "name": "Guatemala border → Gulf coast",
+      "path": [
+        [
+          -92.2,
+          14.7
+        ],
+        [
+          -93.1,
+          16.75
+        ],
+        [
+          -94.5,
+          18.1
+        ],
+        [
+          -96.15,
+          19.19
+        ]
+      ]
+    }
+  ],
+  "cjngTimeline": [
+    {
+      "n": 1,
+      "date": "2009-06",
+      "place": "Cancún, Quintana Roo",
+      "lat": 21.16,
+      "lon": -86.85,
+      "text": "CJNG's first appearance as 'Matazetas' (Zeta Killers)."
+    },
+    {
+      "n": 2,
+      "date": "2011-09",
+      "place": "Boca del Río, Veracruz",
+      "lat": 19.1,
+      "lon": -96.1,
+      "text": "CJNG debuted as CJNG in the 'Veracruz Massacre' (35 bodies displayed)."
+    },
+    {
+      "n": 3,
+      "date": "2012-04",
+      "place": "Michoacán state",
+      "lat": 19.2,
+      "lon": -101.9,
+      "text": "'The Michoacán Massacres': CJNG enters the state to establish dominance over narco-trafficking plazas and access to the avocado trade."
+    },
+    {
+      "n": 4,
+      "date": "2012-04",
+      "place": "Nuevo Laredo, Tamaulipas",
+      "lat": 27.48,
+      "lon": -99.51,
+      "text": "'Nuevo Laredo Massacres' carried out by CJNG members on behalf of the Sinaloa Federation (pre-2014 split) to wrest the point of entry from the Gulf Cartel."
+    },
+    {
+      "n": 5,
+      "date": "2015-03",
+      "place": "Ocotlán, Jalisco",
+      "lat": 20.36,
+      "lon": -102.77,
+      "text": "CJNG attacked a convoy of the National Gendarmerie, one of the first attacks aimed at national security forces."
+    },
+    {
+      "n": 6,
+      "date": "2015-05",
+      "place": "Guadalajara, Jalisco",
+      "lat": 20.66,
+      "lon": -103.35,
+      "text": "CJNG lays siege to Guadalajara with thirty narco-blockades and shoots down a Mexican military helicopter (Cougar EC725)."
+    },
+    {
+      "n": 7,
+      "date": "2017-03",
+      "place": "Guanajuato state",
+      "lat": 21.0,
+      "lon": -101.3,
+      "text": "CJNG enters Guanajuato to control access to the illicit petroleum market."
+    },
+    {
+      "n": 8,
+      "date": "2019-08",
+      "place": "Uruapan, Michoacán",
+      "lat": 19.42,
+      "lon": -102.06,
+      "text": "CJNG enters Uruapan, massacring 19 members of the Viagras as the war over avocado-producing territory expanded."
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "avocado_michoacan",
+      "name": "Michoacán avocado belt (Uruapan)",
+      "brief": "avocado",
+      "lat": 19.42,
+      "lon": -102.06,
+      "radiusKm": 60,
+      "actors": [
+        "cjng",
+        "nfm",
+        "carteles_unidos",
+        "zicuiran"
+      ],
+      "text": "Territorial war over extortion of avocado producers; Uruapan is the trade's centre."
+    },
+    {
+      "id": "huachicol_guanajuato",
+      "name": "Guanajuato 'Triángulo Rojo' of huachicol",
+      "brief": "huachicol",
+      "lat": 20.62,
+      "lon": -101.1,
+      "radiusKm": 40,
+      "actors": [
+        "cjng",
+        "csrl"
+      ],
+      "text": "Salamanca – Irapuato – Celaya: refinery, storage/distribution terminals and pipeline taps contested by CJNG and CSRL since 2017."
+    }
+  ]
+}
