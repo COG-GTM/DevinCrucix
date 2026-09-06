@@ -1066,6 +1066,54 @@ export async function synthesize(data) {
         })),
       };
     })(),
+    // CBP Enforcement Statistics: official monthly CSVs, Southwest border only, summarized server-side
+    cbpStats: (() => {
+      const cs = data.sources.CBPStats || {};
+      const str = (v, n) => String(v ?? '').substring(0, n);
+      const num = (v) => (Number.isFinite(v) ? v : 0);
+      const pct = (v) => (Number.isFinite(v) ? v : null);
+      const bucket = (arr, n) => (arr || []).slice(0, n).map(b => ({ key: str(b.key, 60), count: num(b.count) }));
+      const enc = cs.encounters;
+      const drg = cs.drugs;
+      return {
+        status: cs.status || 'unavailable',
+        error: cs.error ? str(cs.error, 200) : null,
+        timestamp: cs.timestamp || null,
+        pipelineVersion: str(cs.pipelineVersion, 40),
+        attribution: str(cs.attribution, 200),
+        datasets: (cs.datasets || []).slice(0, 4).map(d => ({
+          id: str(d.id, 20), title: str(d.title, 80), status: str(d.status, 20), httpStatus: d.httpStatus ?? null,
+          url: sanitizeExternalUrl(d.url), discoveryPage: sanitizeExternalUrl(d.discoveryPage), discovered: !!d.discovered,
+          reason: d.reason ? str(d.reason, 160) : null, notes: (d.notes || []).slice(0, 4).map(n => str(n, 160)),
+          fetchedAt: d.fetchedAt || null, lastModified: d.lastModified ? str(d.lastModified, 40) : null, rows: num(d.rows),
+        })),
+        encounters: enc ? {
+          region: str(enc.region, 40),
+          coverage: { first: str(enc.coverage?.first, 7), last: str(enc.coverage?.last, 7), months: num(enc.coverage?.months) },
+          latest: { period: str(enc.latest?.period, 7), label: str(enc.latest?.label, 12), total: num(enc.latest?.total), usbp: num(enc.latest?.usbp), ofo: num(enc.latest?.ofo), momPct: pct(enc.latest?.momPct), yoyPct: pct(enc.latest?.yoyPct) },
+          series: (enc.series || []).slice(0, 13).map(s => ({ period: str(s.period, 7), label: str(s.label, 12), total: num(s.total), usbp: num(s.usbp), ofo: num(s.ofo) })),
+          sectors: (enc.sectors || []).slice(0, 9).map(s => ({
+            aor: str(s.aor, 40), abbv: str(s.abbv, 4), sector: str(s.sector, 30),
+            lat: Number.isFinite(s.lat) ? s.lat : null, lon: Number.isFinite(s.lon) ? s.lon : null,
+            latest: num(s.latest), previous: s.previous == null ? null : num(s.previous), momPct: pct(s.momPct), yoyPct: pct(s.yoyPct),
+            series: (s.series || []).slice(0, 13).map(x => ({ period: str(x.period, 7), count: num(x.count) })),
+          })),
+          fieldOffices: (enc.fieldOffices || []).slice(0, 4).map(f => ({ aor: str(f.aor, 40), latest: num(f.latest) })),
+          demographic: bucket(enc.demographic, 4), encounterType: bucket(enc.encounterType, 3), authority: bucket(enc.authority, 2), citizenship: bucket(enc.citizenship, 10),
+        } : null,
+        drugs: drg ? {
+          region: str(drg.region, 40),
+          coverage: { first: str(drg.coverage?.first, 7), last: str(drg.coverage?.last, 7), months: num(drg.coverage?.months) },
+          latest: { period: str(drg.latest?.period, 7), label: str(drg.latest?.label, 12), events: num(drg.latest?.events), lbs: num(drg.latest?.lbs), momLbsPct: pct(drg.latest?.momLbsPct), yoyLbsPct: pct(drg.latest?.yoyLbsPct) },
+          series: (drg.series || []).slice(0, 13).map(s => ({ period: str(s.period, 7), label: str(s.label, 12), events: num(s.events), lbs: num(s.lbs) })),
+          drugs: (drg.drugs || []).slice(0, 10).map(d => ({
+            type: str(d.type, 40), latest: { events: num(d.latest?.events), lbs: num(d.latest?.lbs) }, momLbsPct: pct(d.momLbsPct), yoyLbsPct: pct(d.yoyLbsPct),
+            series: (d.series || []).slice(0, 13).map(x => ({ period: str(x.period, 7), lbs: num(x.lbs), events: num(x.events) })),
+          })),
+          byAor: (drg.byAor || []).slice(0, 13).map(a => ({ aor: str(a.aor, 40), events: num(a.events), lbs: num(a.lbs) })),
+        } : null,
+      };
+    })(),
     // Phase 5: Telegram OSINT Live (background scraper data)
     telegramLive: (() => {
       const tlData = data.sources.TelegramLive || {};

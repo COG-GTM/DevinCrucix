@@ -44,6 +44,7 @@ import { briefing as space } from './sources/space.mjs';
 import { briefing as spiderfoot } from './sources/spiderfoot.mjs';
 import { briefing as insightcrime } from './sources/insightcrime.mjs';
 import { briefing as bordernews } from './sources/bordernews.mjs';
+import { briefing as cbpstats } from './sources/cbpstats.mjs';
 
 // === Tier 8: Market Intelligence ===
 import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
@@ -89,7 +90,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers']); // sources that need extra time
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats']); // sources that need extra time (CBPStats downloads a ~7 MB CSV)
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
@@ -190,7 +191,7 @@ export async function fullBriefing() {
     // Tier 13: Phase 7 — Investigation / brand-protection
     runSource('Typosquat', typosquat),
 
-    // Tier 14: Border Watch — registry-driven regional news (Border Report, Texas Tribune)
+    // Tier 14: Border Watch — registry-driven regional news (config/border-sources.json)
     runSource('BorderNews', bordernews),
 
     // Tier 15: Cartels — crowd-sourced Mexico areas-of-influence map (KML)
@@ -198,6 +199,8 @@ export async function fullBriefing() {
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),
+    // CBP Enforcement Statistics — official monthly encounter / drug-seizure CSVs by sector
+    runSource('CBPStats', cbpstats),
   ];
   console.error(`[Crucix] Starting intelligence sweep — ${allPromises.length} sources...`);
 

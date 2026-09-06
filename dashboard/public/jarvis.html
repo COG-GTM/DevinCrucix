@@ -95,7 +95,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .lower .g-panel.lp-half{flex:1 1 calc(50% - 5px);max-width:none;min-width:280px}
 .lower .g-panel.lp-third{flex:1 1 calc(33.33% - 7px);max-width:none;min-width:260px}
 .lower .lp-wide .inv-scroll{max-height:62vh}
-.lower .lp-wide .bw-scroll,.lower .lp-half .narco-scroll,.lower .lp-half .kev-scroll,.lower .lp-half .tg-live-scroll,.lower .lp-half .mi-scroll{max-height:52vh}
+.lower .lp-wide .bw-scroll,.lower .lp-half .cbp-scroll,.lower .lp-half .narco-scroll,.lower .lp-half .kev-scroll,.lower .lp-half .tg-live-scroll,.lower .lp-half .mi-scroll{max-height:52vh}
 .sh-full .sh-row.live .sh-why{color:var(--accent)}
 .sh-group{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);margin:10px 0 4px}
 .sh-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px}
@@ -547,6 +547,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .bi-scroll{max-height:340px;overflow-y:auto}
 .bi-scroll::-webkit-scrollbar{width:3px}.bi-scroll::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
 .bi-foot{font-family:var(--mono);font-size:7px;color:var(--dim);margin-top:4px;word-break:break-all}
+/* CBP ENFORCEMENT STATS PANEL */
+.cbp-panel{flex:1.4 1 280px;max-width:440px}
+.cbp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:4px;margin:6px 0}
+.cbp-kpi{padding:6px 8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02)}
+.cbp-kpi .k{font-family:var(--mono);font-size:7.5px;color:var(--dim);letter-spacing:0.08em}
+.cbp-kpi .v{font-family:var(--mono);font-size:15px;color:#c8d8d2;margin-top:2px}
+.cbp-kpi .d{font-family:var(--mono);font-size:8px;margin-top:2px;color:var(--dim)}
+.cbp-up{color:#ff8a80}.cbp-down{color:#21c19a}.cbp-flat{color:var(--dim)}
+.cbp-spark{display:flex;align-items:flex-end;gap:2px;height:34px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+.cbp-spark .b{flex:1;background:rgba(2,148,222,0.35);min-height:1px}
+.cbp-spark .b.last{background:#7fc4ea}
+.cbp-spark-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:7.5px;color:var(--dim);margin-top:2px}
+.cbp-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:8.5px;color:#c8d8d2}
+.cbp-table th{text-align:left;font-weight:normal;color:var(--dim);letter-spacing:0.06em;font-size:7.5px;padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.cbp-table td{padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap}
+.cbp-table td.n,.cbp-table th.n{text-align:right}
+.cbp-bar{display:inline-block;height:6px;background:rgba(2,148,222,0.45);vertical-align:middle;margin-right:4px}
+.cbp-bar.drug{background:rgba(255,64,129,0.45)}
+.cbp-scroll{max-height:320px;overflow-y:auto;margin-top:4px}
+.cbp-scroll::-webkit-scrollbar{width:3px}
+.cbp-scroll::-webkit-scrollbar-thumb{background:rgba(2,148,222,0.25);border-radius:2px}
 .narco-scroll{max-height:320px;overflow-y:auto}
 .narco-scroll::-webkit-scrollbar{width:3px}
 .narco-scroll::-webkit-scrollbar-thumb{background:rgba(255,64,129,0.2);border-radius:2px}
@@ -1242,8 +1263,9 @@ const PANEL_CAPTIONS={
   'cartel map source':'Where the current layer comes from, how fresh it is, and what the maintainer says about it.',
   'country instability index':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'country instability':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
-  'border watch':'US\u2013Mexico border reporting from public feeds (Border Report, Texas Tribune). A spike is a place mentioned above its own baseline.',
+  'border watch':'US\u2013Mexico border reporting from public feeds listed in config/border-sources.json. A spike is a place mentioned above its own baseline.',
   'border ingest':'Border Watch\u2019s Python ingestion service (crucix_ingest): robots.txt-compliant feed polling, NER/geotagging, violence scoring and structured baselines (SESNSP, CBP, FRA). OFFLINE means the service is not running next to the dashboard.',
+  'cbp enforcement stats':'Official CBP monthly encounters and drug seizures by Southwest sector, read from the CSVs CBP publishes. Figures are subject to revision by CBP; nothing here is estimated.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
   'osint workbench':'Passive, read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Blue values pivot; nothing is written to the target.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
@@ -1334,6 +1356,7 @@ function renderLeftRail(){
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`,src:'Space'},
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`,src:'InSightCrime'},
     {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
+    {name:'CBP Enforcement Stats',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${D.cbpStats.encounters.latest.label}`:'official monthly CSVs',src:'CBPStats'},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
@@ -1398,7 +1421,7 @@ function renderLeftRail(){
     military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
     cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
     macro:['Market Intel','Polymarket','Instability Index'],
-    regional:['Border Watch','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
+    regional:['Border Watch','CBP Enforcement Stats','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
   };
   const layerNames=TAB_LAYERS[currentTab];
@@ -2884,7 +2907,7 @@ function renderLower(){
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderFrontPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(renderCbpPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
@@ -3494,6 +3517,75 @@ function renderBorderIngestPanel(){
     </div>
     <div class="bi-foot">robots.txt-compliant crawler \u00b7 ${esc(bw.userAgent)} \u00b7 poll ${esc(bw.pollIntervalMinutes)}m \u00b7 NER ${esc(bw.nerBackend)}${bw.lastSweepAt?` \u00b7 swept ${getAge(bw.lastSweepAt)}`:''} \u00b7 <span style="color:#3969CA;font-weight:600">Cognition</span> ingestion pipeline</div>
   </div>`;
+}
+
+// === CBP ENFORCEMENT STATS PANEL ===
+// Values are aggregated server-side from CBP's CSVs; labels (AOR names, drug types, citizenships) are
+// third-party strings and go through esc().
+const CBP_DS_LABEL = {ok:'LIVE',not_modified:'UNCHANGED',stale:'STALE',error:'ERROR'};
+function cbpDelta(p, suffix=''){
+  if(p==null) return '<span class="cbp-flat">—</span>';
+  const cls = p>0?'cbp-up':p<0?'cbp-down':'cbp-flat';
+  return `<span class="${cls}">${p>0?'+':''}${esc(String(p))}%${suffix}</span>`;
+}
+function cbpNum(n, digits=0){ return Number.isFinite(n) ? n.toLocaleString(undefined,{maximumFractionDigits:digits}) : '—'; }
+function renderCbpPanel(){
+  const cs = D.cbpStats || {};
+  const enc = cs.encounters, drg = cs.drugs;
+  if(!enc && !drg){
+    return offPanel('CBP Enforcement Stats','CBPStats',cs.error||'CBP CSVs have not been downloaded yet','cbp-panel');
+  }
+  const dsHtml = (cs.datasets||[]).map(d => {
+    const st = CBP_DS_LABEL[d.status] ? d.status : 'error';
+    const why = [d.reason, ...(d.notes||[])].filter(Boolean).join(' · ');
+    const href = safeExternalUrl(d.url);
+    const name = d.id==='encounters' ? 'Encounters by AOR' : d.id==='drugs' ? 'Drug seizures' : d.title;
+    const label = href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none">${esc(name)}</a>` : esc(name);
+    return `<span class="bw-feed"${why?` title="${esc(why)}"`:''}><span class="bw-outlet">${label}</span><span class="bw-st ${st}">${CBP_DS_LABEL[st]}</span><span>${d.rows?esc(cbpNum(d.rows))+' rows':''}</span>${d.lastModified?`<span>CBP ${esc(String(d.lastModified).slice(5,16))}</span>`:''}</span>`;
+  }).join('');
+  let encHtml = '';
+  if(enc){
+    const L = enc.latest||{};
+    const fent = (drg?.drugs||[]).find(x=>x.type==='Fentanyl');
+    const kpis = [
+      `<div class="cbp-kpi"><div class="k">SW ENCOUNTERS · ${esc(L.label)}</div><div class="v">${cbpNum(L.total)}</div><div class="d">${cbpDelta(L.momPct,' MoM')} · ${cbpDelta(L.yoyPct,' YoY')}</div></div>`,
+      `<div class="cbp-kpi"><div class="k">USBP / OFO</div><div class="v">${cbpNum(L.usbp)} <span style="color:var(--dim);font-size:10px">/ ${cbpNum(L.ofo)}</span></div><div class="d">apprehensions / inadmissibles</div></div>`,
+      drg ? `<div class="cbp-kpi"><div class="k">SW DRUG SEIZURES · LBS</div><div class="v">${cbpNum(drg.latest?.lbs)}</div><div class="d">${cbpNum(drg.latest?.events)} events · ${cbpDelta(drg.latest?.yoyLbsPct,' YoY')}</div></div>` : '',
+      fent ? `<div class="cbp-kpi"><div class="k">FENTANYL · LBS</div><div class="v">${cbpNum(fent.latest?.lbs,1)}</div><div class="d">${cbpNum(fent.latest?.events)} events · ${cbpDelta(fent.yoyLbsPct,' YoY')}</div></div>` : '',
+    ].join('');
+    const series = enc.series||[];
+    const max = Math.max(1, ...series.map(s=>s.total));
+    const spark = series.map((s,i)=>`<div class="b${i===series.length-1?' last':''}" style="height:${Math.max(3,Math.round(s.total/max*100))}%" title="${esc(s.label)}: ${cbpNum(s.total)}"></div>`).join('');
+    const smax = Math.max(1, ...(enc.sectors||[]).map(s=>s.latest));
+    const rows = (enc.sectors||[]).map(s => `<tr title="${esc(s.aor)}"><td>${esc(s.sector)}</td><td class="n"><span class="cbp-bar" style="width:${Math.round(s.latest/smax*48)}px"></span>${cbpNum(s.latest)}</td><td class="n">${cbpDelta(s.momPct)}</td><td class="n">${cbpDelta(s.yoyPct)}</td></tr>`).join('');
+    const cit = (enc.citizenship||[]).slice(0,6).map(c=>`<span class="bw-chip">${esc(c.key)} ${cbpNum(c.count)}</span>`).join('');
+    const demo = (enc.demographic||[]).map(c=>`<span class="bw-chip place">${esc(c.key)} ${cbpNum(c.count)}</span>`).join('');
+    encHtml = `<div class="cbp-kpis">${kpis}</div>
+      <div class="cbp-spark">${spark}</div><div class="cbp-spark-lbl"><span>${esc(series[0]?.label||'')}</span><span>SW ENCOUNTERS / MONTH</span><span>${esc(series[series.length-1]?.label||'')}</span></div>
+      <div class="bw-sub">USBP SECTORS · ${esc(L.label)}</div>
+      <table class="cbp-table"><thead><tr><th>SECTOR</th><th class="n">ENCOUNTERS</th><th class="n">MoM</th><th class="n">YoY</th></tr></thead><tbody>${rows}</tbody></table>
+      ${(enc.fieldOffices||[]).length?`<div class="bw-sub">OFO PORTS OF ENTRY</div><div class="bw-chips">${enc.fieldOffices.map(f=>`<span class="bw-chip">${esc(f.aor.replace(' Field Office',''))} ${cbpNum(f.latest)}</span>`).join('')}</div>`:''}
+      <div class="bw-sub">DEMOGRAPHIC · TOP CITIZENSHIP</div><div class="bw-chips">${demo}${cit}</div>`;
+  }
+  let drgHtml = '';
+  if(drg){
+    const dmax = Math.max(1, ...(drg.drugs||[]).map(d=>d.latest.lbs));
+    const rows = (drg.drugs||[]).filter(d=>d.latest.lbs>0||d.latest.events>0).map(d => `<tr><td>${esc(d.type)}</td><td class="n"><span class="cbp-bar drug" style="width:${Math.round(d.latest.lbs/dmax*48)}px"></span>${cbpNum(d.latest.lbs,1)}</td><td class="n">${cbpNum(d.latest.events)}</td><td class="n">${cbpDelta(d.yoyLbsPct)}</td></tr>`).join('');
+    const aor = (drg.byAor||[]).slice(0,5).map(a=>`<span class="bw-chip" title="${cbpNum(a.events)} events">${esc(a.aor.replace(' Sector','').replace(' Field Office',' POE'))} ${cbpNum(a.lbs)} lb</span>`).join('');
+    drgHtml = `<div class="bw-sub">SW DRUG SEIZURES BY TYPE · ${esc(drg.latest?.label||'')}</div>
+      <table class="cbp-table"><thead><tr><th>DRUG</th><th class="n">LBS</th><th class="n">EVENTS</th><th class="n">YoY LBS</th></tr></thead><tbody>${rows}</tbody></table>
+      ${aor?`<div class="bw-sub">TOP AORs BY WEIGHT</div><div class="bw-chips">${aor}</div>`:''}`;
+  }
+  const st = shWorst('CBPStats');
+  const badge = cs.status==='stale' ? '<span class="badge warn">STALE · CACHED CSV</span>'
+    : cs.status==='partial' ? '<span class="badge warn">1 DATASET DOWN</span>'
+    : `<span class="badge ${shBadgeClass(st)}" style="color:#7fc4ea;border-color:rgba(2,148,222,0.35);background:rgba(2,148,222,0.1)">THRU ${esc((enc||drg).latest?.label||'').toUpperCase()}</span>`;
+  return `<div class="g-panel cbp-panel">
+      <div class="sec-head"><h3>${shDot('CBPStats')}CBP Enforcement Stats</h3>${badge}</div>
+      <div class="bw-feeds">${dsHtml}</div>
+      <div class="cbp-scroll">${encHtml}${drgHtml}</div>
+      <div class="bw-foot">${esc(cs.attribution||'')} · SOUTHWEST LAND BORDER ONLY · ${esc(cs.pipelineVersion||'')}</div>
+    </div>`;
 }
 
 // === Phase 5: Panel Renderers ===
