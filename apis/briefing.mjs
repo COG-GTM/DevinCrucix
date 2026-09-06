@@ -75,6 +75,7 @@ import { briefing as regiondossier } from './sources/regiondossier.mjs';
 import { briefing as satellites } from './sources/satellites.mjs';
 import { briefing as livenews } from './sources/livenews.mjs';
 import { briefing as typosquat } from './sources/typosquat.mjs';
+import { briefing as cartels } from './sources/cartels.mjs';
 
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
@@ -188,6 +189,9 @@ export async function fullBriefing() {
 
     // Tier 14: Border Watch — registry-driven regional news (Border Report, Texas Tribune)
     runSource('BorderNews', bordernews),
+
+    // Tier 15: Cartels — crowd-sourced Mexico areas-of-influence map (KML)
+    runSource('Cartels', cartels),
   ];
   console.error(`[Crucix] Starting intelligence sweep — ${allPromises.length} sources...`);
 
