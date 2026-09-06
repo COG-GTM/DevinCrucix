@@ -29,3 +29,17 @@ export async function safeFetch(url, opts = {}) {
 }
 
 export { safeOutboundFetch, SafeFetchError };
+
+export function ago(hours) {
+  return new Date(Date.now() - hours * 3600000).toISOString();
+}
+
+export function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+export function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
