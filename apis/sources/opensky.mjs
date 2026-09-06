@@ -288,6 +288,8 @@ export function partitionStates(states = []) {
 function shortError(msg = '') {
   if (/abort|timeout|timed out/i.test(msg)) return 'timed out';
   if (/fetch failed|ECONN|ENOTFOUND|EAI_AGAIN/i.test(msg)) return 'unreachable';
+  if (/rate.?limit|HTTP 429/i.test(msg)) return 'rate limited';
+  if (/auth HTTP 40[13]/i.test(msg)) return 'auth rejected';
   const m = String(msg).match(/HTTP (\d{3})/);
   return m ? `HTTP ${m[1]}` : 'error';
 }
@@ -392,7 +394,7 @@ async function sampleBriefing(openskyReason) {
     return emptyBriefing(`${openskyError}; ADS-B fallback ${shortError(failed[0]?.error)}`);
   }
   return {
-    source: 'ADS-B sample (api.adsb.lol) — OpenSky unreachable',
+    source: `ADS-B sample (api.adsb.lol) — OpenSky ${shortError(openskyReason)}`,
     timestamp: new Date().toISOString(),
     status: 'fallback',
     method: 'adsb_sample',

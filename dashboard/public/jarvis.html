@@ -730,6 +730,7 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .inv-view .tab-n{font-size:8px;padding:0 5px}
 .inv-views-right{margin-left:auto;font-family:var(--mono);font-size:9px;padding-right:6px}
 .inv-flag.ok{color:#4caf50}
+.inv-flag.partial{color:#ffd54f}
 .inv-err{padding:8px 10px;border:1px solid rgba(255,95,99,0.4);background:rgba(255,95,99,0.06);color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:8px}
 .inv-loading{padding:18px 8px;text-align:center}
 .inv-loading-head{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--accent2);margin-bottom:10px}
@@ -1391,7 +1392,8 @@ function renderLeftRail(){
       <div class="econ-row"><span class="elabel">${t('metrics.mortgage30y','30Y Mortgage')}</span><span class="eval">${mort?.value||'--'}%</span></div>
       <div class="econ-row"><span class="elabel">${t('metrics.m2Supply','M2 Supply')}</span><span class="eval">$${(m2?.value/1000)?.toFixed(1)||'--'}T</span></div>`;
   const h=D.meta?.health;
-  const gridBadge=h?`${h.live+h.degraded}/${h.total} ${t('badges.live','LIVE')}`:t('badges.live','LIVE');
+  const gridBadge=h?`${h.live+h.degraded}/${h.total} ${t('badges.reporting','REPORTING')}`:t('badges.live','LIVE');
+  const gridBadgeTitle=h?`${h.live} live \u00b7 ${h.degraded} degraded \u00b7 ${h.total-h.live-h.degraded} not reporting`:'';
 
   // Sensor Grid is filtered per tab so each view only lists the layers it is about.
   const TAB_LAYERS={
@@ -1404,7 +1406,7 @@ function renderLeftRail(){
   const layerNames=TAB_LAYERS[currentTab];
   const shownLayers=layerNames?layers.filter(l=>layerNames.includes(l.name)):layers;
   const sensorGridPanel=`<div class="g-panel sensor-grid">
-      <div class="sec-head"><h3>${t('panels.sensorGrid','Sensor Grid')}</h3><span class="badge">${gridBadge}</span></div>
+      <div class="sec-head"><h3>${t('panels.sensorGrid','Sensor Grid')}</h3><span class="badge" title="${gridBadgeTitle}">${gridBadge}</span></div>
       ${shownLayers.map(layerRow).join('')}
       ${currentTab==='military'||currentTab==='situation'?prcSectionHtml:''}
     </div>`;
@@ -1413,7 +1415,9 @@ function renderLeftRail(){
       <div class="nuke-ok">${allNormal?'&#9679; '+t('nuclear.allSitesNormal','ALL SITES NORMAL'):'&#9888; '+t('nuclear.anomalyDetected','ANOMALY DETECTED')}</div>
       ${nukeHtml}
     </div>`;
-  const seismicPanel=`<div class="g-panel seismic-panel">
+  const seismicPanel=D.seismic&&D.seismic.status!=='live'
+    ? `<div class="g-panel g-off seismic-panel"><div class="sec-head"><h3><span class="hdot ${D.seismic.status==='pending'?'degraded':'error'}"></span>Seismic Monitor</h3><span class="badge ${D.seismic.status==='pending'?'warn':'err'}">${D.seismic.status==='pending'?'PENDING':'FAILED'}</span></div><div class="g-off-why">${D.seismic.status==='pending'?'AWAITING FIRST USGS POLL':'USGS FEED UNAVAILABLE \u2014 NO CACHED EVENTS'}</div></div>`
+    : `<div class="g-panel seismic-panel">
       <div class="sec-head"><h3>Seismic Monitor</h3><span class="badge">USGS</span></div>
       ${D.seismic ? `
         <div class="nuke-ok" style="${D.seismic.suspectCount>0?'color:var(--warn)':''}">${D.seismic.suspectCount>0?'&#9888; '+D.seismic.suspectCount+' SUSPECT EVENT(S) NEAR TEST SITES':'&#9679; NO TEST-SITE SIGNATURES'}</div>
@@ -1429,16 +1433,20 @@ function renderLeftRail(){
       ${fredRows}
       <div class="econ-row"><span class="elabel">${t('metrics.natDebt','Nat. Debt')}</span><span class="eval">$${(parseFloat(D.treasury.totalDebt)/1e12).toFixed(2)}T</span></div>
     </div>`;
-  const spacePanel=`<div class="g-panel space-panel">
+  const spaceSrc=shGet('Space');
+  const spaceHasData=Boolean(D.space&&(D.space.totalNewObjects||D.space.militarySats||D.space.iss||Object.keys(D.space.constellations||{}).length));
+  const spacePanel=(shNotReporting(spaceSrc)||(spaceSrc?.state==='degraded'&&!spaceHasData))
+    ? offPanel(t('panels.spaceWatch','Space Watch'),'Space','No space data this sweep','space-panel')
+    : `<div class="g-panel space-panel">
       <div class="sec-head"><h3>${shDot('Space')}${t('panels.spaceWatch','Space Watch')}</h3><span class="badge">${t('badges.orbital','CELESTRAK')}</span></div>
-      ${D.space ? `
+      ${D.space&&spaceHasData ? `
         <div class="econ-row"><span class="elabel">New Objects (30d)</span><span class="eval" style="color:var(--accent2)">${D.space.totalNewObjects||0}</span></div>
         <div class="econ-row"><span class="elabel">Military Sats</span><span class="eval">${D.space.militarySats||0}</span></div>
         <div class="econ-row"><span class="elabel">Starlink</span><span class="eval">${D.space.constellations?.starlink||0}</span></div>
         <div class="econ-row"><span class="elabel">OneWeb</span><span class="eval">${D.space.constellations?.oneweb||0}</span></div>
         ${D.space.iss ? `<div class="econ-row"><span class="elabel">ISS</span><span class="eval" style="color:var(--accent)">ALT ${((D.space.iss.apogee+D.space.iss.perigee)/2).toFixed(0)} km</span></div>` : ''}
-        ${Object.entries(D.space.militaryByCountry||{}).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([c,n])=>`<div class="econ-row"><span class="elabel" style="padding-left:8px">${c}</span><span class="eval" style="font-size:10px">${n} mil sats</span></div>`).join('')}
-        ${(D.space.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(68,204,255,0.2);background:rgba(68,204,255,0.04);font-family:var(--mono);font-size:9px;color:var(--accent2);line-height:1.5">${D.space.signals.slice(0,2).join('<br>')}</div>` : ''}
+        ${Object.entries(D.space.militaryByCountry||{}).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([c,n])=>`<div class="econ-row"><span class="elabel" style="padding-left:8px">${esc(c)}</span><span class="eval" style="font-size:10px">${n} mil sats</span></div>`).join('')}
+        ${(D.space.signals||[]).length ? `<div style="margin-top:6px;padding:6px 8px;border:1px solid rgba(68,204,255,0.2);background:rgba(68,204,255,0.04);font-family:var(--mono);font-size:9px;color:var(--accent2);line-height:1.5">${D.space.signals.slice(0,2).map(esc).join('<br>')}</div>` : ''}
       ` : '<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">NO SPACE DATA</div>'}
     </div>`;
   const byTab={
@@ -3570,6 +3578,24 @@ function invKv(pairs){return `<dl class="inv-kv">${pairs.filter(p=>p[1]!==undefi
 function invSec(title,body,note){return `<div class="inv-sec"><div class="inv-sec-title"><span>${title}</span>${note?`<span class="nokey">${note}</span>`:''}</div>${body}</div>`}
 function invMissing(label){return `<span style="color:var(--warn)">${label||'missing'}</span>`}
 function invDim(t){return `<span style="color:var(--dim)">${esc(t)}</span>`}
+function invFail(provider,err){return `<span style="color:var(--warn)">${esc(provider)} ${esc(err||'unavailable')}</span>`}
+// Dossier slot → provider label. Server-side providerError() collapses every upstream failure to one of INV_FAIL_MSGS.
+const INV_PROVIDER_LABELS={whois:'RDAP',dns:'DoH',certificates:'crt.sh',network:'RDAP',shodan:'Shodan',geo:'ipwho.is',tor:'Tor exits',otx:'OTX',urlscan:'urlscan.io',history:'Wayback',domainHistory:'Wayback',web:'HTTP fingerprint',virustotal:'VirusTotal',breaches:'HIBP',github:'GitHub',keybase:'Keybase',gravatar:'Gravatar',numverify:'NumVerify',ofac:'OFAC',opensanctions:'OpenSanctions',opencorporates:'OpenCorporates',hosts:'InternetDB',chain:'redirect chain'};
+const INV_FAIL_MSGS=new Set(['authentication rejected','rate limited','upstream error','timed out','unavailable','unreachable']);
+function invProviderErrors(d){
+  const out=[];const seen=new Set();
+  const add=(provider,err)=>{const k=provider+'|'+err;if(seen.has(k))return;seen.add(k);out.push({provider,error:err})};
+  const visit=(v,key,depth)=>{
+    if(!v||typeof v!=='object'||depth>5)return;
+    if(Array.isArray(v)){v.forEach(x=>visit(x,key,depth+1));return}
+    if(typeof v.error==='string'&&INV_FAIL_MSGS.has(v.error))add(INV_PROVIDER_LABELS[key]||key,v.error);
+    for(const [k,c] of Object.entries(v)){if(k==='risk'||k==='pivots'||k==='platforms')continue;visit(c,k,depth+1)}
+  };
+  if(!d)return out;
+  if(typeof d.error==='string'&&INV_FAIL_MSGS.has(d.error))add(d.chain==='eth'?'BlockCypher':d.chain==='btc'?'mempool.space':'lookup',d.error);
+  for(const [k,v] of Object.entries(d)){if(k==='risk'||k==='pivots')continue;visit(v,k,1)}
+  return out;
+}
 function invKeyed(name,envVar,what){return `<span style="color:var(--dim)">${esc(what||'not enabled')} &middot; set <code>${esc(envVar)}</code></span>`}
 function invTypeTag(type){const m=INV_TYPE_META[type]||{label:type,color:'#c8d8d2'};return `<span class="inv-ttag" style="color:${m.color};border-color:${m.color}55">${esc(m.label)}</span>`}
 function invFmtNum(n,dp=2){return typeof n==='number'?n.toLocaleString(undefined,{maximumFractionDigits:dp}):'—'}
@@ -3656,9 +3682,11 @@ async function investigateTarget(raw, type){
 function invRiskHeader(d){
   const risk=d.risk||{};
   const srcs=(INV_SOURCES_BY_TYPE[d.type]||[]);
+  const errs=invProviderErrors(d);
   return `<div class="inv-head"><div><div class="inv-target">${invTypeTag(d.type)} ${esc(d.target)}</div><div class="inv-type">${d.durationMs||0}ms &middot; ${srcs.length} sources${d.cached?' &middot; cached':''} &middot; ${invDate(d.timestamp)}</div></div>
     <div style="display:flex;gap:6px;align-items:center"><button class="inv-btn ghost" onclick="invCopyJson()" title="Copy raw dossier JSON">JSON</button><span class="inv-risk ${esc(risk.level||'low')}">${esc(risk.level||'low')} ${risk.score||0}</span></div></div>
-    ${(risk.flags||[]).length?`<div style="padding:4px 0">${risk.flags.map(f=>`<div class="inv-flag">&#9650; ${esc(f)}</div>`).join('')}</div>`:`<div class="inv-flag ok">&#10003; no risk indicators from the sources that answered</div>`}`;
+    ${(risk.flags||[]).length?`<div style="padding:4px 0">${risk.flags.map(f=>`<div class="inv-flag">&#9650; ${esc(f)}</div>`).join('')}</div>`:`<div class="inv-flag ok">&#10003; no risk indicators from the sources that answered</div>`}
+    ${errs.length?`<div class="inv-flag partial">&#9888; ${errs.length} provider${errs.length===1?'':'s'} did not answer &mdash; ${errs.map(e=>esc(e.provider+': '+e.error)).join(', ')}. Verdict covers the sources that responded only.</div>`:''}`;
 }
 function invCopyJson(){if(!INV.dossier)return;navigator.clipboard?.writeText(JSON.stringify(INV.dossier,null,2)).then(()=>invToast('Dossier JSON copied'))}
 function invToast(msg){let t=document.getElementById('invToast');if(!t){t=document.createElement('div');t.id='invToast';t.className='inv-toast';document.body.appendChild(t)}t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
@@ -3684,7 +3712,8 @@ function invHistorySec(h,label){
   return invSec(label||'Wayback Machine',invKv([['First seen',h.firstUrl?invExt(h.firstUrl,h.firstSeen):esc(h.firstSeen)],['Last seen',h.lastUrl?invExt(h.lastUrl,h.lastSeen):esc(h.lastSeen)]]));
 }
 function invGeoSec(g){
-  if(!g||g.error)return '';
+  if(!g)return '';
+  if(g.error)return invSec('Geolocation · ipwho.is',invFail('ipwho.is',g.error));
   const osm=g.lat!=null?`https://www.openstreetmap.org/?mlat=${g.lat}&mlon=${g.lon}#map=10/${g.lat}/${g.lon}`:null;
   return invSec('Geolocation · ipwho.is',invKv([['Location',esc([g.city,g.region,g.country].filter(Boolean).join(', '))],['Coords',g.lat!=null?`${g.lat.toFixed(4)}, ${g.lon.toFixed(4)} ${osm?invExt(osm,'map'):''}`:null],['ASN',g.asn?`AS${esc(g.asn)} ${esc(g.org||'')}`:null],['ISP',esc(g.isp)],['AS domain',g.asDomain?invLink(g.asDomain):null],['Timezone',esc(g.timezone)]]));
 }
@@ -3697,7 +3726,7 @@ function invWebSec(w){
 
 function renderDossierDomainIp(d,out){
   const w = d.whois;
-  if (w) out.push(invSec('WHOIS / RDAP', w.error ? invDim('unavailable') : invKv([
+  if (w) out.push(invSec('WHOIS / RDAP', w.error ? invFail('RDAP',w.error) : invKv([
     ['Registrar', esc(w.registrar)], ['Registrant', esc(w.registrant)], ['Registered', invDate(w.registered)], ['Expires', invDate(w.expires)], ['Updated', invDate(w.updated)],
     ['DNSSEC', w.dnssec===null?null:(w.dnssec?'signed':'unsigned')], ['Status', (w.status||[]).slice(0,3).map(esc).join(', ')], ['NS', (w.nameservers||[]).map(n=>invLink(n.toLowerCase())).join(' ')],
   ])));
@@ -3709,12 +3738,12 @@ function renderDossierDomainIp(d,out){
   if (d.history) out.push(invHistorySec(d.history));
   if (d.web) out.push(invWebSec(d.web));
   const ct = d.certificates;
-  if (ct) out.push(invSec(`Certificate Transparency`, ct.error ? invDim('crt.sh unavailable') : `<div style="font-size:10px;color:var(--dim)">${ct.totalCerts||0} certs &middot; ${(ct.subdomains||[]).length} hostnames</div><div class="inv-chips">${(ct.subdomains||[]).slice(0,40).map(s=>`<span class="inv-chip">${invLink(s)}</span>`).join('')}</div>${(ct.certificates||[]).slice(0,3).map(c=>`<div style="font-size:9px;color:var(--dim);margin-top:2px">${esc(c.issuer)} &middot; ${esc(c.commonName)} &middot; ${invDate(c.notBefore)}→${invDate(c.notAfter)}</div>`).join('')}`));
+  if (ct) out.push(invSec(`Certificate Transparency`, ct.error ? invFail('crt.sh',ct.error) : `<div style="font-size:10px;color:var(--dim)">${ct.totalCerts||0} certs &middot; ${(ct.subdomains||[]).length} hostnames</div><div class="inv-chips">${(ct.subdomains||[]).slice(0,40).map(s=>`<span class="inv-chip">${invLink(s)}</span>`).join('')}</div>${(ct.certificates||[]).slice(0,3).map(c=>`<div style="font-size:9px;color:var(--dim);margin-top:2px">${esc(c.issuer)} &middot; ${esc(c.commonName)} &middot; ${invDate(c.notBefore)}→${invDate(c.notAfter)}</div>`).join('')}`));
   for (const h of (d.hosts||[])) {
     const n = h.network||{}; const sh = h.shodan||{}; const g=h.geo||{};
     const shodanNote = sh.status==='no_key' ? 'InternetDB (keyless)' : sh.status==='ok' ? 'Shodan' : 'Shodan: '+esc(sh.error||'n/a');
-    out.push(invSec(`Host ${invLink(h.ip)}${h.tor?.isTorExit?' <span class="inv-chip vuln">TOR EXIT</span>':''}`, h.error ? invDim('unavailable') : invKv([
-      ['Org', esc(sh.org||g.org||n.org||n.name)], ['ASN', esc(sh.asn||(g.asn?'AS'+g.asn:null))], ['Location', esc([g.city,g.country].filter(Boolean).join(', ')||sh.country||n.country)], ['Range', esc(n.range)],
+    out.push(invSec(`Host ${invLink(h.ip)}${h.tor?.isTorExit?' <span class="inv-chip vuln">TOR EXIT</span>':''}`, h.error ? invFail('InternetDB',h.error) : invKv([
+      ['Network', n.error?invFail('RDAP',n.error):null], ['Org', esc(sh.org||g.org||n.org||n.name)], ['ASN', esc(sh.asn||(g.asn?'AS'+g.asn:null))], ['Location', esc([g.city,g.country].filter(Boolean).join(', ')||sh.country||n.country)], ['Range', esc(n.range)],
       ['Hostnames', (h.hostnames||[]).slice(0,6).map(invLink).join(' ')], ['Ports', invChips((sh.ports&&sh.ports.length?sh.ports:h.ports)||[], 'port')], ['CVEs', invChips((sh.vulns&&sh.vulns.length?sh.vulns:h.vulns)||[], 'vuln')],
       ['Tags', (h.tags||[]).map(esc).join(', ')], ['Services', (sh.services||[]).map(s=>esc(`${s.port}/${s.transport} ${s.product||''} ${s.version||''}`.trim())).join('; ')],
     ]), shodanNote));
@@ -4073,23 +4102,33 @@ function renderCaseFilePanel(){
 function renderInvestigateHelpPanel(){
   const keyed=(INV.dossier&&INV.dossier.keyed)||INV._status?.keyed||{};
   const probes=INV._status?.platformProbes;
+  const errs=invProviderErrors(INV.dossier);
   const rows=[
-    ['RDAP · DoH · crt.sh','keyless','whois, DNS, cert transparency'],
-    ['InternetDB · Tor exits','keyless','ports, CVEs, exit-node check'],
-    ['ipwho.is · Wayback','keyless','geolocation, archive history'],
-    ['OTX · urlscan.io','keyless','threat pulses, public scans'],
-    ['Gravatar · Keybase · GitHub','keyless','identity + commit-email leaks'],
-    [`${probes?probes+' ':''}platform probes`,'keyless','handle presence, API-verified'],
-    ['mempool · BlockCypher · OFAC','keyless','BTC/ETH balances, SDN screen'],
-    ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation'],
-    ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org'],
-    ['Have I Been Pwned',keyed.hibp?'on':'HIBP_API_KEY','breach exposure per email'],
-    ['NumVerify',keyed.numverify?'on':'NUMVERIFY_API_KEY','carrier + line type'],
-    ['OpenCorporates',keyed.opencorporates?'on':'OPENCORPORATES_API_TOKEN','officers, filings, subsidiaries'],
-    ['OpenSanctions',keyed.opensanctions?'on':'OPENSANCTIONS_API_KEY','wallet + entity sanctions'],
-  ];
-  return `<div class="g-panel"><div class="sec-head"><h3>Pivot Providers</h3><span class="badge">${rows.filter(r=>r[1]==='keyless'||r[1]==='on').length}/${rows.length} ON</span></div>
-    ${rows.map(([n,st,what])=>`<div class="sh-row ${st==='keyless'||st==='on'?'live':'no_key'}"><span class="hdot ${st==='keyless'||st==='on'?'live':'no_key'}"></span><span class="sh-name">${esc(n)}</span><span class="sh-why" style="white-space:normal;overflow-wrap:anywhere;text-align:right">${esc(st==='keyless'?'NO KEY':st==='on'?'KEY SET':'SET KEY')}</span></div><div class="sh-ms" style="text-align:left;margin:-2px 0 4px 14px">${esc(what)}${st!=='keyless'&&st!=='on'?` · <code>${esc(st)}</code>`:''}</div>`).join('')}
+    ['RDAP · DoH · crt.sh','keyless','whois, DNS, cert transparency',['RDAP','DoH','crt.sh']],
+    ['InternetDB · Tor exits','keyless','ports, CVEs, exit-node check',['InternetDB','Tor exits']],
+    ['ipwho.is · Wayback','keyless','geolocation, archive history',['ipwho.is','Wayback']],
+    ['OTX · urlscan.io','keyless','threat pulses, public scans',['OTX','urlscan.io']],
+    ['Gravatar · Keybase · GitHub','keyless','identity + commit-email leaks',['Gravatar','Keybase','GitHub']],
+    [`${probes?probes+' ':''}platform probes`,'keyless','handle presence, API-verified',[]],
+    ['mempool · BlockCypher · OFAC','keyless','BTC/ETH balances, SDN screen',['mempool.space','BlockCypher','OFAC']],
+    ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation',['VirusTotal']],
+    ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org',['Shodan']],
+    ['Have I Been Pwned',keyed.hibp?'on':'HIBP_API_KEY','breach exposure per email',['HIBP']],
+    ['NumVerify',keyed.numverify?'on':'NUMVERIFY_API_KEY','carrier + line type',['NumVerify']],
+    ['OpenCorporates',keyed.opencorporates?'on':'OPENCORPORATES_API_TOKEN','officers, filings, subsidiaries',['OpenCorporates']],
+    ['OpenSanctions',keyed.opensanctions?'on':'OPENSANCTIONS_API_KEY','wallet + entity sanctions',['OpenSanctions']],
+  ].map(([n,st,what,providers])=>{
+    const on=st==='keyless'||st==='on';
+    const failed=on?errs.filter(e=>providers.includes(e.provider)):[];
+    const state=!on?'no_key':failed.length?'degraded':'live';
+    const why=!on?'SET KEY':failed.length?failed.map(e=>e.provider+' '+e.error).join(' · ').toUpperCase():st==='keyless'?'NO KEY':'KEY SET';
+    return {n,st,what,state,why};
+  });
+  const onCount=rows.filter(r=>r.state!=='no_key').length, degraded=rows.filter(r=>r.state==='degraded').length;
+  const badgeText=`${onCount}/${rows.length} ON${degraded?` · ${degraded} DEGRADED`:''}`;
+  return `<div class="g-panel"><div class="sec-head"><h3>Pivot Providers</h3><span class="badge ${degraded?'warn':''}" title="${degraded?esc(`${degraded} provider group(s) failed in the last dossier (${INV.dossier?.target||''})`):''}">${badgeText}</span></div>
+    ${rows.map(({n,st,what,state,why})=>`<div class="sh-row ${state}"><span class="hdot ${state}"></span><span class="sh-name">${esc(n)}</span><span class="sh-why" style="white-space:normal;overflow-wrap:anywhere;text-align:right">${esc(why)}</span></div><div class="sh-ms" style="text-align:left;margin:-2px 0 4px 14px">${esc(what)}${state==='no_key'?` · <code>${esc(st)}</code>`:''}</div>`).join('')}
+    ${degraded?`<div class="sh-note">Degraded rows reflect the last dossier run (${esc(INV.dossier?.target||'')}); those sections are missing from it, not empty.</div>`:''}
     <div class="sh-note">Investigations run on demand and are not part of the 15-minute sweep. Lookups are passive and read-only; nothing is stored server-side beyond a 15-minute response cache. Case state lives in this browser only.</div></div>`;
 }
 fetch('/api/investigate/status').then(r=>r.ok?r.json():null).then(s=>{if(s?.keyed){INV._status=s;if(currentTab==='investigations'){renderLeftRail();if(!INV.loading)renderLower()}}}).catch(()=>{});
