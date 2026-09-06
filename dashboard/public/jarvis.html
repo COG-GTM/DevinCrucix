@@ -351,6 +351,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .bw-anom .m{font-family:var(--mono);font-size:8px;color:var(--dim)}
 .bw-art{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);border-left:3px solid rgba(0,229,255,0.3)}
 .bw-art.violence{border-left-color:#ff4081}
+.bw-art .src{display:block;font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px}
 .bw-art .t{font-size:11px;line-height:1.35;color:#c8d8d2;margin-top:2px}.bw-art .t a{color:#c8d8d2;text-decoration:none}.bw-art .t a:hover{color:var(--accent)}
 .bw-tag{font-family:var(--mono);font-size:7px;letter-spacing:0.06em;text-transform:uppercase;padding:1px 4px;display:inline-block;margin-right:3px;border:1px solid rgba(255,255,255,0.15);color:var(--dim)}
 .bw-tag.lang{color:#00e5ff;border-color:rgba(0,229,255,0.3)}.bw-tag.pay{color:#ffd54f;border-color:rgba(255,213,79,0.35)}.bw-tag.viol{color:#ff4081;border-color:rgba(255,64,129,0.35)}.bw-tag.mt{color:#b39ddb;border-color:rgba(179,157,219,0.35)}.bw-tag.cit{color:#ff9800;border-color:rgba(255,152,0,0.35)}
@@ -2049,7 +2050,7 @@ function renderBorderPanel(){
       a.hasMachineTranslation ? '<span class="bw-tag mt" title="English text is a derived machine translation; original-language text is the source of record">MT available</span>' : '',
     ].join('');
     const regions = (a.regions||[]).slice(0,3).map(r => `<span class="bw-region">\u25b8 ${esc(r.name)}</span>`).join('');
-    return `<div class="bw-art${a.isViolence?' violence':''}">${tags}<span class="na-date">${esc(a.outlet)}${a.publishedAt?` \u00b7 ${getAge(a.publishedAt)}`:''}</span><div class="t">${open}${esc(a.title)}${close}</div>${regions?`<div>${regions}</div>`:''}</div>`;
+    return `<div class="bw-art${a.isViolence?' violence':''}">${tags}<span class="src">${esc(a.outlet)}${a.publishedAt?` \u00b7 ${getAge(a.publishedAt)}`:''}</span><div class="t">${open}${esc(a.title)}${close}</div>${regions?`<div>${regions}</div>`:''}</div>`;
   }).join('');
   const baseHtml = (bw.baselines||[]).map(b => {
     const st = ['updated','unchanged','error','blocked','robots_blocked','skipped'].includes(b.status) ? b.status : 'never';
