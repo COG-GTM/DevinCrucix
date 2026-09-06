@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	
+	xmlns:georss="http://www.georss.org/georss"
+	xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+	xmlns:dcterms="http://purl.org/dc/terms/"
+>
+
+<channel>
+	<title>KVEO-TV</title>
+	<atom:link href="https://www.valleycentral.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.valleycentral.com</link>
+	<description></description>
+	<lastBuildDate>Sun, 06 Sep 2026 15:07:54 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.8.8</generator>
+
+<image>
+	<url>https://www.valleycentral.com/wp-content/uploads/sites/39/2025/10/cropped-VC_LOGO_512x512-1.png?w=32</url>
+	<title>KVEO-TV</title>
+	<link>https://www.valleycentral.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<site xmlns="com-wordpress:feed-additions:1">162794438</site>	<item>
+		<title>UTRGV loses on the road to UTSA, 45-16</title>
+		<link>https://www.valleycentral.com/valleycentral/vaqueros-nation/utrgv-loses-on-the-road-to-utsa-45-16/</link>
+		
+		<dc:creator><![CDATA[Mia Morales]]></dc:creator>
+		<pubDate>Sun, 06 Sep 2026 00:35:00 +0000</pubDate>
+		<category><![CDATA[Vaqueros Nation]]></category>		<category><![CDATA[ValleyCentral+]]></category>
+		
+		<category><![CDATA[Alamo]]></category>
+		<category><![CDATA[Border]]></category>
+		<category><![CDATA[Brownsville]]></category>
+		<category><![CDATA[Donna]]></category>
+		<category><![CDATA[Edinburg]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Mercedes]]></category>
+		<category><![CDATA[Mexico]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Pharr]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[San Juan]]></category>
+		<category><![CDATA[South Texas]]></category>
+		<category><![CDATA[stx]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[trending]]></category>
+		<category><![CDATA[Weslaco]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302830</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — The University of Texas Rio Grande Valley football program fell to UT San Antonio 45-16 Saturday night in its first on-the-road game of the 2026 season. The Vaqueros started the game with fifth-year quarterback Garret Rangel, who led UTRGV into field goal range on its opening drive. However, the field goal [...]]]></description>
+		
+		
+		
+		      <dc:creator><![CDATA[Noah Gulley]]></dc:creator>
+      <dc:creator><![CDATA[Megan Murray]]></dc:creator>
+<post-id xmlns="com-wordpress:feed-additions:1">3302830</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/football-3.jpg?w=872" type="image/jpeg" length="146768" />
+<dcterms:modified>2026-09-06T00:35:02+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Brownsville PD investigates shots fired outside City Commissioner&#039;s home</title>
+		<link>https://www.valleycentral.com/news/local-news/brownsville-pd-investigates-shots-fired-outside-city-commissioners-home/</link>
+		
+		<dc:creator><![CDATA[Mia Morales]]></dc:creator>
+		<pubDate>Sat, 05 Sep 2026 21:35:12 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		<category><![CDATA[Crime]]></category>
+		<category><![CDATA[Local]]></category>
+		
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Alamo]]></category>
+		<category><![CDATA[Border]]></category>
+		<category><![CDATA[Brownsville]]></category>
+		<category><![CDATA[brownsville commissioner]]></category>
+		<category><![CDATA[cbs 4]]></category>
+		<category><![CDATA[Donna]]></category>
+		<category><![CDATA[Edinburg]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Mercedes]]></category>
+		<category><![CDATA[Mexico]]></category>
+		<category><![CDATA[nbc 23]]></category>
+		<category><![CDATA[Pharr]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[San Juan]]></category>
+		<category><![CDATA[shooting investigation]]></category>
+		<category><![CDATA[shots fired]]></category>
+		<category><![CDATA[South Texas]]></category>
+		<category><![CDATA[stx]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[trending]]></category>
+		<category><![CDATA[valleycentral]]></category>
+		<category><![CDATA[Weslaco]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302847</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — The Brownsville Police Department is investigating shots fired in front of a sitting Brownsville City Commissioner's home, according to a news release. According to Brownsville police, the shooting occurred early Saturday morning. No injuries have been reported.  "Investigators are working to determine the circumstances surrounding the incident and identify suspects in the [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302847</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2025/06/Gas-leaaak-e1769029295242.jpg?w=900" type="image/jpeg" length="82796" />
+<dcterms:modified>2026-09-05T21:35:14+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>CBP: Agents rescued 8 migrants from locked train car</title>
+		<link>https://www.valleycentral.com/news/cbp-agents-rescued-8-migrants-from-locked-train-car/</link>
+		
+		<dc:creator><![CDATA[Sandra Sanchez]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 22:33:56 +0000</pubDate>
+		<category><![CDATA[News]]></category>		
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302222</guid>
+
+					<description><![CDATA[U.S. Border Patrol agents assigned to the Del Rio, Texas, sector say they recently rescued eight migrants, including a child, who had been locked inside a train car.]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302222</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/RAIL-CAR-PHOTO.jpg?w=541" type="image/jpeg" length="557640" />
+<dcterms:modified>2026-09-04T22:33:56+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Valley Central Weekend Report: Hidalgo County Courthouse crash, Data Centers and Athlete of the week </title>
+		<link>https://www.valleycentral.com/news/local-news/valley-central-weekend-report-hidalgo-county-courthouse-crash-data-centers-and-athlete-of-the-week/</link>
+		
+		<dc:creator><![CDATA[Thom Denton]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 23:59:24 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3301009</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — On this week’s edition of ValleyCentral Weekend Report, Anchor Alejandra Yanez breaks down all the news of the week.   Starting with the biggest stories of the week, in case you missed them.    In one of the biggest stories of the week, 49-year-old Edinburg resident Jesus Alaniz is accused of driving his BMW into the front of [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3301009</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/Screenshot-2026-09-04-183729.png?w=900" type="image/png" length="797379" />
+<dcterms:modified>2026-09-04T23:59:26+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Texas Comptroller seizes Pharr Crunch Fitness for nonpayment of taxes</title>
+		<link>https://www.valleycentral.com/news/local-news/texas-comptroller-seizes-pharr-crunch-fitness-for-nonpayment-of-taxes/</link>
+		
+		<dc:creator><![CDATA[Mia Morales]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 22:57:30 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		<category><![CDATA[Local]]></category>
+		
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Alamo]]></category>
+		<category><![CDATA[Border]]></category>
+		<category><![CDATA[Brownsville]]></category>
+		<category><![CDATA[Donna]]></category>
+		<category><![CDATA[Edinburg]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Mercedes]]></category>
+		<category><![CDATA[Mexico]]></category>
+		<category><![CDATA[Pharr]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[San Juan]]></category>
+		<category><![CDATA[South Texas]]></category>
+		<category><![CDATA[stx]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[trending]]></category>
+		<category><![CDATA[Weslaco]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302144</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — The Texas Comptroller of Public Accounts has seized a Pharr Crunch Fitness gym for nonpayment of taxes, according to Kevin Lyons, an agency spokesperson. The Crunch Fitness building, located at 500 N Jackson Road in Pharr, had a notice taped to the door on Friday stating: "The State Comptroller's Office has seized [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302144</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/seized-crunch-1.jpg?w=873" type="image/jpeg" length="99917" />
+<dcterms:modified>2026-09-05T14:57:57+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Judge sets bond at $75,000 for ICE officer charged with lying about Minnesota shooting</title>
+		<link>https://www.valleycentral.com/news/local-news/after-being-indicted-ice-officer-makes-his-first-appearance-in-federal-court/</link>
+		
+		<dc:creator><![CDATA[Dave Hendricks]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 16:06:07 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		<category><![CDATA[Investigates]]></category>
+		<category><![CDATA[Investigations]]></category>
+		
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Christian Castro]]></category>
+		<category><![CDATA[Christian J. Castro]]></category>
+		<category><![CDATA[Ice]]></category>
+		<category><![CDATA[ICE ERO]]></category>
+		<category><![CDATA[ICE Shooting]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Minneapolis]]></category>
+		<category><![CDATA[Minnesota]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[U.S. Immigration and Customs Enforcement]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3301865</guid>
+
+					<description><![CDATA[McALLEN, Texas (ValleyCentral) — A judge on Friday set bond at $75,000 for a U.S. Immigration and Customs Enforcement officer who shot a Venezuelan immigrant — and allegedly lied about it. ICE Deportation Officer Christian J. Castro, 52, of McAllen shot a Venezuelan man on Jan. 14, 2026, during a major immigration operation in Minneapolis. [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3301865</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/Christian-Castro-Photo.png?w=553" type="image/png" length="2567043" />
+<dcterms:modified>2026-09-04T23:42:14+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>2 New World screwworm quarantine areas lifted in Texas, congressman says</title>
+		<link>https://www.valleycentral.com/news/2-new-world-screwworm-quarantine-areas-lifted-in-texas-congressman-says/</link>
+		
+		<dc:creator><![CDATA[]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 23:07:32 +0000</pubDate>
+		<category><![CDATA[News]]></category>		
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302202</guid>
+
+					<description><![CDATA[The U.S. Department of Agriculture has lifted quarantine restrictions for two previously listed "infested" zones in Texas where the New World screwworm had been found, a South Texas congressman says.]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302202</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/AP26232685338309.jpg?w=900" type="image/jpeg" length="5912070" />
+<dcterms:modified>2026-09-04T23:33:15+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>McAllen police seek man wanted on several felony warrants</title>
+		<link>https://www.valleycentral.com/news/local-news/mcallen-police-seek-man-wanted-on-several-felony-warrants/</link>
+		
+		<dc:creator><![CDATA[Claudia Torres]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 22:33:15 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		<category><![CDATA[Local]]></category>
+		
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302211</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — McAllen police are searching for a man wanted on several felony warrants stemming from a domestic-related investigation. Jakobie Deanthony Harris, 23, of McAllen, is wanted on two counts of violation of certain court orders, a third-degree felony; two counts of continuous violence against the family, a third-degree felony; injury to a [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302211</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/MONITOR-1920x1080-BG-10.jpg?w=900" type="image/jpeg" length="115075" />
+<dcterms:modified>2026-09-04T22:33:17+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Penitas man killed, 2 hospitalized in crash north of Palmview: DPS</title>
+		<link>https://www.valleycentral.com/news/local-news/dps-investigating-fatal-crash-north-of-palmview/</link>
+		
+		<dc:creator><![CDATA[Claudia Torres]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 19:16:22 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302046</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — A Penitas man was killed and two people were hospitalized after a three-vehicle crash north of Palmview Friday afternoon, according to an update from the Texas Department of Public Safety.   At approximately 1:47 p.m., DPS troopers responded to a crash on Texan Road and 5 Mile Line.  A preliminary investigation revealed [...]]]></description>
+		
+		
+		
+		      <dc:creator><![CDATA[Mia Morales]]></dc:creator>
+<post-id xmlns="com-wordpress:feed-additions:1">3302046</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/image-1.png?w=788" type="image/png" length="795242" />
+<dcterms:modified>2026-09-04T21:31:52+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>McDonald&#039;s highlights the Valley with &#039;956&#039; collectible cup</title>
+		<link>https://www.valleycentral.com/community/mcdonalds-highlights-the-valley-with-956-collectible-cup/</link>
+		
+		<dc:creator><![CDATA[Shirley Escobedo]]></dc:creator>
+		<pubDate>Sun, 06 Sep 2026 15:07:52 +0000</pubDate>
+		<category><![CDATA[Community]]></category>		
+		<category><![CDATA[956 Valley]]></category>
+		<category><![CDATA[Avery Orendorf]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Marissa Hernandez]]></category>
+		<category><![CDATA[Mcdonalds]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[valleycentral]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302067</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — McDonald's launched its Texas bundle meal on Sept. 1, featuring collectible cups designed by Texas-based artist Avery Orendorf, with different areas of Texas and the 956 Valley is one of them. The meal includes 10-piece spicy or regular Chicken McNuggets, medium fries and a medium drink, plus one of the collectible [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302067</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/Image-13.jpg?w=900" type="image/jpeg" length="2505671" />
+<dcterms:modified>2026-09-06T15:07:54+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Semi carrying 40,000 pounds of bell peppers flips over on U.S. 281</title>
+		<link>https://www.valleycentral.com/news/local-news/semi-carrying-40000-pounds-of-bell-peppers-flips-over-on-u-s-281/</link>
+		
+		<dc:creator><![CDATA[Mia Morales]]></dc:creator>
+		<pubDate>Sat, 05 Sep 2026 22:24:00 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		<category><![CDATA[Community]]></category>
+		<category><![CDATA[Local]]></category>
+		
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Alamo]]></category>
+		<category><![CDATA[Border]]></category>
+		<category><![CDATA[Brownsville]]></category>
+		<category><![CDATA[Donna]]></category>
+		<category><![CDATA[Edinburg]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Mercedes]]></category>
+		<category><![CDATA[Mexico]]></category>
+		<category><![CDATA[Pharr]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[San Juan]]></category>
+		<category><![CDATA[South Texas]]></category>
+		<category><![CDATA[stx]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[trending]]></category>
+		<category><![CDATA[Weslaco]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302892</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — A semi-truck hauling produce overturned Saturday morning, causing traffic near Southbound U.S. 281, according to the Texas Department of Transportation. According to photos posted on social media by TxDOT, the semi was hauling 40,000 pounds of bell peppers when it overturned near the area of southbound US 281 and FM 186 in [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302892</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/txdot-1.jpg?w=869" type="image/jpeg" length="95044" />
+<dcterms:modified>2026-09-05T22:24:02+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>A Weekend Weather Story: Two Characters, One Stage</title>
+		<link>https://www.valleycentral.com/weather2/a-weekend-weather-story-two-characters-one-stage/</link>
+		
+		<dc:creator><![CDATA[Marcelo Rivera González]]></dc:creator>
+		<pubDate>Sat, 05 Sep 2026 02:47:54 +0000</pubDate>
+		<category><![CDATA[Weather]]></category>		<category><![CDATA[Community]]></category>
+		<category><![CDATA[Local]]></category>
+		<category><![CDATA[Local News]]></category>
+		<category><![CDATA[News]]></category>
+		
+		<category><![CDATA[Alamo]]></category>
+		<category><![CDATA[Border]]></category>
+		<category><![CDATA[Brownsville]]></category>
+		<category><![CDATA[Donna]]></category>
+		<category><![CDATA[Edinburg]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Mercedes]]></category>
+		<category><![CDATA[Mexico]]></category>
+		<category><![CDATA[Pharr]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[San Juan]]></category>
+		<category><![CDATA[South Texas]]></category>
+		<category><![CDATA[stx]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[trending]]></category>
+		<category><![CDATA[Weslaco]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302377</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) —In this weekend’s weather tale, two stubborn characters step into the spotlight: Triple‑digit heat; loud, confident, and already used to running the show,  and a quieter challenger, sea‑breeze showers drifting in from the Gulf, hoping to steal a little attention.  For now, the high‑pressure system remains the big boss, stretching across the [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302377</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/FUTURECAST-9.4.26-2.jpg?w=900" type="image/jpeg" length="1244814" />
+<dcterms:modified>2026-09-05T02:47:56+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>Mic&#039;d Up: Mission Veterans Head Coach David Gilpin</title>
+		<link>https://www.valleycentral.com/hsf-micd-up/micd-up-mission-veterans-head-coach-david-gilpin-2/</link>
+		
+		<dc:creator><![CDATA[Claudia Torres]]></dc:creator>
+		<pubDate>Sat, 05 Sep 2026 01:37:21 +0000</pubDate>
+		<category><![CDATA[HSF: MIC'D UP]]></category>		
+		<category><![CDATA[Local]]></category>
+		<category><![CDATA[Local News]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Alamo]]></category>
+		<category><![CDATA[Border]]></category>
+		<category><![CDATA[Brownsville]]></category>
+		<category><![CDATA[Donna]]></category>
+		<category><![CDATA[Edinburg]]></category>
+		<category><![CDATA[Harlingen]]></category>
+		<category><![CDATA[Mcallen]]></category>
+		<category><![CDATA[Mercedes]]></category>
+		<category><![CDATA[Mexico]]></category>
+		<category><![CDATA[Pharr]]></category>
+		<category><![CDATA[Rgv]]></category>
+		<category><![CDATA[Rio Grande Valley]]></category>
+		<category><![CDATA[San Juan]]></category>
+		<category><![CDATA[South Texas]]></category>
+		<category><![CDATA[stx]]></category>
+		<category><![CDATA[Texas]]></category>
+		<category><![CDATA[trending]]></category>
+		<category><![CDATA[Weslaco]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3302180</guid>
+
+					<description><![CDATA[HARLINGEN, Texas (ValleyCentral) — It's Week 2 of High School Football, and the ValleySportsCentral continues to feature some high-scoring games. Thursday's game included PSJA North taking it to Mission Vterans 56-14 in a top-10 matchup. The Patriots trailed 35-0 at the Half, and did show some fight in the Third Quarter with two scores. That [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3302180</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/Screenshot-2026-09-04-165055.png?w=900" type="image/png" length="544726" />
+<dcterms:modified>2026-09-05T04:08:45+00:00</dcterms:modified>
+	</item>
+		<item>
+		<title>&#039;First and absolutely last&#039;: Mother demands answers after 5-year-old leaves Edinburg Boys &#038; Girls Club unsupervised</title>
+		<link>https://www.valleycentral.com/news/local-news/first-and-absolutely-last-mother-demands-answers-after-5-year-old-leaves-edinburg-boys-girls-club-unsupervised/</link>
+		
+		<dc:creator><![CDATA[Jorge Vela]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2026 02:16:51 +0000</pubDate>
+		<category><![CDATA[Local News]]></category>		<category><![CDATA[Community]]></category>
+		
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://www.valleycentral.com/?p=3301148</guid>
+
+					<description><![CDATA[EDINBURG, Texas (ValleyCentral) — A mother is demanding answers after she says her 5-year-old daughter walked away from the Boys &#38; Girls Clubs of Edinburg RGV. She was later found outside the facility without shoes. Destiny Esquivel says Wednesday was her daughter Zoe Torres’ first and last day at the Boys &#38; Girls Club’s after-school program. [...]]]></description>
+		
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">3301148</post-id><enclosure url="https://www.valleycentral.com/wp-content/uploads/sites/39/2026/09/189174C691E730BB1AFA9642A363DB44-e1788488310861.jpg?w=900" type="image/jpeg" length="138258" />
+<dcterms:modified>2026-09-04T14:37:33+00:00</dcterms:modified>
+	</item>
+	</channel>
+</rss>

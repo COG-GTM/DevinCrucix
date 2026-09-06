@@ -10,11 +10,11 @@ import {
   briefing, loadRegistry, validateRegistry, normalizeItem, normalizeUrl, titleKey, wpPostId,
   tagTopics, tagPlaces, conditionalHeaders, classifyHttp, pollFeed, enrichArticle, mergeIntoStore,
   detectSpikes, baselineCoverage, summarizeStore, queryArticles, applyTags, sha256, stripDateline,
-  PLACES, PLACE_KEYS, PLACE_BY_KEY, TOPIC_KEYS, PIPELINE_VERSION, TAGGER_VERSION, resetForTests,
+  PLACES, PLACE_KEYS, PLACE_BY_KEY, TOPIC_KEYS, PIPELINE_VERSION, TAGGER_VERSION, resetForTests, matchesPathPrefixes,
 } from '../apis/sources/bordernews.mjs';
 import { parseRobots, isAllowedByRules, checkRobots, resetRobotsCacheForTests, CRAWLER_UA } from '../apis/utils/robots.mjs';
 import { extractArticle, htmlToText, bodyParagraphs } from '../apis/utils/article.mjs';
-import { parseFeed } from '../apis/utils/rss.mjs';
+import { parseFeed, feedMeta, isNewsSitemap } from '../apis/utils/rss.mjs';
 import { classifySource } from '../lib/sourcehealth.mjs';
 
 const FIX = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'border');
@@ -26,6 +26,7 @@ const BR_POST = readFileSync(join(FIX, 'borderreport-post-3078323.json'), 'utf8'
 const registry = loadRegistry();
 const BR = registry.find(s => s.id === 'borderreport');
 const TT = registry.find(s => s.id === 'texastribune');
+const THIN = [BR, TT]; // original two-outlet slice; end-to-end sweeps below script fetch for exactly these
 
 function res(status, body = '', headers = {}, url = '') {
   const h = new Map(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
@@ -51,14 +52,24 @@ function tmpDir() { return mkdtempSync(join(tmpdir(), 'crucix-border-')); }
 
 // --- registry -------------------------------------------------------------------
 
-test('registry: both thin-slice outlets present with required provenance metadata', () => {
-  assert.equal(registry.length, 2);
+test('registry: every verified outlet present with required provenance metadata', () => {
+  assert.deepEqual(registry.map(s => s.id), ['borderreport', 'texastribune', 'valleycentral', 'zetatijuana', 'borderlandbeat', 'justiceinmexico', 'insightcrime-mexico', 'milenio']);
   for (const s of registry) {
     for (const f of ['id', 'outlet', 'feedUrl', 'language', 'countryOfPublication', 'regionTag', 'reliability', 'discoveryDate']) assert.ok(s[f], `${s.id}.${f}`);
     assert.equal(s.reliability, 'ungraded');
     assert.match(s.discoveryDate, /^\d{4}-\d{2}-\d{2}$/);
     assert.ok(s.feedUrl.startsWith('https://'));
   }
+});
+
+test('README Border Watch section names every registered outlet and no unregistered one', () => {
+  const readme = readFileSync(join(FIX, '..', '..', '..', 'README.md'), 'utf8');
+  const section = readme.split('### Border Watch')[1].split('\n### ')[0];
+  const base = o => o.replace(/\s*\(.*\)$/, '');
+  for (const s of registry) assert.ok(section.includes(base(s.outlet)), `README lacks ${s.outlet}`);
+  const listed = section.match(/^Registered outlets: (.*?)\. Per-source/ms)[1];
+  const named = listed.split(/, (?:and )?/).map(x => x.replace(/\s*\(.*$/, '').replace(/'s.*$/, '').trim());
+  assert.deepEqual(named.sort(), registry.map(s => base(s.outlet)).sort());
 });
 
 test('registry: validation rejects bad entries', () => {
@@ -385,7 +396,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
     ['feeds.texastribune.org/link/', res(403, 'denied')],
   ]);
   const now = Date.parse('2026-09-05T21:00:00Z');
-  const out = await briefing({ fetch: f, dataDir, now, maxArticleFetch: 2, politeDelayMs: 0 });
+  const out = await briefing({ registry: THIN, fetch: f, dataDir, now, maxArticleFetch: 2, politeDelayMs: 0 });
   assert.equal(out.source, 'BorderNews');
   assert.equal(out.status, 'live');
   assert.equal(out.totalArticles, 30);
@@ -414,7 +425,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
     ['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)],
     ['/wp-json/', res(403, 'denied')], ['borderreport.com/', res(403, 'denied')], ['feeds.texastribune.org/link/', res(403, 'denied')],
   ]);
-  const out2 = await briefing({ fetch: f2, dataDir, now: now + 900_000, maxArticleFetch: 1, politeDelayMs: 0 });
+  const out2 = await briefing({ registry: THIN, fetch: f2, dataDir, now: now + 900_000, maxArticleFetch: 1, politeDelayMs: 0 });
   assert.equal(out2.status, 'live');
   assert.equal(out2.newThisSweep, 0);
   assert.equal(out2.totalArticles, 30);
@@ -430,7 +441,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
 
   // catch-up is skipped when the enrichment time budget is already spent
   const f3 = mockFetch([['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)]]);
-  const out3 = await briefing({ fetch: f3, dataDir, now: now + 1_800_000, enrichBudgetMs: 0, politeDelayMs: 0 });
+  const out3 = await briefing({ registry: THIN, fetch: f3, dataDir, now: now + 1_800_000, enrichBudgetMs: 0, politeDelayMs: 0 });
   assert.equal(f3.calls.length, 2, 'no article fetches once the budget is exhausted');
   assert.equal(out3.status, 'live');
   assert.equal(out3.retaggedThisSweep, 0);
@@ -440,7 +451,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
   const stale = JSON.parse(readFileSync(storePath, 'utf8'));
   for (const r of stale) { r.tags = { topics: [], places: ['yuma-az'], tool: 'crucix-rules/0' }; }
   writeFileSync(storePath, JSON.stringify(stale));
-  const out4 = await briefing({ fetch: mockFetch([['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)]]), dataDir, now: now + 2_700_000, enrichBudgetMs: 0, politeDelayMs: 0 });
+  const out4 = await briefing({ registry: THIN, fetch: mockFetch([['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)]]), dataDir, now: now + 2_700_000, enrichBudgetMs: 0, politeDelayMs: 0 });
   assert.equal(out4.retaggedThisSweep, 30);
   assert.ok(out4.articles.every(a => a.tags.tool === TAGGER_VERSION && !a.tags.places.includes('yuma-az')));
 
@@ -454,20 +465,20 @@ test('briefing: one feed blocked -> partial/degraded; all feeds down with histor
   resetRobotsCacheForTests(); resetForTests();
   const dataDir = tmpDir();
   const now = Date.parse('2026-09-05T21:00:00Z');
-  const partial = await briefing({ fetch: mockFetch([['robots.txt', ROBOTS_OK], ['borderreport.com/feed', res(200, BR_FEED)], ['texastribune', res(406, 'bot')]]), dataDir, now, fetchArticles: false, politeDelayMs: 0 });
+  const partial = await briefing({ registry: THIN, fetch: mockFetch([['robots.txt', ROBOTS_OK], ['borderreport.com/feed', res(200, BR_FEED)], ['texastribune', res(406, 'bot')]]), dataDir, now, fetchArticles: false, politeDelayMs: 0 });
   assert.equal(partial.status, 'partial');
   assert.equal(partial.totalArticles, 10);
   assert.equal(partial.feeds.find(x => x.id === 'texastribune').status, 'blocked');
   assert.equal(classifySource('BorderNews', partial).state, 'degraded');
 
-  const stale = await briefing({ fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir, now: now + 1000, fetchArticles: false, politeDelayMs: 0 });
+  const stale = await briefing({ registry: THIN, fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir, now: now + 1000, fetchArticles: false, politeDelayMs: 0 });
   assert.equal(stale.status, 'stale');
   assert.equal(stale.totalArticles, 10, 'stored articles still served');
   const h = classifySource('BorderNews', stale);
   assert.equal(h.state, 'degraded');
   assert.equal(h.reason, 'stale');
 
-  const cold = await briefing({ fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir: tmpDir(), now, fetchArticles: false, politeDelayMs: 0 });
+  const cold = await briefing({ registry: THIN, fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir: tmpDir(), now, fetchArticles: false, politeDelayMs: 0 });
   assert.equal(cold.status, 'error');
   assert.match(cold.error, /all feeds failed/);
   assert.equal(classifySource('BorderNews', cold).state, 'error');
@@ -476,7 +487,7 @@ test('briefing: one feed blocked -> partial/degraded; all feeds down with histor
 test('briefing: reachable feeds with zero items is "empty" -> degraded, not live', async () => {
   resetForTests();
   const emptyRss = '<rss><channel><title>x</title></channel></rss>';
-  const out = await briefing({ fetch: mockFetch([['feed', res(200, emptyRss)], ['feeds/main', res(200, emptyRss)]]), dataDir: tmpDir(), now: Date.now(), fetchArticles: false, politeDelayMs: 0 });
+  const out = await briefing({ registry: THIN, fetch: mockFetch([['feed', res(200, emptyRss)], ['feeds/main', res(200, emptyRss)]]), dataDir: tmpDir(), now: Date.now(), fetchArticles: false, politeDelayMs: 0 });
   assert.equal(out.status, 'empty');
   assert.equal(classifySource('BorderNews', out).state, 'degraded');
 });
@@ -485,4 +496,148 @@ test('briefing: invalid registry is reported as an error, not thrown', async () 
   const out = await briefing({ registryFile: join(FIX, 'borderreport-feed.xml'), dataDir: tmpDir(), persist: false });
   assert.equal(out.status, 'error');
   assert.match(out.error, /registry invalid/);
+});
+
+// --- verified outlets added 2026-09-06: recorded payloads + per-source policy ---------
+
+const load = f => readFileSync(join(FIX, f), 'utf8');
+const src = id => registry.find(s => s.id === id);
+
+test('ValleyCentral / Zeta / Justice in Mexico / InSight Crime MX fixtures parse as WordPress RSS with ?p= guids', () => {
+  const cases = [
+    ['valleycentral-feed.xml', 14, 'https://www.valleycentral.com/?p=3302830', 'https://www.valleycentral.com/'],
+    ['zetatijuana-feed.xml', 10, 'https://zetatijuana.com/?p=521885', 'https://zetatijuana.com/'],
+    ['justiceinmexico-feed.xml', 3, 'https://justiceinmexico.org/?p=26268', 'https://justiceinmexico.org/'],
+    ['insightcrime-mexico-feed.xml', 4, 'https://insightcrime.org/?p=351087', 'https://insightcrime.org/'],
+  ];
+  for (const [file, count, guid, origin] of cases) {
+    const items = parseFeed(load(file));
+    assert.equal(items.length, count, file);
+    assert.equal(items[0].guid, guid, file);
+    assert.ok(items.every(i => i.link.startsWith(origin) && i.title && i.published), `${file}: link/title/date`);
+    assert.equal(wpPostId(items[0].guid), guid.split('?p=')[1]);
+  }
+});
+
+test('Borderland Beat Atom (Blogger, single-quoted attributes) parses link/categories and carries full post text', () => {
+  const items = parseFeed(load('borderlandbeat-feed.xml'));
+  assert.equal(items.length, 3);
+  assert.ok(items.every(i => /^https:\/\/www\.borderlandbeat\.com\/2026\/\d{2}\/.+\.html$/.test(i.link)), JSON.stringify(items.map(i => i.link)));
+  assert.ok(items.every(i => i.guid.startsWith('tag:blogger.com,1999:')));
+  const labelled = parseFeed("<feed xmlns='http://www.w3.org/2005/Atom'><entry><id>tag:x</id><title type='text'>T</title><category scheme='http://www.blogger.com/atom/ns#' term='Tamaulipas'/><link rel='replies' href='https://x.example/c'/><link rel='alternate' type='text/html' href='https://x.example/p.html'/></entry></feed>");
+  assert.deepEqual(labelled, [{ ...labelled[0], link: 'https://x.example/p.html', categories: ['Tamaulipas'] }]);
+  const recs = items.map(i => applyTags(normalizeItem(i, src('borderlandbeat'), '2026-09-06T00:00:00Z')));
+  const full = recs.filter(r => r.extraction.method === 'feed-content');
+  assert.ok(full.length >= 2, 'long Atom <content> becomes the record text');
+  assert.ok(full.every(r => r.textChars >= 1500 && r.text.length === r.textChars && r.contentHash === sha256(r.text)));
+  assert.ok(recs.some(r => r.tags.topics.includes('narcotics')));
+});
+
+test('Milenio Google News sitemap parses via parseFeed with news:title / publication_date / keywords', () => {
+  const xml = load('milenio-news-sitemap.xml');
+  assert.ok(isNewsSitemap(xml) && !isNewsSitemap(BR_FEED));
+  const items = parseFeed(xml);
+  assert.equal(items.length, 14);
+  assert.ok(items.every(i => i.link.startsWith('https://www.milenio.com/') && i.guid === i.link && i.title && i.published && i.description === ''));
+  assert.ok(items.every(i => i.publication === 'Milenio' && i.language === 'es'));
+  assert.ok(items[0].categories.length > 3, 'news:keywords -> categories');
+  assert.deepEqual(feedMeta(xml), { title: '', updated: null });
+});
+
+test('Spanish headlines are topic/place tagged', () => {
+  const t = s => tagTopics(s).map(x => x.topic).sort();
+  assert.deepEqual(t('Asesinan a hombre a balazos; Guardia Nacional detiene a dos sicarios con fentanilo'), ['enforcement', 'narcotics', 'violence']);
+  assert.deepEqual(t('Migrantes en albergues de Tijuana esperan cita de asilo'), ['migration']);
+  assert.deepEqual(t('Gobernador anuncia aranceles al comercio por el T-MEC'), ['governance', 'trade']);
+  const p = s => tagPlaces(s).map(x => x.key).sort();
+  assert.deepEqual(p('Cae presunto extorsionador de floristas en Reynosa'), ['reynosa-tamps']);
+  assert.deepEqual(p('Operativo en Nuevo Laredo y Piedras Negras'), ['nuevo-laredo-tamps', 'piedras-negras-coah']);
+});
+
+test('matchesPathPrefixes gates sitemap URLs by section', () => {
+  assert.equal(matchesPathPrefixes('https://www.milenio.com/policia/x', ['/policia', '/estados']), true);
+  assert.equal(matchesPathPrefixes('https://www.milenio.com/politica/', ['/politica']), true);
+  assert.equal(matchesPathPrefixes('https://www.milenio.com/policiales/x', ['/policia']), false, 'prefix must end at a path segment');
+  assert.equal(matchesPathPrefixes('https://www.milenio.com/deportes/x', ['/policia']), false);
+  assert.equal(matchesPathPrefixes('not a url', ['/policia']), false);
+  assert.equal(matchesPathPrefixes('https://x.example/anything', undefined), true);
+  assert.equal(matchesPathPrefixes('https://x.example/anything', []), true);
+});
+
+test('registry validation: feedType / fetchArticles / requirePlaceTag / pathPrefixes', () => {
+  assert.throws(() => validateRegistry({ sources: [{ ...BR, feedType: 'json' }] }), /feedType/);
+  assert.throws(() => validateRegistry({ sources: [{ ...BR, fetchArticles: 'no' }] }), /fetchArticles/);
+  assert.throws(() => validateRegistry({ sources: [{ ...BR, requirePlaceTag: 1 }] }), /requirePlaceTag/);
+  assert.throws(() => validateRegistry({ sources: [{ ...BR, pathPrefixes: [] }] }), /pathPrefixes/);
+  assert.throws(() => validateRegistry({ sources: [{ ...BR, pathPrefixes: ['policia'] }] }), /pathPrefixes/);
+  assert.doesNotThrow(() => validateRegistry({ sources: [{ ...BR, feedType: 'news-sitemap', fetchArticles: false, requirePlaceTag: true, pathPrefixes: ['/policia'] }] }));
+  const m = src('milenio');
+  assert.equal(m.feedType, 'news-sitemap');
+  assert.equal(m.fetchArticles, false);
+  assert.equal(m.requirePlaceTag, true);
+  assert.equal(src('insightcrime-mexico').requirePlaceTag, true);
+});
+
+test('briefing: Milenio sitemap sweep keeps only border-placed items in allowed sections, never fetches article pages', async () => {
+  resetRobotsCacheForTests(); resetForTests();
+  const dataDir = tmpDir();
+  const f = mockFetch([['sitemap-google-news-current-1.xml', res(200, load('milenio-news-sitemap.xml'), { ETag: '"ml1"' })]]);
+  const out = await briefing({ registry: [src('milenio')], fetch: f, dataDir, now: Date.parse('2026-09-06T16:00:00Z'), politeDelayMs: 0 });
+  assert.equal(out.status, 'live');
+  const feed = out.feeds[0];
+  assert.equal(feed.feedType, 'news-sitemap');
+  assert.equal(feed.status, 'ok');
+  assert.equal(feed.items, 14);
+  assert.equal(feed.fetchArticles, false);
+  assert.equal(feed.newItems + feed.filteredOut, 14);
+  assert.equal(feed.newItems, 3, 'policia/estados items naming Reynosa/Matamoros/Tijuana');
+  assert.equal(f.calls.length, 1, 'sitemap poll only — no robots/article/REST requests');
+  assert.ok(out.articles.every(a => a.tags.places.length > 0 && a.outlet === 'Milenio' && a.language === 'es'));
+  assert.ok(out.articles.every(a => a.extraction.fetchStatus === 'disabled (source policy: feed metadata only)'));
+  assert.ok(!out.articles.some(a => /Toros de Tijuana/.test(a.title)), 'sports section filtered by pathPrefixes');
+  assert.ok(out.articles.some(a => /Reynosa/.test(a.title)));
+
+  // second sweep: 304 keeps everything, still live
+  const out2 = await briefing({ registry: [src('milenio')], fetch: mockFetch([['sitemap-google-news-current-1.xml', res(304)]]), dataDir, now: Date.parse('2026-09-06T16:15:00Z'), politeDelayMs: 0 });
+  assert.equal(out2.status, 'live');
+  assert.equal(out2.totalArticles, 3);
+});
+
+test('briefing: empty <urlset> counts as a successful empty poll, not a failure', async () => {
+  resetForTests();
+  const empty = '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"></urlset>';
+  const out = await briefing({ registry: [src('milenio')], fetch: mockFetch([['sitemap', res(200, empty)]]), dataDir: tmpDir(), now: Date.now(), politeDelayMs: 0 });
+  assert.equal(out.feeds[0].status, 'empty');
+  assert.equal(out.status, 'empty');
+});
+
+test('briefing: full registry sweep with every fixture -> live, one record set per outlet, Blogger text needs no fetch', async () => {
+  resetRobotsCacheForTests(); resetForTests();
+  const dataDir = tmpDir();
+  const f = mockFetch([
+    ['borderreport.com/feed', res(200, BR_FEED)],
+    ['feeds.texastribune.org/feeds/main', res(200, TT_FEED)],
+    ['valleycentral.com/feed', res(200, load('valleycentral-feed.xml'))],
+    ['zetatijuana.com/feed', res(200, load('zetatijuana-feed.xml'))],
+    ['borderlandbeat.com/feeds/posts/default', res(200, load('borderlandbeat-feed.xml'))],
+    ['justiceinmexico.org/feed', res(200, load('justiceinmexico-feed.xml'))],
+    ['insightcrime.org/tag/mexico/feed', res(200, load('insightcrime-mexico-feed.xml'))],
+    ['sitemap-google-news-current-1.xml', res(200, load('milenio-news-sitemap.xml'))],
+  ]);
+  const out = await briefing({ fetch: f, dataDir, now: Date.parse('2026-09-06T16:00:00Z'), fetchArticles: false, politeDelayMs: 0 });
+  assert.equal(out.status, 'live');
+  assert.equal(out.feeds.length, 8);
+  assert.ok(out.feeds.every(x => x.status === 'ok'), JSON.stringify(out.feeds.map(x => [x.id, x.status])));
+  assert.equal(f.calls.length, 8, 'one poll per source, no article fetches');
+  const stored = JSON.parse(readFileSync(join(dataDir, 'articles.json'), 'utf8'));
+  const bySource = {};
+  for (const a of stored) bySource[a.sourceId] = (bySource[a.sourceId] || 0) + 1;
+  // JiM: 3 items, one (Feb 2026) is past the 90-day retention window. InSight Crime MX: none of the 4 Mexico-wide items names a border place.
+  assert.deepEqual(bySource, { borderreport: 10, texastribune: 20, valleycentral: 14, zetatijuana: 10, borderlandbeat: 3, justiceinmexico: 2, milenio: 3 });
+  assert.equal(out.feeds.find(x => x.id === 'insightcrime-mexico').filteredOut, 4, 'requirePlaceTag drops Mexico-wide items without a border place');
+  assert.equal(out.totalArticles, stored.length);
+  const bb = stored.filter(a => a.sourceId === 'borderlandbeat' && a.extraction.method === 'feed-content');
+  assert.ok(bb.length >= 2 && bb.every(a => a.extraction.fetchStatus === 'not needed (full text in feed)'));
+  assert.ok(stored.every(a => a.language === src(a.sourceId).language && a.countryOfPublication === src(a.sourceId).countryOfPublication));
+  assert.equal(classifySource('BorderNews', out).state, 'live');
 });
