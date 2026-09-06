@@ -76,8 +76,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border:1px solid var(--border);color:var(--accent)}
 
 /* TABS — one view per question; only the active tab's panels are rendered */
-.tabbar{display:flex;gap:4px;margin-top:10px;padding:6px;border:1px solid var(--border);background:var(--panel);backdrop-filter:blur(20px);overflow-x:auto;scrollbar-width:none}
+.tabbar-wrap{position:relative;margin-top:10px}
+.tabbar{position:relative;display:flex;gap:4px;padding:6px;border:1px solid var(--border);background:var(--panel);backdrop-filter:blur(20px);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabbar::-webkit-scrollbar{display:none}
+/* Overflow affordance: fading edge + chevron on whichever side has more tabs (D-09) */
+.tabbar-wrap::before,.tabbar-wrap::after{content:'';position:absolute;top:1px;bottom:1px;width:44px;pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:2}
+.tabbar-wrap::before{left:1px;background:linear-gradient(90deg,#060e16 30%,transparent)}
+.tabbar-wrap::after{right:1px;background:linear-gradient(270deg,#060e16 30%,transparent)}
+.tabbar-wrap.more-left::before,.tabbar-wrap.more-right::after{opacity:1}
+.tab-more{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:28px;height:28px;display:none;align-items:center;justify-content:center;border:1px solid var(--border);background:rgba(0,0,0,0.7);color:var(--accent);font-family:var(--mono);font-size:14px;cursor:pointer;padding:0}
+.tab-more.left{left:4px}.tab-more.right{right:4px}
+.tabbar-wrap.more-left .tab-more.left,.tabbar-wrap.more-right .tab-more.right{display:flex}
 .tab-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid transparent;background:transparent;color:var(--dim);font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:all 0.2s}
 .tab-btn:hover{color:var(--text);border-color:var(--border)}
 .tab-btn.active{color:#03140d;background:var(--accent);border-color:var(--accent)}
@@ -283,6 +292,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .lchip.auto{border-color:rgba(100,240,200,0.35);color:var(--accent)}
 .lchip.auto.on{background:rgba(100,240,200,0.14)}
 .lchip-head{padding:3px 7px;background:rgba(0,0,0,0.62);border:1px solid var(--border);color:var(--dim);white-space:nowrap}
+.map-legend .legend-toggle{display:none}
 .lchip-head b{color:#c8d8d2;font-weight:600}
 .pcap{font-size:10px;line-height:1.35;color:var(--dim);margin:-2px 0 8px;padding-bottom:6px;border-bottom:1px dashed rgba(255,255,255,0.06)}
 .pcap b{color:#9fb8b0;font-weight:500}
@@ -630,6 +640,22 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
   .glossary-panel{top:auto;right:0;left:0;bottom:0;width:100%;max-height:min(72vh,720px);border-left:none;border-right:none;border-bottom:none}
 }
 
+/* PHONES — readability floor: nothing under 12px, every control at least 24px tall (D-10) */
+@media(max-width:700px){
+  .regime-chip,.region-btn,.meta-pill,.alert-badge,.guide-btn,.sec-head h3,.badge,.tab-btn,.tab-btn .tab-n,.tab-hint,.foot,.sh-group,.sh-ms,.sit-head,.sit-head .sit-counts,.sit-sev,.sit-why,.sit-meta,.cii-name,.cii-score,.cii-trend,.cii-level,.sig-type,.sig-conf,.sig-title,.sig-meta,.sig-propaganda,.fp-urgency,.fp-name,.fp-score,.fp-signals,.threat-badge,.cii-warmup,.layer-sub,.nuke-ok,.site-row,.site-val,.econ-row,.front-kpi .k,.front-kpi .s,.front-row,.front-kind,.front-when,.front-legend,.ct-key,.ct-hint,.ct-chips,.ct-org,.ct-org-name,.ct-org-sub,.ct-org-n,.ct-kind,.ct-disc,.ct-brief .t,.ct-brief ul,.ct-feed-src,.map-legend,.pcap,.map-hint,.map-popup .pp-head,.map-popup .pp-text,.map-popup .pp-meta,.glossary-kicker,.glossary-sub,.glossary-term strong,.glossary-tag,.glossary-line,.glossary-label,.glossary-foot,.map-loading-text,.mc .ml,.mc .ms,.signal-row strong,.signal-row p,.src-item,.layer-count.nr,.sh-sum,.sh-row,.sh-env,.sh-why,.sh-note,.g-off-why,.ic .ic-ch,.ic .ic-t,.ic .ic-m,.sm .sml,.idea-card .idea-type,.idea-card .idea-text,.idea-card .idea-conf,.disclosure,.tk-card .tk-link,.tk-src,.tk-head,.tk-time,.mi-section-head,.mi-section-head .mi-count,.mi-row,.mi-ticker,.mi-type,.mi-premium,.mi-detail,.mi-sweep,.mi-congress-name,.prc-gauge-label,.narco-article .na-feed,.narco-article .na-title,.narco-article .na-date,.narco-entity,.bw-feed,.bw-feed .bw-st,.bw-sub,.bw-chip,.bw-spike,.bw-note,.bw-article .bw-meta,.bw-article .bw-flag,.bw-article .bw-title,.bw-foot,.bi-stat .k,.bi-sec,.bi-anom,.bi-anom .z,.bi-anom .m,.bi-art .src,.bi-art .t,.bi-tag,.bi-region,.bi-base,.bi-foot,.cbp-kpi .k,.cbp-kpi .d,.cbp-spark-lbl,.cbp-table,.cbp-table th,.delta-badge,.delta-row,.delta-val,.ideas-src,.lchip,.lchip-head,.proj-toggle,#globeViz .scene-tooltip,.idea-horizon,.defcon-badge,.pizza-trend,.pm-row,.pm-question,.pm-meta,.tg-live-msg,.tg-live-ch,.tg-live-time,.kev-row,.kev-cve,.kev-name,.kev-tag,.inv-input,.inv-btn,.inv-hint,.inv-type,.inv-risk,.inv-flag,.inv-sec,.inv-sec-title,.inv-kv,.inv-kv dt,.inv-chip,.inv-link.ext::after,.inv-ttag,.inv-preview,.inv-view,.inv-view .tab-n,.inv-views-right,.inv-err,.inv-loading-head,.inv-plat,.inv-chain,.inv-hop-n,.inv-hop-status,.inv-dork,.inv-dork-label,.inv-dork-q,.inv-dork-go,.inv-drop,.inv-toast,.cg-rel,.cg-label,.inv-tl-year,.inv-tl-row,.inv-tl-date,.inv-tl-who,.cf-step,.cf-step em,.cf-row,.cf-notes,.cf-actions .inv-btn,.ts-row,.ts-domain,.ts-base,.ts-tech{font-size:12px!important}
+  [style*="font-size:7px"],[style*="font-size:8px"],[style*="font-size:9px"],[style*="font-size:10px"],[style*="font-size:11px"]{font-size:12px!important}
+  .tab-btn{font-size:12px;padding:8px 12px;min-height:32px}
+  button,[role="button"],.tab-btn,.region-btn,.meta-pill,.guide-btn,.proj-toggle,.lchip,.inv-btn,.inv-view,.inv-dork-go,.map-zoom button,.tk-card.clickable,.layer-item{min-height:24px}
+  .region-btn,.meta-pill,.guide-btn,.proj-toggle,.lchip,.inv-btn,.inv-view{display:inline-flex;align-items:center;justify-content:center}
+  .map-popup{font-size:12px;max-width:min(92vw,320px)}
+  .glossary-panel{font-size:12px}
+  .map-container{height:clamp(300px,90vw,460px)}
+  .map-hint{display:none}
+  /* Layer chips collapse behind SHOW LAYERS so they don't cover the map */
+  .map-legend .legend-toggle{display:inline-flex}
+  .map-legend:not(.open) .lchip:not(.auto):not(.legend-toggle){display:none}
+}
+
 /* CONFLICT LAYER */
 @keyframes pulse-conflict{0%,100%{opacity:0.5;stroke-width:1.5}50%{opacity:0.9;stroke-width:2.5}}
 .conflict-ring{animation:pulse-conflict 2.5s ease-in-out infinite}
@@ -846,7 +872,11 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 <div id="main">
   <div id="liveBanner" class="live-banner" role="status" hidden></div>
   <div class="topbar" id="topbar"></div>
-  <div class="tabbar" id="tabbar" role="tablist"></div>
+  <div class="tabbar-wrap" id="tabbarWrap">
+    <button class="tab-more left" type="button" aria-label="Scroll tabs left" onclick="scrollTabbar(-1)">&#8249;</button>
+    <div class="tabbar" id="tabbar" role="tablist"></div>
+    <button class="tab-more right" type="button" aria-label="Scroll tabs right" onclick="scrollTabbar(1)">&#8250;</button>
+  </div>
   <div class="grid" id="grid">
     <div class="col" id="leftRail"></div>
     <div class="col" id="centerCol">
@@ -1037,17 +1067,8 @@ const regionPOV = {
 
 if(lowPerfMode) document.body.classList.add('low-perf');
 
-function isWeakMobileDevice(){
-  const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const memory = navigator.deviceMemory || 0;
-  const cores = navigator.hardwareConcurrency || 0;
-  return reducedMotion || (memory > 0 && memory <= 4) || (cores > 0 && cores <= 4);
-}
-
-function shouldStartFlat(){
-  if(!isMobileLayout()) return true;
-  return lowPerfMode || isWeakMobileDevice();
-}
+// Every layout starts on the flat map; the WebGL globe is an explicit opt-in via GLOBE MODE.
+function shouldStartFlat(){ return true; }
 
 function setMapLoading(show, text='Initializing 3D Globe'){
   const overlay = document.getElementById('mapLoading');
@@ -1172,6 +1193,23 @@ function renderTabbar(){
     const c=counts[tb.id];
     return `<button class="tab-btn ${tb.id===currentTab?'active':''}" role="tab" aria-selected="${tb.id===currentTab}" data-tab="${tb.id}" onclick="setTab('${tb.id}')" title="${esc(tb.hint)}">${esc(tb.label)}${c?`<span class="tab-n ${c.cls}" title="${esc(c.title)}">${esc(c.n)}</span>`:''}</button>`;
   }).join('')+`<span class="tab-hint">${esc(cur.hint)}</span>`;
+  const active=el.querySelector('.tab-btn.active');
+  if(active&&el.scrollWidth>el.clientWidth){
+    const pad=12,l=active.offsetLeft-pad,r=active.offsetLeft+active.offsetWidth+pad;
+    if(l<el.scrollLeft) el.scrollLeft=l; else if(r>el.scrollLeft+el.clientWidth) el.scrollLeft=r-el.clientWidth;
+  }
+  updateTabbarOverflow();
+}
+function updateTabbarOverflow(){
+  const el=document.getElementById('tabbar'),wrap=document.getElementById('tabbarWrap');
+  if(!el||!wrap)return;
+  const max=el.scrollWidth-el.clientWidth;
+  wrap.classList.toggle('more-left',max>4&&el.scrollLeft>4);
+  wrap.classList.toggle('more-right',max>4&&el.scrollLeft<max-4);
+}
+function scrollTabbar(dir){
+  const el=document.getElementById('tabbar');if(!el)return;
+  el.scrollBy({left:dir*Math.max(120,el.clientWidth*0.6),behavior:'smooth'});
 }
 function setTab(id, opts={}){
   if(!TAB_IDS.includes(id)) id='situation';
@@ -1503,7 +1541,8 @@ let mapLifecycleBound = false;
 function bindMapLifecycleEvents(){
   if(mapLifecycleBound) return;
   mapLifecycleBound = true;
-  window.addEventListener('resize', () => syncResponsiveLayout());
+  window.addEventListener('resize', () => { syncResponsiveLayout(); updateTabbarOverflow(); });
+  document.getElementById('tabbar')?.addEventListener('scroll', updateTabbarOverflow, { passive: true });
   window.addEventListener('orientationchange', () => setTimeout(() => syncResponsiveLayout(true), 150));
   document.addEventListener('visibilitychange', () => {
     if(!document.hidden) setTimeout(() => syncResponsiveLayout(true), 150);
@@ -1565,7 +1604,13 @@ function renderMapLegend(){
   };
   el.innerHTML=`<span class="lchip-head">LAYERS <b>${onCount}</b>/${rows.filter(r=>r.state!=='none').length}${sig?` \u00b7 <b>${sig}</b> SIGNAL`:''}</span>`
     +`<button type="button" class="lchip auto ${auto?'on':'off'}" title="${auto?'Showing the layers with signal this sweep (max 5). Click any layer to pick manually.':'Manual selection. Click to return to signal-based defaults.'}" onclick="resetLayers()">${auto?'AUTO':'RESET TO AUTO'}</button>`
+    +`<button type="button" class="lchip legend-toggle" aria-expanded="${el.classList.contains('open')}" onclick="toggleLegend()">${el.classList.contains('open')?'HIDE LAYERS':'SHOW LAYERS'}</button>`
     +rows.map(chip).join('');
+}
+function toggleLegend(){
+  const el=document.getElementById('mapLegend');if(!el)return;
+  el.classList.toggle('open');
+  renderMapLegend();
 }
 
 // === UKRAINE FRONT (DeepStateMAP geometry) ===
