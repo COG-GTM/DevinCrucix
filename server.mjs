@@ -278,7 +278,10 @@ app.get('/', (req, res) => {
   } else {
     const htmlPath = join(ROOT, 'dashboard/public/jarvis.html');
     let html = readFileSync(htmlPath, 'utf-8');
-    
+
+    // Never ship an inject.mjs seed in server mode; the page renders only live data.
+    html = html.replace(/^let D = \{.*\};\s*$/m, 'let D = null;');
+
     // Inject locale data into the HTML
     const locale = getLocale();
     const localeScript = `<script>window.__CRUCIX_LOCALE__ = ${JSON.stringify(locale).replace(/<\/script>/gi, '<\\/script>')};</script>`;
