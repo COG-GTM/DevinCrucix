@@ -71,7 +71,8 @@ export function classifyTarget(raw, hint) {
   if (/^\+[0-9][0-9 .()-]{6,}$/.test(s) && PHONE_RE.test(s)) return { type: 'phone', value: s };
   const noScheme = lower.replace(/^www\./, '').split(/[/?#]/)[0];
   if (DOMAIN_RE.test(noScheme)) return { type: 'domain', value: noScheme };
-  if (/^@?[a-z0-9][a-z0-9._-]{1,38}$/i.test(s) && !/^[0-9.]+$/.test(s)) return { type: 'username', value: s.replace(/^@/, '') };
+  // Bare words are ambiguous (hostnames, typos); only an explicit @handle auto-classifies as a username.
+  if (/^@[a-z0-9][a-z0-9._-]{1,38}$/i.test(s)) return { type: 'username', value: s.slice(1) };
   return null;
 }
 
