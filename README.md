@@ -144,6 +144,19 @@ Keyless, registry-driven regional news collection. Outlets live in `config/borde
 
 Panel states are reported per feed (`LIVE`, `UNCHANGED`, `EMPTY`, `BLOCKED`, `ERROR`) and per article (`PAYWALL`, `WIRE`, `FEED-ONLY`). Runtime state is kept under `runs/border/`.
 
+### Cartels (Mexico)
+
+The **CARTELS** tab is a Mexico-framed page that puts two deliberately separate layers side by side:
+
+| Layer | Source | Era | Drawn as |
+|-------|--------|-----|----------|
+| Current influence areas, activity/crime pins, active wars, truces, alleged alliances, strongholds, alleged safehouses, government/military ops, activity in the U.S. | *Active Cartels In Mexico* Google My Maps KML (@MexicoCartelMap) — crowd-sourced, single maintainer | polled each sweep, 24 h cache | solid lines, maintainer's colour legend |
+| Cartel density by state, CJNG footprint, trafficking flows, ports / points of entry, narcotics-concentration cities, avocado & huachicol hotspots, CJNG 2009–2019 timeline | START (University of Maryland) *Tracking Cartels* research briefs, transcribed by hand into `config/cartels-baseline-2020.json` | June 2020, static | amber, dashed, labelled `START June 2020` |
+
+Neither layer is verified control of territory: the KML's own disclaimer says it is not 100% accurate and can go out of date quickly, and the START baseline is a point-in-time research product (two state classes were read visually from the printed choropleth and carry a note saying so). The Situation strip only ever emits an *info* pointer from the current layer, and only when the KML fetched live, is not a cached copy, and has dated entries within the last 7 days; the START data never generates alerts. A third panel lists Mexico / Northern Triangle items already collected by InSight Crime, Border Watch and GDELT (keyword filter — journalism, not event data).
+
+Every KML string (names, descriptions, folder names, URLs, dates) is bounded and stripped of markup at ingestion and HTML-escaped again at render; only `http(s)` links survive. The trimmed summary is injected into the dashboard payload; polygon/point geometry (~400 KB) is served separately from `GET /api/cartels/geo` and fetched by the browser only when the tab is opened.
+
 ---
 
 ## What You Get
@@ -488,6 +501,8 @@ When running `npm run dev`:
 | `GET /api/investigate?target=<domain\|ip\|hash>` | On-demand OSINT dossier (`&type=company` for registry search) |
 | `GET /api/investigate/status` | Which keyed enrichment sources are configured |
 | `GET /api/typosquat` | Registered look-alike domains for the watchlist |
+| `GET /api/cartels` | Current cartel-map summary (status, counts, organizations, wars, recent entries, disclaimer) |
+| `GET /api/cartels/geo` | Cartel-map geometry (polygons, points, lines) for the CARTELS tab; 404 until the first successful fetch |
 
 ---
 
