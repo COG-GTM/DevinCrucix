@@ -182,6 +182,9 @@ describe('rule-based extraction', () => {
     assert.equal(seized.weapons, 14);
     const laundered = extractSeizures('The network laundered more than $5 million in drug proceeds through shell companies.');
     assert.deepEqual(laundered.cash, [{ amount: 5_000_000, currency: 'USD' }]);
+    const valued = extractSeizures('More than 2.4 tons of methamphetamine and chemical precursors were seized, with an estimated value of $360 million.');
+    assert.equal(valued.cash, undefined, `street value is not cash: ${JSON.stringify(valued.cash)}`);
+    assert.equal(valued.drugs[0].kg, 2400);
     const stats = extractSeizures('U.S. units took down approximately 100 suspected cartel drones and 40 vehicles crossed the river. Mexico says 30,000 guns a year come from Texas. Cartels produce 2.4 tons of methamphetamine annually.');
     assert.deepEqual(stats, {}, `bare counts are statistics, not seizures: ${JSON.stringify(stats)}`);
     const convoy = extractSeizures('Soldiers secured 6 armored vehicles and an arsenal of 14 rifles after the clash; the men were arrested with 3 kilos of cocaine.');

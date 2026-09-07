@@ -527,7 +527,6 @@ app.get('/api/narco/events/:id', (req, res) => {
   if (!onlyQueryKeys(req, []) || !/^cl_[a-f0-9]{20}$/.test(id)) return res.status(400).json({ error: 'Invalid request' });
   const c = (narcoData?.clusters || []).find(x => x.id === id);
   if (!c) return res.status(404).json({ error: 'Event not found' });
-  res.set('Cache-Control', 'private, max-age=300');
   res.json(c);
 });
 app.get('/api/narco/doj', (req, res) => {
