@@ -16,6 +16,23 @@ const SAT_CATEGORIES = {
   oneweb: '/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=json',
 };
 
+// CelesTrak GP JSON is OMM: it carries MEAN_MOTION (rev/day) and ECCENTRICITY but no period /
+// apogee / perigee fields, so derive them (Kepler's third law, WGS-72 constants used by SGP4).
+const MU_KM3_S2 = 398600.8;
+const EARTH_RADIUS_KM = 6378.135;
+export function orbitFromElements(sat) {
+  const n = Number(sat?.MEAN_MOTION);
+  const e = Number(sat?.ECCENTRICITY);
+  if (!(n > 0) || !(e >= 0 && e < 1)) return { period: null, apogee: null, perigee: null };
+  const radPerSec = (n * 2 * Math.PI) / 86400;
+  const a = Math.cbrt(MU_KM3_S2 / (radPerSec * radPerSec));
+  return {
+    period: +(1440 / n).toFixed(2),
+    apogee: +(a * (1 + e) - EARTH_RADIUS_KM).toFixed(1),
+    perigee: +(a * (1 - e) - EARTH_RADIUS_KM).toFixed(1),
+  };
+}
+
 // Get TLE data for a category
 async function getTLEs(category) {
   const path = SAT_CATEGORIES[category];
@@ -37,10 +54,8 @@ async function getRecentLaunches() {
     classification: sat.CLASSIFICATION_TYPE,
     launchDate: sat.LAUNCH_DATE,
     decayDate: sat.DECAY_DATE,
-    period: sat.PERIOD,
     inclination: sat.INCLINATION,
-    apogee: sat.APOAPSIS,
-    perigee: sat.PERIAPSIS,
+    ...orbitFromElements(sat),
     epoch: sat.EPOCH,
     country: sat.COUNTRY_CODE,
     objectType: sat.OBJECT_TYPE,
@@ -67,10 +82,8 @@ async function getStationData() {
   const stations = data.map(sat => ({
     name: sat.OBJECT_NAME,
     noradId: sat.NORAD_CAT_ID,
-    apogee: sat.APOAPSIS,
-    perigee: sat.PERIAPSIS,
     inclination: sat.INCLINATION,
-    period: sat.PERIOD,
+    ...orbitFromElements(sat),
     epoch: sat.EPOCH,
   })).filter(s => s.name);
 

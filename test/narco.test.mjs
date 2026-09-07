@@ -173,6 +173,26 @@ describe('rule-based extraction', () => {
     assert.ok(Math.abs(lb.drugs[0].kg - 99.8) < 0.5);
   });
 
+  it('does not report fees, payments or prices as cash seizures, nor money as weapon counts', () => {
+    const fee = extractSeizures('Migrants paid a $30,000 smuggling fee to be moved through the tunnel; he received a $3,000 firearm payment from the organization.');
+    assert.equal(fee.cash, undefined, `no seizure context: ${JSON.stringify(fee.cash)}`);
+    assert.equal(fee.weapons, undefined, `"$3,000 firearm" is not 3,000 firearms: ${fee.weapons}`);
+    const seized = extractSeizures('Agents seized $1.2 million in cash and 14 firearms from the stash house.');
+    assert.deepEqual(seized.cash, [{ amount: 1_200_000, currency: 'USD' }]);
+    assert.equal(seized.weapons, 14);
+    const laundered = extractSeizures('The network laundered more than $5 million in drug proceeds through shell companies.');
+    assert.deepEqual(laundered.cash, [{ amount: 5_000_000, currency: 'USD' }]);
+    const stats = extractSeizures('U.S. units took down approximately 100 suspected cartel drones and 40 vehicles crossed the river. Mexico says 30,000 guns a year come from Texas. Cartels produce 2.4 tons of methamphetamine annually.');
+    assert.deepEqual(stats, {}, `bare counts are statistics, not seizures: ${JSON.stringify(stats)}`);
+    const convoy = extractSeizures('Soldiers secured 6 armored vehicles and an arsenal of 14 rifles after the clash; the men were arrested with 3 kilos of cocaine.');
+    assert.equal(convoy.vehicles, 6);
+    assert.equal(convoy.weapons, 14);
+    assert.equal(convoy.drugs[0].kg, 3);
+    const grams = extractSeizures('Officers recovered 20 grams of fentanyl and 2 grams of methamphetamine.');
+    assert.equal(grams.drugs.find(d => d.substance === 'fentanyl').kg, 0.02);
+    assert.equal(grams.drugs.find(d => d.substance === 'methamphetamine').kg, 0.002);
+  });
+
   it('extracts people with aliases and rejects institutions, headlines and bylines', () => {
     const p = extractPeople(CAR_BOMB);
     assert.deepEqual(p.people.map(x => x.name), ['Luis Enrique Barragán Chávez']);

@@ -102,6 +102,16 @@ describe('payload bounds', () => {
     assert.equal(c.location.lat, 22.5679);
   });
 
+  it('formats drug quantities in the unit that fits (grams, kg, tonnes) and never as "0 kg"', () => {
+    const c = compactCluster(cluster({
+      seizures: { drugs: [{ substance: 'marijuana', kg: 0 }, { substance: 'fentanyl', kg: 0.02 }, { substance: 'methamphetamine', kg: 0.002 }, { substance: 'cocaine', kg: 1500 }], weapons: 0, vehicles: 0, cash: [] },
+    }), '2026-08-06');
+    assert.deepEqual(c.seizures, ['marijuana', '20 g fentanyl', '2 g methamphetamine', '1.5 t cocaine']);
+    const doses = compactCluster(cluster({ seizures: { drugs: [{ substance: 'heroin', qty: 200, unit: 'dose' }], cash: [] } }), '2026-08-06');
+    assert.deepEqual(doses.seizures, ['200 doses heroin']);
+    assert.ok(c.seizures.every(s => !/\b0 (?:kg|g|t)\b/.test(s)));
+  });
+
   it('drops non-http(s) URLs and non-finite numbers instead of passing them to the browser', () => {
     const c = compactCluster(cluster({
       records: [{ outlet: 'x', sourceKind: 'media', url: 'javascript:alert(1)', title: 't', publishedAt: '2026-09-04T00:00:00Z' }],

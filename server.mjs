@@ -480,6 +480,10 @@ app.get('/api/cartels/geo', (req, res) => {
 // API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
 // independent corroboration and cross-matched against the OFAC SDN narco-program index.
 const NARCO_ID_RE = /^[a-z0-9_-]{1,40}$/;
+// Whitelist of query keys per filtered route: any key not listed is rejected, not ignored.
+function onlyQueryKeys(req, allowed) {
+  return Object.keys(req.query).every(k => allowed.includes(k));
+}
 function narcoPick(req, name, allowed) {
   const v = req.query[name];
   if (v === undefined) return null;
@@ -491,10 +495,12 @@ function narcoInt(req, name, dflt, min, max, digits) {
   return n >= min && n <= max ? n : NaN;
 }
 app.get('/api/narco', (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   res.json(currentData.narco || { status: 'unavailable' });
 });
 app.get('/api/narco/events', (req, res) => {
+  if (!onlyQueryKeys(req, ['grade', 'type', 'cartel', 'state', 'days', 'limit'])) return res.status(400).json({ error: 'Invalid request' });
   const grade = narcoPick(req, 'grade', v => Object.hasOwn(NARCO_GRADES, v));
   const type = narcoPick(req, 'type', v => Object.hasOwn(NARCO_TYPES, v));
   const cartel = narcoPick(req, 'cartel', v => NARCO_ID_RE.test(v));
@@ -518,13 +524,14 @@ app.get('/api/narco/events', (req, res) => {
 });
 app.get('/api/narco/events/:id', (req, res) => {
   const id = String(req.params.id || '');
-  if (!/^cl_[a-f0-9]{20}$/.test(id)) return res.status(400).json({ error: 'Invalid request' });
+  if (!onlyQueryKeys(req, []) || !/^cl_[a-f0-9]{20}$/.test(id)) return res.status(400).json({ error: 'Invalid request' });
   const c = (narcoData?.clusters || []).find(x => x.id === id);
   if (!c) return res.status(404).json({ error: 'Event not found' });
   res.set('Cache-Control', 'private, max-age=300');
   res.json(c);
 });
 app.get('/api/narco/doj', (req, res) => {
+  if (!onlyQueryKeys(req, ['district', 'category', 'days', 'limit'])) return res.status(400).json({ error: 'Invalid request' });
   const district = narcoPick(req, 'district', v => DOJ_DISTRICTS.some(d => d.code === v));
   const category = narcoPick(req, 'category', v => DOJ_CATEGORIES.includes(v));
   const days = narcoInt(req, 'days', 30, 1, 90, 2);
@@ -542,7 +549,7 @@ app.get('/api/narco/doj', (req, res) => {
 // Name check against the OFAC narco-program index (same conservative matcher the pipeline uses).
 app.get('/api/narco/sanctions', (req, res) => {
   const raw = req.query.name;
-  if (typeof raw !== 'string' || raw.length < 3 || raw.length > 120 || !/^[A-Za-z\u00C0-\u017F .,'-]+$/.test(raw)) {
+  if (!onlyQueryKeys(req, ['name']) || typeof raw !== 'string' || raw.length < 3 || raw.length > 120 || !/^[A-Za-z\u00C0-\u017F .,'-]+$/.test(raw)) {
     return res.status(400).json({ error: 'Invalid request' });
   }
   const index = ofacNarcoIndex();
@@ -643,6 +650,7 @@ function borderSourceIdSet() {
   return borderSourceIds;
 }
 app.get('/api/border/articles', (req, res) => {
+  if (!onlyQueryKeys(req, ['place', 'topic', 'outlet', 'days', 'limit'])) return res.status(400).json({ error: 'Invalid request' });
   const pick = (name, allowed) => {
     const v = req.query[name];
     if (v === undefined) return null;
