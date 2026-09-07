@@ -276,6 +276,9 @@ const app = express();
 app.set('trust proxy', true);
 if (installAuthGate(app)) console.log('[Crucix] Password gate enabled (CRUCIX_PASSWORD set)');
 app.use(express.json());
+// Live JSON must not be replayed from the browser HTTP cache on back/forward navigation; routes that
+// want a cache window set their own Cache-Control afterwards.
+app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 app.use(express.static(join(ROOT, 'dashboard/public')));
 
 // Serve loading page until first sweep completes, then the dashboard with injected locale
@@ -1012,6 +1015,7 @@ async function start() {
       if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
       if (existing.sources?.Cartels?.geo) cartelGeo = existing.sources.Cartels.geo;
       const data = await synthesize(existing);
+      data.narco = buildNarcoView(narcoData, existing.sources || {});
       data.delta = memory.getLastDelta() || null;
       data.seismic = seismicData;
       data.situation = buildSituation(data);
