@@ -11,23 +11,33 @@
 // while cooling down. Set OPENSKY_CLIENT_ID / OPENSKY_CLIENT_SECRET for 10x quota.
 //
 // OpenSky is unreachable from some cloud networks (connection timeouts). When
-// there is no OpenSky snapshot to serve, each hotspot is sampled from the keyless
-// api.adsb.lol aggregator instead (250 nm radius circles) and flagged as a sample.
+// there is no OpenSky snapshot to serve, each hotspot is sampled in 250 nm circles
+// from an ADS-B aggregator instead and flagged as a sample: ADS-B Exchange when
+// ADSBX_RAPIDAPI_KEY is set (it then replaces OpenSky outright), else the keyless
+// api.adsb.lol. Sample calls are paced sequentially and a per-theater last-good
+// result (≤ 90 min old) covers transient 429s so theaters do not blink to zero.
 
 import { safeFetch } from '../utils/fetch.mjs';
 import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
+import { adsbxConfigured, adsbxPoint, adsbxRemaining, adsbxStatus } from './adsbx.mjs';
+import { isMilitaryCallsign, isMilitaryHex } from './adsb.mjs';
 
 const BASE = 'https://opensky-network.org/api';
 const ADSB_LOL = 'https://api.adsb.lol/v2';
 const UA = 'CRUCIX/2.0 (+https://github.com/COG-GTM/DevinCrucix)';
 const SAMPLE_RADIUS_NM = 250;
+const SAMPLE_PACE_MS = Math.max(0, Number(process.env.AIR_SAMPLE_PACE_MS ?? 400));
+const SAMPLE_COOLDOWN_MS = 60_000;
+const HOTSPOT_LAST_GOOD_MAX_MS = 90 * 60_000;
+const SAMPLE_DEADLINE_MS = Math.max(5_000, Number(process.env.AIR_SAMPLE_DEADLINE_MS ?? 40_000));
+const SWEEP_BUDGET_MS = 55_000; // briefing.mjs gives OpenSky 60 s
 const HIGH_ALT_FT = 39370; // 12 km
 const TOKEN_URL = 'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token';
 const TOKEN_REFRESH_MARGIN_MS = 60_000;
 const DEFAULT_COOLDOWN_MS = 15 * 60_000;
 const MAX_COOLDOWN_MS = 24 * 3600_000;
 const MIN_INTERVAL_MS = Math.max(0, Number(process.env.OPENSKY_MIN_INTERVAL_MINUTES ?? 15)) * 60_000;
-const TRACK_SAMPLE_LIMIT = 40;
+const TRACK_SAMPLE_LIMIT = 150;
 
 // State vector indices — https://openskynetwork.github.io/opensky-api/rest.html#response
 const SV = {
@@ -59,12 +69,16 @@ const state = {
   lastGood: null,      // { fetchedAt, states, time }
   lastError: null,
   quota: { remaining: null, updatedAt: null },
+  hotspotLastGood: {}, // key -> { at, result } from the last successful sample
+  lolCooldownUntil: 0,
+  sampleCursor: 0,     // next theater to sample when the previous sweep hit its deadline
 };
 
 export function resetState() {
   Object.assign(state, {
     token: null, tokenExpiresAt: 0, cooldownUntil: 0, lastFetchAt: 0,
     lastGood: null, lastError: null, quota: { remaining: null, updatedAt: null },
+    hotspotLastGood: {}, lolCooldownUntil: 0, sampleCursor: 0,
   });
 }
 
@@ -169,7 +183,7 @@ async function openskyGet(path, { timeout = 30000 } = {}) {
 // --- Public API (kept for callers; each is a metered request) ---
 
 export async function getAllFlights() {
-  return openskyGet('/states/all', { timeout: 45000 });
+  return openskyGet('/states/all', { timeout: 20000 });
 }
 
 export async function getFlightsInArea(lamin, lomin, lamax, lomax) {
@@ -222,11 +236,19 @@ function sanitizeText(value, max = 32) {
   return String(value ?? '').replace(/[<>"'`;&|$()\\]/g, '').trim().slice(0, max);
 }
 
+// OpenSky state vectors carry no military flag; hex-range and callsign heuristics stand in.
+function openskyMil(s) {
+  return Boolean(isMilitaryHex(s[SV.ICAO24]) || isMilitaryCallsign(String(s[SV.CALLSIGN] ?? '')));
+}
+
 function toTrack(s) {
   return {
     icao24: sanitizeText(s[SV.ICAO24], 6),
     callsign: sanitizeText(s[SV.CALLSIGN], 8),
     country: sanitizeText(s[SV.ORIGIN_COUNTRY], 64),
+    type: '',
+    reg: '',
+    mil: openskyMil(s),
     lat: s[SV.LAT],
     lon: s[SV.LON],
     altitude: s[SV.BARO_ALT] ?? s[SV.GEO_ALT] ?? null,
@@ -260,21 +282,24 @@ export function partitionStates(states = []) {
       const country = sanitizeText(s[SV.ORIGIN_COUNTRY], 64) || 'Unknown';
       byCountry[country] = (byCountry[country] || 0) + 1;
     }
+    const military = inRegion.filter(openskyMil);
     const noCallsign = inRegion.filter(s => !String(s[SV.CALLSIGN] ?? '').trim());
     const highAltitude = inRegion.filter(s => typeof s[SV.BARO_ALT] === 'number' && s[SV.BARO_ALT] > 12000);
     const airborne = inRegion.filter(s => !s[SV.ON_GROUND]);
 
-    // Sample: prioritize anomalous tracks (no callsign, very high altitude), then fill.
-    const prioritized = [...new Set([...noCallsign, ...highAltitude, ...airborne])].slice(0, TRACK_SAMPLE_LIMIT);
+    // Sample: military first, then anomalous tracks (no callsign, very high altitude), then fill.
+    const prioritized = [...new Set([...military, ...noCallsign, ...highAltitude, ...airborne])].slice(0, TRACK_SAMPLE_LIMIT);
 
     return {
       region: box.label,
       key,
       method: 'opensky',
+      provider: 'opensky',
       lamin: box.lamin, lomin: box.lomin, lamax: box.lamax, lomax: box.lomax,
       totalAircraft: inRegion.length,
       airborne: airborne.length,
       byCountry,
+      military: military.length,
       noCallsign: noCallsign.length,
       highAltitude: highAltitude.length,
       tracks: prioritized.map(toTrack),
@@ -284,7 +309,7 @@ export function partitionStates(states = []) {
   return { hotspots, totalStates: states.length, positioned };
 }
 
-// --- ADS-B sample fallback (api.adsb.lol) ---
+// --- ADS-B aggregator sampling (ADS-B Exchange / api.adsb.lol) ---
 
 function shortError(msg = '') {
   if (/abort|timeout|timed out/i.test(msg)) return 'timed out';
@@ -315,15 +340,25 @@ export function samplePoints(box) {
   return pts;
 }
 
-// readsb-style aircraft JSON (api.adsb.lol) → hotspot summary
-export function fromAdsbSample(key, box, aircraft, points) {
+
+// readsb-style aircraft JSON (ADS-B Exchange / api.adsb.lol) → hotspot summary
+export function fromAdsbSample(key, box, aircraft, points, provider = 'adsb.lol') {
   const inRegion = aircraft.filter(a => typeof a.lat === 'number' && typeof a.lon === 'number' && inBox(a.lat, a.lon, box));
   const byType = {};
   for (const a of inRegion) if (a.t) byType[sanitizeText(a.t, 8)] = (byType[sanitizeText(a.t, 8)] || 0) + 1;
+  const isMil = a => Boolean((a.dbFlags || 0) & 1);
+  const noCall = a => !(a.flight || '').trim();
+  const highAlt = a => typeof a.alt_baro === 'number' && a.alt_baro > HIGH_ALT_FT;
+  const airborne = a => a.alt_baro !== 'ground';
+  // Sample: military first, then anomalous tracks (no callsign, very high altitude), then fill.
+  const prioritized = [...new Set([
+    ...inRegion.filter(isMil), ...inRegion.filter(noCall), ...inRegion.filter(highAlt), ...inRegion.filter(airborne), ...inRegion,
+  ])].slice(0, TRACK_SAMPLE_LIMIT);
   return {
     region: box.label,
     key,
     method: 'adsb_sample',
+    provider,
     sampled: true,
     samplePoints: points.length,
     sampleRadiusNm: SAMPLE_RADIUS_NM,
@@ -331,19 +366,22 @@ export function fromAdsbSample(key, box, aircraft, points) {
     totalAircraft: inRegion.length,
     byCountry: {},
     byType: Object.fromEntries(Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 5)),
-    military: inRegion.filter(a => (a.dbFlags || 0) & 1).length,
-    noCallsign: inRegion.filter(a => !(a.flight || '').trim()).length,
-    highAltitude: inRegion.filter(a => typeof a.alt_baro === 'number' && a.alt_baro > HIGH_ALT_FT).length,
-    tracks: inRegion.slice(0, TRACK_SAMPLE_LIMIT).map(a => ({
+    military: inRegion.filter(isMil).length,
+    noCallsign: inRegion.filter(noCall).length,
+    highAltitude: inRegion.filter(highAlt).length,
+    tracks: prioritized.map(a => ({
       icao24: sanitizeText(a.hex, 6),
       callsign: sanitizeText(a.flight, 8),
       country: '',
+      type: sanitizeText(a.t, 8),
+      reg: sanitizeText(a.r, 12),
+      mil: isMil(a),
       lat: a.lat,
       lon: a.lon,
       altitude: typeof a.alt_baro === 'number' ? Math.round(a.alt_baro * 0.3048) : null,
       velocity: typeof a.gs === 'number' ? Math.round(a.gs * 0.5144) : null,
       heading: typeof a.track === 'number' ? a.track : null,
-      verticalRate: null,
+      verticalRate: typeof a.baro_rate === 'number' ? Math.round(a.baro_rate * 0.00508 * 100) / 100 : null,
       squawk: sanitizeText(a.squawk, 4) || null,
       onGround: a.alt_baro === 'ground',
       lastContact: null,
@@ -351,57 +389,152 @@ export function fromAdsbSample(key, box, aircraft, points) {
   };
 }
 
+const sleep = ms => (ms > 0 ? new Promise(r => setTimeout(r, ms)) : Promise.resolve());
+
+// Which aggregator a sample call should use right now.
+function pickProvider() {
+  if (adsbxRemaining() > 0) return 'adsbexchange';
+  if (Date.now() >= state.lolCooldownUntil) return 'adsb.lol';
+  return null;
+}
+
+async function fetchSamplePoint(provider, p) {
+  if (provider === 'adsbexchange') return adsbxPoint(p.lat, p.lon, SAMPLE_RADIUS_NM, { timeout: 15000 });
+  const data = await safeFetch(`${ADSB_LOL}/point/${p.lat}/${p.lon}/${SAMPLE_RADIUS_NM}`, {
+    timeout: 15000, retries: 0, headers: { 'User-Agent': UA },
+  });
+  if (data?.error && /HTTP 429/.test(data.error)) state.lolCooldownUntil = Date.now() + SAMPLE_COOLDOWN_MS;
+  return data;
+}
+
+function failedHotspot(key, box, error) {
+  return {
+    region: box.label, key, method: 'none',
+    lamin: box.lamin, lomin: box.lomin, lamax: box.lamax, lomax: box.lomax,
+    totalAircraft: 0, byCountry: {}, noCallsign: 0, highAltitude: 0, tracks: [],
+    error,
+  };
+}
+
+// A failed sample falls back to that theater's last good result while it is fresh enough.
+function withLastGood(key, box, error) {
+  const lg = state.hotspotLastGood[key];
+  const ageMs = lg ? Date.now() - lg.at : Infinity;
+  if (lg && ageMs <= HOTSPOT_LAST_GOOD_MAX_MS) {
+    return { ...lg.result, stale: true, staleAgeMin: Math.round(ageMs / 60000), staleReason: error };
+  }
+  return failedHotspot(key, box, error);
+}
+
 async function sampleHotspot(key, box) {
   const points = samplePoints(box);
   const seen = new Map();
   const errors = [];
+  const providers = new Set();
   for (const p of points) {
-    const data = await safeFetch(`${ADSB_LOL}/point/${p.lat}/${p.lon}/${SAMPLE_RADIUS_NM}`, {
-      timeout: 15000, retries: 0, headers: { 'User-Agent': UA },
-    });
-    if (data?.error || !Array.isArray(data?.ac)) { errors.push(data?.error || 'no ac[] in response'); continue; }
+    const provider = pickProvider();
+    if (!provider) { errors.push('all aggregators cooling down'); continue; }
+    const data = await fetchSamplePoint(provider, p);
+    if (SAMPLE_PACE_MS) await sleep(SAMPLE_PACE_MS);
+    if (data?.error || !Array.isArray(data?.ac)) { errors.push(`${provider} ${shortError(data?.error || 'no ac[] in response')}`); continue; }
+    providers.add(provider);
     for (const a of data.ac) if (a.hex && !seen.has(a.hex)) seen.set(a.hex, a);
   }
-  if (errors.length === points.length) {
-    return {
-      region: box.label, key, method: 'none',
-      lamin: box.lamin, lomin: box.lomin, lamax: box.lamax, lomax: box.lomax,
-      totalAircraft: 0, byCountry: {}, noCallsign: 0, highAltitude: 0, tracks: [],
-      error: `adsb.lol ${shortError(errors[0])}`,
-    };
+  if (errors.length === points.length) return withLastGood(key, box, errors[0]);
+
+  const provider = providers.size === 1 ? [...providers][0] : 'mixed';
+  const out = fromAdsbSample(key, box, [...seen.values()], points, provider);
+  if (errors.length) out.partial = `${errors.length}/${points.length} sample(s) failed: ${errors[0]}`;
+  state.hotspotLastGood[key] = { at: Date.now(), result: out };
+  return out;
+}
+
+// Sample every hotspot sequentially (paced) so the free aggregator is not burst-hit.
+// Sampling stops at the deadline; theaters not reached keep their last good result and
+// the rotation resumes from them next sweep, so every theater is refreshed in turn.
+export async function sampleAllHotspots(deadlineMs = SAMPLE_DEADLINE_MS) {
+  const entries = Object.entries(HOTSPOTS);
+  const start = entries.length ? state.sampleCursor % entries.length : 0;
+  const order = [...entries.slice(start), ...entries.slice(0, start)];
+  const deadline = Date.now() + deadlineMs;
+  const byKey = {};
+  let done = 0;
+  for (const [key, box] of order) {
+    if (done > 0 && Date.now() >= deadline) {
+      byKey[key] = withLastGood(key, box, 'not sampled this sweep (time budget)');
+      continue;
+    }
+    byKey[key] = await sampleHotspot(key, box);
+    done++;
   }
-  const out = fromAdsbSample(key, box, [...seen.values()], points);
-  if (errors.length) out.partial = `${errors.length}/${points.length} sample(s) failed`;
-  return out;
+  state.sampleCursor = (start + done) % entries.length;
+  return entries.map(([key]) => byKey[key]);
 }
 
-async function mapLimit(items, limit, fn) {
-  const out = new Array(items.length);
-  let i = 0;
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) { const idx = i++; out[idx] = await fn(items[idx], idx); }
-  }));
-  return out;
+function sampleCoverage(results) {
+  const c = { opensky: 0, adsbx: 0, adsbLol: 0, stale: 0, failed: 0, total: results.length };
+  for (const r of results) {
+    if (r.method === 'none') c.failed++;
+    else if (r.stale) c.stale++;
+    else if (r.provider === 'adsbexchange') c.adsbx++;
+    else c.adsbLol++;
+  }
+  c.adsbSample = c.adsbx + c.adsbLol + c.stale;
+  return c;
 }
 
-// No OpenSky snapshot available at all: sample every hotspot from api.adsb.lol.
-async function sampleBriefing(openskyReason) {
-  const results = await mapLimit(Object.entries(HOTSPOTS), 3, ([key, box]) => sampleHotspot(key, box));
+function providerLabel(coverage) {
+  if (coverage.adsbx && !coverage.adsbLol) return 'ADS-B Exchange';
+  if (coverage.adsbLol && !coverage.adsbx) return 'api.adsb.lol';
+  return 'ADS-B Exchange + api.adsb.lol';
+}
+
+// ADS-B Exchange configured: it is the primary feed, not a fallback.
+async function adsbxBriefing() {
+  const results = await sampleAllHotspots();
+  const coverage = sampleCoverage(results);
   const failed = results.filter(r => r.method === 'none');
-  const sampled = results.length - failed.length;
+  const adsbx = adsbxStatus();
+  if (coverage.failed === coverage.total) {
+    return emptyBriefing(`ADS-B Exchange sampling failed for every theater: ${shortError(failed[0]?.error)}`, 'ADS-B Exchange');
+  }
+  const provider = providerLabel(coverage);
+  return {
+    source: provider,
+    timestamp: new Date().toISOString(),
+    status: coverage.failed || coverage.stale || coverage.adsbLol ? 'partial' : 'live',
+    method: 'adsb_sample',
+    primary: 'adsbexchange',
+    auth: 'rapidapi',
+    coverage,
+    note: `${coverage.total - coverage.failed} theater(s) sampled from ${provider} in ${SAMPLE_RADIUS_NM} nm circles — counts are sample coverage, not full-box totals; no origin-country data`,
+    adsbx: { usedToday: adsbx.usedToday, dailyBudget: adsbx.dailyBudget, coolingDown: adsbx.coolingDown },
+    creditsRemaining: state.quota.remaining,
+    hotspots: results,
+    ...(failed.length ? { hotspotErrors: failed.map(r => ({ region: r.region, error: r.error })) } : {}),
+  };
+}
+
+// No OpenSky snapshot available at all: sample every hotspot from an aggregator.
+async function sampleBriefing(openskyReason, deadlineMs = SAMPLE_DEADLINE_MS) {
+  const results = await sampleAllHotspots(deadlineMs);
+  const coverage = sampleCoverage(results);
+  const failed = results.filter(r => r.method === 'none');
   const openskyError = `OpenSky ${shortError(openskyReason)}: ${openskyReason}`;
 
-  if (!sampled) {
+  if (coverage.failed === coverage.total) {
     return emptyBriefing(`${openskyError}; ADS-B fallback ${shortError(failed[0]?.error)}`);
   }
+  const provider = providerLabel(coverage);
   return {
-    source: `ADS-B sample (api.adsb.lol) — OpenSky ${shortError(openskyReason)}`,
+    source: `ADS-B sample (${provider}) — OpenSky ${shortError(openskyReason)}`,
     timestamp: new Date().toISOString(),
     status: 'fallback',
     method: 'adsb_sample',
+    primary: 'opensky',
     auth: credentials() ? 'oauth2' : 'anonymous',
-    coverage: { opensky: 0, adsbSample: sampled, failed: failed.length, total: results.length },
-    note: `${sampled} region(s) sampled from api.adsb.lol at ${SAMPLE_RADIUS_NM} nm radius — counts are partial, not full-box totals; no origin-country data`,
+    coverage,
+    note: `${coverage.total - coverage.failed} theater(s) sampled from ${provider} at ${SAMPLE_RADIUS_NM} nm radius — counts are partial, not full-box totals; no origin-country data`,
     openskyError,
     creditsRemaining: state.quota.remaining,
     hotspots: results,
@@ -418,8 +551,9 @@ function buildBriefing({ states, time, fetchedAt }, extra = {}) {
     fetchedAt,
     status: extra.stale ? 'stale' : 'live',
     method: 'opensky',
+    primary: 'opensky',
     auth: credentials() ? 'oauth2' : 'anonymous',
-    coverage: { opensky: hotspots.length, adsbSample: 0, failed: 0, total: hotspots.length },
+    coverage: { opensky: hotspots.length, adsbx: 0, adsbLol: 0, adsbSample: 0, stale: 0, failed: 0, total: hotspots.length },
     globalAircraft: totalStates,
     positionedAircraft: positioned,
     creditsRemaining: state.quota.remaining,
@@ -428,15 +562,16 @@ function buildBriefing({ states, time, fetchedAt }, extra = {}) {
   };
 }
 
-function emptyBriefing(error) {
+function emptyBriefing(error, source = 'OpenSky') {
   const { hotspots } = partitionStates([]);
   return {
-    source: 'OpenSky',
+    source,
     timestamp: new Date().toISOString(),
     status: 'no_data',
     method: 'none',
+    primary: source === 'OpenSky' ? 'opensky' : 'adsbexchange',
     auth: credentials() ? 'oauth2' : 'anonymous',
-    coverage: { opensky: 0, adsbSample: 0, failed: hotspots.length, total: hotspots.length },
+    coverage: { opensky: 0, adsbx: 0, adsbLol: 0, adsbSample: 0, stale: 0, failed: hotspots.length, total: hotspots.length },
     globalAircraft: 0,
     positionedAircraft: 0,
     creditsRemaining: state.quota.remaining,
@@ -445,10 +580,13 @@ function emptyBriefing(error) {
   };
 }
 
-// Briefing — one global pull per sweep, partitioned into hotspot regions.
-// Falls back to the last good snapshot while throttled/cooling down, and to an
+// Briefing — with ADSBX_RAPIDAPI_KEY set, ADS-B Exchange samples every theater.
+// Otherwise one global OpenSky pull per sweep, partitioned into hotspot regions,
+// falling back to the last good snapshot while throttled/cooling down, and to an
 // api.adsb.lol sample when no OpenSky snapshot exists yet.
 export async function briefing() {
+  if (adsbxConfigured()) return adsbxBriefing();
+
   const now = Date.now();
   const sinceLast = now - state.lastFetchAt;
 
@@ -478,7 +616,8 @@ export async function briefing() {
       ...(state.lastError && !throttled ? { error: state.lastError } : {}),
     });
   }
-  return sampleBriefing(reason || 'OpenSky unavailable');
+  // Whatever OpenSky consumed comes off the sampling budget so the source stays under its runSource timeout.
+  return sampleBriefing(reason || 'OpenSky unavailable', Math.min(SAMPLE_DEADLINE_MS, SWEEP_BUDGET_MS - (Date.now() - now)));
 }
 
 if (process.argv[1]?.endsWith('opensky.mjs')) {

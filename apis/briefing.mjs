@@ -90,7 +90,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats']); // sources that need extra time (CBPStats downloads a ~7 MB CSV)
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'OpenSky']); // sources that need extra time (CBPStats downloads a ~7 MB CSV; OpenSky paces ~33 aggregator samples)
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;

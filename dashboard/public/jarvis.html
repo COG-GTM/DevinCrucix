@@ -1380,7 +1380,7 @@ function renderLeftRail(){
   const conflictEvents = D.acled?.totalEvents || 0;
   const conflictFatal = D.acled?.totalFatalities || 0;
   const layers=[
-    {name:t('layers.airActivity','Air Activity'),count:totalAir,dot:'air',sub:D.airMeta?.method&&D.airMeta.method!=='opensky'?esc(D.airMeta.source):`${D.air.length} ${t('layers.theaters','theaters')}`,src:D.airMeta?.fallback?['ADS-B']:['OpenSky']},
+    {name:t('layers.airActivity','Air Activity'),count:totalAir,dot:'air',sub:`${D.air.reduce((s,a)=>s+(a.tracks||[]).length,0)} plotted · ${D.airMeta?.primary==='adsbexchange'?'ADS-B Exchange':(D.airMeta?.method&&D.airMeta.method!=='opensky'?esc(D.airMeta.source):`${D.air.length} ${t('layers.theaters','theaters')}`)}`,src:D.airMeta?.fallback?['ADS-B']:['OpenSky']},
     {name:t('layers.thermalSpikes','Thermal Spikes'),count:totalThermal.toLocaleString(),dot:'thermal',sub:`${totalNight.toLocaleString()} ${t('layers.nightDet','night det.')}`,src:'FIRMS'},
     {name:t('layers.sdrCoverage','SDR Coverage'),count:D.sdr.total,dot:'sdr',sub:`${D.sdr.online} ${t('layers.online','online')}`,src:'KiwiSDR'},
     {name:t('layers.maritimeWatch','Maritime Watch'),count:D.chokepoints.length,dot:'maritime',sub:t('layers.chokepoints','chokepoints'),src:'Maritime'},
@@ -1840,24 +1840,76 @@ function initGlobe(){
   globeInitialized = true;
 }
 
+// === Aircraft layer helpers (shared by globe + flat map) ===
+// Theater centres for payloads that predate per-theater bounds.
+const AIR_THEATER_FALLBACK=[{lat:30,lon:44},{lat:24,lon:120},{lat:49,lon:32},{lat:57,lon:24},{lat:14,lon:114},{lat:37,lon:127},{lat:25,lon:-80},{lat:4,lon:2},{lat:-34,lon:18},{lat:10,lon:51}];
+const AIR_PROVIDER_LABEL={opensky:'OpenSky',adsbexchange:'ADS-B Exchange','adsb.lol':'adsb.lol sample','adsb.fi':'adsb.fi (military only)',mixed:'ADS-B sample',adsb_military:'adsb.fi (military only)',none:'no data'};
+const AIR_COLOR='rgba(100,240,200,0.85)', AIR_MIL_COLOR='rgba(255,184,76,0.95)', AIR_STALE_COLOR='rgba(150,160,158,0.7)';
+function airCenter(a,i){
+  if(Number.isFinite(a.lamin)&&Number.isFinite(a.lamax)&&Number.isFinite(a.lomin)&&Number.isFinite(a.lomax)) return {lat:(a.lamin+a.lamax)/2,lon:(a.lomin+a.lomax)/2};
+  return AIR_THEATER_FALLBACK[i]||null;
+}
+function airProviderLabel(a){return AIR_PROVIDER_LABEL[a?.provider]||'unknown source'}
+// Great-circle destination `distDeg` degrees of arc from (lat,lon) along `bearing`.
+function airDestination(lat,lon,bearing,distDeg){
+  const r=Math.PI/180,d=distDeg*r,b=bearing*r,la=lat*r,lo=lon*r;
+  const la2=Math.asin(Math.sin(la)*Math.cos(d)+Math.cos(la)*Math.sin(d)*Math.cos(b));
+  const lo2=lo+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la),Math.cos(d)-Math.sin(la)*Math.sin(la2));
+  return {lat:la2/r,lon:((lo2/r+540)%360)-180};
+}
+function airTrackColor(t,a){return a.stale?AIR_STALE_COLOR:(t.mil?AIR_MIL_COLOR:AIR_COLOR)}
+function airTheaterPop(a){
+  const n=(a.tracks||[]).length;
+  const rows=[`${a.total} aircraft in box${a.sampled?' (sample)':''} · ${n} plotted`];
+  if(a.military) rows.push(`Military: ${a.military}`);
+  rows.push(`No callsign: ${a.noCallsign} · High altitude: ${a.highAlt}`);
+  if((a.top||[]).length) rows.push('Top: '+esc(a.top.slice(0,3).map(t=>t[0]+' ('+t[1]+')').join(', ')));
+  if((a.topTypes||[]).length) rows.push('Types: '+esc(a.topTypes.slice(0,4).map(t=>t[0]+' ×'+t[1]).join(', ')));
+  if(a.error) rows.push(`<span style="color:var(--danger)">Sample failed: ${esc(a.error)}</span>`);
+  rows.push(`<span style="color:var(--dim)">${esc(airProviderLabel(a))}${a.stale?' · STALE '+(a.staleAgeMin??'?')+' min':''}</span>`);
+  return {head:a.region,text:rows.join('<br>'),meta:'Air Activity'};
+}
+function airTrackPop(t,a){
+  const id=t.cs||(t.hex||'').toUpperCase()||'UNKNOWN';
+  const altFt=t.altM!=null?Math.round(t.altM*3.28084):null;
+  const kt=t.spdMs!=null?Math.round(t.spdMs*1.94384):null;
+  const rows=[];
+  if(t.type||t.reg) rows.push(esc([t.type,t.reg].filter(Boolean).join(' · ')));
+  rows.push(t.ground?'On ground':(altFt!=null?`FL${String(Math.max(0,Math.round(altFt/100))).padStart(3,'0')} · ${altFt.toLocaleString()} ft`:'Altitude n/a'));
+  const mv=[kt!=null?kt+' kt':null,t.hdg!=null?'hdg '+String(t.hdg).padStart(3,'0')+'°':null].filter(Boolean);
+  if(mv.length) rows.push(mv.join(' · '));
+  if(t.vsMs) rows.push((t.vsMs>0?'↑ ':'↓ ')+Math.abs(Math.round(t.vsMs*196.85))+' ft/min');
+  if(t.squawk){const sq={'7700':' EMERGENCY','7600':' RADIO FAILURE','7500':' HIJACK'}[t.squawk]||'';rows.push('Squawk '+esc(t.squawk)+(sq?`<span style="color:var(--danger)">${sq}</span>`:''));}
+  if(t.country) rows.push(esc(t.country));
+  rows.push(`Hex ${esc(t.hex||'—')} · ${esc(a.region)}`);
+  rows.push(`<span style="color:var(--dim)">${esc(airProviderLabel(a))}${a.stale?' · STALE '+(a.staleAgeMin??'?')+' min':''}</span>`);
+  return {head:(t.mil?'MIL · ':'')+esc(id),text:rows.join('<br>'),meta:'Aircraft'};
+}
+
 function plotMarkers(){
   if(!globe) return;
   const points = [];
   const labels = [];
   flightsVisible = layerOn('air');
 
-  // === Air hotspots (green) ===
-  const airCoords=[{lat:30,lon:44},{lat:24,lon:120},{lat:49,lon:32},{lat:57,lon:24},{lat:14,lon:114},{lat:37,lon:127},{lat:25,lon:-80},{lat:4,lon:2},{lat:-34,lon:18},{lat:10,lon:51}];
+  // === Air: theater summary + individual aircraft ===
   if(flightsVisible) D.air.forEach((a,i)=>{
-    const c=airCoords[i]; if(!c) return;
+    const c=airCenter(a,i); if(!c) return;
+    const pop=airTheaterPop(a);
     points.push({
-      lat:c.lat, lng:c.lon, size:0.25+a.total/200, alt:0.015,
-      color:'rgba(100,240,200,0.8)', type:'air', priority:1,
-      label: a.region.replace(' Region','')+' '+a.total,
-      popHead: a.region, popMeta: 'Air Activity',
-      popText: `${a.total} aircraft tracked<br>No callsign: ${a.noCallsign}<br>High altitude: ${a.highAlt}<br>Top: ${esc(a.top.slice(0,3).map(t=>t[0]+' ('+t[1]+')').join(', '))}`
+      lat:c.lat, lng:c.lon, size:0.18+Math.min(a.total,400)/500, alt:0.005,
+      color:a.stale?'rgba(150,160,158,0.35)':'rgba(100,240,200,0.28)', type:'air', priority:1,
+      popHead: pop.head, popMeta: pop.meta, popText: pop.text
     });
-    labels.push({type:'air', lat:c.lat, lng:c.lon+2, text:a.region.replace(' Region','')+' '+a.total, size:0.35, color:'rgba(106,138,130,0.8)'});
+    labels.push({type:'air', lat:c.lat, lng:c.lon+2, text:a.region.replace(' Region','')+' '+a.total+(a.stale?' · stale':''), size:0.35, color:'rgba(106,138,130,0.8)'});
+    (a.tracks||[]).forEach(t=>{
+      const tp=airTrackPop(t,a);
+      points.push({
+        lat:t.lat, lng:t.lon, size:t.mil?0.11:0.07, alt:t.ground?0.006:0.02+Math.min(Math.max(t.altM||0,0),15000)/15000*0.03,
+        color:airTrackColor(t,a), type:'air', priority:t.mil?1:2,
+        popHead:tp.head, popMeta:tp.meta, popText:tp.text
+      });
+    });
   });
 
   // === Thermal/fire (red) ===
@@ -2259,55 +2311,17 @@ function plotMarkers(){
   });
   globe.ringsData(conflictRings);
 
-  // === FLIGHT CORRIDORS (3D arcs) ===
+  // === AIRCRAFT HEADING VECTORS (short arcs along each reported track) ===
   const arcs = [];
-  if(flightsVisible){
-  const airCoordsFlight = [
-    {region:'Middle East',lat:30,lon:44}, {region:'Taiwan Strait',lat:24,lon:120},
-    {region:'Ukraine Region',lat:49,lon:32}, {region:'Baltic Region',lat:57,lon:24},
-    {region:'South China Sea',lat:14,lon:114}, {region:'Korean Peninsula',lat:37,lon:127},
-    {region:'Caribbean',lat:25,lon:-80}, {region:'Gulf of Guinea',lat:4,lon:2},
-    {region:'Cape Route',lat:-34,lon:18}, {region:'Horn of Africa',lat:10,lon:51}
-  ];
-  const globalHubs = [
-    {lat:40.6,lon:-73.8},{lat:51.5,lon:-0.5},{lat:25.3,lon:55.4},
-    {lat:1.4,lon:103.8},{lat:-33.9,lon:151.2},{lat:-23.4,lon:-46.5}
-  ];
-  // Inter-hotspot corridors
-  for(let i=0; i<D.air.length; i++){
-    for(let j=i+1; j<D.air.length; j++){
-      const a=D.air[i], b=D.air[j];
-      const from=airCoordsFlight[i], to=airCoordsFlight[j];
-      if(!from||!to) continue;
-      const traffic=a.total+b.total;
-      if(traffic<30) continue;
-      const ncRatio=(a.noCallsign+b.noCallsign)/Math.max(traffic,1);
-      const color = ncRatio>0.15 ? ['rgba(255,95,99,0.6)','rgba(255,95,99,0.15)'] :
-                    ncRatio>0.05 ? ['rgba(255,184,76,0.5)','rgba(255,184,76,0.1)'] :
-                                   ['rgba(100,240,200,0.4)','rgba(100,240,200,0.08)'];
-      arcs.push({
-        startLat:from.lat, startLng:from.lon, endLat:to.lat, endLng:to.lon,
-        color, stroke:Math.max(0.3, Math.min(1.2, traffic/120)),
-        label:`${from.region} ↔ ${to.region}: ${traffic} aircraft`
-      });
-    }
-  }
-  // Hub corridors
-  D.air.forEach((a,i)=>{
-    if(!airCoordsFlight[i]||a.total<25) return;
-    globalHubs.forEach(hub=>{
-      const dLat=Math.abs(airCoordsFlight[i].lat-hub.lat);
-      const dLon=Math.abs(airCoordsFlight[i].lon-hub.lon);
-      if(dLat+dLon<20) return;
-      arcs.push({
-        startLat:airCoordsFlight[i].lat, startLng:airCoordsFlight[i].lon,
-        endLat:hub.lat, endLng:hub.lon,
-        color:['rgba(100,240,200,0.2)','rgba(100,240,200,0.05)'],
-        stroke:0.3
-      });
+  if(flightsVisible) D.air.forEach(a=>(a.tracks||[]).forEach(t=>{
+    if(t.hdg==null||t.ground||!(t.spdMs>30)) return;
+    const end=airDestination(t.lat,t.lon,t.hdg,1.2);
+    arcs.push({
+      startLat:t.lat, startLng:t.lon, endLat:end.lat, endLng:end.lon,
+      color:[airTrackColor(t,a),'rgba(100,240,200,0)'], stroke:t.mil?0.35:0.2,
+      label:`${esc(t.cs||t.hex||'')} hdg ${String(t.hdg).padStart(3,'0')}°`
     });
-  });
-  }
+  }));
   globe.arcsData(arcs);
 
   // Zoom-aware marker sizing: pointRadius is angular, so shrink it with altitude to keep
@@ -2450,6 +2464,8 @@ function scaleFlatMarkers(k){
   if(!flatG)return;
   flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/k}).attr('stroke-width',function(){return (this.classList.contains('conflict-ring')?1.5:0.8)/k});
   flatG.selectAll('.marker-label').style('font-size',(9/k)+'px').style('display',k>=2.5?'block':'none');
+  const gs=1/Math.pow(k,0.8);
+  flatG.selectAll('.air-glyph').attr('transform',function(){return `rotate(${this.dataset.hdg}) scale(${gs})`}).attr('stroke-width',0.4*gs);
 }
 
 function plotFlatMarkers(){
@@ -2515,14 +2531,31 @@ function plotFlatMarkers(){
       addPt(a.lat,a.lon,1.8,'rgba(255,224,178,0.8)','rgba(255,224,178,0.3)',ev=>showPopup(ev,'Airfield / air base',esc(a.name||''),'DeepStateMAP'),2,'front-airfield');
     });
   }
-  // Air
-  const airCoords=[{lat:30,lon:44},{lat:24,lon:120},{lat:49,lon:32},{lat:57,lon:24},{lat:14,lon:114},{lat:37,lon:127},{lat:25,lon:-80},{lat:4,lon:2},{lat:-34,lon:18},{lat:10,lon:51}];
+  // Air: theater box + summary label, then one heading glyph per aircraft
   if(flightsVisible){
+    const boxG=flatG.insert('g','.markers').attr('class','air-boxes');
     D.air.forEach((a,i)=>{
-      const c=airCoords[i];if(!c)return;
-      const g=addPt(c.lat,c.lon,4+a.total/40,'rgba(100,240,200,0.7)','rgba(100,240,200,0.3)',
-        ev=>showPopup(ev,a.region,`${a.total} aircraft<br>No callsign: ${a.noCallsign}<br>High alt: ${a.highAlt}`,'Air Activity'),1);
-      if(g) g.append('text').attr('class','marker-label').attr('x',10).attr('y',3).attr('fill','var(--dim)').attr('font-size','9px').attr('font-family','var(--mono)').text(a.region.replace(' Region','')+' '+a.total);
+      const c=airCenter(a,i);if(!c)return;
+      const pop=airTheaterPop(a);
+      if(Number.isFinite(a.lamin)&&Number.isFinite(a.lomin)){
+        // d3-geo treats clockwise rings as the exterior; a counter-clockwise box would fill the rest of the globe.
+        const ring=[[a.lomin,a.lamin],[a.lomin,a.lamax],[a.lomax,a.lamax],[a.lomax,a.lamin],[a.lomin,a.lamin]];
+        boxG.append('path').datum({type:'Feature',geometry:{type:'Polygon',coordinates:[ring]}}).attr('d',flatPath)
+          .attr('fill',a.stale?'rgba(150,160,158,0.04)':'rgba(100,240,200,0.05)').attr('stroke',a.stale?'rgba(150,160,158,0.35)':'rgba(100,240,200,0.3)').attr('stroke-width',0.5).attr('stroke-dasharray','2 2').style('pointer-events','none');
+      }
+      const g=addPt(c.lat,c.lon,3,a.stale?'rgba(150,160,158,0.25)':'rgba(100,240,200,0.18)',a.stale?'rgba(150,160,158,0.6)':'rgba(100,240,200,0.55)',
+        ev=>showPopup(ev,pop.head,pop.text,pop.meta),1);
+      if(g) g.append('text').attr('class','marker-label').attr('x',8).attr('y',3).attr('fill','var(--dim)').attr('font-size','9px').attr('font-family','var(--mono)').text(a.region.replace(' Region','')+' '+a.total+(a.stale?' · stale':''));
+      (a.tracks||[]).forEach(t=>{
+        const[x,y]=proj([t.lon,t.lat]);if(!x||!y)return;
+        const tp=airTrackPop(t,a);
+        const ag=mg.append('g').attr('class','air-track').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',t.mil?1:2)
+          .on('click',ev=>{ev.stopPropagation();showPopup(ev,tp.head,tp.text,tp.meta)});
+        ag.append('path').attr('class','air-glyph').attr('data-hdg',t.hdg??0)
+          .attr('d',t.hdg==null?'M0,-2.4 L2.4,0 L0,2.4 L-2.4,0 Z':'M0,-4 L2.6,3.2 L0,1.6 L-2.6,3.2 Z')
+          .attr('transform',`rotate(${t.hdg??0})`)
+          .attr('fill',airTrackColor(t,a)).attr('stroke',t.mil?'rgba(0,0,0,0.6)':'none').attr('stroke-width',0.4);
+      });
     });
   }
   // Thermal
@@ -2589,28 +2622,6 @@ function plotFlatMarkers(){
     g.append('circle').attr('class','conflict-ring marker-circle').attr('r',r).attr('data-base-r',r).attr('fill','none').attr('stroke','rgba(255,120,80,0.7)').attr('stroke-width',1.5);
     g.append('circle').attr('class','marker-circle').attr('r',r*0.4).attr('data-base-r',r*0.4).attr('fill','rgba(255,120,80,0.3)').attr('stroke','none');
   });
-  // Flight corridors
-  if(flightsVisible){
-    const airCoordsFlight=[{lat:30,lon:44},{lat:24,lon:120},{lat:49,lon:32},{lat:57,lon:24},{lat:14,lon:114},{lat:37,lon:127},{lat:25,lon:-80},{lat:4,lon:2},{lat:-34,lon:18},{lat:10,lon:51}];
-    const hubs=[{lat:40.6,lon:-73.8},{lat:51.5,lon:-0.5},{lat:25.3,lon:55.4},{lat:1.4,lon:103.8},{lat:-33.9,lon:151.2},{lat:-23.4,lon:-46.5}];
-    const cG=flatG.append('g').attr('class','corridors-layer');
-    for(let i=0;i<D.air.length;i++){for(let j=i+1;j<D.air.length;j++){
-      const a=D.air[i],b=D.air[j],from=airCoordsFlight[i],to=airCoordsFlight[j];
-      if(!from||!to)continue;const traffic=a.total+b.total;if(traffic<30)continue;
-      const ncR=(a.noCallsign+b.noCallsign)/Math.max(traffic,1);
-      const clr=ncR>0.15?'rgba(255,95,99,0.4)':ncR>0.05?'rgba(255,184,76,0.35)':'rgba(100,240,200,0.25)';
-      const interp=d3.geoInterpolate([from.lon,from.lat],[to.lon,to.lat]);
-      const coords=[];for(let k=0;k<=40;k++)coords.push(interp(k/40));
-      const feat={type:'Feature',geometry:{type:'LineString',coordinates:coords}};
-      cG.append('path').datum(feat).attr('d',flatPath).attr('fill','none').attr('stroke',clr).attr('stroke-width',Math.max(0.8,Math.min(3,traffic/80)));
-    }}
-    D.air.forEach((a,i)=>{if(!airCoordsFlight[i]||a.total<25)return;hubs.forEach(hub=>{
-      if(Math.abs(airCoordsFlight[i].lat-hub.lat)+Math.abs(airCoordsFlight[i].lon-hub.lon)<20)return;
-      const interp=d3.geoInterpolate([airCoordsFlight[i].lon,airCoordsFlight[i].lat],[hub.lon,hub.lat]);
-      const coords=[];for(let k=0;k<=40;k++)coords.push(interp(k/40));
-      cG.append('path').datum({type:'Feature',geometry:{type:'LineString',coordinates:coords}}).attr('d',flatPath).attr('fill','none').attr('stroke','rgba(100,240,200,0.15)').attr('stroke-width',0.6);
-    })});
-  }
   // Carrier Strike Groups (light blue diamond markers)
   if(layerOn('carrier')) (D.carriers?.carriers||[]).forEach(c=>{
     if(!c.lat||!c.lng) return;
@@ -2964,9 +2975,16 @@ function renderAirTheatersPanel(){
   const s=shWorst(src);
   if(!air.length||(shNotReporting(s)&&!air.some(a=>a.total)))return offPanel('Air Activity By Theater',src,'No aircraft state vectors this sweep');
   const max=Math.max(1,...air.map(a=>a.total||0));
-  const rows=air.map(a=>`<div class="cii-row" title="${esc(a.region)}: ${a.total||0} aircraft · ${a.noCallsign||0} no callsign · ${a.highAlt||0} high altitude"><span class="cii-name" style="flex:0 0 112px">${esc(a.region)}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${Math.round((a.total||0)/max*100)}%;background:var(--accent2)"></div></div><span class="cii-score" style="color:var(--accent2)">${a.total||0}</span><span class="cii-level" style="color:var(--dim);border:1px solid var(--border)">${(a.top||[]).slice(0,2).map(tp=>esc(tp[0])+' '+tp[1]).join(' · ')||'—'}</span></div>`).join('');
-  const note=D.airMeta?.method&&D.airMeta.method!=='opensky'?`<div class="sh-note">Source: ${esc(D.airMeta.source||D.airMeta.method)} (OpenSky fallback). Counts are civil + military transponders inside each theater box, not military-only.</div>`:'<div class="sh-note">Counts are all transponding aircraft inside each theater box (civil + military). Sudden drops usually mean the upstream feed thinned, not that the sky emptied.</div>';
-  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT</span></div>${rows}${note}</div>`;
+  const rows=air.map(a=>{
+    const state=a.stale?`<span style="color:var(--warn)">STALE ${a.staleAgeMin??'?'}m</span>`:(a.error?`<span style="color:var(--danger)">FAILED</span>`:'');
+    const detail=state||((a.top||[]).slice(0,2).map(tp=>esc(tp[0])+' '+tp[1]).join(' · ')||(a.military?`${a.military} mil`:'—'));
+    return `<div class="cii-row" title="${esc(a.region)}: ${a.total||0} aircraft · ${(a.tracks||[]).length} plotted · ${a.military||0} military · ${a.noCallsign||0} no callsign · ${a.highAlt||0} high altitude · ${esc(airProviderLabel(a))}${a.error?' · '+esc(a.error):''}"><span class="cii-name" style="flex:0 0 112px">${esc(a.region)}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${Math.round((a.total||0)/max*100)}%;background:${a.stale?'var(--dim)':'var(--accent2)'}"></div></div><span class="cii-score" style="color:${a.stale?'var(--dim)':'var(--accent2)'}">${a.total||0}</span><span class="cii-level" style="color:var(--dim);border:1px solid var(--border)">${detail}</span></div>`;
+  }).join('');
+  const plotted=air.reduce((n,a)=>n+(a.tracks||[]).length,0);
+  const staleN=air.filter(a=>a.stale).length;
+  const provider=D.airMeta?.primary==='adsbexchange'?'ADS-B Exchange':(D.airMeta?.method&&D.airMeta.method!=='opensky'?`${esc(D.airMeta.source||D.airMeta.method)} — OpenSky fallback`:'OpenSky');
+  const note=`<div class="sh-note">Source: ${provider}. ${plotted} individual aircraft are plotted on the map (up to 150 per theater); counts are all transponding aircraft inside each theater box (civil + military).${staleN?` ${staleN} theater${staleN>1?'s':''} reusing the last good sample after a failed poll.`:''}</div>`;
+  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT · ${plotted} PLOTTED</span></div>${rows}${note}</div>`;
 }
 function renderPrcPanel(){
   const prcAirR = D.air.find(a => a.region === 'Taiwan Strait') || {};
