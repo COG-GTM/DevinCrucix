@@ -262,9 +262,23 @@ describe('normalized events', () => {
     // A Mexican state named once inside an otherwise foreign article is not the scene either.
     const passing = resolveLocation(findPlaces('Police in Bogota, Colombia, said the cocaine had come from Colombia via Ecuador and was bound for Europe; one suspect had ties to Sinaloa.', gz), gz);
     assert.equal(passing, null);
+    // An Ecuador sanctions piece that mentions a Mexican port once is not a Michoacán event.
+    const abroad = resolveLocation(findPlaces('OFAC targeted an Ecuador-based cocaine network. Ecuador sits between Colombia and Peru; Ecuador\u2019s ports ship to Europe and Asia, and Ecuador\u2019s Los Choneros work with Mexican groups. Mexican forces also ran an operation in Michoac\u00e1n, home to the port of L\u00e1zaro C\u00e1rdenas.', gz), gz);
+    assert.equal(abroad, null, JSON.stringify(abroad));
     // But a real Sinaloa event that mentions another country stays put.
     const real = resolveLocation(findPlaces('Gunmen killed five in Culiacan, Sinaloa; the victims were Colombian nationals.', gz), gz);
     assert.equal(real?.state, 'Sinaloa');
+  });
+
+  it('does not pin an event on the endpoints of a named highway', () => {
+    const text = 'Agents detained the three individuals in Sabinas Hidalgo, in the border state of Nuevo Leon. The operation was carried out on the notorious Nuevo Laredo\u2013Monterrey highway and resulted in the seizure of 210 firearms.';
+    const loc = resolveLocation(findPlaces(text, gz), gz);
+    assert.equal(loc?.municipality, 'Sabinas Hidalgo', JSON.stringify(loc));
+    assert.equal(loc?.state, 'Nuevo Le\u00f3n');
+    const es = resolveLocation(findPlaces('Fue asegurado en la carretera Monterrey-Nuevo Laredo, a la altura de Ci\u00e9nega de Flores, Nuevo Le\u00f3n.', gz), gz);
+    assert.equal(es?.municipality, 'Ci\u00e9nega de Flores', JSON.stringify(es));
+    // A city that is the scene is still a city.
+    assert.equal(resolveLocation(findPlaces('Three men were shot in Monterrey, Nuevo Leon, on Monday.', gz), gz)?.city, 'Monterrey');
   });
 
   it('bounds field sizes and keeps a pre-resolved location', () => {
