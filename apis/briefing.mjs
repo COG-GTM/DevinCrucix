@@ -79,6 +79,12 @@ import { briefing as cartels } from './sources/cartels.mjs';
 
 // Border-region news ingestion + structured baselines (Python service bridge)
 import { briefing as borderingest } from './sources/borderingest.mjs';
+// DOJ press releases for the five south-west border U.S. Attorney districts (Open Data API)
+import { briefing as doj } from './sources/doj.mjs';
+// OFAC SDN narco-program index (SDNTK / SDNT / EO 14059 / TCO + Mexico-linked FTO/SDGT)
+import { briefing as ofacnarco } from './sources/ofacnarco.mjs';
+// Commercial Mexico-security vendors — keyed NO KEY slots, never scraped
+import { dataint, lantia } from './sources/commercialnarco.mjs';
 
 // === Tier 5: Live Market Data ===
 import { briefing as yfinance } from './sources/yfinance.mjs';
@@ -89,7 +95,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers']); // sources that need extra time
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'DOJ', 'OFACNarco']); // sources that need extra time (paged backfill / 30 MB XML)
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
@@ -198,6 +204,12 @@ export async function fullBriefing() {
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),
+
+    // Tier 17: Homeland / Narco — official records + sanctions + commercial slots
+    runSource('DOJ', doj),
+    runSource('OFACNarco', ofacnarco),
+    runSource('DataInt', dataint),
+    runSource('Lantia', lantia),
   ];
   console.error(`[Crucix] Starting intelligence sweep — ${allPromises.length} sources...`);
 

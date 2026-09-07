@@ -42,6 +42,12 @@ import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_
 // Phase 7: Seismic Event Monitor
 import { collectSeismic } from './apis/sources/seismic.mjs';
 import { ingestGet } from './apis/sources/borderingest.mjs';
+import { computeNarcoEvents, loadNarcoEvents } from './lib/narco/pipeline.mjs';
+import { buildNarcoView, compactCluster } from './lib/narco/view.mjs';
+import { queryReleases as dojReleases, DISTRICTS as DOJ_DISTRICTS, CATEGORY_IDS as DOJ_CATEGORIES } from './apis/sources/doj.mjs';
+import { loadIndex as ofacNarcoIndex, matchNames as ofacMatchNames } from './apis/sources/ofacnarco.mjs';
+import { CONFIDENCE as NARCO_GRADES } from './lib/narco/events.mjs';
+import { EVENT_TYPE_LABELS as NARCO_TYPES } from './lib/narco/extract.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -62,6 +68,7 @@ let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
 let marketRefreshInProgress = false;
 let seismicData = null;      // Seismic Event Monitor state (refreshed independently)
+let narcoData = loadNarcoEvents(); // Full narco event clusters from the last post-sweep computation (runs/narco/events.json)
 const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
@@ -467,6 +474,79 @@ app.get('/api/cartels/geo', (req, res) => {
   res.json(cartelGeo);
 });
 
+// API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
+// independent corroboration and cross-matched against the OFAC SDN narco-program index.
+const NARCO_ID_RE = /^[a-z0-9_-]{1,40}$/;
+function narcoPick(req, name, allowed) {
+  const v = req.query[name];
+  if (v === undefined) return null;
+  return typeof v === 'string' && v.length <= 64 && allowed(v) ? v : undefined;
+}
+function narcoInt(req, name, dflt, min, max, digits) {
+  const raw = req.query[name] === undefined ? String(dflt) : req.query[name];
+  const n = typeof raw === 'string' && new RegExp(`^\\d{1,${digits}}$`).test(raw) ? Number(raw) : NaN;
+  return n >= min && n <= max ? n : NaN;
+}
+app.get('/api/narco', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.narco || { status: 'unavailable' });
+});
+app.get('/api/narco/events', (req, res) => {
+  const grade = narcoPick(req, 'grade', v => Object.hasOwn(NARCO_GRADES, v));
+  const type = narcoPick(req, 'type', v => Object.hasOwn(NARCO_TYPES, v));
+  const cartel = narcoPick(req, 'cartel', v => NARCO_ID_RE.test(v));
+  const state = narcoPick(req, 'state', v => /^[A-Za-z\u00C0-\u017F .'-]{2,40}$/.test(v));
+  const days = narcoInt(req, 'days', 30, 1, 90, 2);
+  const limit = narcoInt(req, 'limit', 100, 1, 200, 3);
+  if ([grade, type, cartel, state].includes(undefined) || Number.isNaN(days) || Number.isNaN(limit)) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  if (!narcoData) return res.json({ status: 'pending', count: 0, events: [] });
+  const cut = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+  const currentCut = new Date(new Date(narcoData.computedAt).getTime() - (narcoData.currentDays || 30) * 86_400_000).toISOString().slice(0, 10);
+  const stateLc = state ? state.toLowerCase() : null;
+  const events = (narcoData.clusters || [])
+    .filter(c => c.date && c.date >= cut)
+    .filter(c => !grade || c.confidence?.grade === grade)
+    .filter(c => !type || c.eventType === type || (c.eventTypes || []).includes(type))
+    .filter(c => !cartel || [...(c.cartels || []), ...(c.factions || [])].some(g => g.orgId === cartel))
+    .filter(c => !stateLc || String(c.location?.state || '').toLowerCase() === stateLc);
+  res.json({ status: 'live', computedAt: narcoData.computedAt, filters: { grade, type, cartel, state, days }, count: events.length, events: events.slice(0, limit).map(c => compactCluster(c, currentCut)) });
+});
+app.get('/api/narco/events/:id', (req, res) => {
+  const id = String(req.params.id || '');
+  if (!/^cl_[a-f0-9]{20}$/.test(id)) return res.status(400).json({ error: 'Invalid request' });
+  const c = (narcoData?.clusters || []).find(x => x.id === id);
+  if (!c) return res.status(404).json({ error: 'Event not found' });
+  res.set('Cache-Control', 'private, max-age=300');
+  res.json(c);
+});
+app.get('/api/narco/doj', (req, res) => {
+  const district = narcoPick(req, 'district', v => DOJ_DISTRICTS.some(d => d.code === v));
+  const category = narcoPick(req, 'category', v => DOJ_CATEGORIES.includes(v));
+  const days = narcoInt(req, 'days', 30, 1, 90, 2);
+  const limit = narcoInt(req, 'limit', 100, 1, 200, 3);
+  if ([district, category].includes(undefined) || Number.isNaN(days) || Number.isNaN(limit)) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  try {
+    res.json(dojReleases({ district, category, days, limit }));
+  } catch (err) {
+    console.error('[Crucix] DOJ releases error:', err);
+    res.status(500).json({ error: 'DOJ releases unavailable' });
+  }
+});
+// Name check against the OFAC narco-program index (same conservative matcher the pipeline uses).
+app.get('/api/narco/sanctions', (req, res) => {
+  const raw = req.query.name;
+  if (typeof raw !== 'string' || raw.length < 3 || raw.length > 120 || !/^[A-Za-z\u00C0-\u017F .,'-]+$/.test(raw)) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  const index = ofacNarcoIndex();
+  if (!index) return res.status(503).json({ error: 'Sanctions index not loaded yet' });
+  res.json({ query: raw, publishDate: index.publishDate || null, matches: ofacMatchNames([raw], index).slice(0, 10) });
+});
+
 // API: Region Dossier (on-demand, not from sweep)
 app.get('/api/region-dossier', async (req, res) => {
   const lat = parseFloat(req.query.lat);
@@ -746,6 +826,17 @@ async function runSweepCycle() {
       synthesized.signals = synthesized.signals || { totalSignals: 0, signals: [] };
       synthesized.focalPoints = synthesized.focalPoints || { totalFocalPoints: 0, focalPoints: [] };
       synthesized.defcon = synthesized.defcon || { level: 5, score: 0, color: '#00ff41', label: 'NORMAL READINESS', pulse: false, components: {}, fallbackMode: true };
+    }
+
+    // 3c. Homeland / Narco events: normalize, dedupe, grade and sanctions-match post-sweep (non-fatal)
+    try {
+      const narcoResult = await computeNarcoEvents({ llmProvider });
+      narcoData = narcoResult;
+      synthesized.narco = buildNarcoView(narcoResult, rawData.sources || {});
+      console.log(`[Crucix] Narco: ${narcoResult.totals.clusters} events (${narcoResult.totals.current} current) from ${narcoResult.records} records | ${narcoResult.totals.sanctionsMatches} sanctions matches | ${narcoResult.durationMs}ms`);
+    } catch (narcoErr) {
+      console.error('[Crucix] Narco event pipeline failed (non-fatal):', narcoErr.message);
+      synthesized.narco = buildNarcoView(narcoData, rawData.sources || {}, { error: 'event pipeline failed this sweep' });
     }
 
     // 4. Delta computation + memory

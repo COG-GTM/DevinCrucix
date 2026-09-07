@@ -23,9 +23,18 @@ const TT_FEED = readFileSync(join(FIX, 'texastribune-feed.xml'), 'utf8');
 const TT_POST = readFileSync(join(FIX, 'texastribune-post-242108.json'), 'utf8');
 const BR_POST = readFileSync(join(FIX, 'borderreport-post-3078323.json'), 'utf8');
 
+const BB_FEED = readFileSync(join(FIX, 'borderlandbeat-feed.xml'), 'utf8');
+const FD_FEED = readFileSync(join(FIX, 'fronterasdesk-feed.xml'), 'utf8');
+const EPM_FEED = readFileSync(join(FIX, 'elpasomatters-feed.xml'), 'utf8');
+
 const registry = loadRegistry();
 const BR = registry.find(s => s.id === 'borderreport');
 const TT = registry.find(s => s.id === 'texastribune');
+const BB = registry.find(s => s.id === 'borderlandbeat');
+const FD = registry.find(s => s.id === 'fronterasdesk');
+const EPM = registry.find(s => s.id === 'elpasomatters');
+// The original two-outlet slice; sweep tests below are scoped to it so registry growth does not move their counts.
+const THIN_SLICE = [BR, TT];
 
 function res(status, body = '', headers = {}, url = '') {
   const h = new Map(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
@@ -51,8 +60,8 @@ function tmpDir() { return mkdtempSync(join(tmpdir(), 'crucix-border-')); }
 
 // --- registry -------------------------------------------------------------------
 
-test('registry: both thin-slice outlets present with required provenance metadata', () => {
-  assert.equal(registry.length, 2);
+test('registry: all outlets present with required provenance metadata', () => {
+  assert.deepEqual(registry.map(s => s.id).sort(), ['borderlandbeat', 'borderreport', 'elpasomatters', 'fronterasdesk', 'texastribune']);
   for (const s of registry) {
     for (const f of ['id', 'outlet', 'feedUrl', 'language', 'countryOfPublication', 'regionTag', 'reliability', 'discoveryDate']) assert.ok(s[f], `${s.id}.${f}`);
     assert.equal(s.reliability, 'ungraded');
@@ -385,7 +394,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
     ['feeds.texastribune.org/link/', res(403, 'denied')],
   ]);
   const now = Date.parse('2026-09-05T21:00:00Z');
-  const out = await briefing({ fetch: f, dataDir, now, maxArticleFetch: 2, politeDelayMs: 0 });
+  const out = await briefing({ registry: THIN_SLICE, fetch: f, dataDir, now, maxArticleFetch: 2, politeDelayMs: 0 });
   assert.equal(out.source, 'BorderNews');
   assert.equal(out.status, 'live');
   assert.equal(out.totalArticles, 30);
@@ -414,7 +423,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
     ['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)],
     ['/wp-json/', res(403, 'denied')], ['borderreport.com/', res(403, 'denied')], ['feeds.texastribune.org/link/', res(403, 'denied')],
   ]);
-  const out2 = await briefing({ fetch: f2, dataDir, now: now + 900_000, maxArticleFetch: 1, politeDelayMs: 0 });
+  const out2 = await briefing({ registry: THIN_SLICE, fetch: f2, dataDir, now: now + 900_000, maxArticleFetch: 1, politeDelayMs: 0 });
   assert.equal(out2.status, 'live');
   assert.equal(out2.newThisSweep, 0);
   assert.equal(out2.totalArticles, 30);
@@ -430,7 +439,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
 
   // catch-up is skipped when the enrichment time budget is already spent
   const f3 = mockFetch([['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)]]);
-  const out3 = await briefing({ fetch: f3, dataDir, now: now + 1_800_000, enrichBudgetMs: 0, politeDelayMs: 0 });
+  const out3 = await briefing({ registry: THIN_SLICE, fetch: f3, dataDir, now: now + 1_800_000, enrichBudgetMs: 0, politeDelayMs: 0 });
   assert.equal(f3.calls.length, 2, 'no article fetches once the budget is exhausted');
   assert.equal(out3.status, 'live');
   assert.equal(out3.retaggedThisSweep, 0);
@@ -440,7 +449,7 @@ test('briefing: first sweep ingests both fixtures, persists store/state/raw, is 
   const stale = JSON.parse(readFileSync(storePath, 'utf8'));
   for (const r of stale) { r.tags = { topics: [], places: ['yuma-az'], tool: 'crucix-rules/0' }; }
   writeFileSync(storePath, JSON.stringify(stale));
-  const out4 = await briefing({ fetch: mockFetch([['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)]]), dataDir, now: now + 2_700_000, enrichBudgetMs: 0, politeDelayMs: 0 });
+  const out4 = await briefing({ registry: THIN_SLICE, fetch: mockFetch([['borderreport.com/feed', res(304)], ['feeds.texastribune.org/feeds/main', res(304)]]), dataDir, now: now + 2_700_000, enrichBudgetMs: 0, politeDelayMs: 0 });
   assert.equal(out4.retaggedThisSweep, 30);
   assert.ok(out4.articles.every(a => a.tags.tool === TAGGER_VERSION && !a.tags.places.includes('yuma-az')));
 
@@ -454,20 +463,20 @@ test('briefing: one feed blocked -> partial/degraded; all feeds down with histor
   resetRobotsCacheForTests(); resetForTests();
   const dataDir = tmpDir();
   const now = Date.parse('2026-09-05T21:00:00Z');
-  const partial = await briefing({ fetch: mockFetch([['robots.txt', ROBOTS_OK], ['borderreport.com/feed', res(200, BR_FEED)], ['texastribune', res(406, 'bot')]]), dataDir, now, fetchArticles: false, politeDelayMs: 0 });
+  const partial = await briefing({ registry: THIN_SLICE, fetch: mockFetch([['robots.txt', ROBOTS_OK], ['borderreport.com/feed', res(200, BR_FEED)], ['texastribune', res(406, 'bot')]]), dataDir, now, fetchArticles: false, politeDelayMs: 0 });
   assert.equal(partial.status, 'partial');
   assert.equal(partial.totalArticles, 10);
   assert.equal(partial.feeds.find(x => x.id === 'texastribune').status, 'blocked');
   assert.equal(classifySource('BorderNews', partial).state, 'degraded');
 
-  const stale = await briefing({ fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir, now: now + 1000, fetchArticles: false, politeDelayMs: 0 });
+  const stale = await briefing({ registry: THIN_SLICE, fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir, now: now + 1000, fetchArticles: false, politeDelayMs: 0 });
   assert.equal(stale.status, 'stale');
   assert.equal(stale.totalArticles, 10, 'stored articles still served');
   const h = classifySource('BorderNews', stale);
   assert.equal(h.state, 'degraded');
   assert.equal(h.reason, 'stale');
 
-  const cold = await briefing({ fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir: tmpDir(), now, fetchArticles: false, politeDelayMs: 0 });
+  const cold = await briefing({ registry: THIN_SLICE, fetch: async () => { throw new Error('ENOTFOUND'); }, dataDir: tmpDir(), now, fetchArticles: false, politeDelayMs: 0 });
   assert.equal(cold.status, 'error');
   assert.match(cold.error, /all feeds failed/);
   assert.equal(classifySource('BorderNews', cold).state, 'error');
@@ -476,9 +485,71 @@ test('briefing: one feed blocked -> partial/degraded; all feeds down with histor
 test('briefing: reachable feeds with zero items is "empty" -> degraded, not live', async () => {
   resetForTests();
   const emptyRss = '<rss><channel><title>x</title></channel></rss>';
-  const out = await briefing({ fetch: mockFetch([['feed', res(200, emptyRss)], ['feeds/main', res(200, emptyRss)]]), dataDir: tmpDir(), now: Date.now(), fetchArticles: false, politeDelayMs: 0 });
+  const out = await briefing({ registry: THIN_SLICE, fetch: mockFetch([['feed', res(200, emptyRss)], ['feeds/main', res(200, emptyRss)]]), dataDir: tmpDir(), now: Date.now(), fetchArticles: false, politeDelayMs: 0 });
   assert.equal(out.status, 'empty');
   assert.equal(classifySource('BorderNews', out).state, 'degraded');
+});
+
+// --- Borderland Beat / El Paso Matters / Fronteras Desk (recorded 2026-09-07) ----------------
+
+test('Borderland Beat fixture: Blogger RSS carries the full post body; feed-content is the text-of-record, no page fetch', async () => {
+  const items = parseFeed(BB_FEED);
+  assert.equal(items.length, 4);
+  assert.ok(items[0].guid.startsWith('tag:blogger.com,1999:blog-'));
+  assert.ok(items[0].link.startsWith('https://www.borderlandbeat.com/2026/'));
+  assert.ok(items[0].rawDescription.length > 1000, 'description holds the article body');
+  assert.equal(BB.articleApi, 'feed-content');
+
+  const rec = normalizeItem(items[0], BB, '2026-09-07T20:30:00Z');
+  assert.equal(rec.extraction.method, 'feed-content');
+  assert.equal(rec.extraction.fetchStatus, 'ok');
+  assert.ok(rec.textChars > 1000 && rec.text.includes('Source:'), 'cited-source line preserved in body');
+  assert.equal(rec.summary.length, 600, 'summary is still capped');
+  assert.equal(rec.contentHash.length, 64);
+
+  resetRobotsCacheForTests(); resetForTests();
+  const f = mockFetch([['borderlandbeat.com/feeds/posts/default', res(200, BB_FEED)]]);
+  const out = await briefing({ registry: [BB], fetch: f, dataDir: tmpDir(), now: Date.parse('2026-09-07T21:00:00Z'), maxArticleFetch: 5, politeDelayMs: 0 });
+  assert.equal(out.status, 'live');
+  assert.equal(out.totalArticles, 4);
+  assert.equal(f.calls.length, 1, 'feed only: no robots or article-page requests');
+  const feed = out.feeds[0];
+  assert.deepEqual([feed.articleFetch.attempted, feed.articleFetch.skipped], [0, 0]);
+  assert.ok(out.articles.every(a => a.extraction.method === 'feed-content' && a.sourceType === 'citizen-aggregator'));
+  assert.ok(out.articles.some(a => a.tags.topics.includes('violence')));
+});
+
+test('Fronteras Desk fixture: KJZZ summaries-only feed, guid = article URL, article page fetched under robots', async () => {
+  const items = parseFeed(FD_FEED);
+  assert.equal(items.length, 3);
+  assert.equal(items[0].guid, items[0].link);
+  assert.ok(items[0].link.startsWith('https://www.kjzz.org/fronteras-desk/2026-'));
+  assert.ok(items[0].published && items[0].description.length < 400);
+  assert.equal(FD.articleApi, undefined);
+  const rec = normalizeItem(items[0], FD, '2026-09-07T20:30:00Z');
+  assert.equal(rec.extraction.fetchStatus, 'not attempted');
+  assert.equal(rec.text, null);
+
+  resetRobotsCacheForTests(); resetForTests();
+  const page = '<html><head><title>t</title></head><body><article>' + Array.from({ length: 6 }, (_, i) => `<p>Paragraph ${i} of the Fronteras Desk story about the Sonora desert reserve and the border wall assessment mission.</p>`).join('') + '</article></body></html>';
+  const f = mockFetch([['robots.txt', res(200, 'User-agent: *\nDisallow:\n')], ['kjzz.org/fronteras-desk.rss', res(200, FD_FEED)], ['kjzz.org/fronteras-desk/2026-', res(200, page)]]);
+  const out = await briefing({ registry: [FD], fetch: f, dataDir: tmpDir(), now: Date.parse('2026-09-07T21:00:00Z'), maxArticleFetch: 1, politeDelayMs: 0 });
+  assert.equal(out.status, 'live');
+  assert.equal(out.totalArticles, 3);
+  assert.equal(out.feeds[0].articleFetch.ok, 1);
+  assert.equal(out.feeds[0].articleFetch.skipped, 2);
+  assert.ok(out.articles.some(a => a.extraction.method === 'page:article-tag'));
+});
+
+test('El Paso Matters fixture: WordPress guid resolves to a post id for the public REST API', () => {
+  const items = parseFeed(EPM_FEED);
+  assert.equal(items.length, 3);
+  assert.match(items[0].guid, /^https:\/\/elpasomatters\.org\/\?p=\d+$/);
+  assert.equal(wpPostId(items[0].guid), items[0].guid.split('=')[1]);
+  assert.equal(EPM.articleApi, 'wp-rest');
+  assert.match(EPM.license, /BY-ND/);
+  const rec = normalizeItem(items[0], EPM, '2026-09-07T20:30:00Z');
+  assert.equal(rec.extraction.method, 'feed-description', 'wp-rest sources still fetch the text-of-record from the API');
 });
 
 test('briefing: invalid registry is reported as an error, not thrown', async () => {

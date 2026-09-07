@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" version="2.0">
+  <channel>
+    <title>Fronteras Desk</title>
+    <link>https://www.kjzz.org/fronteras-desk</link>
+    <description>Fronteras Desk</description>
+    <language>en-US</language>
+    <copyright>Copyright</copyright>
+    <lastBuildDate>Mon, 07 Sep 2026 12:00:00 GMT</lastBuildDate>
+    <atom:link href="https://www.kjzz.org/fronteras-desk.rss" type="application/rss+xml" rel="self" />
+    <item>
+      <title>UNESCO reiterates fears of border wall damage to World Heritage site El Pinacate</title>
+      <link>https://www.kjzz.org/fronteras-desk/2026-09-07/unesco-reiterates-fears-of-border-wall-damage-to-world-heritage-site-el-pinacate</link>
+      <description>A decision from the United Nations’ cultural preservation body, UNESCO, calls for a mission to the Sonora desert nature reserve to assess the impacts of the border wall.</description>
+      <pubDate>Mon, 07 Sep 2026 12:00:00 GMT</pubDate>
+      <guid>https://www.kjzz.org/fronteras-desk/2026-09-07/unesco-reiterates-fears-of-border-wall-damage-to-world-heritage-site-el-pinacate</guid>
+      <dc:creator>Nina Kravinsky</dc:creator>
+      <media:thumbnail url="https://npr.brightspotcdn.com/dims4/default/0f3f317/2147483647/strip/false/crop/1067x800+0+0/resize/267x200!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Flegacy%2Fs3fs-public%2Ffield%2Fimage%2FEl%20Pinacate.jpg" />
+      <media:content type="image/jpeg" url="https://npr.brightspotcdn.com/dims4/default/44f5e7a/2147483647/strip/false/crop/1067x800+0+0/resize/704x528!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Flegacy%2Fs3fs-public%2Ffield%2Fimage%2FEl%20Pinacate.jpg" />
+    </item>
+    <item>
+      <title>1 year after approving Project Blue, Pima County releases data center health impact study</title>
+      <link>https://www.kjzz.org/fronteras-desk/2026-09-07/1-year-after-approving-project-blue-pima-county-releases-data-center-health-impact-study</link>
+      <description>Tucson residents were clear in their concerns about Project Blue's potential to impact the environment and public health. Now, health officials in Pima County, where the project is moving forward, have published a study that backs some of that up.</description>
+      <pubDate>Mon, 07 Sep 2026 12:00:00 GMT</pubDate>
+      <guid>https://www.kjzz.org/fronteras-desk/2026-09-07/1-year-after-approving-project-blue-pima-county-releases-data-center-health-impact-study</guid>
+      <dc:creator>Taylor Griffith</dc:creator>
+      <media:thumbnail url="https://npr.brightspotcdn.com/dims4/default/805d856/2147483647/strip/false/crop/1920x1080+0+0/resize/300x169!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2F4f%2F06%2F7c41b2114fc99710a5abf50fe2cb%2F08082025-azr-project-blue-meeting-2.jpg" />
+      <media:content type="image/jpeg" url="https://npr.brightspotcdn.com/dims4/default/14078a0/2147483647/strip/false/crop/1920x1080+0+0/resize/792x446!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2F4f%2F06%2F7c41b2114fc99710a5abf50fe2cb%2F08082025-azr-project-blue-meeting-2.jpg" />
+    </item>
+    <item>
+      <title>Phoenix and Tucson airports head into busy Labor Day weekend</title>
+      <link>https://www.kjzz.org/fronteras-desk/2026-09-06/phoenix-and-tucson-airports-head-into-busy-labor-day-weekend</link>
+      <description>Labor Day weekend marks the end of the summer travel season — and for Arizonans, it’s a chance to escape the heat. But with any travel, there’s a risk of delays.</description>
+      <pubDate>Sun, 06 Sep 2026 15:36:00 GMT</pubDate>
+      <guid>https://www.kjzz.org/fronteras-desk/2026-09-06/phoenix-and-tucson-airports-head-into-busy-labor-day-weekend</guid>
+      <dc:creator>Connor Greenwall</dc:creator>
+      <media:thumbnail url="https://npr.brightspotcdn.com/dims4/default/b53f8b0/2147483647/strip/false/crop/3451x1941+0+0/resize/300x169!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Fd2%2F6f%2Fff85eb2c457cb3ce171ef29609ec%2Ftucson-international-airport-20221226.jpg" />
+      <media:content type="image/jpeg" url="https://npr.brightspotcdn.com/dims4/default/f6dc369/2147483647/strip/false/crop/3451x1941+0+0/resize/792x445!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Fd2%2F6f%2Fff85eb2c457cb3ce171ef29609ec%2Ftucson-international-airport-20221226.jpg" />
+    </item>
+  </channel>
+</rss>

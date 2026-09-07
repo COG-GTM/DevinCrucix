@@ -202,13 +202,22 @@ export function conditionalHeaders(feedState) {
   return h;
 }
 
-// Build the immutable-ish record for one feed item. `text` is filled in later by enrichArticle.
+const MIN_FEED_CONTENT_CHARS = 400;
+
+// Build the immutable-ish record for one feed item. `text` is filled in later by enrichArticle,
+// except for `articleApi: "feed-content"` sources (Blogger and similar) whose feed already
+// carries the full post body — that body is the text-of-record and no page is fetched.
 export function normalizeItem(item, source, collectedAt) {
   const url = normalizeUrl(item.link) || null;
   const guid = String(item.guid || '').slice(0, 300) || null;
   const identity = guid || url || `${source.id}|${item.title}`;
   const title = String(item.title || '').replace(/\s+/g, ' ').trim().slice(0, 300);
   const summary = String(item.description || '').replace(/\s+/g, ' ').trim().slice(0, MAX_SUMMARY_CHARS);
+  let text = null;
+  if (source.articleApi === 'feed-content' && String(item.rawDescription || '').length >= MIN_FEED_CONTENT_CHARS) {
+    const paragraphs = bodyParagraphs(htmlToText(item.rawDescription), { minLen: 1 });
+    text = paragraphs.join('\n\n').slice(0, MAX_TEXT_CHARS) || null;
+  }
   return {
     id: sha256(`${source.id}|${identity}`).slice(0, 16),
     sourceId: source.id,
@@ -226,11 +235,13 @@ export function normalizeItem(item, source, collectedAt) {
     collectedAt,
     summary,
     categories: (item.categories || []).map(c => String(c).slice(0, 80)).slice(0, 12),
-    text: null,
-    textChars: 0,
-    extraction: { method: 'feed-description', fetchStatus: 'not attempted', fetchedAt: null, rawSnapshot: null },
+    text,
+    textChars: text ? text.length : 0,
+    extraction: text
+      ? { method: 'feed-content', fetchStatus: 'ok', fetchedAt: collectedAt, rawSnapshot: null }
+      : { method: 'feed-description', fetchStatus: 'not attempted', fetchedAt: null, rawSnapshot: null },
     pipelineVersion: PIPELINE_VERSION,
-    contentHash: sha256(`${title}\n${summary}`),
+    contentHash: text ? sha256(text) : sha256(`${title}\n${summary}`),
     paywalled: Boolean(source.paywall) || false,
     syndicated: false,
     wireSource: null,
@@ -611,7 +622,10 @@ export async function briefing(opts = {}) {
       }
       report.newItems = fresh.length;
       for (const rec of fresh) {
-        if (canFetch()) {
+        if (rec.extraction.fetchStatus === 'ok') {
+          applyTags(rec);
+          markSyndication(rec);
+        } else if (canFetch()) {
           await enrich(rec);
         } else {
           rec.extraction.fetchStatus = fetchArticles ? 'skipped (per-sweep cap)' : 'disabled (BORDER_FETCH_ARTICLES=false)';
