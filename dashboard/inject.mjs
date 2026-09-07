@@ -158,6 +158,8 @@ function summarizeAirHotspots(hotspots = []) {
       sampled: Boolean(h.sampled),
       stale: Boolean(h.stale),
       ...(h.stale && isNum(h.staleAgeMin) ? { staleAgeMin: h.staleAgeMin } : {}),
+      ...(isNum(h.ageMin) ? { ageMin: h.ageMin } : {}),
+      ...(typeof h.sampledAt === 'string' ? { sampledAt: h.sampledAt } : {}),
       ...(h.method === 'none' && h.error ? { error: String(h.error).slice(0, 160) } : {}),
       ...(isNum(h.lamin) ? { lamin: h.lamin, lomin: h.lomin, lamax: h.lamax, lomax: h.lomax } : {}),
       tracks,

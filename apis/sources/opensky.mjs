@@ -14,21 +14,28 @@
 // there is no OpenSky snapshot to serve, each hotspot is sampled in 250 nm circles
 // from an ADS-B aggregator instead and flagged as a sample: ADS-B Exchange when
 // ADSBX_RAPIDAPI_KEY is set (it then replaces OpenSky outright), else the keyless
-// api.adsb.lol. Sample calls are paced sequentially and a per-theater last-good
-// result (≤ 90 min old) covers transient 429s so theaters do not blink to zero.
+// api.adsb.lol. api.adsb.lol admits roughly one request every 7 s from a cloud
+// egress IP (burst of ~3, then 429 with no Retry-After), far too slow to sample all
+// 33 points inside one sweep's 60 s budget. So sampling runs as a background
+// rotation between sweeps — one point every AIR_SAMPLE_PACE_MS, theater by theater —
+// and a sweep reads each theater's most recent result, tagged with its age. A result
+// older than the fresh window is `stale`; older than the last-good window it is dropped
+// and the theater reports a failure rather than fake zeros.
 
 import { safeFetch } from '../utils/fetch.mjs';
 import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
-import { adsbxConfigured, adsbxPoint, adsbxRemaining, adsbxStatus } from './adsbx.mjs';
+import { adsbxConfigured, adsbxDailyBudget, adsbxPoint, adsbxRemaining, adsbxStatus } from './adsbx.mjs';
 import { isMilitaryCallsign, isMilitaryHex } from './adsb.mjs';
 
 const BASE = 'https://opensky-network.org/api';
 const ADSB_LOL = 'https://api.adsb.lol/v2';
 const UA = 'CRUCIX/2.0 (+https://github.com/COG-GTM/DevinCrucix)';
 const SAMPLE_RADIUS_NM = 250;
-const SAMPLE_PACE_MS = Math.max(0, Number(process.env.AIR_SAMPLE_PACE_MS ?? 400));
+const PACE_OVERRIDE_MS = process.env.AIR_SAMPLE_PACE_MS ? Math.max(0, Number(process.env.AIR_SAMPLE_PACE_MS) || 0) : null;
+const SAMPLE_PACE_MS = PACE_OVERRIDE_MS ?? 8_000;
 const SAMPLE_COOLDOWN_MS = 60_000;
-const HOTSPOT_LAST_GOOD_MAX_MS = 90 * 60_000;
+const FRESH_MIN_MS = 15 * 60_000;      // ≤ one sweep interval old counts as current
+const LAST_GOOD_MIN_MS = 90 * 60_000;  // beyond this a theater reports failure, not old data
 const SAMPLE_DEADLINE_MS = Math.max(5_000, Number(process.env.AIR_SAMPLE_DEADLINE_MS ?? 40_000));
 const SWEEP_BUDGET_MS = 55_000; // briefing.mjs gives OpenSky 60 s
 const HIGH_ALT_FT = 39370; // 12 km
@@ -71,16 +78,26 @@ const state = {
   quota: { remaining: null, updatedAt: null },
   hotspotLastGood: {}, // key -> { at, result } from the last successful sample
   lolCooldownUntil: 0,
-  sampleCursor: 0,     // next theater to sample when the previous sweep hit its deadline
+  sampleCursor: 0,     // next theater to sample (shared by sweeps and the background rotation)
+  sampleLock: Promise.resolve(),
+  background: null,    // { timer } while the background rotation is running
+  attempted: new Set(),// theaters the rotation has reached at least once
+  waiters: new Set(),  // resolvers waiting for the rotation to cover every theater
+  gen: 0,              // bumped by resetState so in-flight samples discard their result
 };
 
 export function resetState() {
+  stopBackgroundSampler();
   Object.assign(state, {
     token: null, tokenExpiresAt: 0, cooldownUntil: 0, lastFetchAt: 0,
     lastGood: null, lastError: null, quota: { remaining: null, updatedAt: null },
     hotspotLastGood: {}, lolCooldownUntil: 0, sampleCursor: 0,
+    attempted: new Set(), waiters: new Set(), gen: state.gen + 1,
   });
 }
+
+// Resolves once no sample is in flight (queued work after a reset is dropped).
+export function samplerIdle() { return state.sampleLock; }
 
 function credentials() {
   const id = process.env.OPENSKY_CLIENT_ID?.trim();
@@ -390,12 +407,36 @@ export function fromAdsbSample(key, box, aircraft, points, provider = 'adsb.lol'
 }
 
 const sleep = ms => (ms > 0 ? new Promise(r => setTimeout(r, ms)) : Promise.resolve());
+const TOTAL_SAMPLE_POINTS = Object.values(HOTSPOTS).reduce((n, b) => n + samplePoints(b).length, 0);
 
 // Which aggregator a sample call should use right now.
 function pickProvider() {
   if (adsbxRemaining() > 0) return 'adsbexchange';
   if (Date.now() >= state.lolCooldownUntil) return 'adsb.lol';
   return null;
+}
+
+// ADS-B Exchange requests are spread over the day so the budget lasts; adsb.lol just needs
+// the pace. AIR_SAMPLE_PACE_MS, when set, overrides both.
+function paceMs(provider = pickProvider()) {
+  if (PACE_OVERRIDE_MS != null) return PACE_OVERRIDE_MS;
+  if (provider === 'adsbexchange') return Math.max(SAMPLE_PACE_MS, Math.floor(86_400_000 / Math.max(1, adsbxDailyBudget())));
+  return SAMPLE_PACE_MS;
+}
+
+// One full rotation through every sample point at the current pace.
+function rotationMs() { return TOTAL_SAMPLE_POINTS * paceMs(); }
+function freshWindowMs() { return Math.max(FRESH_MIN_MS, Math.round(rotationMs() * 1.25)); }
+function lastGoodWindowMs() { return Math.max(LAST_GOOD_MIN_MS, rotationMs() * 3); }
+
+// Sweeps and the background rotation share one aggregator; never let them overlap.
+// Work queued before a resetState() is dropped (resolves null) instead of running.
+function withSampleLock(fn) {
+  const gen = state.gen;
+  const guarded = () => (gen === state.gen ? fn() : null);
+  const run = state.sampleLock.then(guarded, guarded);
+  state.sampleLock = run.then(() => {}, () => {});
+  return run;
 }
 
 async function fetchSamplePoint(provider, p) {
@@ -416,60 +457,140 @@ function failedHotspot(key, box, error) {
   };
 }
 
-// A failed sample falls back to that theater's last good result while it is fresh enough.
-function withLastGood(key, box, error) {
+// A theater not sampled right now serves its most recent result, tagged with its age:
+// `reused` always, `stale` once it is older than the fresh window, dropped (failure,
+// zero aircraft) once it is older than the last-good window.
+function withLastGood(key, box, reason) {
   const lg = state.hotspotLastGood[key];
   const ageMs = lg ? Date.now() - lg.at : Infinity;
-  if (lg && ageMs <= HOTSPOT_LAST_GOOD_MAX_MS) {
-    return { ...lg.result, stale: true, staleAgeMin: Math.round(ageMs / 60000), staleReason: error };
+  if (lg && ageMs <= lastGoodWindowMs()) {
+    const ageMin = Math.round(ageMs / 60000);
+    const out = { ...lg.result, reused: true, reuseReason: reason, sampledAt: new Date(lg.at).toISOString(), ageMin };
+    if (ageMs > freshWindowMs()) Object.assign(out, { stale: true, staleAgeMin: ageMin, staleReason: reason });
+    return out;
   }
-  return failedHotspot(key, box, error);
+  return failedHotspot(key, box, reason);
 }
 
 async function sampleHotspot(key, box) {
+  const gen = state.gen;
   const points = samplePoints(box);
   const seen = new Map();
   const errors = [];
   const providers = new Set();
   for (const p of points) {
+    if (gen !== state.gen) return failedHotspot(key, box, 'sampler reset');
     const provider = pickProvider();
     if (!provider) { errors.push('all aggregators cooling down'); continue; }
     const data = await fetchSamplePoint(provider, p);
-    if (SAMPLE_PACE_MS) await sleep(SAMPLE_PACE_MS);
+    await sleep(paceMs(provider));
     if (data?.error || !Array.isArray(data?.ac)) { errors.push(`${provider} ${shortError(data?.error || 'no ac[] in response')}`); continue; }
     providers.add(provider);
     for (const a of data.ac) if (a.hex && !seen.has(a.hex)) seen.set(a.hex, a);
   }
+  if (gen !== state.gen) return failedHotspot(key, box, 'sampler reset');
   if (errors.length === points.length) return withLastGood(key, box, errors[0]);
 
   const provider = providers.size === 1 ? [...providers][0] : 'mixed';
-  const out = fromAdsbSample(key, box, [...seen.values()], points, provider);
+  const at = Date.now();
+  const out = { ...fromAdsbSample(key, box, [...seen.values()], points, provider), sampledAt: new Date(at).toISOString(), ageMin: 0 };
   if (errors.length) out.partial = `${errors.length}/${points.length} sample(s) failed: ${errors[0]}`;
-  state.hotspotLastGood[key] = { at: Date.now(), result: out };
+  state.hotspotLastGood[key] = { at, result: out };
   return out;
 }
 
-// Sample every hotspot sequentially (paced) so the free aggregator is not burst-hit.
-// Sampling stops at the deadline; theaters not reached keep their last good result and
-// the rotation resumes from them next sweep, so every theater is refreshed in turn.
+const allAttempted = () => Object.keys(HOTSPOTS).every(k => state.attempted.has(k));
+
+// Sample the next theater in rotation (shared cursor), holding the aggregator lock.
+function sampleNextHotspot() {
+  return withSampleLock(async () => {
+    const gen = state.gen;
+    const entries = Object.entries(HOTSPOTS);
+    const idx = state.sampleCursor % entries.length;
+    const [key, box] = entries[idx];
+    const result = await sampleHotspot(key, box);
+    if (gen !== state.gen) return result;
+    state.sampleCursor = (idx + 1) % entries.length;
+    state.attempted.add(key);
+    if (allAttempted()) for (const w of state.waiters) w();
+    return result;
+  });
+}
+
+// Resolves once the rotation has attempted every theater, or at the deadline.
+function waitForCoverage(deadlineMs) {
+  if (allAttempted() || deadlineMs <= 0) return Promise.resolve();
+  return new Promise(resolve => {
+    const finish = () => { clearTimeout(timer); state.waiters.delete(finish); resolve(); };
+    const timer = setTimeout(finish, deadlineMs);
+    state.waiters.add(finish);
+  });
+}
+
+// Every theater's most recent rotation result, tagged with its age (no sampling here).
+function readHotspots() {
+  return Object.entries(HOTSPOTS).map(([key, box]) => withLastGood(key, box,
+    state.attempted.has(key) ? 'background rotation' : 'awaiting first sample (rotation in progress)'));
+}
+
+// What a sweep reports: start the rotation if needed, give it until the deadline to
+// reach every theater (only matters on the first sweep of a process), then read.
+async function collectHotspots(deadlineMs) {
+  startBackgroundSampler();
+  await waitForCoverage(deadlineMs);
+  return readHotspots();
+}
+
+// Sample theaters sequentially (paced) from the rotation cursor until the deadline;
+// theaters not reached serve their most recent result. Synchronous counterpart of the
+// background rotation (CLI, tests); shares its cursor and lock.
 export async function sampleAllHotspots(deadlineMs = SAMPLE_DEADLINE_MS) {
-  const entries = Object.entries(HOTSPOTS);
-  const start = entries.length ? state.sampleCursor % entries.length : 0;
-  const order = [...entries.slice(start), ...entries.slice(0, start)];
   const deadline = Date.now() + deadlineMs;
-  const byKey = {};
+  const entries = Object.entries(HOTSPOTS);
+  const sampled = new Map();
   let done = 0;
-  for (const [key, box] of order) {
-    if (done > 0 && Date.now() >= deadline) {
-      byKey[key] = withLastGood(key, box, 'not sampled this sweep (time budget)');
-      continue;
-    }
-    byKey[key] = await sampleHotspot(key, box);
+  while (done < entries.length && (done === 0 || Date.now() < deadline)) {
+    const result = await sampleNextHotspot();
+    if (!result) break;
+    sampled.set(result.key, result);
     done++;
   }
-  state.sampleCursor = (start + done) % entries.length;
-  return entries.map(([key]) => byKey[key]);
+  return entries.map(([key, box]) => sampled.get(key) || withLastGood(key, box, 'not sampled this sweep (time budget)'));
 }
+
+// Background rotation: one theater at a time, forever, while aggregator sampling is
+// the active path. It idles when OpenSky is serving (no ADS-B Exchange key and a global
+// snapshot exists) so the free aggregator is not hit for nothing. Timers are unref'd
+// so the loop never keeps a process alive (a pending waitForCoverage holds its own timer).
+const BACKGROUND_IDLE_MS = 30_000;
+export function startBackgroundSampler() {
+  if (state.background) return;
+  const bg = { timer: null };
+  state.background = bg;
+  const schedule = delay => { bg.timer = setTimeout(tick, delay); bg.timer.unref?.(); };
+  const tick = async () => {
+    if (state.background !== bg) return;
+    let delay = 0;
+    try {
+      const needed = adsbxConfigured() || !state.lastGood;
+      if (!needed) delay = BACKGROUND_IDLE_MS;
+      else if (!pickProvider()) delay = Math.max(1_000, state.lolCooldownUntil - Date.now());
+      else await sampleNextHotspot();
+    } catch {
+      delay = BACKGROUND_IDLE_MS;
+    }
+    if (state.background !== bg) return;
+    schedule(delay);
+  };
+  schedule(0);
+}
+
+export function stopBackgroundSampler() {
+  if (state.background?.timer) clearTimeout(state.background.timer);
+  state.background = null;
+}
+
+export function backgroundSamplerRunning() { return Boolean(state.background); }
 
 function sampleCoverage(results) {
   const c = { opensky: 0, adsbx: 0, adsbLol: 0, stale: 0, failed: 0, total: results.length };
@@ -480,6 +601,7 @@ function sampleCoverage(results) {
     else c.adsbLol++;
   }
   c.adsbSample = c.adsbx + c.adsbLol + c.stale;
+  c.rotationMin = Math.round(rotationMs() / 60000);
   return c;
 }
 
@@ -490,8 +612,8 @@ function providerLabel(coverage) {
 }
 
 // ADS-B Exchange configured: it is the primary feed, not a fallback.
-async function adsbxBriefing() {
-  const results = await sampleAllHotspots();
+async function adsbxBriefing(deadlineMs = SAMPLE_DEADLINE_MS) {
+  const results = await collectHotspots(deadlineMs);
   const coverage = sampleCoverage(results);
   const failed = results.filter(r => r.method === 'none');
   const adsbx = adsbxStatus();
@@ -517,7 +639,7 @@ async function adsbxBriefing() {
 
 // No OpenSky snapshot available at all: sample every hotspot from an aggregator.
 async function sampleBriefing(openskyReason, deadlineMs = SAMPLE_DEADLINE_MS) {
-  const results = await sampleAllHotspots(deadlineMs);
+  const results = await collectHotspots(deadlineMs);
   const coverage = sampleCoverage(results);
   const failed = results.filter(r => r.method === 'none');
   const openskyError = `OpenSky ${shortError(openskyReason)}: ${openskyReason}`;
@@ -534,7 +656,7 @@ async function sampleBriefing(openskyReason, deadlineMs = SAMPLE_DEADLINE_MS) {
     primary: 'opensky',
     auth: credentials() ? 'oauth2' : 'anonymous',
     coverage,
-    note: `${coverage.total - coverage.failed} theater(s) sampled from ${provider} at ${SAMPLE_RADIUS_NM} nm radius — counts are partial, not full-box totals; no origin-country data`,
+    note: `${coverage.total - coverage.failed} theater(s) sampled from ${provider} at ${SAMPLE_RADIUS_NM} nm radius, refreshed in rotation every ~${coverage.rotationMin} min — counts are partial, not full-box totals; no origin-country data`,
     openskyError,
     creditsRemaining: state.quota.remaining,
     hotspots: results,

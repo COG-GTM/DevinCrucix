@@ -40,8 +40,12 @@ function installFetch() {
   };
 }
 before(installFetch);
-after(() => { globalThis.fetch = realFetch; });
-beforeEach(() => { calls.length = 0; maxInflight = 0; resetState(); adsbx.resetAdsbxState(); delete process.env.ADSBX_RAPIDAPI_KEY; });
+after(() => { resetState(); globalThis.fetch = realFetch; });
+beforeEach(async () => {
+  resetState();
+  await opensky.samplerIdle(); // let an in-flight background sample from the previous test drain
+  calls.length = 0; maxInflight = 0; adsbx.resetAdsbxState(); delete process.env.ADSBX_RAPIDAPI_KEY;
+});
 
 describe('ADS-B Exchange adapter (adsbx.mjs)', () => {
   it('is keyed on ADSBX_RAPIDAPI_KEY only — legacy names do not activate it', () => {
@@ -198,22 +202,43 @@ describe('paced theater sampling (no key → adsb.lol)', () => {
     }
   });
 
-  it('on 429 reuses each theater\'s last good sample, marked stale with its age, instead of dropping to zero', async () => {
+  it('on 429 reuses each theater\'s last good sample, tagged with its age, instead of dropping to zero', async () => {
     responder = () => json({ ac: [inBoxAc(HOTSPOTS.ukraine)] });
     const first = await sampleAllHotspots();
     const ukr = first.find(r => r.key === 'ukraine');
     assert.equal(ukr.tracks.length, 1);
+    assert.equal(ukr.ageMin, 0);
+    assert.match(ukr.sampledAt, /^\d{4}-\d\d-\d\dT/);
 
     calls.length = 0;
     responder = () => json({ error: 'rate limited' }, 429);
     const second = await sampleAllHotspots();
     assert.ok(calls.length < 3, `after the first 429 the aggregator cools down; made ${calls.length} calls`);
     for (const r of second) {
-      assert.equal(r.stale, true, r.region);
-      assert.equal(r.staleAgeMin, 0);
-      assert.match(r.staleReason, /rate limited|cooling down/);
+      assert.equal(r.reused, true, r.region);
+      assert.equal(r.ageMin, 0);
+      assert.match(r.reuseReason, /rate limited|cooling down/);
+      assert.equal(r.stale, undefined, 'a result younger than the fresh window is current, not stale');
     }
-    assert.equal(second.find(r => r.key === 'ukraine').tracks.length, 1, 'tracks survive into the stale result');
+    assert.equal(second.find(r => r.key === 'ukraine').tracks.length, 1, 'tracks survive into the reused result');
+  });
+
+  it('marks a reused result stale once it is older than the fresh window and drops it after the last-good window', async () => {
+    responder = () => json({ ac: [inBoxAc(HOTSPOTS.ukraine)] });
+    await sampleAllHotspots();
+    responder = () => json({ error: 'rate limited' }, 429);
+    const realNow = Date.now;
+    try {
+      Date.now = () => realNow() + 20 * 60_000;
+      const aged = (await sampleAllHotspots()).find(r => r.key === 'ukraine');
+      assert.equal(aged.stale, true);
+      assert.equal(aged.staleAgeMin, 20);
+      assert.equal(aged.tracks.length, 1);
+      Date.now = () => realNow() + 2 * 3600_000;
+      const dropped = (await sampleAllHotspots()).find(r => r.key === 'ukraine');
+      assert.equal(dropped.method, 'none');
+      assert.deepEqual(dropped.tracks, []);
+    } finally { Date.now = realNow; }
   });
 
   it('a theater with no last-good result reports a failure with zero aircraft (not fake data)', async () => {
@@ -237,9 +262,27 @@ describe('paced theater sampling (no key → adsb.lol)', () => {
     assert.match(first[1].error, /time budget/);
     const second = await sampleAllHotspots(0);
     assert.equal(second[1].method, 'adsb_sample', 'rotation moved on to the second theater');
-    assert.equal(second[1].stale, undefined);
-    assert.equal(second[0].stale, true, 'the theater sampled last sweep keeps its (empty but successful) result as stale');
+    assert.equal(second[1].reused, undefined);
+    assert.equal(second[0].reused, true, 'the theater sampled last sweep keeps its (empty but successful) result');
+    assert.match(second[0].reuseReason, /time budget/);
     assert.equal(second[2].method, 'none', 'never-sampled theaters report failure, not fake zeros');
+  });
+
+  it('briefing() runs the rotation in the background and reports every theater once it has been reached', async () => {
+    responder = url => {
+      if (url.includes('opensky-network.org')) throw new TypeError('fetch failed');
+      return json({ ac: [] });
+    };
+    assert.equal(opensky.backgroundSamplerRunning(), false);
+    const b = await briefing();
+    assert.equal(opensky.backgroundSamplerRunning(), true, 'rotation keeps running between sweeps');
+    assert.equal(b.hotspots.length, THEATERS);
+    assert.ok(b.hotspots.every(h => h.method === 'adsb_sample' && h.reused === true && h.ageMin === 0), 'sweep reads the rotation\'s results');
+    assert.equal(b.coverage.failed, 0);
+    assert.match(b.note, /refreshed in rotation every ~\d+ min/);
+    const again = await briefing();
+    assert.equal(again.hotspots.length, THEATERS);
+    assert.equal(again.coverage.failed, 0);
   });
 });
 

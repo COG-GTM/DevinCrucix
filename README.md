@@ -482,7 +482,7 @@ crucix/
 | Source | What It Tracks | Auth |
 |--------|---------------|------|
 | **GDELT** | Global news events, conflict mapping (100+ languages) via the 15-minute export/GKG snapshots | None |
-| **OpenSky** | Real-time ADS-B flight tracking, one global pull partitioned into 10 hotspot regions with up to 150 individual tracks each (falls back to paced adsb.lol point samples, marked `fallback`, when OpenSky is unreachable; with `ADSBX_RAPIDAPI_KEY` set, ADS-B Exchange samples every theater instead) | Optional (OAuth2, 10x quota) |
+| **OpenSky** | Real-time ADS-B flight tracking, one global pull partitioned into 10 hotspot regions with up to 150 individual tracks each (falls back to adsb.lol point samples taken in a paced background rotation, marked `fallback` and tagged with their age, when OpenSky is unreachable; with `ADSBX_RAPIDAPI_KEY` set, ADS-B Exchange samples every theater instead) | Optional (OAuth2, 10x quota) |
 | **NASA FIRMS** | Satellite fire/thermal anomaly detection (3hr latency) | Free key |
 | **Maritime/AIS** | Vessel tracking, dark ships, sanctions evasion | Free key |
 | **Safecast** | Citizen-science radiation monitoring near 6 nuclear sites | None |
@@ -558,7 +558,7 @@ All settings are in `.env` with sensible defaults:
 | `OPENSKY_MIN_INTERVAL_MINUTES` | `15` | Minimum spacing between OpenSky global pulls (4 credits each) |
 | `ADSBX_RAPIDAPI_KEY` | unset | ADS-B Exchange RapidAPI key; when set, aircraft theaters are sampled from ADS-B Exchange instead of OpenSky/adsb.lol |
 | `ADSBX_DAILY_BUDGET` | `300` | Max ADS-B Exchange requests per UTC day (Community API is 10,000/month) |
-| `AIR_SAMPLE_PACE_MS` | `400` | Delay between aggregator point samples so adsb.lol / ADS-B Exchange are not burst-hit (HTTP 429) |
+| `AIR_SAMPLE_PACE_MS` | `8000` | Delay between aggregator point samples; the 33 theater points are sampled in a continuous background rotation (~4.5 min per lap at the default) and each sweep reports the latest result per theater with its age. adsb.lol allows only a handful of requests per minute from a cloud IP (HTTP 429, no `Retry-After`) |
 | `INGEST_API_URL` | `http://127.0.0.1:3118` | Border Watch ingestion service the dashboard reads from |
 | `INGEST_*` | see `.env.example` | Python ingestion service: bind address, poll interval, NER, translation, anomaly thresholds |
 | `LLM_PROVIDER` | disabled | `anthropic`, `openai`, `gemini`, `codex`, `openrouter`, `minimax`, `mistral`, or `grok` |

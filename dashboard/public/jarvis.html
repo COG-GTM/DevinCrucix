@@ -1858,6 +1858,11 @@ function airDestination(lat,lon,bearing,distDeg){
   return {lat:la2/r,lon:((lo2/r+540)%360)-180};
 }
 function airTrackColor(t,a){return a.stale?AIR_STALE_COLOR:(t.mil?AIR_MIL_COLOR:AIR_COLOR)}
+function airAgeLabel(a){
+  if(a.stale) return ' · STALE '+(a.staleAgeMin??'?')+' min';
+  if(typeof a.ageMin==='number') return a.ageMin<1?' · sampled just now':' · sampled '+a.ageMin+' min ago';
+  return '';
+}
 function airTheaterPop(a){
   const n=(a.tracks||[]).length;
   const rows=[`${a.total} aircraft in box${a.sampled?' (sample)':''} · ${n} plotted`];
@@ -1866,7 +1871,7 @@ function airTheaterPop(a){
   if((a.top||[]).length) rows.push('Top: '+esc(a.top.slice(0,3).map(t=>t[0]+' ('+t[1]+')').join(', ')));
   if((a.topTypes||[]).length) rows.push('Types: '+esc(a.topTypes.slice(0,4).map(t=>t[0]+' ×'+t[1]).join(', ')));
   if(a.error) rows.push(`<span style="color:var(--danger)">Sample failed: ${esc(a.error)}</span>`);
-  rows.push(`<span style="color:var(--dim)">${esc(airProviderLabel(a))}${a.stale?' · STALE '+(a.staleAgeMin??'?')+' min':''}</span>`);
+  rows.push(`<span style="color:var(--dim)">${esc(airProviderLabel(a))}${airAgeLabel(a)}</span>`);
   return {head:a.region,text:rows.join('<br>'),meta:'Air Activity'};
 }
 function airTrackPop(t,a){
@@ -1882,7 +1887,7 @@ function airTrackPop(t,a){
   if(t.squawk){const sq={'7700':' EMERGENCY','7600':' RADIO FAILURE','7500':' HIJACK'}[t.squawk]||'';rows.push('Squawk '+esc(t.squawk)+(sq?`<span style="color:var(--danger)">${sq}</span>`:''));}
   if(t.country) rows.push(esc(t.country));
   rows.push(`Hex ${esc(t.hex||'—')} · ${esc(a.region)}`);
-  rows.push(`<span style="color:var(--dim)">${esc(airProviderLabel(a))}${a.stale?' · STALE '+(a.staleAgeMin??'?')+' min':''}</span>`);
+  rows.push(`<span style="color:var(--dim)">${esc(airProviderLabel(a))}${airAgeLabel(a)}</span>`);
   return {head:(t.mil?'MIL · ':'')+esc(id),text:rows.join('<br>'),meta:'Aircraft'};
 }
 
