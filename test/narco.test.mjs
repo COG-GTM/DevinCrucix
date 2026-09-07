@@ -187,6 +187,10 @@ describe('rule-based extraction', () => {
     assert.equal(valued.drugs[0].kg, 2400);
     const stats = extractSeizures('U.S. units took down approximately 100 suspected cartel drones and 40 vehicles crossed the river. Mexico says 30,000 guns a year come from Texas. Cartels produce 2.4 tons of methamphetamine annually.');
     assert.deepEqual(stats, {}, `bare counts are statistics, not seizures: ${JSON.stringify(stats)}`);
+    const cumulative = extractSeizures('Marines seized 210 firearms, 12 vehicles and 40 kilos of methamphetamine at the ranch. More than 30,000 firearms have been confiscated during President Sheinbaum\u2019s administration, and 200 tons of drugs have been seized since 2024; 1,500 vehicles were recovered nationwide so far this year.');
+    assert.equal(cumulative.weapons, 210, `administration-wide total is not this seizure: ${JSON.stringify(cumulative)}`);
+    assert.equal(cumulative.vehicles, 12);
+    assert.deepEqual(cumulative.drugs.map(d => d.kg), [40]);
     const convoy = extractSeizures('Soldiers secured 6 armored vehicles and an arsenal of 14 rifles after the clash; the men were arrested with 3 kilos of cocaine.');
     assert.equal(convoy.vehicles, 6);
     assert.equal(convoy.weapons, 14);
@@ -245,6 +249,22 @@ describe('normalized events', () => {
     assert.notEqual(rec.location?.state, 'Guanajuato');
     const inLeon = normalizeEvent(doc({ sourceType: 'news-outlet', title: 'Gunmen kill four in Le\u00f3n', text: 'Four men were shot dead in Le\u00f3n, Guanajuato, on Friday.' }), { gz, groups });
     assert.equal(inLeon.location?.state, 'Guanajuato');
+  });
+
+  it('does not put an overseas incident in Sinaloa because the article names the cartels', () => {
+    const text = 'Nigerian authorities dismantled three methamphetamine laboratories outside Lagos. UNODC says West Africa is now a production hub, with Nigeria, Kenya and South Africa feeding markets in Europe and Asia. Specifically, links were found between some of these laboratories and the Sinaloa and Jalisco New Generation cartels.';
+    const found = findPlaces(maskGroupNames(text, groups), gz);
+    assert.deepEqual(found.states, [], `no Mexican state should be found: ${JSON.stringify(found.states)}`);
+    assert.ok(found.foreign >= 3);
+    const rec = normalizeEvent(doc({ sourceType: 'citizen-aggregator', title: 'Africa: The Shifted Meth Route', text }), { gz, groups });
+    assert.equal(rec.location, null);
+    assert.ok(rec.cartels.some(c => /sinaloa/i.test(c.name)) && rec.cartels.some(c => /jalisco|cjng/i.test(c.name)));
+    // A Mexican state named once inside an otherwise foreign article is not the scene either.
+    const passing = resolveLocation(findPlaces('Police in Bogota, Colombia, said the cocaine had come from Colombia via Ecuador and was bound for Europe; one suspect had ties to Sinaloa.', gz), gz);
+    assert.equal(passing, null);
+    // But a real Sinaloa event that mentions another country stays put.
+    const real = resolveLocation(findPlaces('Gunmen killed five in Culiacan, Sinaloa; the victims were Colombian nationals.', gz), gz);
+    assert.equal(real?.state, 'Sinaloa');
   });
 
   it('bounds field sizes and keeps a pre-resolved location', () => {
