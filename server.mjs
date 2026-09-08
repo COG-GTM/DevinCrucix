@@ -4,7 +4,7 @@
 
 import express from 'express';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import config from './crucix.config.mjs';
@@ -18,6 +18,7 @@ import { generateLLMIdeas } from './lib/llm/ideas.mjs';
 import { TelegramAlerter } from './lib/alerts/telegram.mjs';
 import { DiscordAlerter } from './lib/alerts/discord.mjs';
 import { installAuthGate } from './lib/authgate.mjs';
+import { securityHeaders } from './lib/securityHeaders.mjs';
 import { buildSituation } from './lib/situation.mjs';
 
 // Phase 4: Analytical Features
@@ -29,7 +30,7 @@ import { generateWorldBrief, generateCountryBrief } from './apis/sources/summari
 import { classifyAll } from './apis/sources/threatclassifier.mjs';
 
 // Phase 5: New Features
-import { startTelegramLive, getTelegramFeed, getTelegramChannels, setTelegramChannels } from './apis/sources/telegramlive.mjs';
+import { startTelegramLive, getTelegramFeed, getTelegramChannels, setTelegramChannels, TELEGRAM_CHANNEL_RE } from './apis/sources/telegramlive.mjs';
 import { computeDefcon } from './apis/sources/defcon.mjs';
 
 // Phase 6: Osiris-Ported Features
@@ -41,7 +42,8 @@ import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_
 
 // Phase 7: Seismic Event Monitor
 import { collectSeismic } from './apis/sources/seismic.mjs';
-import { ingestGet } from './apis/sources/borderingest.mjs';
+import { ingestGet, PROXY_PARAM_RE } from './apis/sources/borderingest.mjs';
+import { str, num, oneOf, strArray, bounded, validateQuery, validateBody, validateParams } from './lib/validate.mjs';
 import { computeNarcoEvents, loadNarcoEvents } from './lib/narco/pipeline.mjs';
 import { buildNarcoView, compactCluster } from './lib/narco/view.mjs';
 import { queryReleases as dojReleases, DISTRICTS as DOJ_DISTRICTS, CATEGORY_IDS as DOJ_CATEGORIES } from './apis/sources/doj.mjs';
@@ -274,7 +276,10 @@ if (discordAlerter.isConfigured) {
 // === Express Server ===
 const app = express();
 app.set('trust proxy', true);
-if (installAuthGate(app)) console.log('[Crucix] Password gate enabled (CRUCIX_PASSWORD set)');
+app.disable('x-powered-by');
+app.use(securityHeaders());
+const authGateEnabled = installAuthGate(app);
+if (authGateEnabled) console.log('[Crucix] Password gate enabled (CRUCIX_PASSWORD set)');
 app.use(express.json());
 // Live JSON must not be replayed from the browser HTTP cache on back/forward navigation; routes that
 // want a cache window set their own Cache-Control afterwards.
@@ -288,7 +293,10 @@ app.get('/', (req, res) => {
   } else {
     const htmlPath = join(ROOT, 'dashboard/public/jarvis.html');
     let html = readFileSync(htmlPath, 'utf-8');
-    
+
+    // Never ship an inject.mjs seed in server mode; the page renders only live data.
+    html = html.replace(/^let D = \{.*\};\s*$/m, 'let D = null;');
+
     // Inject locale data into the HTML
     const locale = getLocale();
     const localeScript = `<script>window.__CRUCIX_LOCALE__ = ${JSON.stringify(locale).replace(/<\/script>/gi, '<\\/script>')};</script>`;
@@ -312,9 +320,13 @@ app.get('/api/border', (req, res) => {
 
 // API: read-only proxy to the Python ingestion service. Only allow-listed GET paths/params are
 // forwarded (see apis/sources/borderingest.mjs); the service's POST endpoints stay loopback-only.
-app.get(/^\/api\/ingest(\/.*)?$/, async (req, res) => {
-  const upstreamPath = (req.params[0] || '/health').substring(0, 200);
-  const { status, body, detail } = await ingestGet(upstreamPath, req.query);
+const INGEST_PARAM = (v) => str(v, { max: 64, pattern: PROXY_PARAM_RE });
+app.get(/^\/api\/ingest(\/.*)?$/, validateParams({ 0: (v) => str(v, { max: 200, pattern: /^\/[A-Za-z0-9_\/-]*$/ }) }), validateQuery({
+  limit: INGEST_PARAM, since: INGEST_PARAM, region: INGEST_PARAM, violence: INGEST_PARAM,
+  language: INGEST_PARAM, source: INGEST_PARAM, paywalled: INGEST_PARAM, series: INGEST_PARAM,
+}), async (req, res) => {
+  const upstreamPath = req.validated.params[0] || '/health';
+  const { status, body, detail } = await ingestGet(upstreamPath, req.validated.query);
   if (detail) console.error(`[Crucix] ingest proxy ${upstreamPath}: ${detail}`);
   res.status(status).set('Cache-Control', 'no-store').json(body);
 });
@@ -364,34 +376,35 @@ app.get('/api/focal-points', (req, res) => {
 });
 
 // API: AI Summarization (world brief)
-app.post('/api/summarize', async (req, res) => {
+const LANGUAGE = (v) => str(v, { max: 8, pattern: /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/ });
+app.post('/api/summarize', validateBody({ language: LANGUAGE }), async (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   try {
     const allHeadlines = (currentData.newsFeed || []).map(n => ({
       title: n.headline || n.title || '', source: n.source || 'Unknown', timestamp: n.timestamp,
     }));
-    const result = await generateWorldBrief(allHeadlines, currentData.cii, currentData.focalPoints, req.body || {});
+    const result = await generateWorldBrief(allHeadlines, currentData.cii, currentData.focalPoints, req.validated.body);
     res.json(result);
   } catch (err) {
-    console.error('[Crucix] Summarize error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[Crucix] Summarize error:', err);
+    res.status(500).json({ error: 'internal error' });
   }
 });
 
 // API: Country brief
-app.get('/api/country-brief/:code', async (req, res) => {
+app.get('/api/country-brief/:code', validateParams({ code: (v) => str(v, { max: 3, pattern: /^[A-Za-z]{2,3}$/, required: true }) }), validateQuery({ language: LANGUAGE }), async (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   try {
     const allHeadlines = (currentData.newsFeed || []).map(n => ({
       title: n.headline || n.title || '', source: n.source || 'Unknown', timestamp: n.timestamp,
     }));
     const result = await generateCountryBrief(
-      req.params.code, allHeadlines, currentData.cii, currentData.focalPoints, currentData.signals, req.query || {},
+      req.validated.params.code, allHeadlines, currentData.cii, currentData.focalPoints, currentData.signals, req.validated.query,
     );
     res.json(result);
   } catch (err) {
-    console.error('[Crucix] Country brief error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[Crucix] Country brief error:', err);
+    res.status(500).json({ error: 'internal error' });
   }
 });
 
@@ -420,10 +433,11 @@ app.get('/api/telegram/channels', (req, res) => {
 });
 
 // API: Update Telegram channels
-app.post('/api/telegram/channels', (req, res) => {
-  const { channels } = req.body || {};
-  const result = setTelegramChannels(channels);
-  if (result.error) return res.status(400).json(result);
+app.post('/api/telegram/channels', validateBody({
+  channels: (v) => strArray(v, { min: 1, max: 20, itemMin: 5, itemMax: 32, pattern: TELEGRAM_CHANNEL_RE, required: true }),
+}), (req, res) => {
+  const result = setTelegramChannels(req.validated.body.channels);
+  if (result.error) return res.status(400).json({ error: 'invalid request', field: 'channels' });
   res.json(result);
 });
 
@@ -557,18 +571,18 @@ app.get('/api/narco/sanctions', (req, res) => {
 });
 
 // API: Region Dossier (on-demand, not from sweep)
-app.get('/api/region-dossier', async (req, res) => {
-  const lat = parseFloat(req.query.lat);
-  const lng = parseFloat(req.query.lng);
-  if (isNaN(lat) || isNaN(lng)) {
-    return res.status(400).json({ error: 'Missing lat/lng query parameters' });
-  }
+const LAT = (v) => num(v, { min: -90, max: 90, required: true });
+const LON = (v) => num(v, { min: -180, max: 180 });
+app.get('/api/region-dossier', validateQuery({ lat: LAT, lng: LON, lon: LON }), async (req, res) => {
+  const { lat, lng, lon } = req.validated.query;
+  const longitude = lng ?? lon;
+  if (longitude === undefined) return res.status(400).json({ error: 'invalid request', field: 'lng' });
   try {
-    const dossier = await getRegionDossier(lat, lng);
+    const dossier = await getRegionDossier(lat, longitude);
     res.json(dossier);
   } catch (err) {
-    console.error('[Crucix] Region dossier error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[Crucix] Region dossier error:', err);
+    res.status(500).json({ error: 'internal error' });
   }
 });
 
@@ -587,12 +601,12 @@ function investigateRateLimited(ip) {
   return b.n > INV_RATE.max;
 }
 
-app.get('/api/investigate', async (req, res) => {
-  const raw = typeof req.query.target === 'string' ? req.query.target.trim() : '';
-  const hint = typeof req.query.type === 'string' ? req.query.type : 'auto';
-  if (!raw || raw.length > 2048 || !TARGET_HINTS.has(hint)) {
-    return res.status(400).json({ error: 'Invalid request' });
-  }
+// Selector hint: whitelisted against TARGET_HINTS from investigate.mjs. The dashboard sends `type`;
+// `kind` is accepted as an alias. Omitted → 'auto'.
+const HINT = (v) => oneOf(v, TARGET_HINTS);
+app.get('/api/investigate', validateQuery({ target: (v) => str(v, { max: 255, required: true }), type: HINT, kind: HINT }), async (req, res) => {
+  const raw = req.validated.query.target;
+  const hint = req.validated.query.type ?? req.validated.query.kind ?? 'auto';
   if (investigateRateLimited(req.ip)) {
     console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate_rate_limited', ip: req.ip }));
     return res.status(429).json({ error: 'Too many investigations; wait a minute' });
@@ -648,23 +662,14 @@ function borderSourceIdSet() {
   }
   return borderSourceIds;
 }
-app.get('/api/border/articles', (req, res) => {
-  if (!onlyQueryKeys(req, ['place', 'topic', 'outlet', 'days', 'limit'])) return res.status(400).json({ error: 'Invalid request' });
-  const pick = (name, allowed) => {
-    const v = req.query[name];
-    if (v === undefined) return null;
-    return typeof v === 'string' && v.length <= 64 && allowed(v) ? v : undefined;
-  };
-  const place = pick('place', v => BORDER_PLACES.has(v));
-  const topic = pick('topic', v => BORDER_TOPICS.includes(v));
-  const outlet = pick('outlet', v => borderSourceIdSet().has(v));
-  const daysRaw = req.query.days === undefined ? '30' : req.query.days;
-  const days = typeof daysRaw === 'string' && /^\d{1,2}$/.test(daysRaw) ? Number(daysRaw) : NaN;
-  const limitRaw = req.query.limit === undefined ? '100' : req.query.limit;
-  const limit = typeof limitRaw === 'string' && /^\d{1,3}$/.test(limitRaw) ? Number(limitRaw) : NaN;
-  if ([place, topic, outlet].includes(undefined) || !(days >= 1 && days <= 90) || !(limit >= 1 && limit <= 200)) {
-    return res.status(400).json({ error: 'Invalid request' });
-  }
+app.get('/api/border/articles', validateQuery({
+  place: (v) => oneOf(v, BORDER_PLACES),
+  topic: (v) => oneOf(v, BORDER_TOPICS),
+  outlet: (v) => oneOf(v, borderSourceIdSet()),
+  days: (v) => bounded(v, 90),
+  limit: (v) => bounded(v, 200),
+}), (req, res) => {
+  const { place = null, topic = null, outlet = null, days = 30, limit = 100 } = req.validated.query;
   try {
     res.json(borderArticles({ place, topic, outlet, days, limit }));
   } catch (err) {
@@ -698,18 +703,24 @@ app.get('/api/threat-classify', (req, res) => {
   res.json(result);
 });
 
-// API: health check
+// API: health check. Always HTTP 200 (Fly health checks kill the machine on 503). The endpoint is
+// public, so unauthenticated callers only get the minimal body; configuration detail requires a session.
 app.get('/api/health', (req, res) => {
-  res.json({
+  const minimal = {
     status: 'ok',
     uptime: Math.floor((Date.now() - startTime) / 1000),
     lastSweep: lastSweepTime,
+    sourcesOk: currentData?.meta?.sourcesOk || 0,
+    sourcesQueried: currentData?.meta?.sourcesQueried || 0,
+  };
+  if (authGateEnabled && req.authenticated !== true) return res.json(minimal);
+  res.json({
+    ...minimal,
     nextSweep: lastSweepTime
       ? new Date(new Date(lastSweepTime).getTime() + config.refreshIntervalMinutes * 60000).toISOString()
       : null,
     sweepInProgress,
     sweepStartedAt,
-    sourcesOk: currentData?.meta?.sourcesOk || 0,
     sourcesFailed: currentData?.meta?.sourcesFailed || 0,
     sourceHealth: currentData?.meta?.health || null,
     llmEnabled: !!config.llm.provider,
@@ -754,6 +765,23 @@ function broadcast(data) {
     try { client.write(msg); } catch { sseClients.delete(client); }
   }
 }
+
+// Unknown /api/* → JSON 404 (never Express's HTML "Cannot GET").
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'not found' });
+});
+
+// Final error handler: detail stays in the server log, the client gets a generic body.
+// Body-parser errors (malformed JSON, oversize payload) carry a 4xx `status`.
+app.use((err, req, res, _next) => {
+  const status = Number.isInteger(err?.status) && err.status >= 400 && err.status < 500 ? err.status : 500;
+  console.error(JSON.stringify({
+    timestamp: new Date().toISOString(), event: status === 500 ? 'unhandled_route_error' : 'request_rejected',
+    ip: req.ip, method: req.method, path: req.path, status, error: err?.stack || err?.message || String(err),
+  }));
+  if (res.headersSent) return res.end();
+  res.status(status).json({ error: status === 500 ? 'internal error' : 'invalid request' });
+});
 
 // === Sweep Cycle ===
 async function runSweepCycle() {
@@ -907,8 +935,8 @@ async function runSweepCycle() {
     console.log(`[Crucix] Next sweep at ${new Date(Date.now() + config.refreshIntervalMinutes * 60000).toLocaleTimeString()}`);
 
   } catch (err) {
-    console.error('[Crucix] Sweep failed:', err.message);
-    broadcast({ type: 'sweep_error', error: err.message });
+    console.error('[Crucix] Sweep failed:', err?.stack || err?.message || err);
+    broadcast({ type: 'error', message: 'sweep failed' });
   } finally {
     sweepInProgress = false;
   }
@@ -1079,7 +1107,13 @@ process.on('uncaughtException', (err) => {
   console.error('[Crucix] Uncaught exception:', err?.stack || err?.message || err);
 });
 
-start().catch(err => {
-  console.error('[Crucix] FATAL — Server failed to start:', err?.stack || err?.message || err);
-  process.exit(1);
-});
+// Only listen + sweep when run directly (`node server.mjs`); importing the module (tests) just builds the app.
+const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  start().catch(err => {
+    console.error('[Crucix] FATAL — Server failed to start:', err?.stack || err?.message || err);
+    process.exit(1);
+  });
+}
+
+export { app };

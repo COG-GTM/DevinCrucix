@@ -147,9 +147,15 @@ Keyed sources are skipped (marked "no key" in the panel) when their variable is 
 
 ### Border Watch (US–Mexico border news)
 
-Keyless, registry-driven regional news collection. Outlets live in `config/border-sources.json` (Border Report, The Texas Tribune, El Paso Matters, KJZZ Fronteras Desk, and the Borderland Beat citizen aggregator) with outlet, feed URL, language, region, discovery date, and a reliability grade (`ungraded` until reviewed). Each sweep polls the RSS feeds with `If-None-Match`/`If-Modified-Since` (a 304 is a healthy "unchanged" poll), normalizes items with a content hash, pipeline version, and provenance, then fetches a bounded number of article bodies per feed via the public WordPress REST API or the article page — after a robots.txt check, with the descriptive CRUCIX User-Agent, never bypassing paywalls (paywalled or blocked articles keep their feed-level record and are flagged). Rule-based topic tags (violence, narcotics, enforcement, migration, rail, trade, governance) and a border-sector gazetteer (wire datelines are ignored for place tagging) feed a per-place/topic spike detector that stays silent until at least 3 days of baseline exist.
+Keyless, registry-driven regional news collection. Outlets live in `config/border-sources.json` with outlet, feed URL, feed type (`rss`, `atom` or `news-sitemap`), language, region, discovery date, and a reliability grade (`ungraded` until reviewed). Each sweep polls the feeds with `If-None-Match`/`If-Modified-Since` (a 304 is a healthy "unchanged" poll), normalizes items with a content hash, pipeline version, and provenance, then fetches a bounded number of article bodies per feed via the public WordPress REST API or the article page — after a robots.txt check, with the descriptive CRUCIX User-Agent, never bypassing paywalls (paywalled or blocked articles keep their feed-level record and are flagged). Rule-based bilingual (EN/ES) topic tags (violence, narcotics, enforcement, migration, rail, trade, governance) and a border-sector gazetteer (wire datelines are ignored for place tagging) feed a per-place/topic spike detector that stays silent until at least 3 days of baseline exist.
 
-- `BORDER_FETCH_ARTICLES` (default `true`) — set `false` for headlines/descriptions only.
+Registered outlets: Border Report, The Texas Tribune, ValleyCentral (Rio Grande Valley), Zeta Tijuana (ES), Borderland Beat (Atom; full text in feed so article pages are never fetched), Justice in Mexico, InSight Crime's Mexico tag, El Paso Matters (WordPress REST for full text), Fronteras Desk (KJZZ public radio; summaries-only feed), and Milenio (ES; Google News sitemap advertised in its robots.txt — no RSS exists; section-filtered and place-gated; article pages never fetched). Per-source policy fields:
+
+- `feedType` — `rss` (default), `atom`, or `news-sitemap` (Google News `<urlset>` with `news:news` blocks).
+- `fetchArticles: false` — never request article pages/APIs for this outlet (used when the publisher's terms restrict automated access beyond the feed, or when the feed already carries full text).
+- `pathPrefixes` — keep only items whose URL path starts with one of these sections (e.g. Milenio `/policia`, `/estados`).
+- `requirePlaceTag: true` — drop items that do not mention a border-sector place (keeps national outlets on-topic).
+- `BORDER_FETCH_ARTICLES` (default `true`) — set `false` for headlines/descriptions only, globally.
 - `BORDER_MAX_ARTICLE_FETCH` (default `5`, max `20`) — article bodies fetched per feed per sweep; the backlog drains on later sweeps.
 - `GET /api/border/articles?place=el-paso-tx&topic=enforcement&outlet=borderreport&days=7&limit=50` — filters are whitelisted keys; anything else is a 400.
 
@@ -225,6 +231,10 @@ Structured datasets are loaded on their own schedules and exposed under `/baseli
 | `POST /poll`, `POST /baselines/check` | Trigger a run — loopback clients only |
 
 The dashboard proxies the read-only routes at `/api/ingest/*` (allow-list in `apis/sources/borderingest.mjs`) and serves the synthesized panel data at `/api/border`. Tests: `cd ingest && pytest` (recorded fixtures under `ingest/tests/fixtures/`), `ruff check .`, `mypy crucix_ingest`.
+
+### CBP Enforcement Statistics (official CSVs)
+
+`apis/sources/cbpstats.mjs` reads the monthly CSVs U.S. Customs and Border Protection publishes (public domain): *Nationwide Encounters by Area of Responsibility* and *Nationwide Drug Seizures*. Because the file name moves every month, each sweep first reads the official document pages (`/document/stats/nationwide-encounters`, `/document/stats/nationwide-drug-seizures`), picks the newest `.csv` link, and falls back to the last verified URL if the page is unreachable. Downloads are conditional (ETag / Last-Modified) and cached under `runs/cbp/`, so a CBP outage degrades the panel to `STALE` instead of blanking it; a changed header row is refused rather than guessed at. The panel shows Southwest-land-border encounters (total, USBP vs OFO, 13-month trend, per-sector MoM/YoY, demographic, top citizenships) and Southwest drug seizures (lbs and events by drug type and AOR). Fiscal-year months are converted to calendar months (FY starts 1 October). Note that cbp.gov's edge returns 403 to curl-style clients; the source relies on Node's native `fetch`.
 
 ---
 

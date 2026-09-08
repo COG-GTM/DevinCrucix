@@ -18,11 +18,12 @@ import { fileURLToPath } from 'url';
 import { parseFeed, feedMeta } from '../utils/rss.mjs';
 import { extractArticle, htmlToText, bodyParagraphs } from '../utils/article.mjs';
 import { checkRobots, CRAWLER_UA } from '../utils/robots.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const PIPELINE_VERSION = 'bordernews/1.0.0';
-export const TAGGER_VERSION = 'crucix-rules/2';
+export const TAGGER_VERSION = 'crucix-rules/3';
 export const DEFAULT_REGISTRY_FILE = join(__dirname, '../../config/border-sources.json');
 export const DEFAULT_DATA_DIR = join(__dirname, '../../runs/border');
 
@@ -37,23 +38,26 @@ const MAX_STORE = 3_000;
 const MAX_RAW_FILES = 400;
 const MAX_TEXT_CHARS = 20_000;
 const MAX_SUMMARY_CHARS = 600;
+const FEED_FULLTEXT_MIN_CHARS = 1_500; // a description this long is the post body (Blogger/Atom full-content feeds), not an excerpt
 const RECENT_LIMIT = 40;
 
 const REQUIRED_SOURCE_FIELDS = ['id', 'outlet', 'feedUrl', 'language', 'countryOfPublication', 'regionTag', 'reliability', 'discoveryDate'];
+const FEED_TYPES = ['rss', 'atom', 'news-sitemap'];
 export const RELIABILITY_GRADES = ['A', 'B', 'C', 'D', 'E', 'F', 'ungraded'];
 
 // ---------------------------------------------------------------------------
 // Controlled vocabularies — exported so the API layer can whitelist against them.
 // ---------------------------------------------------------------------------
 
+// Bilingual (EN/ES) rule sets: the registry mixes US English outlets with Mexican Spanish ones.
 export const TOPICS = {
-  violence: /\b(shooting|shot (dead|and killed)|killed|killing|homicide|murder(ed|s)?|gunfire|gunmen|gun battle|kidnapp?(ed|ing)|abduct(ed|ion)|massacre|bodies|ambush(ed)?|attack(ed|s)?|assault(ed)?|stabb(ed|ing)|behead|executed|extortion|femicide|clashes?)\b/i,
-  narcotics: /\b(fentanyl|cartels?|cocaine|meth(amphetamine)?|heroin|narcotics?|drug(s| smuggling| trafficking| seizure| load| bust)|CJNG|Sinaloa|Gulf Cartel|Jalisco New Generation|Zetas|Cartel del Noreste|La Línea|opioids?)\b/i,
-  enforcement: /\b(Border Patrol|CBP|ICE|Customs and Border Protection|Immigration and Customs Enforcement|apprehen(ded|sions?)|encounters?|deport(ed|ation|ations)|detain(ed|ee|ees)|detention|arrest(ed|s)?|checkpoint|ports? of entry|Operation Lone Star|National Guard|DPS|troopers?|seiz(ed|ure|ures)|border wall|buoys?|tunnels?|expulsions?|raids?|agents?|Homeland Security|DHS|Title 42|Title 8)\b/i,
-  migration: /\b(migrants?|asylum(-seekers?)?|immigra(nts?|tion)|refugees?|crossings?|shelters?|humanitarian|parole|unaccompanied (minors?|children)|remittances?|caravans?|smuggl(ers?|ing)|coyotes?|deportees?)\b/i,
-  rail: /\b(railroads?|railways?|freight trains?|trains?|Union Pacific|BNSF|CPKC|Kansas City Southern|derail(ed|ment)|rail (bridge|yard|crossing))\b/i,
-  trade: /\b(tariffs?|trade|international bridge|commerce|maquilas?|maquiladoras?|exports?|imports?|USMCA|supply chain|trucking|truck crossings?)\b/i,
-  governance: /\b(mayor|governor|legislature|lawmakers?|Senate|Congress|court|judge|indict(ed|ment)|lawsuit|ruling|policy|executive order|county commissioners?|sheriff)\b/i,
+  violence: /\b(shooting|shot (dead|and killed)|killed|killing|homicide|murder(ed|s)?|gunfire|gunmen|gun battle|kidnapp?(ed|ing)|abduct(ed|ion)|massacre|bodies|ambush(ed)?|attack(ed|s)?|assault(ed)?|stabb(ed|ing)|behead|executed|extortion|femicide|clashes?|asesina(to|tos|do|dos|da|das|n|ron)|homicidios?|balaceras?|enfrentamientos?|ejecutad[oa]s?|secuestr(o|os|ad[oa]s?|an|aron)|masacre|cuerpos|ataques?|feminicidios?|extorsi[oó]n|tiroteos?|sicarios?|levant[oó]n|fosas? clandestinas?|violencia)\b/i,
+  narcotics: /\b(fentanyl|cartels?|cocaine|meth(amphetamine)?|heroin|narcotics?|drug(s| smuggling| trafficking| seizure| load| bust)|CJNG|Sinaloa|Gulf Cartel|Jalisco New Generation|Zetas|Cartel del Noreste|La Línea|opioids?|fentanilo|c[aá]rte?les?|coca[ií]na|metanfetaminas?|hero[ií]na|narco(tr[aá]fico|menudeo|s)?|drogas?|estupefacientes|Cártel del Golfo|Cártel de Sinaloa)\b/i,
+  enforcement: /\b(Border Patrol|CBP|ICE|Customs and Border Protection|Immigration and Customs Enforcement|apprehen(ded|sions?)|encounters?|deport(ed|ation|ations)|detain(ed|ee|ees)|detention|arrest(ed|s)?|checkpoint|ports? of entry|Operation Lone Star|National Guard|DPS|troopers?|seiz(ed|ure|ures)|border wall|buoys?|tunnels?|expulsions?|raids?|agents?|Homeland Security|DHS|Title 42|Title 8|Guardia Nacional|Patrulla Fronteriza|aduanas?|detenid[oa]s?|detenci[oó]n|deportad[oa]s?|deportaci[oó]n(es)?|operativos?|aseguramientos?|decomisos?|cateos?|Sedena|Semar|SSPC|FGR|fiscal[ií]a|garitas?|ret[eé]n(es)?|muro fronterizo|agentes?)\b/i,
+  migration: /\b(migrants?|asylum(-seekers?)?|immigra(nts?|tion)|refugees?|crossings?|shelters?|humanitarian|parole|unaccompanied (minors?|children)|remittances?|caravans?|smuggl(ers?|ing)|coyotes?|deportees?|migrantes?|migraci[oó]n|migratori[oa]s?|asilo|refugiad[oa]s?|albergues?|caravanas?|polleros?|cruces? fronterizos?|repatriad[oa]s?|indocumentad[oa]s?|remesas?)\b/i,
+  rail: /\b(railroads?|railways?|freight trains?|trains?|Union Pacific|BNSF|CPKC|Kansas City Southern|derail(ed|ment)|rail (bridge|yard|crossing)|ferrocarril(es)?|ferroviari[oa]s?|v[ií]as del tren|descarril(ó|amiento|o))\b/i,
+  trade: /\b(tariffs?|trade|international bridge|commerce|maquilas?|maquiladoras?|exports?|imports?|USMCA|supply chain|trucking|truck crossings?|aranceles?|comercio|exportaci[oó]n(es)?|importaci[oó]n(es)?|T-MEC|cadena de suministro|transportistas?|puente internacional|cruces? comercial(es)?)\b/i,
+  governance: /\b(mayor|governor|legislature|lawmakers?|Senate|Congress|court|judge|indict(ed|ment)|lawsuit|ruling|policy|executive order|county commissioners?|sheriff|alcaldes?a?|gobernador(a|es)?|congreso|senado|diputad[oa]s?|jue(z|za|ces)|tribunal(es)?|sentencia|decreto|ayuntamiento|cabildo)\b/i,
 };
 export const TOPIC_KEYS = Object.keys(TOPICS);
 
@@ -135,8 +139,21 @@ export function validateRegistry(parsed) {
     let u;
     try { u = new URL(s.feedUrl); } catch { throw new Error(`border registry: source ${s.id} feedUrl is not a URL`); }
     if (u.protocol !== 'https:') throw new Error(`border registry: source ${s.id} feedUrl must be https`);
+    if (s.feedType !== undefined && !FEED_TYPES.includes(s.feedType)) throw new Error(`border registry: source ${s.id} has unknown feedType "${s.feedType}"`);
+    for (const f of ['fetchArticles', 'requirePlaceTag', 'paywall']) if (s[f] !== undefined && typeof s[f] !== 'boolean') throw new Error(`border registry: source ${s.id} "${f}" must be boolean`);
+    if (s.pathPrefixes !== undefined) {
+      if (!Array.isArray(s.pathPrefixes) || !s.pathPrefixes.length || s.pathPrefixes.some(p => typeof p !== 'string' || !p.startsWith('/'))) throw new Error(`border registry: source ${s.id} "pathPrefixes" must be a non-empty array of "/..." paths`);
+    }
   }
   return sources;
+}
+
+// Registry-level scope filter for national outlets: keep only items under the listed URL paths.
+export function matchesPathPrefixes(url, prefixes) {
+  if (!prefixes?.length) return true;
+  let p;
+  try { p = new URL(url).pathname; } catch { return false; }
+  return prefixes.some(prefix => p === prefix || p.startsWith(prefix.endsWith('/') ? prefix : `${prefix}/`));
 }
 
 const TRACKING_PARAMS = /^(utm_\w+|fbclid|gclid|mc_cid|mc_eid|ref|source|ocid|ito|ns_\w+|republication-pixel)$/i;
@@ -202,22 +219,15 @@ export function conditionalHeaders(feedState) {
   return h;
 }
 
-const MIN_FEED_CONTENT_CHARS = 400;
-
-// Build the immutable-ish record for one feed item. `text` is filled in later by enrichArticle,
-// except for `articleApi: "feed-content"` sources (Blogger and similar) whose feed already
-// carries the full post body — that body is the text-of-record and no page is fetched.
+// Build the immutable-ish record for one feed item. `text` is filled in later by enrichArticle.
 export function normalizeItem(item, source, collectedAt) {
   const url = normalizeUrl(item.link) || null;
   const guid = String(item.guid || '').slice(0, 300) || null;
   const identity = guid || url || `${source.id}|${item.title}`;
   const title = String(item.title || '').replace(/\s+/g, ' ').trim().slice(0, 300);
-  const summary = String(item.description || '').replace(/\s+/g, ' ').trim().slice(0, MAX_SUMMARY_CHARS);
-  let text = null;
-  if (source.articleApi === 'feed-content' && String(item.rawDescription || '').length >= MIN_FEED_CONTENT_CHARS) {
-    const paragraphs = bodyParagraphs(htmlToText(item.rawDescription), { minLen: 1 });
-    text = paragraphs.join('\n\n').slice(0, MAX_TEXT_CHARS) || null;
-  }
+  const descText = String(item.description || '').replace(/\s+/g, ' ').trim();
+  const summary = descText.slice(0, MAX_SUMMARY_CHARS);
+  const text = descText.length >= FEED_FULLTEXT_MIN_CHARS ? descText.slice(0, MAX_TEXT_CHARS) : null;
   return {
     id: sha256(`${source.id}|${identity}`).slice(0, 16),
     sourceId: source.id,
@@ -237,11 +247,9 @@ export function normalizeItem(item, source, collectedAt) {
     categories: (item.categories || []).map(c => String(c).slice(0, 80)).slice(0, 12),
     text,
     textChars: text ? text.length : 0,
-    extraction: text
-      ? { method: 'feed-content', fetchStatus: 'ok', fetchedAt: collectedAt, rawSnapshot: null }
-      : { method: 'feed-description', fetchStatus: 'not attempted', fetchedAt: null, rawSnapshot: null },
+    extraction: { method: text ? 'feed-content' : 'feed-description', fetchStatus: 'not attempted', fetchedAt: null, rawSnapshot: null },
     pipelineVersion: PIPELINE_VERSION,
-    contentHash: text ? sha256(text) : sha256(`${title}\n${summary}`),
+    contentHash: sha256(text || `${title}\n${summary}`),
     paywalled: Boolean(source.paywall) || false,
     syndicated: false,
     wireSource: null,
@@ -453,7 +461,7 @@ export function classifyHttp(status) {
 }
 
 // Poll one feed with conditional headers. Never throws.
-export async function pollFeed(source, feedState, fetchImpl = fetch, { politeDelayMs = POLITE_DELAY_MS } = {}) {
+export async function pollFeed(source, feedState, fetchImpl = safeOutboundFetch, { politeDelayMs = POLITE_DELAY_MS } = {}) {
   const host = hostOf(source.feedUrl);
   const polledAt = new Date().toISOString();
   try {
@@ -465,7 +473,7 @@ export async function pollFeed(source, feedState, fetchImpl = fetch, { politeDel
     const body = await res.text();
     const items = parseFeed(body);
     const meta = feedMeta(body);
-    if (!items.length) return { status: 'empty', httpStatus: res.status, items: [], etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified'), polledAt, reason: /<(rss|feed)\b/i.test(body) ? 'feed has no items' : 'not a feed', feedTitle: meta.title, bytes: body.length };
+    if (!items.length) return { status: 'empty', httpStatus: res.status, items: [], etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified'), polledAt, reason: /<(rss|feed|urlset)\b/i.test(body) ? 'feed has no items' : 'not a feed', feedTitle: meta.title, bytes: body.length };
     return { status: 'ok', httpStatus: res.status, items, etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified'), polledAt, feedTitle: meta.title, feedUpdated: meta.updated, bytes: body.length };
   } catch (e) {
     return { status: 'error', httpStatus: null, items: [], etag: feedState?.etag || null, lastModified: feedState?.lastModified || null, polledAt, reason: /abort/i.test(e?.name || e?.message) ? 'timed out' : (e?.message || 'fetch failed').slice(0, 120) };
@@ -590,7 +598,7 @@ export async function briefing(opts = {}) {
     const report = {
       id: source.id, outlet: source.outlet, feedUrl: source.feedUrl, reliability: source.reliability,
       status: poll.status, httpStatus: poll.httpStatus, reason: poll.reason || null,
-      items: poll.items.length, newItems: 0, etag: poll.etag || null, lastModified: poll.lastModified || null,
+      feedType: source.feedType || 'rss', fetchArticles: source.fetchArticles !== false, items: poll.items.length, newItems: 0, filteredOut: 0, etag: poll.etag || null, lastModified: poll.lastModified || null,
       lastPolled: poll.polledAt, lastChanged: poll.status === 'ok' ? poll.polledAt : (prev.lastChanged || null),
       articleFetch: { attempted: 0, ok: 0, blocked: 0, robotsDisallowed: 0, paywalled: 0, skipped: 0, backlog: 0, other: 0 },
     };
@@ -610,26 +618,31 @@ export async function briefing(opts = {}) {
       applyTags(rec);
       markSyndication(rec);
     };
-    const canFetch = () => fetchArticles && fetched < maxFetch && (Date.now() - startedAt) < enrichBudgetMs;
+    const sourceFetch = fetchArticles && source.fetchArticles !== false;
+    const canFetch = () => sourceFetch && fetched < maxFetch && (Date.now() - startedAt) < enrichBudgetMs;
 
     if (poll.status === 'ok') {
       const knownIds = new Set(store.map(r => r.id));
       const fresh = [];
       for (const item of poll.items) {
+        if (!matchesPathPrefixes(item.link, source.pathPrefixes)) { report.filteredOut++; continue; }
         const rec = normalizeItem(item, source, collectedAt);
         if (knownIds.has(rec.id)) continue;
+        // National outlets opt in to a place gate: only headlines/keywords naming a border place are kept.
+        if (source.requirePlaceTag && !applyTags(rec).tags.places.length) { report.filteredOut++; continue; }
         fresh.push(rec);
       }
       report.newItems = fresh.length;
       for (const rec of fresh) {
-        if (rec.extraction.fetchStatus === 'ok') {
+        if (rec.text) {
+          rec.extraction.fetchStatus = 'not needed (full text in feed)';
           applyTags(rec);
           markSyndication(rec);
         } else if (canFetch()) {
           await enrich(rec);
         } else {
-          rec.extraction.fetchStatus = fetchArticles ? 'skipped (per-sweep cap)' : 'disabled (BORDER_FETCH_ARTICLES=false)';
-          if (fetchArticles) report.articleFetch.skipped++;
+          rec.extraction.fetchStatus = !fetchArticles ? 'disabled (BORDER_FETCH_ARTICLES=false)' : !sourceFetch ? 'disabled (source policy: feed metadata only)' : 'skipped (per-sweep cap)';
+          if (sourceFetch) report.articleFetch.skipped++;
           applyTags(rec);
           markSyndication(rec);
         }
@@ -695,7 +708,7 @@ export async function briefing(opts = {}) {
     summary,
     baseline,
     spikes,
-    registry: registry.map(s => ({ id: s.id, outlet: s.outlet, feedUrl: s.feedUrl, language: s.language, regionTag: s.regionTag, reliability: s.reliability, discoveryDate: s.discoveryDate, paywall: Boolean(s.paywall) })),
+    registry: registry.map(s => ({ id: s.id, outlet: s.outlet, feedUrl: s.feedUrl, feedType: s.feedType || 'rss', language: s.language, countryOfPublication: s.countryOfPublication, regionTag: s.regionTag, reliability: s.reliability, discoveryDate: s.discoveryDate, paywall: Boolean(s.paywall), fetchArticles: s.fetchArticles !== false, requirePlaceTag: Boolean(s.requirePlaceTag) })),
   };
 }
 
