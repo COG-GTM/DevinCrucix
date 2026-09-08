@@ -6,7 +6,7 @@
 import { decodeEntities } from './rss.mjs';
 
 const BLOCK_TAGS = 'p|div|br|li|h[1-6]|blockquote|section|article|figcaption|tr';
-const BOILERPLATE = /^(sign up|subscribe|read more|related|advertisement|share this|copyright|©|all rights reserved|click here|follow us|download the|watch:|photo:|credit:|the texas tribune thanks|disclosure:|this article originally appeared|correction:)/i;
+const BOILERPLATE = /^(sign up|subscribe|read more|related|advertisement|share this|email this|copyright|©|all rights reserved|click here|follow us|download the|watch:|photo:|credit:|the texas tribune thanks|disclosure:|this article originally appeared|correction:)/i;
 const PAYWALL_MARKERS = /(subscribe to (continue|read|keep reading)|subscribers? only|this (article|story|content) is (for|available to) (paid )?subscribers|already a subscriber|unlock this (article|story)|start your (free )?trial to (read|continue)|you have reached your (article|free) limit)/i;
 
 // Convert an HTML fragment (e.g. WordPress `content.rendered`) to paragraph text.
@@ -52,6 +52,26 @@ export function canonicalUrlFrom(html) {
     || firstAttr(html, /<meta\b[^>]*property=["']og:url["'][^>]*content=["']([^"']+)["']/i);
 }
 
+// CMS body containers (Blogger `post-body`, WordPress `entry-content`, schema.org articleBody).
+// These are <div>s, so the slice is closed by depth-counting rather than a lazy regex.
+const BODY_CONTAINER_OPEN = /<(div|section)\b[^>]*(?:class=["'][^"']*\b(?:post-body|entry-content|article-body|story-body|articleBody)\b[^"']*["']|itemprop=["']articleBody["'])[^>]*>/i;
+
+export function bodyContainer(html) {
+  const src = String(html || '');
+  const open = BODY_CONTAINER_OPEN.exec(src);
+  if (!open) return '';
+  const tag = open[1].toLowerCase();
+  const re = new RegExp(`<(/?)${tag}\\b[^>]*>`, 'gi');
+  re.lastIndex = open.index + open[0].length;
+  let depth = 1;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    depth += m[1] ? -1 : 1;
+    if (depth === 0) return src.slice(open.index, m.index + m[0].length);
+  }
+  return '';
+}
+
 // Returns { text, title, canonical, paywalled, method, paragraphs }
 export function extractArticle(html) {
   const src = String(html || '');
@@ -68,12 +88,16 @@ export function extractArticle(html) {
     return { text: paragraphs.join('\n\n'), title, canonical, paywalled: Boolean(notFree), method: 'jsonld', paragraphs: paragraphs.length };
   }
 
-  const container = /<article\b[\s\S]*?<\/article>/i.exec(src)?.[0]
+  const articleTag = /<article\b[\s\S]*?<\/article>/i.exec(src)?.[0];
+  const bodyDiv = articleTag ? '' : bodyContainer(src);
+  const container = articleTag
+    || bodyDiv
     || /<main\b[\s\S]*?<\/main>/i.exec(src)?.[0]
     || /<body\b[\s\S]*<\/body>/i.exec(src)?.[0]
     || src;
   const paragraphs = bodyParagraphs(htmlToText(container));
   const text = paragraphs.join('\n\n');
   const paywalled = Boolean(notFree) || (text.length < 600 && PAYWALL_MARKERS.test(htmlToText(src)));
-  return { text, title, canonical, paywalled, method: /<article\b/i.test(container) ? 'article-tag' : 'paragraphs', paragraphs: paragraphs.length };
+  const method = articleTag ? 'article-tag' : bodyDiv ? 'body-container' : 'paragraphs';
+  return { text, title, canonical, paywalled, method, paragraphs: paragraphs.length };
 }

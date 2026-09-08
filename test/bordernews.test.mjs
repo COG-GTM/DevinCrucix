@@ -528,9 +528,120 @@ test('Borderland Beat Atom (Blogger, single-quoted attributes) parses link/categ
   assert.deepEqual(labelled, [{ ...labelled[0], link: 'https://x.example/p.html', categories: ['Tamaulipas'] }]);
   const recs = items.map(i => applyTags(normalizeItem(i, src('borderlandbeat'), '2026-09-06T00:00:00Z')));
   const full = recs.filter(r => r.extraction.method === 'feed-content');
-  assert.ok(full.length >= 2, 'long Atom <content> becomes the record text');
-  assert.ok(full.every(r => r.textChars >= 1500 && r.text.length === r.textChars && r.contentHash === sha256(r.text)));
+  assert.equal(full.length, 3, 'Atom <content> is the record text for every post, short ones included');
+  assert.ok(full.every(r => r.textChars >= 1000 && r.text.length === r.textChars && r.contentHash === sha256(r.text)));
+  assert.ok(full.some(r => r.textChars < 1500), 'fixture covers a post below the generic full-text threshold');
   assert.ok(recs.some(r => r.tags.topics.includes('narcotics')));
+});
+
+// Regression (2026-09-08): a short Blogger post fell below the generic full-text threshold, the post page
+// was scraped, and the "Popular" sidebar of unrelated stories (a massacre, two 300 kg cocaine seizures)
+// was extracted as if it were the article body. feed-content sources never fetch pages.
+const SHORT_BB_BODY = '<p>A man, approximately 50 years old, died after being shot on the streets of the Quintas Quijote neighborhood.</p><p>The incident took place at the intersection of Voltaria and Dornajo streets in Chihuahua, where he was found with a gunshot wound.</p><p>Source: El Heraldo de Chihuahua</p>';
+const SHORT_BB_FEED = `<feed xmlns='http://www.w3.org/2005/Atom'><entry><id>tag:blogger.com,1999:blog-1.post-77</id><published>2026-09-08T09:00:00.000-07:00</published><title type='text'>Man Dies After Being Shot in the Quintas Quijote Neighborhood</title><content type='html'>${SHORT_BB_BODY.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</content><link rel='alternate' type='text/html' href='https://www.borderlandbeat.com/2026/09/man-dies-after-being-shot-in-quintas.html'/></entry></feed>`;
+const SIDEBAR_PAGE = `<html><body><div class='main'><div class='post'><h3 class='post-title'>Man Dies After Being Shot</h3><div class='post-body entry-content'>${SHORT_BB_BODY}<div class='separator'><a href='#'>img</a></div></div><div class='post-footer'>Email This BlogThis! Share to X</div></div></div>
+<div class='sidebar'><h2>Popular</h2><div class='widget'><p>Eight people were killed in a massacre at a wake in Irapuato, Guanajuato, authorities said late Tuesday.</p><p>Navy seizes 300 kilograms of cocaine off the coast of Michoacán in a second operation this week.</p></div></div></body></html>`;
+
+test('Borderland Beat: a short post is still taken from the feed (articleApi feed-content) and its page is never fetched', async () => {
+  const BB = src('borderlandbeat');
+  assert.equal(BB.articleApi, 'feed-content');
+  const [item] = parseFeed(SHORT_BB_FEED);
+  const rec = normalizeItem(item, BB, '2026-09-08T16:00:00Z');
+  assert.equal(rec.extraction.method, 'feed-content');
+  assert.ok(rec.textChars > 0 && rec.textChars < 1500, `short body is still the text-of-record (${rec.textChars} chars)`);
+  assert.ok(rec.text.includes('Quintas Quijote') && rec.text.includes('Source: El Heraldo de Chihuahua'));
+
+  const f = mockFetch([['borderlandbeat.com/feeds/posts/default', res(200, SHORT_BB_FEED, { 'content-type': 'application/atom+xml' })], ['robots.txt', ROBOTS_OK], ['man-dies-after-being-shot', res(200, SIDEBAR_PAGE)]]);
+  const dataDir = tmpDir();
+  const out = await briefing({ registry: [BB], fetch: f, dataDir, now: Date.parse('2026-09-08T16:00:00Z'), politeDelayMs: 0 });
+  assert.equal(out.feeds[0].articleFetch.attempted, 0);
+  assert.equal(out.feeds[0].fetchArticles, false, 'source is reported as feed-only');
+  assert.deepEqual(f.calls.map(c => c.url), ['https://www.borderlandbeat.com/feeds/posts/default'], 'only the feed is fetched');
+  const stored = JSON.parse(readFileSync(join(dataDir, 'articles.json'), 'utf8'));
+  assert.equal(stored.length, 1);
+  assert.ok(!/massacre|300 kilograms/i.test(stored[0].text), 'sidebar copy never reaches the record');
+
+  // Even if a feed-content record with no text were handed to the page path, it must not scrape.
+  const bare = normalizeItem({ ...item, description: '', rawDescription: '' }, BB, '2026-09-08T16:00:00Z');
+  assert.equal(bare.text, null);
+  await enrichArticle(bare, BB, f, fast);
+  assert.equal(bare.extraction.fetchStatus, 'not attempted (feed is text-of-record)');
+  assert.equal(f.calls.length, 1);
+});
+
+test('briefing: stored feed-content records that were page-scraped are repaired to title+summary on load', async () => {
+  resetForTests();
+  const BB = src('borderlandbeat');
+  const dataDir = tmpDir();
+  const [item] = parseFeed(SHORT_BB_FEED);
+  const scraped = { ...normalizeItem(item, BB, '2026-09-08T16:00:00Z'), text: 'Eight people were killed in a massacre at a wake in Irapuato.\n\nNavy seizes 300 kilograms of cocaine.', textChars: 100 };
+  scraped.extraction = { method: 'page:paragraphs', fetchStatus: 'ok', fetchedAt: '2026-09-08T16:03:33Z', rawSnapshot: 'raw/x.html', httpStatus: 200 };
+  writeFileSync(join(dataDir, 'articles.json'), JSON.stringify([scraped]));
+  writeFileSync(join(dataDir, 'state.json'), JSON.stringify({ feeds: { borderlandbeat: { etag: 'W/"abc"', lastModified: 'Tue, 08 Sep 2026 15:09:26 GMT' } } }));
+  const f = mockFetch([['borderlandbeat.com/feeds/posts/default', res(500)]]);
+  const out = await briefing({ registry: [BB], fetch: f, dataDir, now: Date.parse('2026-09-08T17:00:00Z'), politeDelayMs: 0 });
+  assert.equal(out.repairedThisSweep, 1);
+  assert.equal(f.calls.length, 1, 'repair never refetches');
+  assert.equal(f.calls[0].headers['If-None-Match'], undefined, 'textless feed-content records force an unconditional feed read');
+  const [rec] = JSON.parse(readFileSync(join(dataDir, 'articles.json'), 'utf8'));
+  assert.equal(rec.text, null);
+  assert.equal(rec.extraction.method, 'feed-description');
+  assert.equal(rec.extraction.fetchStatus, 'not attempted (feed is text-of-record)');
+  assert.ok(rec.summary.includes('Quintas Quijote') && rec.tags?.tool);
+  const out2 = await briefing({ registry: [BB], fetch: mockFetch([['borderlandbeat.com/feeds/posts/default', res(500)]]), dataDir, now: Date.parse('2026-09-08T17:15:00Z'), politeDelayMs: 0 });
+  assert.equal(out2.repairedThisSweep, 0, 'idempotent');
+  assert.equal(out2.backfilledThisSweep, 0);
+
+  // While the post is still in the feed, the next successful poll restores the body from the feed itself.
+  const f3 = mockFetch([['borderlandbeat.com/feeds/posts/default', res(200, SHORT_BB_FEED, { 'content-type': 'application/atom+xml', etag: 'W/"abc"' })]]);
+  const out3 = await briefing({ registry: [BB], fetch: f3, dataDir, now: Date.parse('2026-09-08T17:30:00Z'), politeDelayMs: 0 });
+  assert.equal(out3.backfilledThisSweep, 1);
+  assert.equal(out3.newThisSweep, 0);
+  assert.equal(f3.calls.length, 1, 'backfill comes from the feed, no page fetch');
+  const [again] = JSON.parse(readFileSync(join(dataDir, 'articles.json'), 'utf8'));
+  assert.ok(again.text.includes('Voltaria and Dornajo') && !/massacre|300 kilograms/.test(again.text));
+  assert.equal(again.extraction.method, 'feed-content');
+  assert.equal(again.extraction.fetchStatus, 'not needed (full text in feed)');
+  assert.equal(again.contentHash, sha256(again.text));
+
+  // Once every record has text, polling is conditional again.
+  const f4 = mockFetch([['borderlandbeat.com/feeds/posts/default', res(304)]]);
+  await briefing({ registry: [BB], fetch: f4, dataDir, now: Date.parse('2026-09-08T17:45:00Z'), politeDelayMs: 0 });
+  assert.equal(f4.calls[0].headers['If-None-Match'], 'W/"abc"');
+});
+
+test('briefing: a repaired feed-content record whose post left the feed stops forcing unconditional polls', async () => {
+  resetForTests();
+  const BB = src('borderlandbeat');
+  const dataDir = tmpDir();
+  const [item] = parseFeed(SHORT_BB_FEED);
+  const gone = { ...normalizeItem(item, BB, '2026-09-08T16:00:00Z'), text: 'sidebar copy', textChars: 12, extraction: { method: 'page:paragraphs', fetchStatus: 'ok' } };
+  writeFileSync(join(dataDir, 'articles.json'), JSON.stringify([gone]));
+  const otherFeed = SHORT_BB_FEED.replace('post-77', 'post-78').replace('/2026/09/man-dies-after-being-shot-in-quintas.html', '/2026/09/other.html');
+  const f = mockFetch([['borderlandbeat.com/feeds/posts/default', res(200, otherFeed, { 'content-type': 'application/atom+xml', etag: 'W/"v2"' })]]);
+  const out = await briefing({ registry: [BB], fetch: f, dataDir, now: Date.parse('2026-09-08T17:00:00Z'), politeDelayMs: 0 });
+  assert.equal(out.repairedThisSweep, 1);
+  assert.equal(out.backfilledThisSweep, 0);
+  assert.equal(out.newThisSweep, 1);
+  const store = JSON.parse(readFileSync(join(dataDir, 'articles.json'), 'utf8'));
+  const stale = store.find(r => r.title.includes('Quintas Quijote'));
+  assert.equal(stale.text, null);
+  assert.equal(stale.extraction.fetchStatus, 'not attempted (feed is text-of-record); post no longer in feed');
+  const f2 = mockFetch([['borderlandbeat.com/feeds/posts/default', res(304)]]);
+  await briefing({ registry: [BB], fetch: f2, dataDir, now: Date.parse('2026-09-08T17:15:00Z'), politeDelayMs: 0 });
+  assert.equal(f2.calls[0].headers['If-None-Match'], 'W/"v2"', 'conditional polling resumes');
+});
+
+test('article extractor: Blogger/WordPress body container beats <body>, so sidebars are excluded', () => {
+  const a = extractArticle(SIDEBAR_PAGE);
+  assert.equal(a.method, 'body-container');
+  assert.ok(a.text.includes('Quintas Quijote') && a.text.includes('Voltaria and Dornajo'));
+  assert.ok(!/massacre|300 kilograms|Popular|Email This/i.test(a.text), a.text);
+  // nested divs inside the container are kept (depth-counted close), not cut at the first </div>
+  const nested = extractArticle('<html><body><div class="entry-content"><div class="wp-block-group"><p>First real paragraph of the story, long enough to count as body copy.</p></div><p>Second real paragraph after the nested block, also long enough to count.</p></div><aside><p>Unrelated trending story about something else entirely, long enough too.</p></aside></body></html>');
+  assert.equal(nested.method, 'body-container');
+  assert.equal(nested.paragraphs, 2);
+  assert.ok(!/trending/.test(nested.text));
 });
 
 test('Milenio Google News sitemap parses via parseFeed with news:title / publication_date / keywords', () => {

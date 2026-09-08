@@ -82,6 +82,7 @@
       "homepage": "https://www.borderlandbeat.com",
       "feedUrl": "https://www.borderlandbeat.com/feeds/posts/default",
       "feedType": "atom",
+      "articleApi": "feed-content",
       "language": "en",
       "countryOfPublication": "US",
       "regionTag": "Mexico (cartel violence, all states)",
@@ -91,7 +92,7 @@
       "paywall": false,
       "robotsChecked": "2026-09-06",
       "discoveryDate": "2026-09-06",
-      "discoveryNotes": "Blogger Atom feed (application/atom+xml) returns 200 with full post content inline, so no article fetch is needed. robots.txt for '*' disallows /search and /share-widget, allows /. Blog aggregates and translates Mexican press reports; treat as secondary reporting."
+      "discoveryNotes": "Blogger Atom feed (application/atom+xml) returns 200 with full post content inline, so the feed body is the text-of-record and article pages are never fetched (Blogger post pages have no <article> container; a page scrape picks up the Popular-posts sidebar). robots.txt for '*' disallows /search and /share-widget, allows /. Blog aggregates and translates Mexican press reports; treat as secondary reporting."
     },
     {
       "id": "justiceinmexico",

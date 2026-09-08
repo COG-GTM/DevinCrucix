@@ -404,6 +404,19 @@ describe('relevance gates', () => {
     assert.equal(isNarcoRelevant({ sourceType: 'citizen-aggregator', title: 'Open thread', text: 'Weekend music picks.' }), false);
   });
 
+  it('a single fatal shooting reported by the citizen aggregator is one homicide with one killed', () => {
+    const text = 'A man, approximately 50 years old, died after being shot on the streets of the Quintas Quijote neighborhood; he sustained at least one gunshot wound to the head.\n\nThe incident took place at the intersection of Voltaria and Dornajo streets, where the man was found with a gunshot wound. Following the attack, his relatives acted quickly and decided to transport him to a hospital themselves.\n\nThe injured man was taken in a private vehicle to a hospital located on Periférico de la Juventud, where he was admitted to the emergency room for medical treatment. However, despite the medical team\'s efforts, he passed away while receiving care.\n\nThe Quintas Quijote neighborhood of Chihuahua, Chihuahua\n\nSource: El Heraldo de Chihuahua';
+    const a = { sourceId: 'borderlandbeat', sourceType: 'citizen-aggregator', title: 'Man Dies After Being Shot in the Quintas Quijote Neighborhood', text };
+    assert.equal(isNarcoRelevant(a), true);
+    const rec = normalizeEvent(doc(a), { gz, groups });
+    assert.equal(isNarcoEvent(rec), true);
+    assert.equal(rec.location?.state, 'Chihuahua');
+    assert.equal(rec.counts.killed, 1);
+    assert.equal(rec.counts.kidnapped ?? null, null);
+    assert.deepEqual(rec.seizures, {});
+    assert.equal(rec.eventType, 'homicide');
+  });
+
   it('second gate requires a Mexican location or a named group for mainstream outlets only', () => {
     const rec = normalizeEvent(doc({ sourceId: 'borderreport', sourceType: 'news-outlet', title: 'Agents rescued 8 migrants from locked train car', text: 'Border Patrol agents in Eagle Pass rescued eight migrants from a locked rail car.' }), { gz, groups });
     assert.equal(isNarcoEvent(rec), false);
