@@ -5,6 +5,7 @@
 // Data source: receiverbook.de (embeds full receiver list as JS variable)
 
 import { safeFetch } from '../utils/fetch.mjs';
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const RECEIVERBOOK_URL = 'https://www.receiverbook.de/map?type=kiwisdr';
 
@@ -13,7 +14,7 @@ export async function getAllReceivers() {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
-    const res = await fetch(RECEIVERBOOK_URL, {
+    const res = await safeOutboundFetch(RECEIVERBOOK_URL, {
       headers: { 'User-Agent': 'Crucix/1.0' },
       signal: controller.signal,
     });

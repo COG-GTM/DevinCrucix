@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Active Cartels In Mexico 2026</name>
+    <description><![CDATA[This project was created by one single individual who is invested in the organized crime situation. This map is definitely not 100% accurate and probably will never be as constantly events occur in Mexico.<br>As of May 2024, cartels controlled about one third of Mexico's territory, according to one estimate from the U.S. military.<br>Red - CJNG<br>Purple - Sinaloa Cartel (La Mayiza)<br>Follow - @MexicoCartelMap<br>Any donation - helps]]></description>
+    <Style id="poly-cjng-normal">
+      <LineStyle><color>ff5252ff</color><width>2</width></LineStyle>
+      <PolyStyle><color>805252ff</color></PolyStyle>
+    </Style>
+    <Style id="poly-cjng-highlight">
+      <LineStyle><color>ffffffff</color><width>3</width></LineStyle>
+      <PolyStyle><color>ccffffff</color></PolyStyle>
+    </Style>
+    <StyleMap id="poly-cjng">
+      <Pair><key>normal</key><styleUrl>#poly-cjng-normal</styleUrl></Pair>
+      <Pair><key>highlight</key><styleUrl>#poly-cjng-highlight</styleUrl></Pair>
+    </StyleMap>
+    <Style id="icon-war">
+      <IconStyle><color>ff4417ff</color></IconStyle>
+    </Style>
+    <Style id="line-alliance">
+      <LineStyle><color>ffdb9db3</color><width>1.5</width></LineStyle>
+    </Style>
+    <Folder>
+      <name>Cartel Influence</name>
+      <Placemark>
+        <name>CJNG Colima</name>
+        <description><![CDATA[Cártel Jalisco Nueva Generación stronghold since 2015. Source: <a href="https://example.org/colima">report</a>]]></description>
+        <styleUrl>#poly-cjng</styleUrl>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>
+          -104.4,18.7,0 -103.5,18.7,0 -103.5,19.5,0 -104.4,19.5,0 -104.4,18.7,0
+        </coordinates></LinearRing></outerBoundaryIs></Polygon>
+      </Placemark>
+      <Placemark>
+        <name>Situation In CDMX</name>
+        <description><![CDATA[Based on the DEA's 2025 assessment at least six major cartels have a presence in CDMX including CJNG and Cártel de Sinaloa (Los Chapitos). Dated 05/06/2025 in the prose, which must NOT count as activity.]]></description>
+        <styleUrl>#poly-cjng</styleUrl>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>
+          -99.35,19.2,0 -98.95,19.2,0 -98.95,19.55,0 -99.35,19.55,0 -99.35,19.2,0
+        </coordinates></LinearRing></outerBoundaryIs></Polygon>
+      </Placemark>
+      <Placemark>
+        <name>Highway corridor (La Línea)</name>
+        <styleUrl>#line-alliance</styleUrl>
+        <LineString><coordinates>-106.5,31.7,0 -106.0,30.9,0 -105.6,30.2,0</coordinates></LineString>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Activity / Crimes</name>
+      <Placemark>
+        <name>09/01/2026 | Culiacán, Sinaloa &lt;script&gt;alert(1)&lt;/script&gt; shooting</name>
+        <description><![CDATA[<b>Los Chapitos</b> gunmen "clashed" with La Mayiza. <img src="https://example.org/pic.jpg"> https://example.org/news/culiacan, see more]]></description>
+        <styleUrl>#icon-war</styleUrl>
+        <Point><coordinates>-107.39,24.8,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Undated pin with no organisation</name>
+        <Point><coordinates>-100.0,25.0,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Government/Military Operations</name>
+      <Placemark>
+        <name>SEDENA raid — Sept 3 2026</name>
+        <description>Army dismantles lab.</description>
+        <Point><coordinates>-101.2,19.7,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Active Wars</name>
+      <Placemark>
+        <name>War Between Mayiza and CJNG</name>
+        <description>Ongoing since 2024-09-09.</description>
+        <styleUrl>#icon-war</styleUrl>
+        <Point><coordinates>-107.0,24.5,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Truces</name>
+      <Placemark>
+        <name>Truce between CDN and Gulf Cartel</name>
+        <Point><coordinates>-99.5,27.5,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Alleged Alliances</name>
+      <Placemark>
+        <name>Los Chapitos - CJNG</name>
+        <description>Alleged alliance reported by local media.</description>
+        <styleUrl>#line-alliance</styleUrl>
+        <LineString><coordinates>-107.4,24.8,0 -103.3,20.7,0</coordinates></LineString>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Strongholds</name>
+      <Placemark>
+        <name>CJNG stronghold — Tepatitlán</name>
+        <Point><coordinates>-102.76,20.82,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Activity in the U.S.</name>
+      <Placemark>
+        <name>CJNG cell arrested in Atlanta</name>
+        <Point><coordinates>-84.39,33.75,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Miscellaneous notes</name>
+      <Placemark>
+        <name>Note with no geometry</name>
+        <description>Should be counted as skipped.</description>
+      </Placemark>
+      <Placemark>
+        <name>Some other pin</name>
+        <Point><coordinates>-98.0,22.0,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

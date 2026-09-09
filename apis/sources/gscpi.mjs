@@ -3,6 +3,8 @@
 // Values above 0 = above average pressure. Above 1.0 = elevated. Below -1.0 = unusually loose.
 // Data fetched directly from NY Fed — no API key required.
 
+import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
+
 const GSCPI_CSV_URL = 'https://www.newyorkfed.org/medialibrary/research/interactives/data/gscpi/gscpi_interactive_data.csv';
 
 // Fetch and parse the GSCPI CSV from the NY Fed
@@ -12,7 +14,7 @@ export async function getGSCPI(months = 12) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
-    const res = await fetch(GSCPI_CSV_URL, {
+    const res = await safeOutboundFetch(GSCPI_CSV_URL, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Crucix/1.0' },
     });

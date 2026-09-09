@@ -12,6 +12,9 @@ import { exec } from 'child_process';
 import config from '../crucix.config.mjs';
 import { createLLMProvider } from '../lib/llm/index.mjs';
 import { generateLLMIdeas } from '../lib/llm/ideas.mjs';
+import { buildSourceHealth } from '../lib/sourcehealth.mjs';
+import { buildCartelsView } from '../lib/cartelview.mjs';
+import { buildNarcoView } from '../lib/narco/view.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -100,6 +103,13 @@ function sanitizeExternalUrl(raw) {
   } catch {
     return undefined;
   }
+}
+
+function airSourceLabel(openSky) {
+  const c = openSky?.coverage;
+  if (!c || openSky.method === 'opensky') return 'OpenSky';
+  if (openSky.method === 'adsb_sample') return `ADS-B sample (${(openSky.openskyError || 'OpenSky unavailable').split(':')[0]})`;
+  return `OpenSky ${c.opensky}/${c.total} · ADS-B sample ${c.adsbSample}/${c.total}`;
 }
 
 function sumAirHotspots(hotspots = []) {
@@ -608,8 +618,9 @@ export async function synthesize(data) {
     priorityAlerts: (gdeltData.priorityAlerts || []).slice(0, 5),
   };
 
-  const health = Object.entries(data.sources).map(([name, src]) => ({
-    n: name, err: Boolean(src.error), stale: Boolean(src.stale)
+  const sourceHealth = buildSourceHealth(data);
+  const health = sourceHealth.sources.map(s => ({
+    n: s.name, err: s.state === 'error', stale: s.state === 'degraded'
   }));
 
   // === Yahoo Finance live market data ===
@@ -666,13 +677,21 @@ export async function synthesize(data) {
   const news = await fetchAllNews();
 
   const V2 = {
-    meta: data.crucix, air, thermal, tSignals, chokepoints, nuke, nukeSignals,
+    meta: { ...data.crucix, health: sourceHealth.summary }, air, thermal, tSignals, chokepoints, nuke, nukeSignals,
+    sourceHealth,
     airMeta: {
       fallback: Boolean(airFallback || adsbAirHotspots),
       liveTotal: sumAirHotspots(liveAirHotspots),
       timestamp: airFallback?.timestamp || data.sources['ADS-B']?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
-      source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : 'OpenSky'),
+      source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : airSourceLabel(data.sources.OpenSky)),
+      method: data.sources.OpenSky?.method || null,
+      ...(data.sources.OpenSky?.coverage ? { coverage: data.sources.OpenSky.coverage } : {}),
+      ...(data.sources.OpenSky?.note ? { note: data.sources.OpenSky.note } : {}),
       ...(airFallback ? { fallbackFile: airFallback.file } : {}),
+      ...(data.sources.OpenSky?.status ? { status: data.sources.OpenSky.status } : {}),
+      ...(data.sources.OpenSky?.dataTimestamp ? { dataTimestamp: data.sources.OpenSky.dataTimestamp } : {}),
+      ...(data.sources.OpenSky?.auth ? { auth: data.sources.OpenSky.auth } : {}),
+      ...(data.sources.OpenSky?.creditsRemaining != null ? { creditsRemaining: data.sources.OpenSky.creditsRemaining } : {}),
       ...(data.sources.OpenSky?.error ? { error: data.sources.OpenSky.error } : {}),
     },
     sdr: { total: sdrNet.totalReceivers || 0, online: sdrNet.online || 0, zones: sdrZones },
@@ -976,6 +995,126 @@ export async function synthesize(data) {
         signals: ckData.signals || [],
       };
     })(),
+    // Phase 7: Typosquat Watch (look-alike domains against the watchlist)
+    typosquat: (() => {
+      const tsData = data.sources.Typosquat || {};
+      return {
+        status: tsData.status || 'unavailable',
+        watchlist: (tsData.watchlist || []).slice(0, 25),
+        totalChecked: tsData.totalChecked || 0,
+        newCount: tsData.newCount || 0,
+        byBase: tsData.byBase || {},
+        byTechnique: tsData.byTechnique || {},
+        registered: (tsData.registered || []).slice(0, 80).map(r => ({
+          domain: String(r.domain || '').substring(0, 253),
+          base: String(r.base || '').substring(0, 253),
+          technique: String(r.technique || '').substring(0, 20),
+          ips: (r.ips || []).slice(0, 3),
+          isNew: !!r.isNew,
+        })),
+        timestamp: tsData.timestamp || null,
+      };
+    })(),
+    // Border Watch: registry-driven regional news with per-feed health, tags and spikes
+    borderNews: (() => {
+      const bn = data.sources.BorderNews || {};
+      const str = (v, n) => String(v ?? '').substring(0, n);
+      const num = (v) => (Number.isFinite(v) ? v : 0);
+      return {
+        status: bn.status || 'unavailable',
+        error: bn.error ? str(bn.error, 200) : null,
+        note: bn.note ? str(bn.note, 200) : null,
+        timestamp: bn.timestamp || null,
+        pipelineVersion: str(bn.pipelineVersion, 40),
+        totalArticles: num(bn.totalArticles),
+        newThisSweep: num(bn.newThisSweep),
+        feeds: (bn.feeds || []).slice(0, 20).map(f => ({
+          id: str(f.id, 40), outlet: str(f.outlet, 60), status: str(f.status, 20), httpStatus: f.httpStatus ?? null,
+          reason: f.reason ? str(f.reason, 120) : null, items: num(f.items), newItems: num(f.newItems),
+          reliability: str(f.reliability, 10), lastPolled: f.lastPolled || null, lastChanged: f.lastChanged || null,
+          articleFetch: f.articleFetch || null,
+        })),
+        articles: (bn.articles || []).slice(0, 40).map(a => ({
+          id: str(a.id, 64), outlet: str(a.outlet, 60), sourceId: str(a.sourceId, 40), title: str(a.title, 200),
+          url: sanitizeExternalUrl(a.url), canonicalUrl: sanitizeExternalUrl(a.canonicalUrl),
+          publishedAt: a.publishedAt || null, collectedAt: a.collectedAt || null,
+          excerpt: str(a.excerpt, 300), categories: (a.categories || []).slice(0, 8).map(c => str(c, 40)),
+          topics: (a.tags?.topics || []).slice(0, 7).map(t => str(t, 20)),
+          places: (a.tags?.places || []).slice(0, 6).map(p => str(p, 40)),
+          extraction: str(a.extraction?.method, 30), fetchStatus: str(a.extraction?.fetchStatus, 60),
+          paywalled: !!a.paywalled, syndicated: !!a.syndicated, wireSource: a.wireSource ? str(a.wireSource, 60) : null,
+          reliability: str(a.reliability, 10), language: str(a.language, 8),
+        })),
+        summary: bn.summary ? {
+          windowDays: num(bn.summary.windowDays), articlesInWindow: num(bn.summary.articlesInWindow),
+          topicCounts: bn.summary.topicCounts || {},
+          outletCounts: bn.summary.outletCounts || {},
+          places: (bn.summary.places || []).slice(0, 25).map(p => ({
+            key: str(p.key, 40), name: str(p.name, 60), country: str(p.country, 2), sector: p.sector ? str(p.sector, 30) : null,
+            lat: Number.isFinite(p.lat) ? p.lat : null, lon: Number.isFinite(p.lon) ? p.lon : null, count: num(p.count),
+          })),
+        } : null,
+        baseline: bn.baseline || null,
+        spikes: (bn.spikes || []).slice(0, 10).map(s => ({
+          place: str(s.place, 40), placeName: str(s.placeName, 60), sector: s.sector ? str(s.sector, 30) : null,
+          lat: Number.isFinite(s.lat) ? s.lat : null, lon: Number.isFinite(s.lon) ? s.lon : null,
+          topic: str(s.topic, 20), count24h: num(s.count24h), baselineDailyMean: num(s.baselineDailyMean), ratio: s.ratio ?? null,
+          articleIds: (s.articleIds || []).slice(0, 10).map(i => str(i, 64)), rule: str(s.rule, 120),
+        })),
+        registry: (bn.registry || []).slice(0, 20).map(r => ({
+          id: str(r.id, 40), outlet: str(r.outlet, 60), language: str(r.language, 8), regionTag: str(r.regionTag, 40),
+          reliability: str(r.reliability, 10), discoveryDate: str(r.discoveryDate, 10), paywall: !!r.paywall,
+        })),
+      };
+    })(),
+    // CBP Enforcement Statistics: official monthly CSVs, Southwest border only, summarized server-side
+    cbpStats: (() => {
+      const cs = data.sources.CBPStats || {};
+      const str = (v, n) => String(v ?? '').substring(0, n);
+      const num = (v) => (Number.isFinite(v) ? v : 0);
+      const pct = (v) => (Number.isFinite(v) ? v : null);
+      const bucket = (arr, n) => (arr || []).slice(0, n).map(b => ({ key: str(b.key, 60), count: num(b.count) }));
+      const enc = cs.encounters;
+      const drg = cs.drugs;
+      return {
+        status: cs.status || 'unavailable',
+        error: cs.error ? str(cs.error, 200) : null,
+        timestamp: cs.timestamp || null,
+        pipelineVersion: str(cs.pipelineVersion, 40),
+        attribution: str(cs.attribution, 200),
+        datasets: (cs.datasets || []).slice(0, 4).map(d => ({
+          id: str(d.id, 20), title: str(d.title, 80), status: str(d.status, 20), httpStatus: d.httpStatus ?? null,
+          url: sanitizeExternalUrl(d.url), discoveryPage: sanitizeExternalUrl(d.discoveryPage), discovered: !!d.discovered,
+          reason: d.reason ? str(d.reason, 160) : null, notes: (d.notes || []).slice(0, 4).map(n => str(n, 160)),
+          fetchedAt: d.fetchedAt || null, lastModified: d.lastModified ? str(d.lastModified, 40) : null, rows: num(d.rows),
+        })),
+        encounters: enc ? {
+          region: str(enc.region, 40),
+          coverage: { first: str(enc.coverage?.first, 7), last: str(enc.coverage?.last, 7), months: num(enc.coverage?.months) },
+          latest: { period: str(enc.latest?.period, 7), label: str(enc.latest?.label, 12), total: num(enc.latest?.total), usbp: num(enc.latest?.usbp), ofo: num(enc.latest?.ofo), momPct: pct(enc.latest?.momPct), yoyPct: pct(enc.latest?.yoyPct) },
+          series: (enc.series || []).slice(0, 13).map(s => ({ period: str(s.period, 7), label: str(s.label, 12), total: num(s.total), usbp: num(s.usbp), ofo: num(s.ofo) })),
+          sectors: (enc.sectors || []).slice(0, 9).map(s => ({
+            aor: str(s.aor, 40), abbv: str(s.abbv, 4), sector: str(s.sector, 30),
+            lat: Number.isFinite(s.lat) ? s.lat : null, lon: Number.isFinite(s.lon) ? s.lon : null,
+            latest: num(s.latest), previous: s.previous == null ? null : num(s.previous), momPct: pct(s.momPct), yoyPct: pct(s.yoyPct),
+            series: (s.series || []).slice(0, 13).map(x => ({ period: str(x.period, 7), count: num(x.count) })),
+          })),
+          fieldOffices: (enc.fieldOffices || []).slice(0, 4).map(f => ({ aor: str(f.aor, 40), latest: num(f.latest) })),
+          demographic: bucket(enc.demographic, 4), encounterType: bucket(enc.encounterType, 3), authority: bucket(enc.authority, 2), citizenship: bucket(enc.citizenship, 10),
+        } : null,
+        drugs: drg ? {
+          region: str(drg.region, 40),
+          coverage: { first: str(drg.coverage?.first, 7), last: str(drg.coverage?.last, 7), months: num(drg.coverage?.months) },
+          latest: { period: str(drg.latest?.period, 7), label: str(drg.latest?.label, 12), events: num(drg.latest?.events), lbs: num(drg.latest?.lbs), momLbsPct: pct(drg.latest?.momLbsPct), yoyLbsPct: pct(drg.latest?.yoyLbsPct) },
+          series: (drg.series || []).slice(0, 13).map(s => ({ period: str(s.period, 7), label: str(s.label, 12), events: num(s.events), lbs: num(s.lbs) })),
+          drugs: (drg.drugs || []).slice(0, 10).map(d => ({
+            type: str(d.type, 40), latest: { events: num(d.latest?.events), lbs: num(d.latest?.lbs) }, momLbsPct: pct(d.momLbsPct), yoyLbsPct: pct(d.yoyLbsPct),
+            series: (d.series || []).slice(0, 13).map(x => ({ period: str(x.period, 7), lbs: num(x.lbs), events: num(x.events) })),
+          })),
+          byAor: (drg.byAor || []).slice(0, 13).map(a => ({ aor: str(a.aor, 40), events: num(a.events), lbs: num(a.lbs) })),
+        } : null,
+      };
+    })(),
     // Phase 5: Telegram OSINT Live (background scraper data)
     telegramLive: (() => {
       const tlData = data.sources.TelegramLive || {};
@@ -1049,17 +1188,50 @@ export async function synthesize(data) {
       };
     })(),
     frontlines: (() => {
+      // Geometry stays out of the dashboard payload; the browser pulls /api/frontlines/geo on demand.
       const flData = data.sources.Frontlines || {};
+      const area = flData.areaKm2 || {};
+      const hist = flData.history || {};
       return {
         source: 'Frontlines',
+        provider: flData.provider || 'DeepStateMAP',
+        siteUrl: flData.siteUrl || 'https://deepstatemap.live/en',
         status: flData.status || 'unavailable',
+        stale: Boolean(flData.stale),
+        mapId: flData.mapId || null,
+        mapUpdatedAt: flData.mapUpdatedAt || null,
+        mapAgeH: Number.isFinite(flData.mapAgeH) ? flData.mapAgeH : null,
         featureCount: flData.featureCount || 0,
-        totalCoords: flData.totalCoords || 0,
-        featureTypes: flData.featureTypes || {},
-        geojson: flData.geojson || null,
+        polyCats: flData.polyCats || {},
+        pointCats: flData.pointCats || {},
+        areaKm2: {
+          occupied: area.occupied || 0,
+          occupied_pre2022: area.occupied_pre2022 || 0,
+          contested: area.contested || 0,
+          liberated: area.liberated || 0,
+        },
+        occupiedKm2: flData.occupiedKm2 || 0,
+        contestedKm2: flData.contestedKm2 || 0,
+        attackDirections: flData.attackDirections || 0,
+        units: flData.units || 0,
+        airfields: flData.airfields || 0,
+        history: {
+          total: hist.total || 0,
+          recent7d: hist.recent7d || 0,
+          advances7d: hist.advances7d || 0,
+          regains7d: hist.regains7d || 0,
+          latestAt: hist.latestAt || null,
+          updates: Array.isArray(hist.updates) ? hist.updates.slice(0, 12) : [],
+        },
         signals: flData.signals || [],
       };
     })(),
+    // Cartels page: crowd-sourced KML summary + START 2020 baseline + Mexico-filtered live feeds.
+    // Geometry stays out of the payload; the browser pulls /api/cartels/geo on demand.
+    cartels: buildCartelsView(data.sources),
+    // Homeland / Narco: DOJ + OFAC + feed health now; event clusters are computed post-sweep by the
+    // server (lib/narco/pipeline.mjs) which replaces this placeholder with buildNarcoView(result, sources).
+    narco: buildNarcoView(null, data.sources),
     satTracking: (() => {
       const stData = data.sources.SatTracking || {};
       return {
@@ -1092,16 +1264,93 @@ export async function synthesize(data) {
         signals: lnData.signals || [],
       };
     })(),
+    // Border Watch: Python ingestion service summary (news + structured baselines + anomalies)
+    borderIngest: synthesizeBorderIngest(data.sources.BorderIngest),
     ideas: [], ideasSource: 'disabled',
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
-    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime),
+    newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime, data.sources.BorderNews),
   };
 
   return V2;
 }
 
+// === Border Watch (Python ingestion service) ===
+// Shapes the ingest /summary payload for the dashboard. Everything here is third-party text
+// (headlines, outlet names, region names) and MUST be HTML-escaped by the frontend before insertion.
+const str = (v, max) => (typeof v === 'string' ? v.substring(0, max) : '');
+const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+const isoDate = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? v.substring(0, 25) : null);
+
+export function synthesizeBorderIngest(raw) {
+  if (!raw || raw.status !== 'live') {
+    return { status: raw?.status || 'offline', error: str(raw?.error, 200), anomalies: [], regions: [], articles: [], baselines: [], sources: { enabled: 0, degraded: [] } };
+  }
+  const health = raw.health || {};
+  const articleCounts = health.articles || {};
+  return {
+    status: 'live',
+    generatedAt: isoDate(raw.generated_at),
+    userAgent: str(health.user_agent, 200),
+    pollIntervalMinutes: num(health.poll_interval_minutes),
+    nerBackend: str(health.ner_backend, 40),
+    translationProvider: str(health.translation_provider, 40),
+    lastSweepAt: isoDate(health.last_sweep?.finished_at),
+    lastBaselineCheckAt: isoDate(health.last_baseline_check),
+    sources: {
+      enabled: num(health.sources_enabled),
+      degraded: (Array.isArray(health.sources_degraded) ? health.sources_degraded : []).slice(0, 30).map(s => str(s, 64)),
+    },
+    totals: {
+      articles: num(articleCounts.articles),
+      paywalled: num(articleCounts.paywalled),
+      violence: num(articleCounts.violence),
+      nonEnglish: num(articleCounts.non_english),
+      articles24h: num(raw.articles_24h),
+      violence24h: num(raw.violence_24h),
+    },
+    byLanguage: (Array.isArray(raw.by_language) ? raw.by_language : []).slice(0, 10).map(l => ({
+      language: str(l.language, 8), count: num(l.n), paywalled: num(l.paywalled),
+    })),
+    regions: (Array.isArray(raw.top_regions_7d) ? raw.top_regions_7d : []).slice(0, 15).map(r => ({
+      code: str(r.region_code, 64), name: str(r.region_name, 120), country: str(r.country, 2),
+      articles: num(r.articles), violence: num(r.violence),
+    })),
+    anomalies: (Array.isArray(raw.anomalies) ? raw.anomalies : []).slice(0, 25).map(a => ({
+      metric: str(a.metric, 80), regionCode: str(a.region_code, 64), regionName: str(a.region_name, 120),
+      country: str(a.country, 2), regionType: str(a.region_type, 32),
+      windowStart: isoDate(a.window_start), windowEnd: isoDate(a.window_end),
+      observed: num(a.observed), baselineMean: num(a.baseline_mean), baselineStd: num(a.baseline_std),
+      baselineN: num(a.baseline_n), zScore: num(a.z_score), severity: str(a.severity, 16),
+      articleIds: (Array.isArray(a.article_ids) ? a.article_ids : []).slice(0, 20).filter(Number.isInteger),
+    })),
+    articles: (Array.isArray(raw.recent_articles) ? raw.recent_articles : []).slice(0, 30).map(a => ({
+      id: Number.isInteger(a.id) ? a.id : null,
+      title: str(a.title, 200), summary: str(a.summary, 280), url: str(a.url, 2048),
+      publishedAt: isoDate(a.published_at) || isoDate(a.discovered_at),
+      language: str(a.language, 8), country: str(a.country_of_publication, 2),
+      outlet: str(a.outlet_name, 120), sourceSlug: str(a.source_slug, 64),
+      reliability: str(a.reliability, 32), sourceType: str(a.source_type, 32),
+      paywalled: !!a.paywalled, fetchStatus: str(a.fetch_status, 24),
+      isViolence: !!a.is_violence, violenceScore: num(a.violence_score),
+      violenceTerms: (Array.isArray(a.violence_terms_json) ? a.violence_terms_json : []).slice(0, 6).map(t => str(t, 40)),
+      regions: (Array.isArray(a.border_regions_json) ? a.border_regions_json : []).slice(0, 5).map(r => ({
+        code: str(r.code, 64), name: str(r.name, 120), country: str(r.country, 2),
+      })),
+      entities: (Array.isArray(a.entities_json) ? a.entities_json : []).slice(0, 8).map(e => ({
+        text: str(e.text, 80), label: str(e.label, 16),
+      })),
+      hasMachineTranslation: !!a.has_translation,
+    })),
+    baselines: (Array.isArray(health.baselines) ? health.baselines : []).slice(0, 12).map(b => ({
+      dataset: str(b.dataset, 64), schedule: str(b.refresh_schedule, 32), status: str(b.last_status, 24),
+      error: str(b.last_error, 200), records: num(b.record_count), version: str(b.version, 64),
+      lastCheckedAt: isoDate(b.last_checked_at), lastUpdatedAt: isoDate(b.last_updated_at),
+    })),
+  };
+}
+
 // === Unified News Feed for Ticker ===
-function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData) {
+function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData, borderNewsData) {
   const feed = [];
 
   // RSS news
@@ -1149,6 +1398,19 @@ function buildNewsFeed(rssNews, gdeltData, tgUrgent, tgTop, insightCrimeData) {
           headline: a.title.substring(0, 100), source: 'INSIGHT CRIME',
           type: 'insightcrime', timestamp: a.date || a.pubDate, region: 'Latin America',
           urgent: false, url: a.link
+        });
+      }
+    }
+  }
+
+  // Border Watch articles (registry outlets; title/url are third-party and escaped client-side)
+  if (borderNewsData) {
+    for (const a of (borderNewsData.articles || []).slice(0, 10)) {
+      if (a.title) {
+        feed.push({
+          headline: String(a.title).substring(0, 100), source: String(a.outlet || 'BORDER WATCH').toUpperCase().substring(0, 40),
+          type: 'bordernews', timestamp: a.publishedAt || a.collectedAt, region: 'US-MX Border',
+          urgent: false, url: sanitizeExternalUrl(a.url)
         });
       }
     }
