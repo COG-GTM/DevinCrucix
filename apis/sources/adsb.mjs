@@ -1,16 +1,15 @@
 // ADS-B Exchange — Unfiltered Flight Tracking (including Military)
 // Unlike FlightRadar24/FlightAware, ADS-B Exchange does NOT filter military aircraft.
 // Primary: opendata.adsb.fi (free, no key required, community-run)
-// Fallback: RapidAPI tier for programmatic use (requires ADSB_API_KEY)
+// Fallback: ADS-B Exchange v2 via RapidAPI (requires ADSBX_RAPIDAPI_KEY; see adsbx.mjs)
 
 import { safeFetch } from '../utils/fetch.mjs';
+import { adsbxConfigured, adsbxMilitary, adsbxPoint } from './adsbx.mjs';
 
 // Known endpoints
 const ENDPOINTS = {
   // opendata.adsb.fi — free, no key, community-run ADS-B aggregator
   adsbFi: 'https://opendata.adsb.fi/api/v2',
-  // v2 API via RapidAPI (requires ADSB_API_KEY)
-  rapidApi: 'https://adsbexchange-com1.p.rapidapi.com/v2',
   // Public globe feed (may be rate-limited or blocked for automated access)
   publicFeed: 'https://globe.adsbexchange.com/data/aircraft.json',
 };
@@ -95,7 +94,7 @@ const MIL_CALLSIGN_PATTERNS = [
 ];
 
 // Check if an ICAO hex code falls in known military ranges
-function isMilitaryHex(hex) {
+export function isMilitaryHex(hex) {
   if (!hex) return false;
   const num = parseInt(hex, 16);
   if (isNaN(num)) return false;
@@ -103,7 +102,7 @@ function isMilitaryHex(hex) {
 }
 
 // Check if a callsign matches military patterns
-function isMilitaryCallsign(callsign) {
+export function isMilitaryCallsign(callsign) {
   if (!callsign) return false;
   const cs = callsign.trim().toUpperCase();
   return MIL_CALLSIGN_PATTERNS.some(p => p.test(cs));
@@ -165,18 +164,6 @@ async function fetchFromAdsbFi() {
   return null;
 }
 
-// Fetch military aircraft via RapidAPI (requires ADSB_API_KEY)
-async function fetchViaRapidApi(apiKey) {
-  if (!apiKey) return null;
-  const data = await safeFetch(`${ENDPOINTS.rapidApi}/mil`, {
-    timeout: 20000,
-    headers: {
-      'X-RapidAPI-Key': apiKey,
-      'X-RapidAPI-Host': 'adsbexchange-com1.p.rapidapi.com',
-    },
-  });
-  return data;
-}
 
 // Check if aircraft is in a sensitive region
 function findSensitiveRegion(lat, lon) {
@@ -188,7 +175,7 @@ function findSensitiveRegion(lat, lon) {
 }
 
 // Get military aircraft from available sources
-export async function getMilitaryAircraft(apiKey) {
+export async function getMilitaryAircraft(useAdsbx = adsbxConfigured()) {
   // Try opendata.adsb.fi first (free, no key needed)
   const adsbFiData = await fetchFromAdsbFi();
   if (adsbFiData && !adsbFiData.error) {
@@ -198,9 +185,9 @@ export async function getMilitaryAircraft(apiKey) {
     }
   }
 
-  // Fallback to RapidAPI if key available
-  if (apiKey) {
-    const data = await fetchViaRapidApi(apiKey);
+  // Fallback to ADS-B Exchange if a key is configured
+  if (useAdsbx) {
+    const data = await adsbxMilitary();
     if (data && !data.error) {
       const aircraft = data.ac || data.aircraft || [];
       if (Array.isArray(aircraft)) {
@@ -212,22 +199,13 @@ export async function getMilitaryAircraft(apiKey) {
   return null; // all sources failed
 }
 
-// Get all aircraft in a geographic bounding box via RapidAPI
-export async function getAircraftInArea(lat, lon, radiusNm = 250, apiKey) {
-  if (!apiKey) {
-    return { error: 'ADSB_API_KEY required for area search', hint: 'Set ADSB_API_KEY (RapidAPI key)' };
+// Get all aircraft within radiusNm of a point via ADS-B Exchange
+export async function getAircraftInArea(lat, lon, radiusNm = 250) {
+  if (!adsbxConfigured()) {
+    return { error: 'ADSBX_RAPIDAPI_KEY required for area search', hint: 'Set ADSBX_RAPIDAPI_KEY (RapidAPI key)' };
   }
 
-  const data = await safeFetch(
-    `${ENDPOINTS.rapidApi}/lat/${lat}/lon/${lon}/dist/${radiusNm}/`,
-    {
-      timeout: 20000,
-      headers: {
-        'X-RapidAPI-Key': apiKey,
-        'X-RapidAPI-Host': 'adsbexchange-com1.p.rapidapi.com',
-      },
-    }
-  );
+  const data = await adsbxPoint(lat, lon, radiusNm);
 
   if (data && !data.error) {
     const aircraft = data.ac || data.aircraft || [];
@@ -239,8 +217,7 @@ export async function getAircraftInArea(lat, lon, radiusNm = 250, apiKey) {
 
 // Briefing — attempt to get military flight data, document what's available
 export async function briefing() {
-  const apiKey = process.env.ADSB_API_KEY || process.env.RAPIDAPI_KEY || null;
-  const militaryAircraft = await getMilitaryAircraft(apiKey);
+  const militaryAircraft = await getMilitaryAircraft();
 
   // If we got data, analyze it
   if (militaryAircraft && militaryAircraft.length > 0) {

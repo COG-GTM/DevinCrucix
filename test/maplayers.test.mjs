@@ -41,9 +41,9 @@ test('signal layers win defaults and are capped at MAX_DEFAULT_LAYERS', () => {
   const prc = { level: 'ELEVATED', score: 80, straitCn: 30, scsTotal: 40, isr: 1 };
   const r = evaluateLayers(V2, { prc });
   const signal = r.layers.filter(l => l.state === 'signal').map(l => l.id);
-  assert.deepEqual(signal, ['prc', 'military', 'gps', 'conflict', 'carriers', 'nuke', 'air', 'osint']);
+  assert.deepEqual(signal, ['prc', 'military', 'gps', 'air', 'conflict', 'carriers', 'nuke', 'osint']);
   assert.equal(r.defaults.length, MAX_DEFAULT_LAYERS);
-  assert.deepEqual(r.defaults, ['prc', 'military', 'gps', 'conflict', 'carriers']);
+  assert.deepEqual(r.defaults, ['prc', 'military', 'gps', 'air', 'conflict']);
   assert.equal(r.layers.find(l => l.id === 'nuke').on, false, 'signal layers past the cap stay off by default');
   assert.equal(r.layers.find(l => l.id === 'air').why, 'Middle East: ≥15% no callsign');
 });
@@ -59,9 +59,37 @@ test('quiet sweep: defaults are padded with data layers up to MIN_DEFAULT_LAYERS
   const r = evaluateLayers(V2, { prc: { level: 'REDUCED', score: 0 } });
   assert.equal(r.signal, 0);
   assert.equal(r.defaults.length, MIN_DEFAULT_LAYERS);
-  assert.deepEqual(r.defaults, ['nuke', 'air', 'maritime']);
+  assert.deepEqual(r.defaults, ['air', 'nuke', 'maritime']);
   assert.equal(r.layers.find(l => l.id === 'news').state, 'data');
   assert.equal(r.layers.find(l => l.id === 'news').on, false);
+});
+
+test('air: military tracks or an emergency squawk make the layer a default-on signal', () => {
+  const busy = { prc: { level: 'ELEVATED', score: 80, straitCn: 30, scsTotal: 40, isr: 1 } };
+  const busyV2 = {
+    adsbMilitary: { categories: { reconnaissance: [{ lat: 1, lon: 1 }], isr: [{ lat: 1, lon: 1, country: 'China' }] } },
+    gpsJamming: { zones: [{ lat: 1, lng: 1, severity: 'high' }] },
+    acled: { deadliestEvents: [{ lat: 1, lon: 1, fatalities: 12 }] },
+    carriers: { carriers: [{ lat: 1, lng: 1, source: 'GDELT geo' }] },
+    nuke: [{ site: 'X', anom: true, cpm: 90 }],
+  };
+  const track = (extra = {}) => ({ hex: 'ae1234', cs: 'RCH123', lat: 25, lon: 55, hdg: 90, mil: false, squawk: null, ...extra });
+
+  const mil = evaluateLayers({ ...busyV2, air: [{ ...air('Middle East', 40), military: 0, tracks: [track({ mil: true })] }] }, busy);
+  assert.equal(mil.layers.find(l => l.id === 'air').state, 'signal');
+  assert.ok(mil.defaults.includes('air'), 'a live picture with military aircraft is on by default even on a busy sweep');
+  assert.equal(mil.layers.find(l => l.id === 'air').why, 'Middle East: military aircraft on ADS-B');
+
+  const counted = evaluateLayers({ air: [{ ...air('Baltic Region', 12), military: 2, tracks: [track()] }] }, { prc: { level: 'REDUCED', score: 0 } });
+  assert.equal(counted.layers.find(l => l.id === 'air').state, 'signal', 'backend military count counts even when tracks lack the flag');
+
+  const sos = evaluateLayers({ air: [{ ...air('Caribbean', 30), tracks: [track({ squawk: '7700' })] }] }, { prc: { level: 'REDUCED', score: 0 } });
+  assert.equal(sos.layers.find(l => l.id === 'air').why, 'Caribbean: emergency squawk');
+
+  const civil = evaluateLayers({ ...busyV2, air: [{ ...air('Middle East', 100, 0, 2), tracks: [track(), track({ cs: 'UAE12' })] }] }, busy);
+  assert.equal(civil.layers.find(l => l.id === 'air').state, 'data');
+  assert.equal(civil.layers.find(l => l.id === 'air').why, '1 theaters · 2 tracks plotted');
+  assert.equal(civil.layers.find(l => l.id === 'air').on, false, 'civil-only traffic stays a toggle on a busy sweep');
 });
 
 test('a throwing eval degrades that layer to none instead of blanking the map', () => {

@@ -352,7 +352,7 @@ These three unlock the most valuable economic and satellite data. Each takes abo
 |-----|--------|------------|
 | `ACLED_EMAIL` + `ACLED_PASSWORD` | Armed conflict event data | [acleddata.com/register](https://acleddata.com/register/) — free, OAuth2 |
 | `AISSTREAM_API_KEY` | Maritime AIS vessel tracking | [aisstream.io](https://aisstream.io/) — free |
-| `ADSB_API_KEY` | Unfiltered flight tracking | [RapidAPI](https://rapidapi.com/adsbexchange/api/adsbexchange-com1) — ~$10/mo |
+| `ADSBX_RAPIDAPI_KEY` | ADS-B Exchange (unfiltered, incl. military) as the aircraft feed; replaces OpenSky + adsb.lol sampling | [RapidAPI](https://rapidapi.com/adsbx/api/adsbexchange-com1) — Community API ~$10/mo for 10k req, non-commercial licence |
 | `VIRUSTOTAL_API_KEY` | Investigate: domain/IP/hash reputation | [virustotal.com](https://www.virustotal.com/gui/join-us) — free |
 | `SHODAN_API_KEY` | Investigate: full host/service data | [account.shodan.io](https://account.shodan.io/) — free tier |
 | `OPENCORPORATES_API_TOKEN` | Investigate: company registry | [opencorporates.com](https://opencorporates.com/api_accounts/new) — free for non-commercial |
@@ -493,7 +493,7 @@ crucix/
 | Source | What It Tracks | Auth |
 |--------|---------------|------|
 | **GDELT** | Global news events, conflict mapping (100+ languages) via the 15-minute export/GKG snapshots | None |
-| **OpenSky** | Real-time ADS-B flight tracking, one global pull partitioned into 10 hotspot regions (falls back to adsb.lol point samples, marked `fallback`, when OpenSky is unreachable) | Optional (OAuth2, 10x quota) |
+| **OpenSky** | Real-time ADS-B flight tracking, one global pull partitioned into 10 hotspot regions with up to 150 individual tracks each (falls back to adsb.lol point samples taken in a paced background rotation, marked `fallback` and tagged with their age, when OpenSky is unreachable; with `ADSBX_RAPIDAPI_KEY` set, ADS-B Exchange samples every theater instead) | Optional (OAuth2, 10x quota) |
 | **NASA FIRMS** | Satellite fire/thermal anomaly detection (3hr latency) | Free key |
 | **Maritime/AIS** | Vessel tracking, dark ships, sanctions evasion | Free key |
 | **Safecast** | Citizen-science radiation monitoring near 6 nuclear sites | None |
@@ -567,6 +567,9 @@ All settings are in `.env` with sensible defaults:
 | `REFRESH_INTERVAL_MINUTES` | `15` | Auto-refresh interval |
 | `OPENSKY_CLIENT_ID` / `OPENSKY_CLIENT_SECRET` | anonymous | OpenSky OAuth2 API client (raises quota 400 → 4,000 credits/day) |
 | `OPENSKY_MIN_INTERVAL_MINUTES` | `15` | Minimum spacing between OpenSky global pulls (4 credits each) |
+| `ADSBX_RAPIDAPI_KEY` | unset | ADS-B Exchange RapidAPI key; when set, aircraft theaters are sampled from ADS-B Exchange instead of OpenSky/adsb.lol |
+| `ADSBX_DAILY_BUDGET` | `300` | Max ADS-B Exchange requests per UTC day (Community API is 10,000/month) |
+| `AIR_SAMPLE_PACE_MS` | `8000` | Delay between aggregator point samples; the 33 theater points are sampled in a continuous background rotation (~4.5 min per lap at the default) and each sweep reports the latest result per theater with its age. adsb.lol allows only a handful of requests per minute from a cloud IP (HTTP 429, no `Retry-After`) |
 | `INGEST_API_URL` | `http://127.0.0.1:3118` | Border Watch ingestion service the dashboard reads from |
 | `INGEST_*` | see `.env.example` | Python ingestion service: bind address, poll interval, NER, translation, anomaly thresholds |
 | `DOJ_PAGES_PER_SWEEP` / `DOJ_BACKFILL_PAGES` | `2` / `8` | DOJ press-release API pages per sweep and one-time backfill depth |

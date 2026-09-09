@@ -108,8 +108,36 @@ function sanitizeExternalUrl(raw) {
 function airSourceLabel(openSky) {
   const c = openSky?.coverage;
   if (!c || openSky.method === 'opensky') return 'OpenSky';
+  if (openSky.primary === 'adsbexchange') return openSky.source || 'ADS-B Exchange';
   if (openSky.method === 'adsb_sample') return `ADS-B sample (${(openSky.openskyError || 'OpenSky unavailable').split(':')[0]})`;
   return `OpenSky ${c.opensky}/${c.total} · ADS-B sample ${c.adsbSample}/${c.total}`;
+}
+
+const TRACKS_PER_THEATER = 150;
+const isNum = v => typeof v === 'number' && Number.isFinite(v);
+
+// Per-aircraft positions for the map layer. Only tracks with a real fix survive;
+// strings are third-party and get escaped again in the browser.
+function normalizeTracks(tracks = []) {
+  return tracks
+    .filter(t => isNum(t?.lat) && isNum(t?.lon) && Math.abs(t.lat) <= 90 && Math.abs(t.lon) <= 180)
+    .slice(0, TRACKS_PER_THEATER)
+    .map(t => ({
+      hex: String(t.icao24 || '').slice(0, 6),
+      cs: String(t.callsign || '').trim().slice(0, 8),
+      type: String(t.type || '').slice(0, 8),
+      reg: String(t.reg || '').slice(0, 12),
+      country: String(t.country || '').slice(0, 64),
+      mil: t.mil === true,
+      lat: +t.lat.toFixed(4),
+      lon: +t.lon.toFixed(4),
+      altM: isNum(t.altitude) ? Math.round(t.altitude) : null,
+      spdMs: isNum(t.velocity) ? Math.round(t.velocity) : null,
+      hdg: isNum(t.heading) ? Math.round(t.heading) % 360 : null,
+      vsMs: isNum(t.verticalRate) ? +t.verticalRate.toFixed(1) : null,
+      squawk: t.squawk ? String(t.squawk).slice(0, 4) : null,
+      ground: t.onGround === true,
+    }));
 }
 
 function sumAirHotspots(hotspots = []) {
@@ -117,13 +145,27 @@ function sumAirHotspots(hotspots = []) {
 }
 
 function summarizeAirHotspots(hotspots = []) {
-  return hotspots.map(h => ({
-    region: h.region,
-    total: h.totalAircraft || 0,
-    noCallsign: h.noCallsign || 0,
-    highAlt: h.highAltitude || 0,
-    top: Object.entries(h.byCountry || {}).sort((a, b) => b[1] - a[1]).slice(0, 5),
-  }));
+  return hotspots.map(h => {
+    const tracks = normalizeTracks(h.tracks);
+    return {
+      region: h.region,
+      total: h.totalAircraft || 0,
+      noCallsign: h.noCallsign || 0,
+      highAlt: h.highAltitude || 0,
+      military: isNum(h.military) ? h.military : tracks.filter(t => t.mil).length,
+      top: Object.entries(h.byCountry || {}).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      topTypes: Object.entries(h.byType || {}).slice(0, 5),
+      provider: h.provider || h.method || 'none',
+      sampled: Boolean(h.sampled),
+      stale: Boolean(h.stale),
+      ...(h.stale && isNum(h.staleAgeMin) ? { staleAgeMin: h.staleAgeMin } : {}),
+      ...(isNum(h.ageMin) ? { ageMin: h.ageMin } : {}),
+      ...(typeof h.sampledAt === 'string' ? { sampledAt: h.sampledAt } : {}),
+      ...(h.method === 'none' && h.error ? { error: String(h.error).slice(0, 160) } : {}),
+      ...(isNum(h.lamin) ? { lamin: h.lamin, lomin: h.lomin, lamax: h.lamax, lomax: h.lomax } : {}),
+      tracks,
+    };
+  });
 }
 
 // Air hotspot regions — mirrors OpenSky HOTSPOTS for ADS-B fallback
@@ -175,10 +217,31 @@ function buildAirHotspotsFromADSB(adsbSource) {
     }
     return {
       region: r.region,
+      lamin: r.lamin, lomin: r.lomin, lamax: r.lamax, lomax: r.lomax,
+      method: 'adsb_military',
+      provider: 'adsb.fi',
+      sampled: true,
       totalAircraft: inRegion.length,
+      military: inRegion.length,
       noCallsign: inRegion.filter(ac => !(ac.callsign || '').trim()).length,
       highAltitude: inRegion.filter(ac => (ac.altitude || 0) > 39370).length, // >12km in feet
       byCountry,
+      tracks: inRegion.map(ac => ({
+        icao24: ac.hex,
+        callsign: ac.callsign,
+        country: ac.militaryMatch || '',
+        type: ac.type,
+        reg: ac.registration,
+        mil: true,
+        lat: ac.latitude ?? ac.lat,
+        lon: ac.longitude ?? ac.lon,
+        altitude: isNum(ac.altitude) ? Math.round(ac.altitude * 0.3048) : null, // feet -> metres
+        velocity: isNum(ac.speed) ? Math.round(ac.speed * 0.5144) : null,       // knots -> m/s
+        heading: isNum(ac.heading) ? ac.heading : null,
+        verticalRate: null,
+        squawk: ac.squawk || null,
+        onGround: ac.altitude === 'ground',
+      })),
     };
   });
 }
@@ -685,6 +748,9 @@ export async function synthesize(data) {
       timestamp: airFallback?.timestamp || data.sources['ADS-B']?.timestamp || data.sources.OpenSky?.timestamp || data.crucix?.timestamp || null,
       source: adsbAirHotspots ? 'ADS-B Military' : (airFallback ? 'OpenSky fallback' : airSourceLabel(data.sources.OpenSky)),
       method: data.sources.OpenSky?.method || null,
+      primary: data.sources.OpenSky?.primary || 'opensky',
+      trackCount: air.reduce((s, a) => s + a.tracks.length, 0),
+      ...(data.sources.OpenSky?.adsbx ? { adsbx: data.sources.OpenSky.adsbx } : {}),
       ...(data.sources.OpenSky?.coverage ? { coverage: data.sources.OpenSky.coverage } : {}),
       ...(data.sources.OpenSky?.note ? { note: data.sources.OpenSky.note } : {}),
       ...(airFallback ? { fallbackFile: airFallback.file } : {}),
