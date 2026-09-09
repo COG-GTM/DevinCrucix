@@ -39,7 +39,16 @@ const MAX_RAW_FILES = 400;
 const MAX_TEXT_CHARS = 20_000;
 const MAX_SUMMARY_CHARS = 600;
 const FEED_FULLTEXT_MIN_CHARS = 1_500; // a description this long is the post body (Blogger/Atom full-content feeds), not an excerpt
+const FEED_CONTENT_MIN_CHARS = 200;
+const FEED_RECORD_STATUS = 'not attempted (feed is text-of-record)'; // `articleApi: "feed-content"` sources: the feed body is the text-of-record even for short posts
 const RECENT_LIMIT = 40;
+
+// Whether a source's article pages may be fetched at all. `feed-content` sources (Blogger and similar)
+// publish the whole post in the feed; their pages have no article container, so a scrape would return
+// sidebar copy from unrelated stories.
+export function pageFetchAllowed(source) {
+  return source.fetchArticles !== false && source.articleApi !== 'feed-content';
+}
 
 const REQUIRED_SOURCE_FIELDS = ['id', 'outlet', 'feedUrl', 'language', 'countryOfPublication', 'regionTag', 'reliability', 'discoveryDate'];
 const FEED_TYPES = ['rss', 'atom', 'news-sitemap'];
@@ -227,7 +236,14 @@ export function normalizeItem(item, source, collectedAt) {
   const title = String(item.title || '').replace(/\s+/g, ' ').trim().slice(0, 300);
   const descText = String(item.description || '').replace(/\s+/g, ' ').trim();
   const summary = descText.slice(0, MAX_SUMMARY_CHARS);
-  const text = descText.length >= FEED_FULLTEXT_MIN_CHARS ? descText.slice(0, MAX_TEXT_CHARS) : null;
+  let text = null;
+  if (source.articleApi === 'feed-content') {
+    const paragraphs = bodyParagraphs(htmlToText(item.rawDescription || item.description), { minLen: 1 });
+    const body = paragraphs.join('\n\n');
+    if (body.length >= FEED_CONTENT_MIN_CHARS) text = body.slice(0, MAX_TEXT_CHARS);
+  } else if (descText.length >= FEED_FULLTEXT_MIN_CHARS) {
+    text = descText.slice(0, MAX_TEXT_CHARS);
+  }
   return {
     id: sha256(`${source.id}|${identity}`).slice(0, 16),
     sourceId: source.id,
@@ -495,6 +511,10 @@ export async function enrichArticle(rec, source, fetchImpl = fetch, { dataDir = 
     return rec;
   };
 
+  // The feed is the text-of-record for these sources; their post pages carry no article container
+  // and a page scrape returns sidebar copy from unrelated stories.
+  if (source.articleApi === 'feed-content' || !pageFetchAllowed(source)) return finish('feed-description', source.articleApi === 'feed-content' ? FEED_RECORD_STATUS : 'disabled (source policy: feed metadata only)');
+
   const postId = source.articleApi === 'wp-rest' ? wpPostId(rec.guid) : null;
   const apiBase = source.articleApiBase || (rec.url ? new URL(rec.url).origin : null) || new URL(source.feedUrl).origin;
   if (postId && apiBase) {
@@ -585,7 +605,19 @@ export async function briefing(opts = {}) {
   let store = readJson(join(dataDir, 'articles.json'), []);
   if (!Array.isArray(store)) store = [];
   let retagged = 0;
+  let repaired = 0;
+  let backfilled = 0;
+  const feedOnly = new Set(registry.filter(s => s.articleApi === 'feed-content').map(s => s.id));
   for (const rec of store) {
+    // Stored records of feed-content sources that were page-scraped carry sidebar copy; fall back to title+summary.
+    if (feedOnly.has(rec?.sourceId) && /^page:/.test(rec?.extraction?.method || '')) {
+      rec.text = null;
+      rec.textChars = 0;
+      rec.extraction = { method: 'feed-description', fetchStatus: FEED_RECORD_STATUS, fetchedAt: null, rawSnapshot: null };
+      rec.contentHash = sha256(`${rec.title}\n${rec.summary}`);
+      rec.tags = undefined;
+      repaired++;
+    }
     if (rec?.tags?.tool !== TAGGER_VERSION) { applyTags(rec); retagged++; }
   }
 
@@ -594,11 +626,14 @@ export async function briefing(opts = {}) {
 
   await Promise.all(registry.map(async (source) => {
     const prev = state.feeds[source.id] || {};
-    const poll = await pollFeed(source, prev, fetchImpl, { politeDelayMs });
+    // A feed-content source with textless records re-reads the feed unconditionally so they can be backfilled.
+    const backfillable = (r) => r.sourceId === source.id && !r.text && r.extraction?.fetchStatus === FEED_RECORD_STATUS;
+    const needsBackfill = source.articleApi === 'feed-content' && store.some(backfillable);
+    const poll = await pollFeed(source, needsBackfill ? { ...prev, etag: null, lastModified: null } : prev, fetchImpl, { politeDelayMs });
     const report = {
       id: source.id, outlet: source.outlet, feedUrl: source.feedUrl, reliability: source.reliability,
       status: poll.status, httpStatus: poll.httpStatus, reason: poll.reason || null,
-      feedType: source.feedType || 'rss', fetchArticles: source.fetchArticles !== false, items: poll.items.length, newItems: 0, filteredOut: 0, etag: poll.etag || null, lastModified: poll.lastModified || null,
+      feedType: source.feedType || 'rss', fetchArticles: pageFetchAllowed(source), items: poll.items.length, newItems: 0, filteredOut: 0, etag: poll.etag || null, lastModified: poll.lastModified || null,
       lastPolled: poll.polledAt, lastChanged: poll.status === 'ok' ? poll.polledAt : (prev.lastChanged || null),
       articleFetch: { attempted: 0, ok: 0, blocked: 0, robotsDisallowed: 0, paywalled: 0, skipped: 0, backlog: 0, other: 0 },
     };
@@ -618,19 +653,36 @@ export async function briefing(opts = {}) {
       applyTags(rec);
       markSyndication(rec);
     };
-    const sourceFetch = fetchArticles && source.fetchArticles !== false;
+    const sourceFetch = fetchArticles && pageFetchAllowed(source);
     const canFetch = () => sourceFetch && fetched < maxFetch && (Date.now() - startedAt) < enrichBudgetMs;
 
     if (poll.status === 'ok') {
-      const knownIds = new Set(store.map(r => r.id));
+      const known = new Map(store.map(r => [r.id, r]));
       const fresh = [];
       for (const item of poll.items) {
         if (!matchesPathPrefixes(item.link, source.pathPrefixes)) { report.filteredOut++; continue; }
         const rec = normalizeItem(item, source, collectedAt);
-        if (knownIds.has(rec.id)) continue;
+        const existing = known.get(rec.id);
+        if (existing) {
+          // A feed-content record without text (e.g. just repaired) takes the body from the feed while the post is still in it.
+          if (source.articleApi === 'feed-content' && !existing.text && rec.text) {
+            Object.assign(existing, { text: rec.text, textChars: rec.textChars, contentHash: rec.contentHash, updatedAt: collectedAt });
+            existing.extraction = { ...rec.extraction, fetchStatus: 'not needed (full text in feed)' };
+            applyTags(existing);
+            markSyndication(existing);
+            backfilled++;
+          }
+          continue;
+        }
         // National outlets opt in to a place gate: only headlines/keywords naming a border place are kept.
         if (source.requirePlaceTag && !applyTags(rec).tags.places.length) { report.filteredOut++; continue; }
         fresh.push(rec);
+      }
+      if (needsBackfill) {
+        const inFeed = new Set(poll.items.map(item => normalizeItem(item, source, collectedAt).id));
+        for (const rec of store) {
+          if (backfillable(rec) && !inFeed.has(rec.id)) rec.extraction.fetchStatus = `${FEED_RECORD_STATUS}; post no longer in feed`;
+        }
       }
       report.newItems = fresh.length;
       for (const rec of fresh) {
@@ -641,7 +693,9 @@ export async function briefing(opts = {}) {
         } else if (canFetch()) {
           await enrich(rec);
         } else {
-          rec.extraction.fetchStatus = !fetchArticles ? 'disabled (BORDER_FETCH_ARTICLES=false)' : !sourceFetch ? 'disabled (source policy: feed metadata only)' : 'skipped (per-sweep cap)';
+          rec.extraction.fetchStatus = !fetchArticles ? 'disabled (BORDER_FETCH_ARTICLES=false)'
+            : source.articleApi === 'feed-content' ? FEED_RECORD_STATUS
+            : !sourceFetch ? 'disabled (source policy: feed metadata only)' : 'skipped (per-sweep cap)';
           if (sourceFetch) report.articleFetch.skipped++;
           applyTags(rec);
           markSyndication(rec);
@@ -704,11 +758,13 @@ export async function briefing(opts = {}) {
     newThisSweep: merge.added,
     updatedThisSweep: merge.updated,
     retaggedThisSweep: retagged,
+    repairedThisSweep: repaired,
+    backfilledThisSweep: backfilled,
     articles: recent,
     summary,
     baseline,
     spikes,
-    registry: registry.map(s => ({ id: s.id, outlet: s.outlet, feedUrl: s.feedUrl, feedType: s.feedType || 'rss', language: s.language, countryOfPublication: s.countryOfPublication, regionTag: s.regionTag, reliability: s.reliability, discoveryDate: s.discoveryDate, paywall: Boolean(s.paywall), fetchArticles: s.fetchArticles !== false, requirePlaceTag: Boolean(s.requirePlaceTag) })),
+    registry: registry.map(s => ({ id: s.id, outlet: s.outlet, feedUrl: s.feedUrl, feedType: s.feedType || 'rss', language: s.language, countryOfPublication: s.countryOfPublication, regionTag: s.regionTag, reliability: s.reliability, discoveryDate: s.discoveryDate, paywall: Boolean(s.paywall), fetchArticles: pageFetchAllowed(s), requirePlaceTag: Boolean(s.requirePlaceTag) })),
   };
 }
 

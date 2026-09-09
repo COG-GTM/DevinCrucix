@@ -225,6 +225,23 @@
       "content_policy": "metadata_only"
     },
     {
+      "slug": "fronterasdesk",
+      "outlet_name": "Fronteras Desk (KJZZ)",
+      "feed_url": "https://www.kjzz.org/fronteras-desk.rss",
+      "feed_type": "rss",
+      "language": "en",
+      "country_of_publication": "US",
+      "region_tag": "arizona-sonora",
+      "reliability": "established-media",
+      "source_type": "public-media",
+      "phase": 2,
+      "discovery_date": "2026-09-07",
+      "discovery_method": "fronterasdesk.org redirect -> KJZZ; /fronteras-desk.rss verified (summaries only)",
+      "terms_url": "https://www.kjzz.org/fronteras-desk",
+      "notes": "Public-radio border collaborative hosted by KJZZ Phoenix. Feed carries summaries only (no content:encoded); article pages are served to non-browser clients and robots.txt has an empty Disallow for '*'. Shown with attribution and link, not republished.",
+      "content_policy": "full"
+    },
+    {
       "slug": "borderlandbeat",
       "outlet_name": "Borderland Beat",
       "feed_url": "https://www.borderlandbeat.com/feeds/posts/default",
