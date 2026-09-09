@@ -1,0 +1,218 @@
+{
+  "_comment": "Cartel / faction gazetteer for narco event extraction. `aliases` are matched as whole phrases after accent-folding and lower-casing (see lib/narco/groups.mjs); keep them specific enough not to collide with place names (e.g. never bare 'Juárez' or 'Matamoros'). `orgId` links to the ORGS palette in apis/sources/cartels.mjs so map and event colours agree. `parent` marks a faction of a larger organization; `usDesignation` records the U.S. FTO/SDGT designations of 2025-02-20 (Federal Register docs 2025-02873 / 2025-02870) for the eight organizations named there. Names of leaders are public-record figures named in DOJ/OFAC releases and are used only for entity linking.",
+  "version": "cartel-groups/1",
+  "groups": [
+    {
+      "id": "cjng", "orgId": "cjng", "type": "cartel", "name": "Cártel de Jalisco Nueva Generación", "short": "CJNG",
+      "aliases": ["cartel de jalisco nueva generacion", "jalisco nueva generacion", "jalisco new generation cartel", "jalisco new generation", "cjng", "cuatro letras", "matazetas", "los menchos"],
+      "usDesignation": "FTO/SDGT (2025-02-20)",
+      "homeStates": ["14", "08", "11", "16", "30"],
+      "leaders": ["Nemesio Oseguera Cervantes", "El Mencho"]
+    },
+    {
+      "id": "cjng_fuerzas_especiales", "orgId": "cjng", "parent": "cjng", "type": "faction", "name": "CJNG — Fuerzas Especiales Mencho", "short": "FEM",
+      "aliases": ["fuerzas especiales mencho", "fuerzas especiales del mencho", "grupo elite cjng", "grupo elite del cjng"]
+    },
+    {
+      "id": "cjng_puros", "orgId": "cjng", "parent": "cjng", "type": "faction", "name": "CJNG — Los Puros (Ciudad Juárez cell)", "short": "Los Puros",
+      "aliases": ["los puros"]
+    },
+    {
+      "id": "sinaloa", "orgId": "sinaloa", "type": "cartel", "name": "Cártel de Sinaloa", "short": "Sinaloa",
+      "aliases": ["cartel de sinaloa", "sinaloa cartel", "sinaloa federation", "federacion de sinaloa"],
+      "usDesignation": "FTO/SDGT (2025-02-20)",
+      "homeStates": ["25", "02", "26", "08", "10", "03"],
+      "leaders": ["Ismael Zambada García", "El Mayo", "Joaquín Guzmán Loera", "El Chapo"]
+    },
+    {
+      "id": "sinaloa_chapitos", "orgId": "sinaloa_chapitos", "parent": "sinaloa", "type": "faction", "name": "Sinaloa — Los Chapitos", "short": "Chapitos",
+      "aliases": ["los chapitos", "chapitos", "la chapiza", "chapiza", "los menores", "gente nueva de los chapitos", "los salazar de los chapitos"],
+      "leaders": ["Iván Archivaldo Guzmán Salazar", "Jesús Alfredo Guzmán Salazar", "Ovidio Guzmán López", "Joaquín Guzmán López", "El Ratón", "El Güero"]
+    },
+    {
+      "id": "sinaloa_mayiza", "orgId": "sinaloa_mayiza", "parent": "sinaloa", "type": "faction", "name": "Sinaloa — La Mayiza", "short": "Mayiza",
+      "aliases": ["la mayiza", "mayiza", "los mayos", "mayitos", "gente de rene", "los rusos"],
+      "leaders": ["Ismael Zambada Sicairos", "El Mayito Flaco", "Jesús Alexander Sánchez Félix", "El Ruso"]
+    },
+    {
+      "id": "sinaloa_gente_nueva", "orgId": "sinaloa", "parent": "sinaloa", "type": "faction", "name": "Sinaloa — Gente Nueva (Chihuahua)", "short": "Gente Nueva",
+      "aliases": ["gente nueva", "gente nueva del tigre", "los salgueiro", "salgueiros", "los jaguares", "cartel de sinaloa en chihuahua"]
+    },
+    {
+      "id": "cdn", "orgId": "cdn", "type": "cartel", "name": "Cártel del Noreste", "short": "CDN",
+      "aliases": ["cartel del noreste", "northeast cartel", "cdn", "tropa del infierno", "los zetas cartel del noreste"],
+      "usDesignation": "FTO/SDGT (2025-02-20)",
+      "homeStates": ["28", "19", "07"],
+      "leaders": ["Miguel Ángel Treviño Morales", "Z-40", "Juan Gerardo Treviño Chávez", "El Huevo"]
+    },
+    {
+      "id": "golfo", "orgId": "golfo", "type": "cartel", "name": "Cártel del Golfo", "short": "CDG",
+      "aliases": ["cartel del golfo", "gulf cartel", "cdg", "golfo cartel"],
+      "usDesignation": "FTO/SDGT (2025-02-20)",
+      "homeStates": ["28"]
+    },
+    {
+      "id": "golfo_escorpiones", "orgId": "golfo_escorpiones", "parent": "golfo", "type": "faction", "name": "Gulf Cartel — Escorpiones (Matamoros)", "short": "Escorpiones",
+      "aliases": ["los escorpiones", "escorpiones", "grupo escorpion", "grupo escorpiones", "los ciclones", "ciclones", "cartel del golfo de matamoros", "faccion matamoros del cartel del golfo"]
+    },
+    {
+      "id": "golfo_metros", "orgId": "golfo_metros", "parent": "golfo", "type": "faction", "name": "Gulf Cartel — Metros (Reynosa)", "short": "Metros",
+      "aliases": ["los metros", "metros del cartel del golfo", "faccion los metros", "cartel del golfo de reynosa"]
+    },
+    {
+      "id": "golfo_rojos", "orgId": "golfo_rojos", "parent": "golfo", "type": "faction", "name": "Gulf Cartel — Los Rojos (Tampico)", "short": "CDG Rojos",
+      "aliases": ["los rojos de tampico", "rojos tampico", "cartel del golfo de tampico"]
+    },
+    {
+      "id": "juarez", "orgId": "juarez", "type": "cartel", "name": "Cártel de Juárez / La Línea", "short": "La Línea",
+      "aliases": ["cartel de juarez", "juarez cartel", "la linea", "nuevo cartel de juarez", "ncdj", "carrillo fuentes organization", "organizacion carrillo fuentes", "cartel de carrillo fuentes"],
+      "homeStates": ["06"],
+      "leaders": ["Vicente Carrillo Fuentes", "El Viceroy"]
+    },
+    {
+      "id": "juarez_aztecas", "orgId": "juarez", "parent": "juarez", "type": "faction", "name": "Barrio Azteca / Los Aztecas", "short": "Aztecas",
+      "aliases": ["barrio azteca", "los aztecas", "aztecas"]
+    },
+    {
+      "id": "juarez_mexicles", "orgId": "sinaloa", "parent": "sinaloa", "type": "faction", "name": "Los Mexicles (Sinaloa-aligned, Juárez)", "short": "Mexicles",
+      "aliases": ["los mexicles", "mexicles"]
+    },
+    {
+      "id": "juarez_artistas", "orgId": "sinaloa", "parent": "sinaloa", "type": "faction", "name": "Artistas Asesinos (Sinaloa-aligned, Juárez)", "short": "AA",
+      "aliases": ["artistas asesinos", "los artistas asesinos", "doblados", "los doblados"]
+    },
+    {
+      "id": "caborca", "orgId": "caborca", "type": "cartel", "name": "Cártel de Caborca", "short": "Caborca",
+      "aliases": ["cartel de caborca", "caborca cartel", "los caro quintero", "gente de caro quintero"],
+      "homeStates": ["26"],
+      "leaders": ["Rafael Caro Quintero"]
+    },
+    {
+      "id": "cis_salazar", "orgId": "cis_salazar", "parent": "sinaloa", "type": "faction", "name": "Los Salazar (Sonora, Sinaloa-aligned)", "short": "Los Salazar",
+      "aliases": ["los salazar", "cartel independiente de sonora", "los paredes", "los fantasmas"]
+    },
+    {
+      "id": "templarios", "orgId": "templarios", "type": "cartel", "name": "Caballeros Templarios", "short": "Templarios",
+      "aliases": ["caballeros templarios", "knights templar cartel", "knights templar", "los templarios"],
+      "homeStates": ["16"]
+    },
+    {
+      "id": "carteles_unidos", "orgId": "carteles_unidos", "type": "cartel", "name": "Cárteles Unidos", "short": "Cárteles Unidos",
+      "aliases": ["carteles unidos", "united cartels", "cartel de tepalcatepec", "tepalcatepec cartel", "la resistencia", "los blancos de troya", "los wichos", "los reyes cartel"],
+      "usDesignation": "FTO/SDGT (2025-02-20)",
+      "homeStates": ["16"],
+      "leaders": ["Juan José Farías Álvarez", "El Abuelo"]
+    },
+    {
+      "id": "nfm", "orgId": "nfm", "type": "cartel", "name": "La Nueva Familia Michoacana", "short": "LNFM",
+      "aliases": ["nueva familia michoacana", "la nueva familia michoacana", "familia michoacana", "la familia michoacana", "lnfm", "lfm", "new michoacan family", "michoacan family"],
+      "usDesignation": "FTO/SDGT (2025-02-20)",
+      "homeStates": ["16", "12", "15"],
+      "leaders": ["Johnny Hurtado Olascoaga", "El Pez", "José Alfredo Hurtado Olascoaga", "El Fresa"]
+    },
+    {
+      "id": "nfm_viagras", "orgId": "nfm", "parent": "nfm", "type": "faction", "name": "Los Viagras", "short": "Viagras",
+      "aliases": ["los viagras", "viagras"]
+    },
+    {
+      "id": "csrl", "orgId": "csrl", "type": "cartel", "name": "Cártel de Santa Rosa de Lima", "short": "CSRL",
+      "aliases": ["cartel de santa rosa de lima", "santa rosa de lima cartel", "csrl", "csrdl"],
+      "homeStates": ["11"],
+      "leaders": ["José Antonio Yépez Ortiz", "El Marro"]
+    },
+    {
+      "id": "blo", "orgId": "blo", "type": "cartel", "name": "Beltrán Leyva Organization", "short": "BLO",
+      "aliases": ["beltran leyva", "beltran leyva organization", "cartel de los beltran leyva", "blo", "los beltranes"],
+      "homeStates": ["17", "12", "25"]
+    },
+    {
+      "id": "zetas", "orgId": "zetas", "type": "cartel", "name": "Los Zetas", "short": "Zetas",
+      "aliases": ["los zetas", "zetas", "cartel de los zetas"],
+      "homeStates": ["28", "30", "07"]
+    },
+    {
+      "id": "zve", "orgId": "zve", "parent": "zetas", "type": "faction", "name": "Zetas Vieja Escuela", "short": "ZVE",
+      "aliases": ["zetas vieja escuela", "old school zetas", "vieja escuela", "zve", "grupo sombra vieja escuela"]
+    },
+    {
+      "id": "barredora", "orgId": "barredora", "type": "cartel", "name": "La Barredora", "short": "Barredora",
+      "aliases": ["la barredora"],
+      "homeStates": ["27"]
+    },
+    {
+      "id": "ardillos", "orgId": "ardillos", "type": "cartel", "name": "Los Ardillos", "short": "Ardillos",
+      "aliases": ["los ardillos"],
+      "homeStates": ["12"]
+    },
+    {
+      "id": "rojos", "orgId": "rojos", "type": "cartel", "name": "Los Rojos (Guerrero/Morelos)", "short": "Los Rojos",
+      "aliases": ["los rojos"],
+      "homeStates": ["12", "17"]
+    },
+    {
+      "id": "tlacos", "orgId": "tlacos", "type": "cartel", "name": "Los Tlacos / Cártel de la Sierra", "short": "Tlacos",
+      "aliases": ["los tlacos", "cartel de la sierra", "cdls"],
+      "homeStates": ["12"]
+    },
+    {
+      "id": "guerreros_unidos", "orgId": "guerreros_unidos", "type": "cartel", "name": "Guerreros Unidos", "short": "Guerreros Unidos",
+      "aliases": ["guerreros unidos"],
+      "homeStates": ["12", "17"]
+    },
+    {
+      "id": "caf", "orgId": "caf", "type": "cartel", "name": "Cártel de Tijuana / Arellano Félix", "short": "CAF",
+      "aliases": ["cartel de tijuana", "tijuana cartel", "arellano felix", "arellano felix organization", "caf", "afo", "cartel arellano felix"],
+      "homeStates": ["02"]
+    },
+    {
+      "id": "grupo_sombra", "orgId": "grupo_sombra", "type": "cartel", "name": "Grupo Sombra / Mafia Veracruzana", "short": "Grupo Sombra",
+      "aliases": ["grupo sombra", "mafia veracruzana"],
+      "homeStates": ["30"]
+    },
+    {
+      "id": "zicuiran", "orgId": "zicuiran", "type": "cartel", "name": "Cártel de Zicuirán", "short": "Zicuirán",
+      "aliases": ["cartel de zicuiran", "los migueladas", "el migueladas"],
+      "homeStates": ["16"]
+    },
+    {
+      "id": "chamula", "orgId": "chamula", "type": "cartel", "name": "Cártel de Chamula", "short": "Chamula",
+      "aliases": ["cartel de chamula"],
+      "homeStates": ["05"]
+    },
+    {
+      "id": "correa", "orgId": "correa", "type": "cartel", "name": "Los Correa", "short": "Los Correa",
+      "aliases": ["los correa"],
+      "homeStates": ["16"]
+    },
+    {
+      "id": "union_leon", "orgId": "union_leon", "type": "cartel", "name": "Unión León", "short": "Unión León",
+      "aliases": ["union leon"],
+      "homeStates": ["11"]
+    },
+    {
+      "id": "union_tepito", "orgId": "other", "type": "cartel", "name": "La Unión Tepito", "short": "Unión Tepito",
+      "aliases": ["union tepito", "la union tepito", "la union de tepito"],
+      "homeStates": ["09"]
+    },
+    {
+      "id": "anti_union", "orgId": "other", "type": "cartel", "name": "Fuerza Anti-Unión", "short": "Anti-Unión",
+      "aliases": ["fuerza anti union", "anti union tepito", "la anti union"],
+      "homeStates": ["09"]
+    },
+    {
+      "id": "tlahuac", "orgId": "other", "type": "cartel", "name": "Cártel de Tláhuac", "short": "Tláhuac",
+      "aliases": ["cartel de tlahuac"],
+      "homeStates": ["09"]
+    },
+    {
+      "id": "mara_salvatrucha", "orgId": "other", "type": "gang", "name": "Mara Salvatrucha (MS-13)", "short": "MS-13",
+      "aliases": ["mara salvatrucha", "ms 13", "ms13"],
+      "usDesignation": "FTO/SDGT (2025-02-20)"
+    },
+    {
+      "id": "tren_de_aragua", "orgId": "other", "type": "gang", "name": "Tren de Aragua", "short": "TdA",
+      "aliases": ["tren de aragua"],
+      "usDesignation": "FTO/SDGT (2025-02-20)"
+    }
+  ]
+}

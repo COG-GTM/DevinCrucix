@@ -1,0 +1,847 @@
+<?xml version="1.0" standalone="yes"?>
+<sdnList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML">
+  <publshInformation>
+    <Publish_Date>09/04/2026</Publish_Date>
+    <Record_Count>19329</Record_Count>
+  </publshInformation>
+  <sdnEntry>
+    <uid>36</uid>
+    <lastName>AEROCARIBBEAN AIRLINES</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>CUBA</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>12</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AERO-CARIBBEAN</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>25</uid>
+        <city>Havana</city>
+        <country>Cuba</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>6703</uid>
+    <firstName>Jose de Jesus</firstName>
+    <lastName>AMEZCUA CONTRERAS</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>SDNTK</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>52546</uid>
+        <idType>C.U.R.P.</idType>
+        <idNumber>AECJ650731HJCMNS00</idNumber>
+        <idCountry>Mexico</idCountry>
+      </id>
+      <id>
+        <uid>199154</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>4395</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>AMESCUA, Chuey</lastName>
+      </aka>
+      <aka>
+        <uid>4397</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>AMEZCUA, Chuy</lastName>
+      </aka>
+      <aka>
+        <uid>4401</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>HERNANDEZ, Adan</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>89050</uid>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>99157</uid>
+        <country>Mexico</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>1145</uid>
+        <dateOfBirth>31 Jul 1965</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>1143</uid>
+        <placeOfBirth>Jalisco, Mexico</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>6861</uid>
+    <firstName>Joaquin</firstName>
+    <lastName>GUZMAN LOERA</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>SDNTK</program>
+    </programList>
+    <akaList>
+      <aka>
+        <uid>4617</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>AREGON</lastName>
+        <firstName>Max</firstName>
+      </aka>
+      <aka>
+        <uid>4618</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN</lastName>
+        <firstName>Chapo</firstName>
+      </aka>
+      <aka>
+        <uid>4619</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUIERREZ LOERA</lastName>
+        <firstName>Jose Luis</firstName>
+      </aka>
+      <aka>
+        <uid>4620</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN FERNANDEZ</lastName>
+        <firstName>Joaquin</firstName>
+      </aka>
+      <aka>
+        <uid>4621</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN LOESA</lastName>
+        <firstName>Joaquin</firstName>
+      </aka>
+      <aka>
+        <uid>4622</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN PADILLA</lastName>
+        <firstName>Joaquin</firstName>
+      </aka>
+      <aka>
+        <uid>4623</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUMAN LOERAL</lastName>
+        <firstName>Joaquin</firstName>
+      </aka>
+      <aka>
+        <uid>4624</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN</lastName>
+        <firstName>Archibaldo</firstName>
+      </aka>
+      <aka>
+        <uid>4625</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN</lastName>
+        <firstName>Aureliano</firstName>
+      </aka>
+      <aka>
+        <uid>4626</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>ORTEGA</lastName>
+        <firstName>Miguel</firstName>
+      </aka>
+      <aka>
+        <uid>4627</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>RAMIREZ</lastName>
+        <firstName>Joise Luis</firstName>
+      </aka>
+      <aka>
+        <uid>4628</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CARO RODRIGUEZ</lastName>
+        <firstName>Gilberto</firstName>
+      </aka>
+      <aka>
+        <uid>4629</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN</lastName>
+        <firstName>Joaquin Chapo</firstName>
+      </aka>
+      <aka>
+        <uid>4630</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN LOREA</lastName>
+        <firstName>Chapo</firstName>
+      </aka>
+      <aka>
+        <uid>4631</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN LOEIA</lastName>
+        <firstName>Joaguin</firstName>
+      </aka>
+      <aka>
+        <uid>4632</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN</lastName>
+        <firstName>Achivaldo</firstName>
+      </aka>
+      <aka>
+        <uid>4633</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>OSUNA</lastName>
+        <firstName>Gilberto</firstName>
+      </aka>
+      <aka>
+        <uid>4634</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>RAMOX PEREZ</lastName>
+        <firstName>Jorge</firstName>
+      </aka>
+    </akaList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>1197</uid>
+        <dateOfBirth>25 Dec 1954</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>1198</uid>
+        <placeOfBirth>Mexico</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>8100</uid>
+    <firstName>Lazher Ben Khalifa Ben Ahmed</firstName>
+    <lastName>ROUINE</lastName>
+    <sdnType>Individual</sdnType>
+    <remarks>arrested 30 Sep 2002</remarks>
+    <programList>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>4086</uid>
+        <idType>Passport</idType>
+        <idNumber>P 182583</idNumber>
+        <issueDate>13 Sep 2003</issueDate>
+        <expirationDate>12 Sep 2007</expirationDate>
+      </id>
+      <id>
+        <uid>185775</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>6703</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>LAZHAR</lastName>
+      </aka>
+      <aka>
+        <uid>6704</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>SALMANE</lastName>
+      </aka>
+      <aka>
+        <uid>8868</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>ROUINE</lastName>
+        <firstName>Al-Azhar Ben Khalifa Ben Ahmed</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>7237</uid>
+        <address1>Vicolo San Giovanni</address1>
+        <city>Rimini</city>
+        <country>Italy</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>2412</uid>
+        <country>Tunisia</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>2410</uid>
+        <dateOfBirth>20 Nov 1975</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>2411</uid>
+        <placeOfBirth>Sfax, Tunisia</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>11438</uid>
+    <lastName>CARTEL DEL NORESTE</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>SDNTK</program>
+      <program>TCO</program>
+      <program>ILLICIT-DRUGS-EO14059</program>
+      <program>FTO</program>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>184866</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+      <id>
+        <uid>185008</uid>
+        <idType>Organization Type:</idType>
+        <idNumber>Transnational Terrorist Group</idNumber>
+      </id>
+      <id>
+        <uid>184975</uid>
+        <idType>Target Type</idType>
+        <idNumber>Criminal Organization</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>45285</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>CDN</lastName>
+      </aka>
+      <aka>
+        <uid>45292</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>NORTHEAST CARTEL</lastName>
+      </aka>
+      <aka>
+        <uid>84458</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>LOS ZETAS</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>16885</uid>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>11440</uid>
+    <lastName>SINALOA CARTEL</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>ILLICIT-DRUGS-EO14059</program>
+      <program>SDNTK</program>
+      <program>SDGT</program>
+      <program>FTO</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>185004</uid>
+        <idType>Organization Type:</idType>
+        <idNumber>Transnational Terrorist Group</idNumber>
+      </id>
+      <id>
+        <uid>184965</uid>
+        <idType>Target Type</idType>
+        <idNumber>Criminal Organization</idNumber>
+      </id>
+      <id>
+        <uid>184735</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>45312</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CARTEL DE SINALOA</lastName>
+      </aka>
+      <aka>
+        <uid>45313</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>MEXICAN FEDERATION</lastName>
+      </aka>
+      <aka>
+        <uid>45314</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>GUADALAJARA CARTEL</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>16887</uid>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>11460</uid>
+    <firstName>Azam</firstName>
+    <lastName>CHEEMA</lastName>
+    <sdnType>Individual</sdnType>
+    <programList>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>185943</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>12110</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CHIMA</lastName>
+        <firstName>Azim</firstName>
+      </aka>
+      <aka>
+        <uid>13200</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CHIMA</lastName>
+        <firstName>Azam</firstName>
+      </aka>
+      <aka>
+        <uid>13201</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CHEEMA</lastName>
+        <firstName>Asim</firstName>
+      </aka>
+      <aka>
+        <uid>13202</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CHEEMA</lastName>
+        <firstName>Azzam</firstName>
+      </aka>
+      <aka>
+        <uid>13203</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CHEEMA</lastName>
+        <firstName>Mohammed Azam</firstName>
+      </aka>
+      <aka>
+        <uid>13204</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>BHAI</lastName>
+        <firstName>Chima</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>17020</uid>
+        <city>Islamabad</city>
+        <country>Pakistan</country>
+      </address>
+      <address>
+        <uid>17021</uid>
+        <city>Muzaffarabad</city>
+        <country>Pakistan</country>
+      </address>
+      <address>
+        <uid>17022</uid>
+        <city>Bahawalpur</city>
+        <country>Pakistan</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>6860</uid>
+        <country>Pakistan</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <citizenshipList>
+      <citizenship>
+        <uid>6861</uid>
+        <country>Pakistan</country>
+        <mainEntry>true</mainEntry>
+      </citizenship>
+    </citizenshipList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>6859</uid>
+        <dateOfBirth>1953</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>6862</uid>
+        <placeOfBirth>Faisalabad, Pakistan</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>12278</uid>
+    <lastName>TATES DESARROLLO, S.A. DE C.V.</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>SDNTK</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>6703</uid>
+        <idType>Folio Mercantil No.</idType>
+        <idNumber>345497</idNumber>
+        <idCountry>Mexico</idCountry>
+      </id>
+    </idList>
+    <addressList>
+      <address>
+        <uid>18839</uid>
+        <city>Mexico City</city>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>13120</uid>
+    <firstName>Jesus Alfredo</firstName>
+    <lastName>GUZMAN SALAZAR</lastName>
+    <sdnType>Individual</sdnType>
+    <remarks>(Linked To: SINALOA CARTEL)</remarks>
+    <programList>
+      <program>SDNTK</program>
+      <program>ILLICIT-DRUGS-EO14059</program>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>7635</uid>
+        <idType>C.U.R.P.</idType>
+        <idNumber>GUSJ860517HJCZLS06</idNumber>
+        <idCountry>Mexico</idCountry>
+      </id>
+      <id>
+        <uid>134805</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+      <id>
+        <uid>190294</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>45330</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>Alfredito</lastName>
+      </aka>
+      <aka>
+        <uid>84710</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>Menor</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>49243</uid>
+        <city>Culiacan</city>
+        <stateOrProvince>Sinaloa</stateOrProvince>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>45497</uid>
+        <country>Mexico</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>8999</uid>
+        <dateOfBirth>17 May 1986</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>9001</uid>
+        <placeOfBirth>Jalisco, Mexico</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>13148</uid>
+    <firstName>Archivaldo Ivan</firstName>
+    <lastName>GUZMAN SALAZAR</lastName>
+    <sdnType>Individual</sdnType>
+    <remarks>(Linked To: SINALOA CARTEL)</remarks>
+    <programList>
+      <program>ILLICIT-DRUGS-EO14059</program>
+      <program>SDNTK</program>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>48033</uid>
+        <idType>C.U.R.P.</idType>
+        <idNumber>GUSA830815HDGZLR06</idNumber>
+        <idCountry>Mexico</idCountry>
+      </id>
+      <id>
+        <uid>134804</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+      <id>
+        <uid>190293</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>51370</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>Chapito</lastName>
+      </aka>
+      <aka>
+        <uid>84707</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>Tocallo</lastName>
+      </aka>
+      <aka>
+        <uid>84709</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>GUZMAN SALAZAR</lastName>
+        <firstName>Ivan Archivaldo</firstName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>21013</uid>
+        <city>Culiacan</city>
+        <stateOrProvince>Sinaloa</stateOrProvince>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>45498</uid>
+        <country>Mexico</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>45510</uid>
+        <dateOfBirth>15 Aug 1983</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>45509</uid>
+        <placeOfBirth>Durango, Mexico</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>17671</uid>
+    <lastName>CARTEL DE JALISCO NUEVA GENERACION</lastName>
+    <sdnType>Entity</sdnType>
+    <programList>
+      <program>SDNTK</program>
+      <program>ILLICIT-DRUGS-EO14059</program>
+      <program>SDGT</program>
+      <program>FTO</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>184736</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+      <id>
+        <uid>185005</uid>
+        <idType>Organization Type:</idType>
+        <idNumber>Transnational Terrorist Group</idNumber>
+      </id>
+      <id>
+        <uid>184971</uid>
+        <idType>Target Type</idType>
+        <idNumber>Criminal Organization</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>27281</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>NEW GENERATION CARTEL OF JALISCO</lastName>
+      </aka>
+      <aka>
+        <uid>27282</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>CJNG</lastName>
+      </aka>
+      <aka>
+        <uid>45405</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>JALISCO NEW GENERATION CARTEL</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>26867</uid>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>17674</uid>
+    <firstName>Ruben</firstName>
+    <lastName>OSEGUERA CERVANTES</lastName>
+    <sdnType>Individual</sdnType>
+    <remarks>(Linked To: CARTEL DE JALISCO NUEVA GENERACION)</remarks>
+    <programList>
+      <program>SDNTK</program>
+      <program>ILLICIT-DRUGS-EO14059</program>
+      <program>SDGT</program>
+    </programList>
+    <idList>
+      <id>
+        <uid>48069</uid>
+        <idType>C.U.R.P.</idType>
+        <idNumber>OECR660717HMNSRB00</idNumber>
+        <idCountry>Mexico</idCountry>
+      </id>
+      <id>
+        <uid>134802</uid>
+        <idType>Gender</idType>
+        <idNumber>Male</idNumber>
+      </id>
+      <id>
+        <uid>190342</uid>
+        <idType>Secondary sanctions risk:</idType>
+        <idNumber>section 1(b) of Executive Order 13224, as amended by Executive Order 13886</idNumber>
+      </id>
+    </idList>
+    <akaList>
+      <aka>
+        <uid>27321</uid>
+        <type>a.k.a.</type>
+        <category>strong</category>
+        <lastName>OSEGUERA CERVANTES</lastName>
+        <firstName>Nemesio</firstName>
+      </aka>
+      <aka>
+        <uid>27322</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>El Mencho</lastName>
+      </aka>
+      <aka>
+        <uid>84734</uid>
+        <type>a.k.a.</type>
+        <category>weak</category>
+        <lastName>El Senor de los Gallos</lastName>
+      </aka>
+    </akaList>
+    <addressList>
+      <address>
+        <uid>43560</uid>
+        <stateOrProvince>Jalisco</stateOrProvince>
+        <country>Mexico</country>
+      </address>
+    </addressList>
+    <nationalityList>
+      <nationality>
+        <uid>45391</uid>
+        <country>Mexico</country>
+        <mainEntry>true</mainEntry>
+      </nationality>
+    </nationalityList>
+    <dateOfBirthList>
+      <dateOfBirthItem>
+        <uid>16821</uid>
+        <dateOfBirth>17 Jul 1966</dateOfBirth>
+        <mainEntry>true</mainEntry>
+      </dateOfBirthItem>
+    </dateOfBirthList>
+    <placeOfBirthList>
+      <placeOfBirthItem>
+        <uid>16823</uid>
+        <placeOfBirth>Michoacan de Ocampo, Mexico</placeOfBirth>
+        <mainEntry>true</mainEntry>
+      </placeOfBirthItem>
+    </placeOfBirthList>
+  </sdnEntry>
+</sdnList>

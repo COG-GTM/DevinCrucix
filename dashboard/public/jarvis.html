@@ -272,6 +272,31 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ct-brief .t{font-family:var(--mono);font-size:10px;color:#ffe0b2}
 .ct-brief ul{margin:3px 0 0 14px;padding:0;font-size:10px;line-height:1.45;color:#c8d8d2}
 .ct-feed-src{font-family:var(--mono);font-size:8px;color:var(--accent2);flex:none;margin-top:2px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Homeland / Narco graded events */
+.nv-grade{font-family:var(--mono);font-size:9px;font-weight:700;width:16px;height:16px;line-height:16px;text-align:center;border-radius:2px;flex:none;color:#04140f;background:var(--gc,#9e9e9e);margin-top:1px}
+.nv-row{display:flex;gap:7px;align-items:flex-start;padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;line-height:1.4;cursor:pointer}
+.nv-row:hover{background:rgba(100,240,200,0.04)}
+.nv-row.open{background:rgba(100,240,200,0.06)}
+.nv-row.hist{opacity:0.72}
+.nv-title{color:#e6f2ee}
+.nv-title a{color:#e6f2ee}
+.nv-sub{font-family:var(--mono);font-size:8px;color:var(--dim);line-height:1.5}
+.nv-sub b{color:#c8d8d2;font-weight:normal}
+.nv-detail{margin:2px 0 6px 27px;padding:6px 8px;border:1px solid rgba(100,240,200,0.18);background:rgba(100,240,200,0.03);font-size:10px;line-height:1.45;color:#c8d8d2}
+.nv-detail .k{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);margin-top:5px}
+.nv-detail a{color:var(--accent2)}
+.nv-flag{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid rgba(255,82,82,0.5);color:#ff8a80;border-radius:2px;white-space:nowrap}
+.nv-flag.ok{border-color:rgba(100,240,200,0.4);color:var(--accent)}
+.nv-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin:6px 0}
+.nv-kpi{padding:6px 8px;border:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02)}
+.nv-kpi .k{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim)}
+.nv-kpi .v{font-family:var(--mono);font-size:16px;color:#e6f2ee;line-height:1.2}
+.nv-kpi .s{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.nv-strip{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px}
+.nv-chip{font-family:var(--mono);font-size:8px;letter-spacing:0.05em;padding:2px 6px;border:1px solid rgba(255,255,255,0.12);color:#c8d8d2;background:none;cursor:pointer;border-radius:2px}
+.nv-chip.on{border-color:var(--accent);color:var(--accent);background:rgba(100,240,200,0.1)}
+.nv-chip.none{opacity:0.4;cursor:default}
+.nv-chip b{color:#e6f2ee;font-weight:normal}
 @keyframes pulse-conflict{0%,100%{opacity:0.5;stroke-width:1.5}50%{opacity:0.9;stroke-width:2.5}}
 .conflict-ring{animation:pulse-conflict 2.5s ease-in-out infinite}
 @keyframes dash-flow{to{stroke-dashoffset:-20}}
@@ -1149,7 +1174,7 @@ const TAB_DEFS=[
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
-  {id:'cartels',label:'Cartels',hint:'Mexico cartel influence: crowd-sourced map vs 2020 research baseline'},
+  {id:'cartels',label:'Cartels',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
@@ -1166,7 +1191,9 @@ function tabCounts(){
   const spikes=(D.borderNews?.spikes||[]).length;
   const airTotal=(D.air||[]).reduce((s,a)=>s+(a.total||0),0);
   const ct=D.cartels||{};
-  const ctCount=ct.status==='live'&&ct.featureCount?{n:ct.stale?'CACHED':`${ct.orgCount||0} ORGS`,cls:ct.stale?'warn':'',title:`${ct.layerCounts?.influence||0} influence areas · ${ct.orgCount||0} organizations · ${(ct.wars||[]).length} active wars${ct.stale?' · cached copy':''}`}
+  const nv=D.narco;
+  const nvCount=nv?.status==='live'&&nv.totals?{n:`${nv.totals.current||0} EVENTS`,cls:(nv.totals.byGrade?.A||0)+(nv.totals.byGrade?.B||0)?'':'warn',title:`${nv.totals.current||0} graded cartel / border-crime events in the last ${nv.currentDays||30} days \u00b7 A ${nv.totals.byGrade?.A||0} \u00b7 B ${nv.totals.byGrade?.B||0} \u00b7 ${nv.totals.sanctionsMatches||0} OFAC matches${ct.status==='live'?` \u00b7 ${ct.orgCount||0} orgs on the current map`:''}`}:null;
+  const ctCount=nvCount?nvCount:ct.status==='live'&&ct.featureCount?{n:ct.stale?'CACHED':`${ct.orgCount||0} ORGS`,cls:ct.stale?'warn':'',title:`${ct.layerCounts?.influence||0} influence areas · ${ct.orgCount||0} organizations · ${(ct.wars||[]).length} active wars${ct.stale?' · cached copy':''}`}
     :ct.status==='stale'?{n:'STALE',cls:'warn',title:'Cartel map cache is older than 48h'}:ct.status?{n:'BASELINE ONLY',cls:'warn',title:'Current cartel map unavailable — START 2020 baseline still shown'}:null;
   return {
     situation: hot?{n:hot,cls:'hot',title:`${hot} critical/high judgments`}:sit.quiet?{n:'QUIET',cls:'',title:'No rule fired above baseline'}:null,
@@ -1297,6 +1324,10 @@ const PANEL_CAPTIONS={
   'start 2020 baseline':'START (University of Maryland) Tracking Cartels briefs, June 2020. A point-in-time research product transcribed by hand; state classes were read from the printed choropleth.',
   'mexico / northern triangle feed':'Items from InSight Crime, Border Watch and GDELT filtered to Mexico and the Northern Triangle by keyword. Journalism, not event data.',
   'cartel map source':'Where the current layer comes from, how fresh it is, and what the maintainer says about it.',
+  'graded events':'One row per incident after deduplication across Border Watch feeds (Borderland Beat, El Paso Matters, Fronteras Desk, Border Report, Texas Tribune) and DOJ releases. The letter is <b>corroboration</b>, not severity \u2014 D means one citizen aggregator said it.',
+  'doj prosecutions':'U.S. Attorney press releases from the five south-west border districts via DOJ\u2019s public API, keyword-classified by topic. Charges are allegations until a plea or conviction is stated.',
+  'ofac sanctions':'Treasury SDN entries under the narco programs (SDNTK, SDNT, ILLICIT-DRUGS-EO14059, TCO) plus Mexico-linked FTO/SDGT, matched conservatively against names extracted from events. A match is a lead, not an identification.',
+  'homeland / narco sources':'Every feed behind the Cartels tab and its state this sweep. Commercial vendors are listed as NO KEY so the gap is visible \u2014 nothing is scraped.',
   'country instability index':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'country instability':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'border watch':'US\u2013Mexico border reporting from public feeds listed in config/border-sources.json. A spike is a place mentioned above its own baseline.',
@@ -1513,7 +1544,7 @@ function renderLeftRail(){
     cyber:[sensorGridPanel,renderSignalIntelPanel()],
     macro:[riskPanel,sensorGridPanel],
     regional:[sensorGridPanel,renderSourceHealthPanel()],
-    cartels:[renderCartelSourcePanel(),renderCartelOrgsPanel()],
+    cartels:[renderNarcoSourcePanel(),renderCartelSourcePanel(),renderCartelOrgsPanel()],
     investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
@@ -2963,7 +2994,7 @@ function renderLower(){
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(renderCbpPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
-    cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
+    cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
   };
@@ -3107,6 +3138,8 @@ const CT_LAYERS=[
   {id:'alliances',label:'Alleged alliances',color:'#b39ddb',era:'now'},
   {id:'us_activity',label:'Activity in the U.S.',color:'#90caf9',era:'now'},
   {id:'other',label:'Other',color:'#bdbdbd',era:'now'},
+  {id:'events',label:'Graded events \u00b7 30d',color:'#64f0c8',era:'events'},
+  {id:'events_hist',label:'Events 31\u201390d',color:'#4db6ac',era:'events'},
   {id:'h_density',label:'Cartel density by state',color:'#ffd54f',era:'2020'},
   {id:'h_cjng',label:'CJNG footprint',color:'#ff8a65',era:'2020'},
   {id:'h_flows',label:'Trafficking flows',color:'#ffcc80',era:'2020'},
@@ -3117,9 +3150,10 @@ const CT_LAYERS=[
 ];
 const CT_LAYER_BY_ID=Object.fromEntries(CT_LAYERS.map(l=>[l.id,l]));
 const CT_PRESETS={
-  current:{label:'CURRENT MAP',ids:['influence','wars','strongholds','activity']},
+  current:{label:'CURRENT MAP',ids:['influence','wars','strongholds','activity','events']},
+  events:{label:'EVENTS',ids:['events','events_hist','influence']},
   baseline:{label:'2020 BASELINE',ids:['h_density','h_cjng','h_flows','h_ports','h_hotspots']},
-  compare:{label:'COMPARE',ids:['influence','wars','h_density','h_flows','h_hotspots']},
+  compare:{label:'COMPARE',ids:['influence','wars','events','h_density','h_flows','h_hotspots']},
 };
 const CT_DENSITY_COLORS=['#fff3c4','#ffe082','#ffca28','#ffa000','#e65100'];
 // Clockwise ring (D3 spherical winding) so fitExtent frames Mexico rather than its complement.
@@ -3318,6 +3352,18 @@ function ctDraw(){
       pin(cur,p.lon,p.lat,R[p.layer]||3.4,ctRgba(col,0.85),p.layer==='wars'?'#fff':'rgba(0,0,0,0.7)','ct-cur',ev=>ctPopup(ev,pop.head,pop.text,pop.meta));
     });
   }
+  // ---- GRADED EVENTS (Border Watch feeds + DOJ, normalized / deduped / graded server-side) ----
+  if(ctOn('events')||ctOn('events_hist')){
+    const evg=ctLayersG.append('g').attr('class','ct-evt-g');
+    nvMapEvents().forEach(e=>{
+      if(!(e.historical?ctOn('events_hist'):ctOn('events')))return;
+      const l=e.location;if(!l||!Number.isFinite(l.lat)||!Number.isFinite(l.lon))return;
+      const fill=NV_FAMILY_COLOR[nvFamily(e.type)]||NV_FAMILY_COLOR.other, stroke=NV_GRADE_COLOR[e.confidence?.grade]||'#9e9e9e';
+      const r=4.2+Math.min(Number(e.counts?.killed)||0,12)*0.35;
+      const p=pin(evg,l.lon,l.lat,r,ctRgba(fill,e.historical?0.45:0.9),stroke,'ct-cur ct-evt',ev=>ctPopup(ev,nvPopHead(e),nvPopText(e),nvPopMeta(e)));
+      if(p)p.attr('stroke-width',e.confidence?.grade==='A'||e.confidence?.grade==='B'?2:1).attr('stroke-dasharray',e.historical?'2 1.5':null);
+    });
+  }
   const note=document.getElementById('cartelMapNote');
   if(note){
     const cnt=ctLayersG.selectAll('.ct-poly,.ct-pin,.ct-line,.ct-sym,.ct-hist-fill').size();
@@ -3328,14 +3374,15 @@ function renderCartelChips(){
   const el=document.getElementById('cartelChips');if(!el)return;
   const c=D.cartels||{},lc=c.layerCounts||{},b=c.baseline,has=ctHasCurrent(c);
   const chip=l=>{
-    const n=l.era==='now'?(has?Number(lc[l.id])||0:0):ctHistCount(l.id,b);
+    const n=l.era==='now'?(has?Number(lc[l.id])||0:0):l.era==='events'?nvLayerCount(l.id):ctHistCount(l.id,b);
     const none=!n,on=!none&&ctOn(l.id);
-    const why=l.era==='now'&&!has?'current map not available':'nothing in this layer';
-    const title=none?`${l.label}: ${why}`:`${l.label}: ${n} ${l.era==='now'?'crowd-sourced entries':'baseline records (June 2020)'}. Click to ${on?'hide':'show'}.`;
+    const why=l.era==='now'&&!has?'current map not available':l.era==='events'?(D.narco?.status==='live'?'no mapped events in this window':'events not computed yet'):'nothing in this layer';
+    const title=none?`${l.label}: ${why}`:`${l.label}: ${n} ${l.era==='now'?'crowd-sourced entries':l.era==='events'?'graded events with a resolved location (Border Watch feeds + DOJ)':'baseline records (June 2020)'}. Click to ${on?'hide':'show'}.`;
     return `<button type="button" class="lchip ${none?'none':on?'on':'off'}${l.era==='2020'?' hist':''}" style="--lc:${l.color}" title="${esc(title)}" ${none?'disabled':`onclick="ctToggle('${l.id}')"`}><span class="ldot"></span>${esc(l.label)}${none?'':` <b>${n}</b>`}</button>`;
   };
   const presetOn=name=>{const ids=CT_PRESETS[name].ids;return ids.length===ctActive.size&&ids.every(id=>ctActive.has(id))};
   el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">CURRENT \u00b7 ${has?esc(c.docName||'KML'):'UNAVAILABLE'}</span>${CT_LAYERS.filter(l=>l.era==='now').map(chip).join('')}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">EVENTS \u00b7 ${D.narco?.status==='live'?`GRADED A\u2013E \u00b7 ${esc(String(D.narco.totals?.mapped||0))} MAPPED`:'NOT COMPUTED YET'}</span>${CT_LAYERS.filter(l=>l.era==='events').map(chip).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head hist">HISTORICAL \u00b7 START JUNE 2020</span>${CT_LAYERS.filter(l=>l.era==='2020').map(chip).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">PRESETS</span>${Object.entries(CT_PRESETS).map(([k,p])=>`<button type="button" class="lchip preset ${presetOn(k)?'on':'off'}" onclick="ctPreset('${k}')">${p.label}</button>`).join('')}<button type="button" class="lchip preset off" onclick="ctResetView()">RESET VIEW</button>${ctOrgFilter?`<button type="button" class="lchip on" style="--lc:${esc(ctOrgOf(ctOrgFilter)?.color||'#ff5252')}" onclick="ctFocusOrg('${ctIdSafe(ctOrgFilter)}')"><span class="ldot"></span>ONLY ${esc(ctOrgOf(ctOrgFilter)?.short||ctOrgFilter)} \u00d7</button>`:''}</div>`;
 }
@@ -3363,7 +3410,7 @@ function renderCartelMapPanel(){
       <div class="ct-map" id="cartelMapWrap">
         <svg id="cartelMapSvg"></svg>
         <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A SHAPE</div>
-        <div class="ct-key"><span><i class="solid"></i>CURRENT \u00b7 crowd-sourced KML (solid, cartel colours)</span><span><i class="dash"></i>HISTORICAL \u00b7 START June 2020 (amber, dashed)</span><span id="cartelMapNote"></span></div>
+        <div class="ct-key"><span><i class="solid"></i>CURRENT \u00b7 crowd-sourced KML (solid, cartel colours)</span><span><i class="dash"></i>HISTORICAL \u00b7 START June 2020 (amber, dashed)</span><span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(255,82,82,0.8)"></i>EVENTS \u00b7 pins: fill = type, ring = grade</span><span id="cartelMapNote"></span></div>
         <div class="map-popup" id="cartelPopup"><div class="pp-close" onclick="ctClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
       </div>
       ${disc}
@@ -3451,6 +3498,161 @@ function renderCartelOrgsPanel(){
   return `<div class="g-panel cartel-orgs"><div class="sec-head"><h3>${shDot('Cartels')}Organizations</h3><span class="badge">${orgs.length} ON MAP</span></div>
     <div class="ct-scroll" style="max-height:60vh">${rows||'<div class="g-off-why">No organizations recognised on the current map.</div>'}</div>
     <div class="sh-note">Sorted by drawn influence area (km\u00b2, from the KML polygons). Right-hand number = dated activity entries attributed to the organization. Click a row to isolate it on the map.</div></div>`;
+}
+
+// === HOMELAND / NARCO EVENTS (D.narco, computed server-side in lib/narco/pipeline.mjs) ===
+// Every string here is third-party (feeds, DOJ, OFAC) and MUST pass through esc() before insertion.
+const NV_GRADE_COLOR={A:'#64f0c8',B:'#90caf9',C:'#ffd54f',D:'#ffab40',E:'#9e9e9e'};
+const NV_FAMILY_COLOR={violence:'#ff5252',kidnapping:'#ce93d8',displacement:'#ffab91',extortion:'#ffcc80',prison:'#b0bec5',enforcement:'#64f0c8',sanctions:'#82b1ff',other:'#bdbdbd'};
+const NV_FAMILY={massacre:'violence',homicide:'violence',armed_clash:'violence',attack_on_authorities:'violence',blockade:'violence',kidnapping:'kidnapping',displacement:'displacement',extortion:'extortion',prison:'prison',arrest:'enforcement',extradition:'enforcement',prosecution:'enforcement',seizure:'enforcement',tunnel:'enforcement',smuggling:'enforcement',sanctions:'sanctions'};
+function nvFamily(t){return NV_FAMILY[t]||'other'}
+let nvGrade=null,nvType=null,nvHist=false,nvOpen=null,nvDojDistrict=null;
+function nvAll(){return (D.narco?.events||[])}
+function nvFiltered(){return nvAll().filter(e=>nvHist||!e.historical).filter(e=>!nvGrade||e.confidence?.grade===nvGrade).filter(e=>!nvType||e.type===nvType||(e.types||[]).includes(nvType))}
+function nvMapEvents(){return nvAll().filter(e=>!nvGrade||e.confidence?.grade===nvGrade).filter(e=>!nvType||e.type===nvType||(e.types||[]).includes(nvType))}
+function nvLayerCount(id){return nvMapEvents().filter(e=>e.location&&Number.isFinite(e.location.lat)&&(id==='events_hist'?e.historical:!e.historical)).length}
+function nvGradeBadge(g){const leg=D.narco?.legend?.confidence||{};return `<span class="nv-grade" style="--gc:${NV_GRADE_COLOR[g]||'#9e9e9e'}" title="Confidence ${esc(g||'?')}: ${esc(leg[g]||'')}">${esc(g||'?')}</span>`}
+function nvTypeChip(e){const col=NV_FAMILY_COLOR[nvFamily(e.type)];return `<span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}">${esc(e.typeLabel||e.type)}</span>`}
+function nvLoc(e){const l=e.location;if(!l)return 'unlocated';const parts=[l.city||l.municipality,l.state].filter(Boolean);const s=parts.join(', ')||(l.country==='MX'?'Mexico':l.country==='US'?'United States':'unlocated');return l.country==='US'&&parts.length?s+' (US)':s}
+function nvGroups(e){return [...(e.cartels||[]).map(c=>c.short+(c.implied?'*':'')),...(e.factions||[]).map(f=>f.short)]}
+function nvCounts(e){const c=e.counts||{};const p=[];if(c.killed)p.push(`${c.killed} killed`);if(c.wounded)p.push(`${c.wounded} wounded`);if(c.arrested)p.push(`${c.arrested} arrested`);if(c.kidnapped)p.push(`${c.kidnapped} kidnapped`);return p.concat(e.seizures||[])}
+function nvSrcKind(k){return k==='official'?'OFFICIAL':k==='aggregator'?'CITIZEN':'MEDIA'}
+function nvSancCount(e){return (e.sanctions?.people||[]).length+(e.sanctions?.groups||[]).length}
+function nvPopHead(e){return `[${e.confidence?.grade||'?'}] ${e.typeLabel||e.type} \u00b7 ${e.date||'undated'}`}
+function nvPopText(e){return `<b>${esc(e.title)}</b><br>${esc(nvLoc(e))}${nvGroups(e).length?` \u00b7 ${esc(nvGroups(e).join(', '))}`:''}${nvCounts(e).length?`<br>${esc(nvCounts(e).join(' \u00b7 '))}`:''}`}
+function nvPopMeta(e){const c=e.confidence||{};return `${c.independentSources||0} independent source${c.independentSources===1?'':'s'} (${c.official||0} official \u00b7 ${c.media||0} media \u00b7 ${c.aggregator||0} citizen)${nvSancCount(e)?` \u00b7 ${nvSancCount(e)} OFAC MATCH${nvSancCount(e)>1?'ES':''}`:''}${e.historical?' \u00b7 31\u201390 days old':''} \u00b7 grade ${e.confidence?.grade||'?'} = corroboration, see Graded Events panel`}
+function nvRerender(){
+  const el=document.getElementById('narcoEventsPanel');
+  if(el){const tmp=document.createElement('div');tmp.innerHTML=renderNarcoEventsPanel();const nw=tmp.firstElementChild;nw.classList.add('lp-wide');el.replaceWith(nw);applyCaptions(nw.parentElement||document);}
+  renderCartelChips();if(ctLayersG)ctDraw();
+}
+function nvSetGrade(g){nvGrade=nvGrade===g?null:g;nvRerender()}
+function nvSetType(t){nvType=nvType===t?null:t;nvRerender()}
+function nvToggleHist(){nvHist=!nvHist;nvRerender()}
+function nvToggle(id){nvOpen=nvOpen===id?null:id;nvRerender()}
+function nvSetDistrict(code){nvDojDistrict=nvDojDistrict===code?null:code;const el=document.getElementById('narcoDojPanel');if(el){const tmp=document.createElement('div');tmp.innerHTML=renderDojPanel();const nw=tmp.firstElementChild;nw.classList.add('lp-half');el.replaceWith(nw);applyCaptions(nw.parentElement||document);}}
+function nvLink(url,label){const h=safeHref(url);return h?`<a href="${h}" target="_blank" rel="noopener noreferrer">${label}</a>`:label}
+function nvRow(e){
+  const open=nvOpen===e.id,l=e.location,mappable=l&&Number.isFinite(l.lat)&&Number.isFinite(l.lon);
+  const groups=nvGroups(e),counts=nvCounts(e),c=e.confidence||{},sanc=nvSancCount(e);
+  const srcTxt=`${c.independentSources||0} src${c.official?' \u00b7 official':''}${c.aggregator&&!c.media&&!c.official?' \u00b7 citizen only':''}`;
+  const head=`<div class="nv-row ${open?'open':''} ${e.historical?'hist':''}" onclick="nvToggle('${esc(e.id)}')" title="Click for sources and details">
+      ${nvGradeBadge(c.grade)}${nvTypeChip(e)}
+      <span style="flex:1;min-width:0"><div class="nv-title">${esc(e.title||'(untitled)')}</div>
+        <div class="nv-sub"><b>${esc(nvLoc(e))}</b>${groups.length?` \u00b7 ${esc(groups.join(', '))}`:''}${counts.length?` \u00b7 ${esc(counts.slice(0,4).join(' \u00b7 '))}`:''} \u00b7 ${esc(srcTxt)}${e.historical?' \u00b7 <span style="color:#ffd54f">31\u201390d</span>':''}</div></span>
+      ${sanc?`<span class="nv-flag" title="Named person or group appears on the OFAC SDN list (narco programs)">OFAC ${sanc}</span>`:''}
+      <span class="front-when">${esc(e.date||'undated')}</span></div>`;
+  if(!open)return head;
+  const srcs=(e.sources||[]).map(s=>`<div>\u25b8 ${nvLink(s.url,esc(s.title||s.outlet))} <span class="nv-sub">\u2014 ${esc(s.outlet)} \u00b7 ${esc(nvSrcKind(s.kind))}${s.publishedAt?' \u00b7 '+esc(String(s.publishedAt).slice(0,10)):''}</span></div>`).join('');
+  const cited=(e.citedSources||[]).map(s=>nvLink(s.url,esc(s.name))).join(', ');
+  const sp=(e.sanctions?.people||[]).map(p=>`<div>\u25b8 <b>${esc(p.query)}</b> \u2192 ${nvLink(p.url,esc(p.name))} <span class="nv-sub">${esc(p.type)} \u00b7 ${esc((p.programs||[]).join(', '))} \u00b7 ${esc(p.strength)} match${p.matchedName&&p.matchedName!==p.name?` on a.k.a. \u201c${esc(p.matchedName)}\u201d`:''}</span></div>`).join('');
+  const sg=(e.sanctions?.groups||[]).map(g=>`<div>\u25b8 ${nvLink(g.url,esc(g.name))} <span class="nv-sub">${esc((g.programs||[]).join(', '))}</span></div>`).join('');
+  const leg=D.narco?.legend?.confidence||{};
+  return head+`<div class="nv-detail">
+      ${e.excerpt?`<div>${esc(e.excerpt)}</div>`:''}
+      <div class="k">Confidence ${esc(c.grade||'?')}</div><div>${esc(leg[c.grade]||'')} \u2014 ${c.official||0} official \u00b7 ${c.media||0} media \u00b7 ${c.aggregator||0} citizen-aggregator${c.citedOutlets?` \u00b7 ${c.citedOutlets} outlet${c.citedOutlets>1?'s':''} cited by the aggregator (not independently ingested)`:''}</div>
+      <div class="k">Sources (${(e.sources||[]).length})</div>${srcs||'<div>\u2014</div>'}
+      ${cited?`<div class="k">Cited by the article</div><div>${cited}</div>`:''}
+      ${(e.people||[]).length?`<div class="k">People named</div><div>${esc(e.people.join(' \u00b7 '))}</div>`:''}
+      ${(e.types||[]).length>1?`<div class="k">Event types</div><div>${esc(e.types.map(t=>(D.narco?.legend?.eventTypes||{})[t]||t).join(' \u00b7 '))}</div>`:''}
+      ${l?`<div class="k">Location</div><div>${esc(nvLoc(e))} \u00b7 ${esc(l.precision||'')} precision${mappable?` \u00b7 ${l.lat.toFixed(3)}, ${l.lon.toFixed(3)} \u00b7 <a href="javascript:void 0" onclick="event.stopPropagation();ctFocusAt(${Number(l.lat)},${Number(l.lon)})">show on map</a>`:''}</div>`:''}
+      ${sp||sg?`<div class="k" style="color:#ff8a80">OFAC SDN matches</div>${sp}${sg}<div class="nv-sub">Name matches are conservative (all name tokens must appear) but still require analyst confirmation against the Treasury record.</div>`:''}
+    </div>`;
+}
+function renderNarcoEventsPanel(){
+  const n=D.narco||{};
+  if(n.status!=='live'){
+    const why=n.status==='error'?`Event pipeline failed this sweep${n.error?': '+n.error:''}`:'Events are computed after the first sweep completes (Border Watch feeds + DOJ releases \u2192 normalize \u2192 dedupe \u2192 grade).';
+    return `<div class="g-panel g-off" id="narcoEventsPanel"><div class="sec-head"><h3>${shDot(['BorderNews','DOJ'])}Graded Events — Cartel / Border Crime</h3><span class="badge ${n.status==='error'?'err':'off'}">${n.status==='error'?'FAILED':'PENDING'}</span></div><div class="g-off-why">${esc(why)}</div></div>`;
+  }
+  const t=n.totals||{},bg=t.byGrade||{},bt=t.byType||{},leg=n.legend||{};
+  const list=nvFiltered();
+  const gradeChips=['A','B','C','D','E'].map(g=>`<button type="button" class="nv-chip ${nvGrade===g?'on':''} ${bg[g]?'':'none'}" style="${nvGrade===g?`border-color:${NV_GRADE_COLOR[g]};color:${NV_GRADE_COLOR[g]}`:''}" ${bg[g]?`onclick="nvSetGrade('${g}')"`:'disabled'} title="${esc(leg.confidence?.[g]||'')}">${g} <b>${bg[g]||0}</b></button>`).join('');
+  const typeChips=Object.entries(bt).sort((a,b)=>b[1]-a[1]).slice(0,9).map(([ty,cnt])=>`<button type="button" class="nv-chip ${nvType===ty?'on':''}" onclick="nvSetType('${esc(ty)}')">${esc(leg.eventTypes?.[ty]||ty)} <b>${cnt}</b></button>`).join('');
+  const kpis=`<div class="nv-kpis">
+      <div class="nv-kpi"><div class="k">Events \u00b7 ${n.currentDays||30}d</div><div class="v">${t.current||0}</div><div class="s">${t.historical||0} older (31\u2013${n.windowDays||90}d) \u00b7 ${n.records||0} records deduped</div></div>
+      <div class="nv-kpi"><div class="k">High confidence</div><div class="v" style="color:${NV_GRADE_COLOR.A}">${(bg.A||0)+(bg.B||0)}</div><div class="s">A ${bg.A||0} \u00b7 B ${bg.B||0} \u00b7 ${bg.D||0} citizen-only (D)</div></div>
+      <div class="nv-kpi"><div class="k">Mapped</div><div class="v">${t.mapped||0}</div><div class="s">${Object.keys(t.byState||{}).length} Mexican states \u00b7 ${Object.keys(t.byCartel||{}).length} groups named</div></div>
+      <div class="nv-kpi"><div class="k">OFAC matches</div><div class="v" style="color:${t.sanctionsMatches?'#ff8a80':'#e6f2ee'}">${t.sanctionsMatches||0}</div><div class="s">events naming an SDN-listed person or group</div></div>
+    </div>`;
+  const rows=list.map(nvRow).join('');
+  const llm=n.llm?(n.llm.skipped?`LLM enrichment off (${esc(n.llm.skipped)})`:`LLM enrichment on ${n.llm.used} record${n.llm.used===1?'':'s'}${n.llm.errors?` \u00b7 ${n.llm.errors} rejected`:''}`):'';
+  return `<div class="g-panel" id="narcoEventsPanel"><div class="sec-head"><h3>${shDot(['BorderNews','DOJ'])}Graded Events — Cartel / Border Crime</h3><span class="badge">${list.length} SHOWN \u00b7 ${n.computedAt?'computed '+getAge(n.computedAt):''}</span></div>
+    ${kpis}
+    <div class="nv-strip"><span class="nv-sub" style="margin-right:2px;margin-top:3px">CONFIDENCE</span>${gradeChips}<span class="nv-sub" style="margin:3px 2px 0 8px">WINDOW</span><button type="button" class="nv-chip ${nvHist?'on':''}" onclick="nvToggleHist()">${nvHist?`include 31\u2013${n.windowDays||90}d`:'last '+(n.currentDays||30)+'d only'}</button></div>
+    <div class="nv-strip"><span class="nv-sub" style="margin-right:2px;margin-top:3px">TYPE</span>${typeChips}</div>
+    <div class="ct-scroll" style="max-height:56vh">${rows||`<div class="g-off-why">No events match the current filter${nvHist?'':' in the last '+(n.currentDays||30)+' days'}.</div>`}</div>
+    <div class="sh-note">One row = one incident after deduplication across ${esc(String(n.inputs?.mexicoRelevantArticles||0))} Mexico-relevant articles and ${esc(String(n.inputs?.dojReleases||0))} DOJ releases (${esc(String(n.inputs?.articles||0))} feed articles scanned). Grade is corroboration, not severity: <b>A</b> official or 3+ independent outlets \u00b7 <b>B</b> two outlets \u00b7 <b>C</b> one established outlet \u00b7 <b>D</b> one citizen aggregator \u00b7 <b>E</b> undated / unlocated. * = group implied by a faction. Pins on the map: fill = event type, ring = grade. ${llm}</div></div>`;
+}
+function renderDojPanel(){
+  const d=D.narco?.doj||{},s=shGet('DOJ');
+  const st=s?.state||'off';
+  if(!d.releases?.length&&(st==='error'||st==='no_key'||st==='off'||d.status==='unavailable')){
+    return offPanel('DOJ Prosecutions — SW Border Districts','DOJ',d.error||d.note||'DOJ press-release API not reached yet','narco-doj');
+  }
+  const sm=d.summary||{},bd=sm.byDistrict||{},bc=sm.byCategory||{};
+  const distChips=(d.districts||[]).map(x=>`<button type="button" class="nv-chip ${nvDojDistrict===x.code?'on':''} ${bd[x.code]?'':'none'}" ${bd[x.code]?`onclick="nvSetDistrict('${esc(x.code)}')"`:'disabled'} title="${esc(x.name)} \u00b7 ${esc(x.seat)}">${esc(x.code)} <b>${bd[x.code]||0}</b></button>`).join('');
+  const catChips=(d.categories||[]).filter(c=>bc[c.id]).sort((a,b)=>(bc[b.id]||0)-(bc[a.id]||0)).map(c=>`<span class="nv-chip none" style="opacity:0.85;cursor:default">${esc(c.label)} <b>${bc[c.id]}</b></span>`).join('');
+  const rel=(d.releases||[]).filter(r=>!nvDojDistrict||r.district?.code===nvDojDistrict);
+  const catLabel=id=>(d.categories||[]).find(c=>c.id===id)?.label||id;
+  const rows=rel.map(r=>`<div class="front-row" title="${esc(r.district?.name||'')}"><span class="ct-kind" style="color:#82b1ff;border-color:rgba(130,177,255,0.5)">${esc(r.district?.code||'DOJ')}</span><span style="flex:1;min-width:0"><div class="nv-title">${nvLink(r.url,esc(r.title))}</div><div class="nv-sub">${esc((r.categories||[]).map(catLabel).join(' \u00b7 ')||'watched district \u00b7 no topic match')}${r.dateline?` \u00b7 ${esc(r.dateline)}`:''}</div></span><span class="front-when">${esc(String(r.publishedAt||'').slice(0,10))}</span></div>`).join('');
+  const badge=st==='degraded'?`<span class="badge warn">${esc(shWhy(s))}</span>`:`<span class="badge">${esc(String(sm.watched||0))} IN ${esc(String(sm.days||30))}D${d.newThisSweep?` \u00b7 +${esc(String(d.newThisSweep))} NEW`:''}</span>`;
+  return `<div class="g-panel" id="narcoDojPanel"><div class="sec-head"><h3>${shDot('DOJ')}DOJ Prosecutions — SW Border Districts</h3>${badge}</div>
+    <div class="nv-strip">${distChips}</div>
+    ${catChips?`<div class="nv-strip">${catChips}</div>`:''}
+    <div class="ct-scroll" style="max-height:44vh">${rows||`<div class="g-off-why">No releases from ${nvDojDistrict?esc(nvDojDistrict):'the five watched districts'} in the last ${esc(String(sm.days||30))} days.</div>`}</div>
+    <div class="sh-note">Press releases from the U.S. Attorney\u2019s Offices for S.D. Cal., D. Ariz., D.N.M., W.D. Tex. and S.D. Tex. via DOJ\u2019s public Open Data API (${d.apiUrl?nvLink(d.apiUrl,'justice.gov/api'):'justice.gov/api'}; ${esc(String(d.pagesFetched||0))}/${esc(String(d.pagesRequested||0))} pages, ${esc(String(d.releasesScanned||0))} scanned this sweep). Topics are keyword-classified on the release body with quoted passages stripped. Charges are allegations unless the release states a plea or conviction. Public domain.${d.note?' '+esc(d.note):''}</div></div>`;
+}
+function renderSanctionsPanel(){
+  const o=D.narco?.sanctions||{},s=shGet('OFACNarco');
+  const st=s?.state||'off';
+  if(!o.summary&&(st==='error'||st==='off'||o.status==='unavailable')){
+    return offPanel('OFAC Sanctions — Narco Programs','OFACNarco',o.error||o.note||'SDN list not downloaded yet','narco-ofac');
+  }
+  const sm=o.summary||{},bp=sm.byProgram||{};
+  const progChips=Object.entries(bp).sort((a,b)=>b[1]-a[1]).map(([p,n])=>`<span class="nv-chip none" style="opacity:0.85;cursor:default" title="OFAC program tag">${esc(p)} <b>${n}</b></span>`).join('');
+  const kpis=`<div class="nv-kpis">
+      <div class="nv-kpi"><div class="k">Narco-program entries</div><div class="v">${(sm.entries||0).toLocaleString('en-US')}</div><div class="s">${(sm.individuals||0).toLocaleString('en-US')} people \u00b7 ${(sm.entities||0).toLocaleString('en-US')} entities</div></div>
+      <div class="nv-kpi"><div class="k">Mexico-linked</div><div class="v">${(sm.mexicoLinked||0).toLocaleString('en-US')}</div><div class="s">address, nationality or programme</div></div>
+      <div class="nv-kpi"><div class="k">Matched in events</div><div class="v" style="color:${(o.matches||[]).length?'#ff8a80':'#e6f2ee'}">${(o.matches||[]).length}</div><div class="s">people named in graded events</div></div>
+      <div class="nv-kpi"><div class="k">List published</div><div class="v" style="font-size:12px;margin-top:3px">${esc(sm.publishDate||'\u2014')}</div><div class="s">${o.refresh?.lastChecked?'checked '+getAge(o.refresh.lastChecked):''}${o.refresh?.action?' \u00b7 '+esc(o.refresh.action):''}</div></div>
+    </div>`;
+  const matches=(o.matches||[]).map(m=>`<div class="front-row" onclick="nvOpen='${esc(m.eventId)}';nvRerender();jumpToPanel('cartels','narcoEventsPanel')" title="Open the matching event"><span class="ct-kind" style="color:${m.strength==='exact'?'#ff8a80':'#ffcc80'};border-color:${m.strength==='exact'?'rgba(255,138,128,0.5)':'rgba(255,204,128,0.5)'}">${esc(m.type||'').toUpperCase()} \u00b7 ${esc(m.strength||'')}</span><span style="flex:1;min-width:0"><div class="nv-title">${esc(m.query)} \u2192 ${nvLink(m.url,esc(m.name))}</div><div class="nv-sub">${esc((m.programs||[]).join(', '))}${m.matchedName&&m.matchedName!==m.name?` \u00b7 a.k.a. ${esc(m.matchedName)}`:''}${(m.countries||[]).length?` \u00b7 ${esc(m.countries.join(', '))}`:''} \u00b7 in: ${esc(m.eventTitle)}</div></span><span class="front-when">${esc(m.eventDate||'')}</span></div>`).join('');
+  const groups=(o.designatedGroups||[]).slice(0,14).map(g=>`<div class="nv-sub" style="padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.03)"><b>${esc(g.orgId)}</b> \u00b7 ${g.entries.map(e=>`${nvLink(e.url,esc(e.name))} <span style="color:var(--dim)">[${esc((e.programs||[]).join(', '))}]</span>`).join(' \u00b7 ')}</div>`).join('');
+  const badge=st==='degraded'?`<span class="badge warn">${esc(shWhy(s))}</span>`:`<span class="badge">${esc(String(sm.recordCount||0).replace(/\B(?=(\d{3})+(?!\d))/g,','))} SDN RECORDS</span>`;
+  return `<div class="g-panel" id="narcoSanctionsPanel"><div class="sec-head"><h3>${shDot('OFACNarco')}OFAC Sanctions — Narco Programs</h3>${badge}</div>
+    ${kpis}
+    <div class="nv-strip">${progChips}</div>
+    <div class="sh-group">Name matches in graded events</div>
+    <div class="ct-scroll" style="max-height:26vh">${matches||'<div class="g-off-why">No person named in a current event matches the SDN narco-program index. Matches require every token of the extracted name to appear in the SDN name or a strong alias.</div>'}</div>
+    <div class="sh-group">Designated cartel groups on the list</div>
+    <div class="ct-scroll" style="max-height:22vh">${groups||'<div class="g-off-why">No designated groups in the index yet.</div>'}</div>
+    <div class="sh-note">Treasury\u2019s Specially Designated Nationals list (${o.listUrl?nvLink(o.listUrl,'SDN.XML'):'SDN.XML'}), filtered to ${esc((o.programs?.narco||[]).join(', '))} plus Mexico-linked ${esc((o.programs?.terror||[]).join('/'))} designations; refreshed when the list\u2019s Last-Modified changes. A match is a lead to confirm on OFAC\u2019s search page, not an identification.</div></div>`;
+}
+function renderNarcoSourcePanel(){
+  const n=D.narco||{};
+  const fs=n.feeds||[];
+  const feedRow=f=>{
+    const state=!f.registered?'off':f.status==='error'?'error':f.status==='empty'||f.status==='robots_disallowed'?'degraded':'live';
+    const why=!f.registered?'NOT REGISTERED':f.status==='not_modified'?`UNCHANGED \u00b7 ${f.items} ITEMS`:f.status==='ok'?`${f.items} ITEMS${f.newItems?` \u00b7 +${f.newItems} NEW`:''}`:(f.reason||f.status||'').toUpperCase();
+    const af=f.articleFetch;
+    const sub=af&&af.attempted?` \u00b7 ${af.ok}/${af.attempted} articles fetched${af.robotsDisallowed?` \u00b7 ${af.robotsDisallowed} robots-disallowed`:''}${af.paywalled?` \u00b7 ${af.paywalled} paywalled`:''}`:'';
+    return `<div class="sh-row ${state}" title="${esc(f.role||'')}"><span class="hdot ${state}"></span><span class="sh-name">${esc(f.label)}<div class="nv-sub">${esc(f.kind)}${sub}</div></span><span class="sh-why">${esc(why)}</span></div>`;
+  };
+  const srcRow=(name,label,kind,role)=>{
+    const s=shGet(name);const state=s?.state||'off';
+    return `<div class="sh-row ${state}" title="${esc(role)}"><span class="hdot ${state}"></span><span class="sh-name">${esc(label)}<div class="nv-sub">${esc(kind)}</div></span><span class="sh-why">${esc(s?(s.state==='live'?(s.reason||'LIVE'):shWhy(s)):'NOT IN SWEEP')}</span></div>`;
+  };
+  const com=(n.commercial||[]).map(c=>{
+    const s=shGet(c.name);const state=s?.state||'no_key';
+    return `<div class="sh-row ${state}" title="${esc(c.provides||'')}"><span class="hdot ${state}"></span><span class="sh-name">${c.homepage?nvLink(c.homepage,esc(c.vendor||c.name)):esc(c.vendor||c.name)}<div class="nv-sub">commercial \u00b7 ${esc(c.access||'licence required')}</div></span><span class="sh-why" title="${esc(state==='no_key'?shWhy(s)||'NO KEY':(s?.reason||''))}">${esc(state==='no_key'?'NO KEY':shWhy(s))}</span></div>`;
+  }).join('');
+  const live=[...fs.filter(f=>f.registered&&f.status!=='error'),...['DOJ','OFACNarco'].filter(x=>shGet(x)?.state==='live')].length;
+  return `<div class="g-panel narco-sources"><div class="sec-head"><h3>Homeland / Narco Sources</h3><span class="badge">${live} REPORTING</span></div>
+    <div class="sh-group">Specialist journalism \u00b7 Border Watch feeds</div>${fs.map(feedRow).join('')}
+    <div class="sh-group">Government data</div>${srcRow('DOJ','DOJ press releases','official \u00b7 Open Data API','5 south-west border U.S. Attorney districts')}${srcRow('OFACNarco','OFAC SDN \u00b7 narco programs','official \u00b7 XML list','sanctioned people / entities matched against event names')}
+    <div class="sh-group">Commercial OSINT \u00b7 not wired</div>${com}
+    <div class="sh-note">Commercial vendors are shown only so the gap is visible: no vendor dashboard is scraped and nothing is pulled until the vendor grants API or bulk-export access and the matching key is set in .env.</div></div>`;
 }
 
 // === SOURCES TAB: full table of every source and its state ===
