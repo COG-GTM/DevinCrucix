@@ -123,7 +123,31 @@ function summarizeAirHotspots(hotspots = []) {
     noCallsign: h.noCallsign || 0,
     highAlt: h.highAltitude || 0,
     top: Object.entries(h.byCountry || {}).sort((a, b) => b[1] - a[1]).slice(0, 5),
+    tracks: summarizeAirTracks(h.tracks),
   }));
+}
+
+// Per-aircraft positions plotted under the theater bubbles. The source already samples
+// (TRACK_SAMPLE_LIMIT per hotspot) and strips markup, so this only fixes the shape.
+const AIR_TRACKS_PER_HOTSPOT = 40;
+const finiteOrNull = (v) => (Number.isFinite(v) ? v : null);
+
+function summarizeAirTracks(tracks) {
+  if (!Array.isArray(tracks)) return [];
+  return tracks
+    .filter(t => Number.isFinite(t?.lat) && Number.isFinite(t?.lon))
+    .slice(0, AIR_TRACKS_PER_HOTSPOT)
+    .map(t => ({
+      icao24: String(t.icao24 || '').slice(0, 6),
+      callsign: String(t.callsign || '').trim().slice(0, 8),
+      country: String(t.country || '').slice(0, 64),
+      lat: t.lat,
+      lon: t.lon,
+      altitude: finiteOrNull(t.altitude),
+      velocity: finiteOrNull(t.velocity),
+      heading: finiteOrNull(t.heading),
+      onGround: Boolean(t.onGround),
+    }));
 }
 
 // Air hotspot regions — mirrors OpenSky HOTSPOTS for ADS-B fallback
