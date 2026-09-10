@@ -2656,7 +2656,7 @@ function plotFlatMarkers(){
   if(flightsVisible){
     const airCoordsFlight=[{lat:30,lon:44},{lat:24,lon:120},{lat:49,lon:32},{lat:57,lon:24},{lat:14,lon:114},{lat:37,lon:127},{lat:25,lon:-80},{lat:4,lon:2},{lat:-34,lon:18},{lat:10,lon:51}];
     const hubs=[{lat:40.6,lon:-73.8},{lat:51.5,lon:-0.5},{lat:25.3,lon:55.4},{lat:1.4,lon:103.8},{lat:-33.9,lon:151.2},{lat:-23.4,lon:-46.5}];
-    const cG=flatG.append('g').attr('class','corridors-layer');
+    const cG=flatG.append('g').attr('class','corridors-layer').style('pointer-events','none');
     for(let i=0;i<D.air.length;i++){for(let j=i+1;j<D.air.length;j++){
       const a=D.air[i],b=D.air[j],from=airCoordsFlight[i],to=airCoordsFlight[j];
       if(!from||!to)continue;const traffic=a.total+b.total;if(traffic<30)continue;
