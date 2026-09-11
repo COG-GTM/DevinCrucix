@@ -174,6 +174,13 @@ describe('rule-based extraction', () => {
     assert.equal(extractSeizures('Le aseguraron 5,445 cartuchos y un vehículo.').vehicles, undefined, '"cartuchos" is not "cars"');
     assert.equal(extractSeizures('agents seized 12 stolen cars and 3 trucks').vehicles, 12);
     assert.equal(extractSeizures('aseguraron dos camionetas').vehicles, 2);
+    assert.equal(extractSeizures('Agents seized 300 pillsbury boxes').drugs, undefined, '"pillsbury" is not pills');
+  });
+
+  it('count nouns must end at a word boundary', () => {
+    assert.deepEqual(extractCounts('Three deadly attacks hit Culiacán this week.'), {}, '"deadly" is not "dead"');
+    assert.equal(extractCounts('Three people were killed in Culiacán.').killed, 3);
+    assert.equal(extractCounts('Gunmen killed 4 people and wounded 2 others.').wounded, 2);
   });
 
   it('does not report fees, payments or prices as cash seizures, nor money as weapon counts', () => {
