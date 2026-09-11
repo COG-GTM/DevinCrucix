@@ -231,12 +231,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .front-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:4px}
 /* Cartels tab: Mexico-framed map. Current (crowd-sourced KML) layers are solid; START 2020 baseline layers are amber + dashed. */
 .ct-map{position:relative;height:clamp(420px,58vh,660px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden;margin-top:6px}
-#cartelMapSvg{width:100%;height:100%;display:block;cursor:grab}
-#cartelMapSvg:active{cursor:grabbing}
-#cartelMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+#cartelMapSvg,#iwMapSvg{width:100%;height:100%;display:block;cursor:grab}
+#cartelMapSvg:active,#iwMapSvg:active{cursor:grabbing}
+#cartelMapSvg .land,#iwMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
 #cartelMapSvg .land.mx{fill:rgba(100,240,200,0.05);stroke:rgba(100,240,200,0.45)}
-#cartelMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
-#cartelMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#iwMapSvg .land.ir{fill:rgba(255,90,54,0.06);stroke:rgba(255,90,54,0.5)}
+#cartelMapSvg .border,#iwMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .graticule,#iwMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#iwMapSvg .iw-pin,#iwMapSvg .iw-sym{cursor:pointer;vector-effect:non-scaling-stroke}
+#iwMapSvg .iw-halo{fill:none;pointer-events:none;vector-effect:non-scaling-stroke;stroke-width:1;animation:iwPulse 2.4s ease-out infinite}
+@keyframes iwPulse{0%{opacity:0.9}70%{opacity:0.15}100%{opacity:0.9}}
+#iwMapSvg .iw-lbl{font-family:var(--mono);fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.06em}
+.iw-actor{display:grid;grid-template-columns:minmax(0,1fr) 46px 46px;gap:6px;align-items:center;padding:4px 4px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.iw-actor .n{font-family:var(--mono);font-size:8px;text-align:right;color:#e6f2ee}
+.iw-actor .s{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.iw-actor.head{color:var(--dim);font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border)}
 #cartelMapSvg .ct-poly{cursor:pointer;stroke-width:1;vector-effect:non-scaling-stroke;transition:fill-opacity 0.15s}
 #cartelMapSvg .ct-poly:hover{fill-opacity:0.55}
 #cartelMapSvg .ct-pin,#cartelMapSvg .ct-sym{cursor:pointer;vector-effect:non-scaling-stroke}
@@ -249,7 +258,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ct-key i{display:inline-block;width:14px;height:0;vertical-align:middle;margin-right:5px;border-top:2px solid}
 .ct-key i.dash{border-top-style:dashed;border-color:#ffd54f}
 .ct-key i.solid{border-color:#ff5252}
-#cartelPopup,#mapPopup{overflow-y:auto;scrollbar-width:thin}
+#cartelPopup,#iwPopup,#mapPopup{overflow-y:auto;scrollbar-width:thin}
 .ct-hint{position:absolute;right:8px;top:8px;font-family:var(--mono);font-size:8px;letter-spacing:0.08em;color:var(--dim);background:rgba(0,0,0,0.6);padding:3px 7px;border:1px solid var(--border);pointer-events:none;z-index:4}
 .ct-chips{display:flex;flex-direction:column;gap:4px;margin:6px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase}
 .ct-chiprow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
@@ -1175,6 +1184,7 @@ const TAB_DEFS=[
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
   {id:'cartels',label:'Cartels',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
+  {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
@@ -1195,6 +1205,9 @@ function tabCounts(){
   const nvCount=nv?.status==='live'&&nv.totals?{n:`${nv.totals.current||0} EVENTS`,cls:(nv.totals.byGrade?.A||0)+(nv.totals.byGrade?.B||0)?'':'warn',title:`${nv.totals.current||0} graded cartel / border-crime events in the last ${nv.currentDays||30} days \u00b7 A ${nv.totals.byGrade?.A||0} \u00b7 B ${nv.totals.byGrade?.B||0} \u00b7 ${nv.totals.sanctionsMatches||0} OFAC matches${ct.status==='live'?` \u00b7 ${ct.orgCount||0} orgs on the current map`:''}`}:null;
   const ctCount=nvCount?nvCount:ct.status==='live'&&ct.featureCount?{n:ct.stale?'CACHED':`${ct.orgCount||0} ORGS`,cls:ct.stale?'warn':'',title:`${ct.layerCounts?.influence||0} influence areas · ${ct.orgCount||0} organizations · ${(ct.wars||[]).length} active wars${ct.stale?' · cached copy':''}`}
     :ct.status==='stale'?{n:'STALE',cls:'warn',title:'Cartel map cache is older than 48h'}:ct.status?{n:'BASELINE ONLY',cls:'warn',title:'Current cartel map unavailable — START 2020 baseline still shown'}:null;
+  const iw=D.iranwar||{};
+  const iwCount=iw.status==='live'?{n:`${iw.counts?.events48h||0} / 48H`,cls:'',title:`${iw.counts?.events48h||0} kinetic events in 48 h \u00b7 ${iw.counts?.ground48h||0} ground-ops rows \u00b7 ${iw.counts?.airspaceClosed||0} closed / ${iw.counts?.airspaceRestricted||0} restricted airspace entries \u00b7 feed ${Number.isFinite(iw.feedAgeH)?Math.round(iw.feedAgeH)+'h old':'age unknown'}`}
+    :iw.status==='limited'?{n:'LIMITED',cls:'warn',title:iw.error||'IranWarLive partially available'}:iw.status==='stale'?{n:'STALE',cls:'warn',title:iw.error||'Serving a cached IranWarLive copy'}:iw.status==='empty'?{n:'EMPTY',cls:'warn',title:'IranWarLive answered but published no events'}:iw.status?{n:'OFF',cls:'warn',title:iw.error||'IranWarLive not reachable this sweep'}:null;
   return {
     situation: hot?{n:hot,cls:'hot',title:`${hot} critical/high judgments`}:sit.quiet?{n:'QUIET',cls:'',title:'No rule fired above baseline'}:null,
     military: airTotal?{n:airTotal,cls:'',title:`${airTotal} aircraft across ${(D.air||[]).length} theaters`}:null,
@@ -1202,6 +1215,7 @@ function tabCounts(){
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
     regional: spikes?{n:`${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:'Border Watch place spikes vs baseline'}:null,
     cartels: ctCount,
+    iranwar: iwCount,
     investigations: (()=>{const n=Object.keys(INV.case.entities).length;const hi=Object.values(INV.case.dossiers).some(d=>d.risk&&(d.risk.level==='high'||d.risk.level==='critical'));return n?{n:String(n),cls:hi?'hot':'',title:`${n} entities in case · ${Object.keys(INV.case.dossiers).length} dossiers${hi?' · high-risk selector present':''}`}:null})(),
     sources: h?{n:`${h.live}/${h.total}`,cls:h.error?'hot':dark?'warn':'',title:`${h.live} live · ${h.degraded} degraded · ${dark} not reporting`}:null
   };
@@ -1324,6 +1338,14 @@ const PANEL_CAPTIONS={
   'start 2020 baseline':'START (University of Maryland) Tracking Cartels briefs, June 2020. A point-in-time research product transcribed by hand; state classes were read from the printed choropleth.',
   'mexico / northern triangle feed':'Items from InSight Crime, Border Watch and GDELT filtered to Mexico and the Northern Triangle by keyword. Journalism, not event data.',
   'cartel map source':'Where the current layer comes from, how fresh it is, and what the maintainer says about it.',
+  'iran theater':'IranWarLive\u2019s public feed and published sheets plotted on a theater map. Each point is one news article run through an LLM extractor by a single-operator pipeline: <b>pin fill = event kind, ring = confidence tier</b>. Coordinates are city-level approximations and nothing is ground-verified.',
+  'kinetic event feed':'Strikes, missile / drone launches and interceptions as IranWarLive extracted them, newest first. \u201cWire\u201d means one English news wire said it; \u201chigh\u201d is the site\u2019s own label for a military or multi-source claim.',
+  'ground operations':'Rows from IranWarLive\u2019s separate ground-operations sheet (units, movement, territory-control label). The label is the extractor\u2019s reading of an article, not an assessed control line.',
+  'airspace & sea lanes':'Latest status per region from IranWarLive\u2019s airspace sheet, free text kept verbatim with a coarse colour (closed / restricted / open) derived from the leading word only.',
+  'posturing & diplomacy':'Statements and stances by country as summarised by the extractor. Useful as a timeline of who said what; not a position of record.',
+  'iran war live source':'How the source behaves this sweep: which of its six public parts answered, how old the feed is, and the site\u2019s own quality signals. Green only when the feed itself is fresh.',
+  'actors & casualties':'IranWarLive\u2019s actors sheet: alliance, status and cumulative reported deaths per country. Casualty figures are as reported by the underlying articles \u2014 unreconciled, not official.',
+  'independent reporting':'Items about the same theater from feeds CRUCIX already polls (GDELT, ACLED), last 72 h. Shows what else is reporting, not confirmation of any specific IranWarLive event.',
   'graded events':'One row per incident after deduplication across Border Watch feeds (Borderland Beat, El Paso Matters, Fronteras Desk, Border Report, Texas Tribune) and DOJ releases. The letter is <b>corroboration</b>, not severity \u2014 D means one citizen aggregator said it.',
   'doj prosecutions':'U.S. Attorney press releases from the five south-west border districts via DOJ\u2019s public API, keyword-classified by topic. Charges are allegations until a plea or conviction is stated.',
   'ofac sanctions':'Treasury SDN entries under the narco programs (SDNTK, SDNT, ILLICIT-DRUGS-EO14059, TCO) plus Mexico-linked FTO/SDGT, matched conservatively against names extracted from events. A match is a lead, not an identification.',
@@ -1545,6 +1567,7 @@ function renderLeftRail(){
     macro:[riskPanel,sensorGridPanel],
     regional:[sensorGridPanel,renderSourceHealthPanel()],
     cartels:[renderNarcoSourcePanel(),renderCartelSourcePanel(),renderCartelOrgsPanel()],
+    iranwar:[renderIwSourcePanel(),renderIwActorsPanel(),renderIwCorroborationPanel()],
     investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
@@ -2291,6 +2314,20 @@ function plotMarkers(){
       points.push({ lat:p.lat, lng:p.lon, size:p.layer === 'wars' ? 0.18 : 0.12, alt:0.01, color:ctLayerColor(p.layer), type:'cartel-pin', priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
     });
   }
+  // === IRAN THEATER (IranWarLive machine-extracted events; city-level points, never polygons) ===
+  const ig = (layerOn('iwl-strike') || layerOn('iwl-intercept') || layerOn('iwl-ground')) ? iwGeoNow() : null;
+  if(ig){
+    ig.events.filter(e => iwInWindow(e.at)).forEach(e => {
+      const t = e.kind === 'intercept' ? 'iwl-intercept' : 'iwl-strike';
+      if(!layerOn(t)) return;
+      const pop = iwPop(e, false);
+      points.push({ lat:e.lat, lng:e.lon, size:0.1 + Math.min(Number(e.casualties) || 0, 20) * 0.006, alt:0.01, color:iwKind(e.kind).color, type:t, priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
+    });
+    if(layerOn('iwl-ground')) ig.ground.filter(g => iwInWindow(g.at)).forEach(g => {
+      const pop = iwPop(g, true);
+      points.push({ lat:g.lat, lng:g.lon, size:0.1, alt:0.008, color:IW_GROUND.color, type:'iwl-ground', priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
+    });
+  }
   globe.polygonsData(frontPolys);
   globe.pathsData(frontPaths);
 
@@ -2552,6 +2589,18 @@ function plotFlatMarkers(){
     g.append('circle').attr('class','marker-circle').attr('r',r).attr('data-base-r',r).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',0.8);
     return g;
   };
+  // Iran theater (IranWarLive) when its layers are toggled on the main map: fill = kind, ring = confidence
+  const ig=(layerOn('iwl-strike')||layerOn('iwl-intercept')||layerOn('iwl-ground'))?iwGeoNow():null;
+  if(ig){
+    ig.events.filter(e=>iwInWindow(e.at)).forEach(e=>{
+      const pop=iwPop(e,false);const r=1.8+Math.min(Number(e.casualties)||0,20)*0.06;
+      addPt(e.lat,e.lon,r,ctRgba(iwKind(e.kind).color,0.9),iwConf(e.confidence).color,ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,e.kind==='intercept'?'iwl-intercept':'iwl-strike');
+    });
+    ig.ground.filter(g=>iwInWindow(g.at)).forEach(g=>{
+      const pop=iwPop(g,true);
+      addPt(g.lat,g.lon,1.8,ctRgba(IW_GROUND.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,'iwl-ground');
+    });
+  }
   if(fg){
     fg.points.filter(p=>p.cat==='attack').forEach(p=>{
       const pop={head:'Attack direction',text:`${esc(p.name||'')}${Number.isFinite(p.heading)?'<br>Heading '+Math.round(p.heading)+'\u00b0':''}`,meta:'DeepStateMAP'};
@@ -3011,6 +3060,7 @@ function renderLower(){
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(renderCbpPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
+    iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
   };
@@ -3018,6 +3068,7 @@ function renderLower(){
   grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
+  if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
 }
 
 // === MILITARY TAB PANELS ===
@@ -3507,6 +3558,308 @@ function renderCartelOrgsPanel(){
   return `<div class="g-panel cartel-orgs"><div class="sec-head"><h3>${shDot('Cartels')}Organizations</h3><span class="badge">${orgs.length} ON MAP</span></div>
     <div class="ct-scroll" style="max-height:60vh">${rows||'<div class="g-off-why">No organizations recognised on the current map.</div>'}</div>
     <div class="sh-note">Sorted by drawn influence area (km\u00b2, from the KML polygons). Right-hand number = dated activity entries attributed to the organization. Click a row to isolate it on the map.</div></div>`;
+}
+
+// === IRAN WAR LIVE TAB ===
+// D.iranwar is the compact view (lib/iranwarview.mjs); theater-map geometry comes from /api/iranwar/geo
+// on demand. IranWarLive is a single-operator, fully automated pipeline (5 English RSS feeds → LLM
+// extraction → Google Sheets). Everything here is observational, city-level and third-party → esc().
+let iwGeo=null, iwGeoKey=null, iwGeoBusy=false, iwGeoFailed=false;
+const IW_STORE='crucix_iw_layers';
+const IW_KIND={air:{label:'Air strikes',color:'#ff5a36'},missile:{label:'Missile / rocket',color:'#ff1744'},drone:{label:'Drone / UAV',color:'#ce93d8'},intercept:{label:'Interceptions',color:'#64b5f6'},ground:{label:'Ground forces (strikes tab)',color:'#ffb74d'},other:{label:'Other kinetic',color:'#bdbdbd'}};
+const IW_GROUND={label:'Ground ops (separate sheet)',color:'#ffd180'};
+const IW_CONF={high:{label:'High \u00b7 military or multi-source',color:'#64f0c8'},medium:{label:'Medium \u00b7 OSINT / regional',color:'#90caf9'},wire:{label:'Single news wire',color:'#ffd54f'},low:{label:'Low \u00b7 state media / unverified',color:'#ff8a65'},unrated:{label:'Unrated',color:'#9e9e9e'}};
+const IW_CONF_RANK={high:3,medium:2,wire:1,low:1,unrated:0};
+const IW_WINDOWS={'48h':{label:'48 H',ms:48*3600000},'7d':{label:'7 D',ms:7*86400000},'30d':{label:'30 D',ms:30*86400000},'all':{label:'ALL',ms:Infinity}};
+const IW_AIR_COLOR={closed:'#ff5252',restricted:'#ffb74d',open:'#64f0c8',unknown:'#9e9e9e'};
+// Clockwise ring (D3 spherical winding) so fitExtent frames the theater rather than its complement.
+const IW_BBOX={type:'Polygon',coordinates:[[[28,10],[28,43],[66,43],[66,10],[28,10]]]};
+const IW_LANDMARKS=[{n:'TEHRAN',lat:35.69,lon:51.39},{n:'ISFAHAN',lat:32.65,lon:51.67},{n:'TEL AVIV',lat:32.08,lon:34.78},{n:'BEIRUT',lat:33.89,lon:35.5},{n:'DAMASCUS',lat:33.51,lon:36.29},{n:'BAGHDAD',lat:33.31,lon:44.37},{n:'RIYADH',lat:24.71,lon:46.68},{n:'SANAA',lat:15.35,lon:44.21},{n:'HORMUZ',lat:26.6,lon:56.4},{n:'DOHA',lat:25.29,lon:51.53},{n:'BAB EL-MANDEB',lat:12.6,lon:43.3}];
+let iwActive=(()=>{try{const v=JSON.parse(localStorage.getItem(IW_STORE));if(v&&Array.isArray(v.kinds))return {kinds:new Set(v.kinds.filter(k=>IW_KIND[k])),ground:v.ground!==false,win:IW_WINDOWS[v.win]?v.win:'7d'}}catch{}return {kinds:new Set(Object.keys(IW_KIND)),ground:true,win:'7d'}})();
+let iwConfMin=null;
+let iwTransform=null, iwSvg=null, iwBase=null, iwLayersG=null, iwProj=null, iwPath=null, iwZoom=null, iwW=0, iwH=0;
+function iwHas(w){return !!w&&(w.status==='live'||w.status==='limited'||w.status==='stale')&&(Number(w.counts?.events)>0||Number(w.counts?.ground)>0)}
+function iwKind(k){return IW_KIND[k]||IW_KIND.other}
+function iwConf(c){return IW_CONF[c]||IW_CONF.unrated}
+function iwSave(){try{localStorage.setItem(IW_STORE,JSON.stringify({kinds:[...iwActive.kinds],ground:iwActive.ground,win:iwActive.win}))}catch{}}
+function iwToggleKind(k){if(!IW_KIND[k])return;if(iwActive.kinds.has(k))iwActive.kinds.delete(k);else iwActive.kinds.add(k);iwSave();renderIwChips();iwDraw()}
+function iwToggleGround(){iwActive.ground=!iwActive.ground;iwSave();renderIwChips();iwDraw()}
+function iwSetWindow(w){if(!IW_WINDOWS[w])return;iwActive.win=w;iwSave();renderIwChips();iwDraw();if(currentTab==='situation')replotMap()}
+function iwSetConf(c){if(!IW_CONF[c])return;iwConfMin=iwConfMin===c?null:c;renderIwChips();iwDraw()}
+function iwConfOk(c){return !iwConfMin||(IW_CONF_RANK[c]??0)>=(IW_CONF_RANK[iwConfMin]??0)}
+function iwInWindow(at){const ms=IW_WINDOWS[iwActive.win].ms;if(ms===Infinity)return true;const t=Date.parse(at||'');return Number.isFinite(t)&&Date.now()-t<=ms}
+function iwWhen(at){const t=Date.parse(at||'');return Number.isFinite(t)?new Date(t).toISOString().slice(5,16).replace('T',' ')+'Z':''}
+function iwAgeTxt(h){return !Number.isFinite(h)?'age unknown':h<1?'<1h old':h<48?`${Math.round(h)}h old`:`${Math.round(h/24)}d old`}
+// Popup head is set with textContent (fillPopup) so it stays raw; body is HTML and every field is esc()'d.
+function iwPop(e,ground){
+  const k=ground?IW_GROUND:iwKind(e.kind),c=iwConf(e.confidence);
+  const link=e.sourceUrl?safeExternalUrl(e.sourceUrl):null;
+  const text=`${esc(e.text||'')}<br>`
+    +(e.location?`<span style="color:var(--dim)">Location: </span>${esc(e.location)}<br>`:'')
+    +(ground&&(e.units||e.movement||e.control)?`<span style="color:var(--dim)">${[e.units,e.movement,e.control].filter(Boolean).map(v=>esc(v)).join(' \u00b7 ')}</span><br>`:'')
+    +(Number.isFinite(e.casualties)?`<span style="color:var(--dim)">Reported casualties: </span>${Number(e.casualties)}<br>`:'')
+    +`<span style="color:var(--dim)">Confidence: </span><span style="color:${c.color}">${esc(c.label)}</span>${e.verifiedBy?' \u00b7 '+esc(e.verifiedBy):''}<br>`
+    +(link?`<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">source${e.sourceHost?' \u00b7 '+esc(e.sourceHost):''} \u2197</a><br>`:'')
+    +`<span style="color:var(--dim)">IranWarLive: machine-extracted from one article; coordinates are city-level approximations, not verified.</span>`;
+  return {head:`${String(e.type||k.label)}${e.at?' \u00b7 '+iwWhen(e.at):''}`.slice(0,160),text,meta:`${ground?'Ground operations sheet':'Strike / incident'} \u00b7 IranWarLive \u00b7 ${String(e.id||'').slice(0,40)}`};
+}
+// Geometry for the theater map, fetched once per adapter fetch; null while loading or when the source is down.
+function iwGeoNow(){
+  const w=D.iranwar||{};
+  if(!iwHas(w))return null;
+  const key=String(w.fetchedAt||'latest');
+  if(iwGeo&&iwGeoKey===key)return iwGeo;
+  if(!iwGeoBusy)loadIwGeo(key);
+  return iwGeo;
+}
+function loadIwGeo(key){
+  iwGeoBusy=true;
+  fetch('/api/iranwar/geo',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(g=>{
+    iwGeoBusy=false;
+    if(!g||!Array.isArray(g.events)||!Array.isArray(g.ground)){iwGeoFailed=true;iwDraw();return;}
+    const changed=!iwGeo||iwGeo.fetchedAt!==g.fetchedAt;
+    iwGeo=g;iwGeoKey=key;iwGeoFailed=false;
+    renderIwChips();iwDraw();
+    if(changed&&currentTab==='situation'&&(layerOn('iwl-strike')||layerOn('iwl-intercept')||layerOn('iwl-ground')))replotMap();
+  }).catch(()=>{iwGeoBusy=false;iwGeoFailed=true;iwDraw()});
+}
+function iwClosePopup(){document.getElementById('iwPopup')?.classList.remove('show')}
+function iwPopup(ev,head,html,meta){
+  const popup=document.getElementById('iwPopup'),wrap=document.getElementById('iwMapWrap');
+  if(!popup||!wrap)return;
+  const rect=wrap.getBoundingClientRect();
+  const left=ev&&ev.clientX!=null?ev.clientX-rect.left+10:rect.width/2-140, top=ev&&ev.clientY!=null?ev.clientY-rect.top-10:rect.height/2-60;
+  fillPopup(popup,head,html,meta);
+  placePopup(popup,rect,left,top);
+}
+function iwFocusAt(lat,lon,k){
+  if(!iwSvg||!iwProj||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  const [x,y]=iwProj([lon,lat]);const z=k||5;
+  iwSvg.transition().duration(500).call(iwZoom.transform,d3.zoomIdentity.translate(iwW/2-x*z,iwH/2-y*z).scale(z));
+  document.getElementById('iwMapWrap')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function iwResetView(){if(iwSvg)iwSvg.transition().duration(400).call(iwZoom.transform,d3.zoomIdentity)}
+function initIwMap(){
+  const wrap=document.getElementById('iwMapWrap'),svgEl=document.getElementById('iwMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  iwW=wrap.clientWidth||900;iwH=wrap.clientHeight||520;
+  iwSvg=d3.select(svgEl).attr('viewBox',`0 0 ${iwW} ${iwH}`).attr('preserveAspectRatio','xMidYMid meet');
+  iwSvg.selectAll('*').remove();
+  iwProj=d3.geoMercator().fitExtent([[14,14],[iwW-14,iwH-14]],IW_BBOX);
+  iwPath=d3.geoPath(iwProj);
+  const root=iwSvg.append('g');
+  iwBase=root.append('g').attr('class','iw-base');
+  iwLayersG=root.append('g').attr('class','iw-layers');
+  iwZoom=d3.zoom().scaleExtent([0.6,18]).on('zoom',ev=>{iwTransform=ev.transform;root.attr('transform',ev.transform);iwScale(ev.transform.k)});
+  iwSvg.call(iwZoom).on('click',()=>iwClosePopup());
+  if(iwTransform)iwSvg.call(iwZoom.transform,iwTransform);
+  iwBase.append('path').datum(d3.geoGraticule().step([5,5])()).attr('class','graticule').attr('d',iwPath);
+  ctWorld().then(world=>{
+    if(!world||!iwBase||!window.topojson)return;
+    const countries=topojson.feature(world,world.objects.countries);
+    iwBase.selectAll('path.land').data(countries.features).enter().append('path').attr('class',d=>'land'+(String(d.id)==='364'?' ir':'')).attr('d',iwPath);
+    iwBase.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',iwPath);
+    const k=iwTransform?iwTransform.k:1;
+    IW_LANDMARKS.forEach(l=>{const xy=iwProj([l.lon,l.lat]);if(!xy)return;iwBase.append('text').attr('class','iw-lbl').attr('x',xy[0]).attr('y',xy[1]-5).attr('text-anchor','middle').attr('data-fs',7).style('font-size',7/k+'px').text(l.n)});
+    iwLayersG.raise();
+  });
+  renderIwChips();
+  iwDraw();
+}
+function iwScale(k){
+  if(!iwLayersG)return;
+  iwLayersG.selectAll('.iw-pin').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  iwLayersG.selectAll('.iw-halo').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  iwLayersG.selectAll('.iw-sym').attr('transform',function(){return `translate(${this.dataset.x},${this.dataset.y}) scale(${1/Math.sqrt(k)})`});
+  if(iwBase)iwBase.selectAll('.iw-lbl').style('font-size',function(){return (+this.dataset.fs||7)/k+'px'});
+}
+function iwVisibleEvents(g){return (g?.events||[]).filter(e=>iwActive.kinds.has(IW_KIND[e.kind]?e.kind:'other')&&iwConfOk(e.confidence)&&iwInWindow(e.at))}
+function iwVisibleGround(g){return iwActive.ground?(g?.ground||[]).filter(x=>iwInWindow(x.at)):[]}
+function iwDraw(){
+  if(!iwLayersG||!iwProj)return;
+  iwClosePopup();
+  iwLayersG.selectAll('*').remove();
+  const k=iwTransform?iwTransform.k:1,w=D.iranwar||{},g=iwGeoNow();
+  const grd=iwLayersG.append('g').attr('class','iw-ground-g'),ev=iwLayersG.append('g').attr('class','iw-events-g');
+  const pin=(gr,lon,lat,r,fill,stroke,sw,onclick)=>{
+    const xy=iwProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
+    return gr.append('circle').attr('class','iw-pin').attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r).attr('r',r/Math.sqrt(k)).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw).on('click',e=>{e.stopPropagation();onclick(e)});
+  };
+  const sym=(gr,lon,lat,d,fill,stroke,onclick)=>{
+    const xy=iwProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
+    return gr.append('path').attr('class','iw-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).attr('d',d).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',1).on('click',e=>{e.stopPropagation();onclick(e)});
+  };
+  let drawn=0;
+  if(g){
+    iwVisibleGround(g).forEach(x=>{
+      const pop=iwPop(x,true);
+      if(sym(grd,x.lon,x.lat,'M-4.5,-4.5 H4.5 V4.5 H-4.5 Z',ctRgba(IW_GROUND.color,0.7),'rgba(0,0,0,0.7)',e=>iwPopup(e,pop.head,pop.text,pop.meta)))drawn++;
+    });
+    const now=Date.now();
+    iwVisibleEvents(g).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||''))).forEach(x=>{
+      const kind=iwKind(x.kind),conf=iwConf(x.confidence),pop=iwPop(x,false);
+      const r=3.4+Math.min(Number(x.casualties)||0,20)*0.18,sw=conf===IW_CONF.high||conf===IW_CONF.medium?2:1;
+      const fresh=Number.isFinite(Date.parse(x.at||''))&&now-Date.parse(x.at)<=24*3600000;
+      const p=x.kind==='intercept'
+        ?sym(ev,x.lon,x.lat,'M0,-5.5 L5.5,0 L0,5.5 L-5.5,0 Z',ctRgba(kind.color,0.85),conf.color,e=>iwPopup(e,pop.head,pop.text,pop.meta))
+        :pin(ev,x.lon,x.lat,r,ctRgba(kind.color,0.85),conf.color,sw,e=>iwPopup(e,pop.head,pop.text,pop.meta));
+      if(p){drawn++;if(x.kind==='intercept')p.attr('stroke-width',sw);}
+      if(p&&fresh){const xy=iwProj([x.lon,x.lat]);ev.append('circle').attr('class','iw-halo').attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r+5).attr('r',(r+5)/Math.sqrt(k)).attr('stroke',kind.color)}
+    });
+  }
+  const note=document.getElementById('iwMapNote');
+  if(note){
+    note.textContent=!iwHas(w)?'SOURCE NOT AVAILABLE \u2014 nothing plotted':g?`${drawn.toLocaleString('en-US')} of ${(g.events.length+g.ground.length).toLocaleString('en-US')} geocoded records drawn \u00b7 ${IW_WINDOWS[iwActive.win].label} window${iwConfMin?' \u00b7 \u2265 '+iwConfMin+' confidence':''}`:iwGeoFailed?'GEOMETRY UNAVAILABLE':'LOADING GEOMETRY\u2026';
+  }
+}
+function renderIwChips(){
+  const el=document.getElementById('iwChips');if(!el)return;
+  const w=D.iranwar||{},g=iwGeoNow(),has=iwHas(w);
+  const inWin=(g?.events||[]).filter(e=>iwInWindow(e.at)&&iwConfOk(e.confidence));
+  const byKind={};inWin.forEach(e=>{const kk=IW_KIND[e.kind]?e.kind:'other';byKind[kk]=(byKind[kk]||0)+1});
+  const grdN=(g?.ground||[]).filter(x=>iwInWindow(x.at)).length;
+  const chip=(id,label,color,n,on,onclick,why)=>{const none=!n;return `<button type="button" class="lchip ${none?'none':on?'on':'off'}" style="--lc:${color}" title="${esc(none?`${label}: ${why}`:`${label}: ${n} in window. Click to ${on?'hide':'show'}.`)}" ${none?'disabled':`onclick="${onclick}"`}><span class="ldot"></span>${esc(label)}${none?'':` <b>${n}</b>`}</button>`};
+  const why=!has?'source not available':!g?'geometry loading':'nothing in this window';
+  el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">WINDOW</span>${Object.entries(IW_WINDOWS).map(([k,v])=>`<button type="button" class="lchip preset ${iwActive.win===k?'on':'off'}" onclick="iwSetWindow('${k}')">${v.label}</button>`).join('')}<button type="button" class="lchip preset off" onclick="iwResetView()">RESET VIEW</button></div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">KINETIC \u00b7 ${has?`${inWin.length} IN WINDOW`:'UNAVAILABLE'}</span>${Object.entries(IW_KIND).map(([k,v])=>chip(k,v.label,v.color,byKind[k]||0,iwActive.kinds.has(k),`iwToggleKind('${k}')`,why)).join('')}${chip('ground',IW_GROUND.label,IW_GROUND.color,grdN,iwActive.ground,'iwToggleGround()',why)}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">MIN CONFIDENCE</span>${['high','medium','wire'].map(c=>`<button type="button" class="lchip ${iwConfMin===c?'on':'off'}" style="--lc:${IW_CONF[c].color}" title="${esc('Show only events at or above: '+IW_CONF[c].label)}" onclick="iwSetConf('${c}')"><span class="ldot"></span>\u2265 ${esc(c)}</button>`).join('')}<span class="lchip-head" style="border-style:dashed">${iwConfMin?'FILTERED':'ALL TIERS'}</span></div>`;
+}
+function iwBadge(w){
+  const st=w?.status;
+  if(!st)return `<span class="badge off">NOT POLLED</span>`;
+  if(st==='unavailable'||st==='error')return `<span class="badge off">UNAVAILABLE</span>`;
+  if(st==='empty')return `<span class="badge warn">EMPTY FEED</span>`;
+  const age=Number.isFinite(w.feedAgeH)?` \u00b7 feed ${iwAgeTxt(w.feedAgeH)}`:'';
+  if(st==='stale')return `<span class="badge warn">STALE${age}</span>`;
+  if(st==='limited')return `<span class="badge warn">LIMITED${age}</span>`;
+  return `<span class="badge">LIVE${age}</span>`;
+}
+function iwRow(kind,color,text,when,lat,lon,extra){
+  const go=Number.isFinite(lat)&&Number.isFinite(lon)?` onclick="iwFocusAt(${Number(lat)},${Number(lon)})" title="Show on the theater map"`:' style="cursor:default"';
+  return `<div class="front-row"${go}><span class="ct-kind" style="color:${color};border-color:${ctRgba(color,0.5)}">${esc(kind)}</span><span style="flex:1;min-width:0">${text}${extra||''}</span>${when?`<span class="front-when">${esc(when)}</span>`:''}</div>`;
+}
+function iwSourceLink(url,host){const u=url?safeExternalUrl(url):null;return u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:8px;color:var(--accent2)" onclick="event.stopPropagation()">${esc(host||'source')} \u2197</a>`:''}
+function iwOffWhy(w){return w?.error||(w?.status==='empty'?'IranWarLive answered but published no events in its window':'IranWarLive not reachable this sweep')}
+function renderIwMapPanel(){
+  const w=D.iranwar||{},c=w.counts||{},cas=w.casualties||{},has=iwHas(w);
+  const n=v=>(Number(v)||0).toLocaleString('en-US');
+  const kpis=has?`<div class="front-kpis">
+      <div class="front-kpi"><div class="k">Kinetic events \u00b7 48 h</div><div class="v" style="color:#ff5a36">${n(c.events48h)}</div><div class="s">${n(c.casualties48h)} reported casualties \u00b7 ${n(c.events24h)} in 24 h \u00b7 ${n(c.events7d)} in 7 d</div></div>
+      <div class="front-kpi"><div class="k">Ground ops rows</div><div class="v" style="color:#ffb74d">${n(c.ground48h)}<span style="font-size:9px;color:var(--dim)"> / ${n(c.ground)}</span></div><div class="s">${Object.entries(c.groundControl||{}).slice(0,3).map(([k,v])=>`${esc(k)} ${v}`).join(' \u00b7 ')||'no control labels'}</div></div>
+      <div class="front-kpi"><div class="k">Airspace / sea lanes</div><div class="v"><span style="color:#ff5252">${n(c.airspaceClosed)}</span><span style="font-size:9px;color:var(--dim)"> closed \u00b7 </span><span style="color:#ffb74d">${n(c.airspaceRestricted)}</span><span style="font-size:9px;color:var(--dim)"> restricted</span></div><div class="s">${n(c.airspaceRegions)} regions with a status</div></div>
+      <div class="front-kpi"><div class="k">Reported deaths (actors sheet)</div><div class="v"><span style="color:#ff8a65">${n(cas.military)}</span><span style="font-size:9px;color:var(--dim)"> mil \u00b7 </span><span style="color:#ffe0b2">${n(cas.civilian)}</span><span style="font-size:9px;color:var(--dim)"> civ</span></div><div class="s">${n(c.actors)} actors \u00b7 cumulative, unreconciled</div></div>
+    </div>`
+    :`<div class="g-off-why" style="margin:6px 0">${esc(iwOffWhy(w))}. The theater basemap is still drawn; no events are plotted because none were received \u2014 nothing here is synthesized.</div>`;
+  const disc=(w.disclaimer||[]).length?`<div class="ct-disc"><b>Read before use:</b> ${w.disclaimer.map(l=>esc(l)).join(' ')}</div>`:'';
+  const site=w.siteUrl?safeExternalUrl(w.siteUrl):null,feed=w.feedUrl?safeExternalUrl(w.feedUrl):null,lic=w.licenseUrl?safeExternalUrl(w.licenseUrl):null;
+  return `<div class="g-panel iw-map-panel">
+      <div class="sec-head"><h3>${shDot('IranWarLive')}Iran Theater — Kinetic & Ground Picture</h3>${iwBadge(w)}</div>
+      ${kpis}
+      <div id="iwChips" class="ct-chips"></div>
+      <div class="ct-map" id="iwMapWrap">
+        <svg id="iwMapSvg"></svg>
+        <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A PIN</div>
+        <div class="ct-key"><span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(255,90,54,0.85);height:8px;width:8px;border-width:2px"></i>PIN FILL = KIND \u00b7 RING = CONFIDENCE</span><span><i style="border-color:#64b5f6;background:rgba(100,181,246,0.8);height:8px;width:8px;transform:rotate(45deg)"></i>INTERCEPT</span><span><i style="border-color:rgba(0,0,0,0.7);background:rgba(255,209,128,0.7);height:8px;width:8px"></i>GROUND OPS</span><span><i style="border-radius:50%;border-color:#ff5a36;background:none;height:8px;width:8px;border-width:1px"></i>PULSE = LAST 24 H</span><span id="iwMapNote"></span></div>
+        <div class="map-popup" id="iwPopup"><div class="pp-close" onclick="iwClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
+      </div>
+      ${disc}
+      <div class="sh-note">Source: \u201cIranWarLive OSINT Machine Feed\u201d by ${esc(w.provider||'IranWarLive')} \u2014 a public JSON feed (48 h window) plus five published Google Sheets, polled every sweep and cached 30 min (${site?`<a href="${esc(site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">site \u2197</a>`:'site link unavailable'}${feed?` \u00b7 <a href="${esc(feed)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">feed.json \u2197</a>`:''}${lic?` \u00b7 <a href="${esc(lic)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">CC BY 4.0 \u2197</a>`:''}). The site describes itself as an automated pipeline over five English news feeds with LLM extraction and no human verification; its Terms limit reuse to research and journalism with attribution. Pin size grows with reported casualties. Coordinates are city-level.</div>
+    </div>`;
+}
+function renderIwEventsPanel(){
+  const w=D.iranwar||{};
+  if(!iwHas(w))return offPanel('Kinetic Event Feed','IranWarLive',iwOffWhy(w),'iw-events');
+  const rows=(w.events||[]).map(e=>{
+    const k=iwKind(e.kind),c=iwConf(e.confidence);
+    const sub=`<div class="ct-org-sub"><span style="color:${c.color}">${esc(c.label)}</span>${e.verifiedBy?' \u00b7 '+esc(e.verifiedBy):''}${Number.isFinite(e.casualties)&&e.casualties>0?` \u00b7 <span style="color:#ff8a65">${Number(e.casualties)} casualties</span>`:''}${e.location?' \u00b7 '+esc(e.location):''}${e.inFeed?'':' \u00b7 sheet only'} ${iwSourceLink(e.sourceUrl,e.sourceHost)}</div>`;
+    return iwRow(String(e.type||k.label).toUpperCase().slice(0,16),k.color,esc(e.text||''),iwWhen(e.at),e.lat,e.lon,sub);
+  });
+  return `<div class="g-panel iw-events"><div class="sec-head"><h3>${shDot('IranWarLive')}Kinetic Event Feed</h3><span class="badge ${Number(w.counts?.events24h)?'warn':''}">${Number(w.counts?.events48h)||0} IN 48H \u00b7 ${Number(w.counts?.events24h)||0} IN 24H</span></div>
+    <div class="ct-scroll">${rows.join('')||'<div class="g-off-why">No geocoded events inside the theater box this sweep.</div>'}</div>
+    <div class="sh-note">Newest first; the ${(w.events||[]).length} most recent theater events. Click a row to centre the map. Each row is one article as read by an LLM extractor \u2014 the confidence label is the site\u2019s own, and \u201cwire\u201d means a single English news wire.</div></div>`;
+}
+function renderIwGroundPanel(){
+  const w=D.iranwar||{};
+  if(!iwHas(w))return offPanel('Ground Operations','IranWarLive',iwOffWhy(w),'iw-ground');
+  const rows=(w.groundEvents||[]).map(g=>{
+    const sub=`<div class="ct-org-sub">${[g.units,g.movement].filter(Boolean).map(v=>esc(v)).join(' \u00b7 ')}${g.control?` \u00b7 <span style="color:#ffd180">control: ${esc(g.control)}</span>`:''}${Number.isFinite(g.casualties)&&g.casualties>0?` \u00b7 <span style="color:#ff8a65">${Number(g.casualties)} casualties</span>`:''} ${iwSourceLink(g.sourceUrl,g.sourceHost)}</div>`;
+    return iwRow(String(g.type||'GROUND').toUpperCase().slice(0,16),IW_GROUND.color,esc(g.text||''),iwWhen(g.at),g.lat,g.lon,sub);
+  });
+  const ctl=Object.entries(w.counts?.groundControl||{}).map(([k,v])=>`${esc(k)} <b>${v}</b>`).join(' \u00b7 ');
+  return `<div class="g-panel iw-ground"><div class="sec-head"><h3>${shDot('IranWarLive')}Ground Operations</h3><span class="badge">${Number(w.counts?.ground48h)||0} IN 48H \u00b7 ${Number(w.counts?.ground)||0} ROWS</span></div>
+    ${ctl?`<div class="front-legend"><span style="color:var(--dim)">Control labels:</span> ${ctl}</div>`:''}
+    <div class="ct-scroll">${rows.join('')||'<div class="g-off-why">No ground-operation rows this sweep.</div>'}</div>
+    <div class="sh-note">From the site\u2019s separate ground-operations sheet (its documented ground-feed.json returns 404, so the published sheet is read directly). \u201cControl\u201d is the extractor\u2019s label for one article, not an assessed control line.</div></div>`;
+}
+function renderIwAirspacePanel(){
+  const w=D.iranwar||{};
+  if(!iwHas(w))return offPanel('Airspace & Sea Lanes','IranWarLive',iwOffWhy(w),'iw-airspace');
+  const order={closed:0,restricted:1,unknown:2,open:3};
+  const rows=[...(w.airspace||[])].sort((a,b)=>(order[a.level]??2)-(order[b.level]??2)||String(a.region).localeCompare(String(b.region))).map(a=>{
+    const col=IW_AIR_COLOR[a.level]||IW_AIR_COLOR.unknown;
+    return iwRow(String(a.level||'unknown').toUpperCase(),col,`<b style="color:#e6f2ee">${esc(a.region)}</b> \u2014 ${esc(a.status)}`,iwWhen(a.at),NaN,NaN,a.sourceUrl?`<div class="ct-org-sub">${iwSourceLink(a.sourceUrl,a.sourceHost)}</div>`:'');
+  });
+  return `<div class="g-panel iw-airspace"><div class="sec-head"><h3>${shDot('IranWarLive')}Airspace & Sea Lanes</h3><span class="badge ${Number(w.counts?.airspaceClosed)?'warn':''}">${Number(w.counts?.airspaceClosed)||0} CLOSED \u00b7 ${Number(w.counts?.airspaceRestricted)||0} RESTRICTED</span></div>
+    <div class="front-legend">${Object.entries(IW_AIR_COLOR).map(([k,v])=>`<span><i style="background:${v};border-radius:50%"></i>${esc(k)}</span>`).join('')}</div>
+    <div class="ct-scroll">${rows.join('')||'<div class="g-off-why">No airspace rows this sweep.</div>'}</div>
+    <div class="sh-note">Latest row per region from the airspace sheet. The status text is kept verbatim; the colour is derived from its leading word only (\u201cOpen, but \u2026 blockade continues\u201d is shown as restricted). Not a NOTAM source.</div></div>`;
+}
+function renderIwPosturingPanel(){
+  const w=D.iranwar||{};
+  if(!iwHas(w))return offPanel('Posturing & Diplomacy','IranWarLive',iwOffWhy(w),'iw-posturing');
+  const stanceColor=s=>{const t=String(s||'').toLowerCase();return /hostile|belliger|escalat|threat|attack|strike/.test(t)?'#ff5252':/de-?escalat|ceasefire|talks|mediat|neutral|diplom|restrain/.test(t)?'#64f0c8':/support|ally|allied|back/.test(t)?'#90caf9':'#bdbdbd'};
+  const rows=(w.posturing||[]).map(p=>iwRow(String(p.stance||'STATEMENT').toUpperCase().slice(0,16),stanceColor(p.stance),`<b style="color:#e6f2ee">${esc(p.actor)}</b> \u2014 ${esc(p.text)}`,iwWhen(p.at),NaN,NaN,p.sourceUrl?`<div class="ct-org-sub">${iwSourceLink(p.sourceUrl,p.sourceHost)}</div>`:''));
+  return `<div class="g-panel iw-posturing"><div class="sec-head"><h3>${shDot('IranWarLive')}Posturing & Diplomacy</h3><span class="badge">${(w.posturing||[]).length} STATEMENTS</span></div>
+    <div class="ct-scroll">${rows.join('')||'<div class="g-off-why">No posturing rows this sweep.</div>'}</div>
+    <div class="sh-note">Newest first from the global-posturing sheet. Stance labels are the extractor\u2019s one-word reading of an article; colour is a keyword hint on that label, not an assessment.</div></div>`;
+}
+// Left rail: how the source behaved this sweep.
+function renderIwSourcePanel(){
+  const w=D.iranwar||{},has=iwHas(w),parts=w.parts||{};
+  const fetched=w.fetchedAt?new Date(w.fetchedAt):null,upd=w.feedUpdatedAt?new Date(w.feedUpdatedAt):null;
+  const partNames={feed:'feed.json',strikes:'strikes sheet',ground:'ground sheet',actors:'actors sheet',airspace:'airspace sheet',posturing:'posturing sheet'};
+  const okParts=Object.values(parts).filter(v=>v==='ok').length,allParts=Object.keys(parts).length;
+  const rows=[
+    ['Status',w.status?esc(String(w.status).toUpperCase())+(w.stale?' \u00b7 cached copy':''):'not polled',w.status==='live'?'live':has?'degraded':'error'],
+    ['Feed updated',upd&&!isNaN(upd)?`${upd.toISOString().slice(0,16).replace('T',' ')}Z (${iwAgeTxt(w.feedAgeH)})`:'\u2014',Number.isFinite(w.feedAgeH)?(w.feedAgeH<=6?'live':'degraded'):'off'],
+    ['Fetched',fetched&&!isNaN(fetched)?fetched.toISOString().slice(0,16).replace('T',' ')+'Z':'\u2014',has?'live':'off'],
+    ['Parts',allParts?Object.entries(parts).map(([k,v])=>`<span style="color:${v==='ok'?'#64f0c8':'#ff8a65'}">${esc(partNames[k]||k)}</span>`).join(' \u00b7 '):'\u2014',!allParts?'off':okParts===allParts?'live':okParts?'degraded':'error'],
+    ['Feed',w.feedVersion?`v${esc(w.feedVersion)} \u00b7 ${Number(w.feedWindowHours)||48} h window \u00b7 ${Number(w.counts?.events)||0} merged events (${Number(w.counts?.outOfTheater)||0} outside theater)`:'\u2014',has?'live':'off'],
+    ['Latest event',w.latestEventAt?esc(iwWhen(w.latestEventAt)):'\u2014',has?'live':'off'],
+  ];
+  const sig=(w.signals||[]).map(s=>`<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:${s.kind==='quality'?'var(--warn)':'var(--accent2)'};border-color:${s.kind==='quality'?'rgba(255,184,76,0.5)':'rgba(68,204,255,0.5)'}">${esc(String(s.kind||'').toUpperCase())}</span><span style="flex:1">${esc(s.text||'')}</span></div>`).join('');
+  const probs=(w.problems||[]).map(p=>`<div class="g-off-why" style="color:#ff8a65">\u26a0 ${esc(p)}</div>`).join('');
+  return `<div class="g-panel iw-source"><div class="sec-head"><h3>${shDot('IranWarLive')}Iran War Live Source</h3>${iwBadge(w)}</div>
+    ${rows.map(([k,v,st])=>`<div class="sh-row ${st}" style="align-items:flex-start"><span class="hdot ${st}" style="margin-top:4px"></span><span class="sh-name" style="flex:0 0 70px">${k}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2;text-align:left">${v}</span></div>`).join('')}
+    ${sig}${probs}
+    ${w.error&&!has?`<div class="g-off-why">${esc(w.error)}</div>`:''}
+    <div class="sh-note">LIVE only when feed.json and the strikes sheet both answered and the feed is under 6 h old. LIMITED = a part failed or the feed is older; STALE = serving a cached copy; EMPTY = the site answered with no events. A degraded source here never changes CRUCIX\u2019s overall health.</div></div>`;
+}
+function renderIwActorsPanel(){
+  const w=D.iranwar||{};
+  if(!iwHas(w)||!(w.actors||[]).length)return offPanel('Actors & Casualties','IranWarLive',iwOffWhy(w),'iw-actors');
+  const fmt=v=>Number.isFinite(v)?Number(v).toLocaleString('en-US'):'\u2014';
+  const actors=[...w.actors].sort((a,b)=>((b.militaryDeaths||0)+(b.civilianDeaths||0))-((a.militaryDeaths||0)+(a.civilianDeaths||0)));
+  const rows=actors.map(a=>`<div class="iw-actor"><div style="min-width:0"><div style="color:#e6f2ee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.name)}</div><div class="s">${[a.alliance,a.status].filter(Boolean).map(v=>esc(v)).join(' \u00b7 ')}${Number.isFinite(a.troops)?` \u00b7 ${fmt(a.troops)} troops`:''}</div></div><div class="n" style="color:#ff8a65">${fmt(a.militaryDeaths)}</div><div class="n" style="color:#ffe0b2">${fmt(a.civilianDeaths)}</div></div>`).join('');
+  return `<div class="g-panel iw-actors"><div class="sec-head"><h3>${shDot('IranWarLive')}Actors & Casualties</h3><span class="badge">${actors.length} ACTORS</span></div>
+    <div class="iw-actor head"><div>Country \u00b7 alliance \u00b7 status</div><div class="n" style="color:var(--dim)">MIL \u2020</div><div class="n" style="color:var(--dim)">CIV \u2020</div></div>
+    <div class="ct-scroll" style="max-height:52vh">${rows}</div>
+    <div class="sh-note">From the actors sheet, sorted by total reported deaths. Cumulative figures as reported by the underlying articles \u2014 unreconciled between sources and not an official count.</div></div>`;
+}
+function renderIwCorroborationPanel(){
+  const items=D.iranwar?.corroboration||[];
+  const names=['GDELT','ACLED'];
+  if(!items.length){
+    const worst=shWorst(names);
+    return `<div class="g-panel iw-corroboration"><div class="sec-head"><h3>${shDot(names)}Independent Reporting</h3><span class="badge ${worst&&worst.state!=='live'?'off':''}">${worst&&worst.state!=='live'?SH_LABEL[worst.state]:'QUIET'}</span></div><div class="g-off-why">${worst&&worst.state!=='live'?esc(shWhy(worst)):'No Iran-theater items in the last 72 h from GDELT or ACLED.'}</div></div>`;
+  }
+  const rows=items.map(i=>{
+    const url=i.url?safeExternalUrl(i.url):null;
+    const title=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(i.title)}</a>`:esc(i.title||'');
+    return `<div class="front-row" style="cursor:default"><span class="ct-feed-src" title="${esc(i.via||'')}">${esc(i.src||i.via||'')}</span><span style="flex:1;min-width:0">${title}${i.place?`<div class="ct-org-sub">${esc(i.place)}</div>`:''}</span>${i.at?`<span class="front-when">${esc(getAge(i.at))}</span>`:''}</div>`;
+  }).join('');
+  return `<div class="g-panel iw-corroboration"><div class="sec-head"><h3>${shDot(names)}Independent Reporting</h3><span class="badge">${items.length} ITEMS \u00b7 72H</span></div><div class="ct-scroll" style="max-height:40vh">${rows}</div>
+    <div class="sh-note">Theater-filtered items from feeds CRUCIX already polls. This is what else is reporting \u2014 it does not confirm any individual IranWarLive event.</div></div>`;
 }
 
 // === HOMELAND / NARCO EVENTS (D.narco, computed server-side in lib/narco/pipeline.mjs) ===

@@ -1,0 +1,12 @@
+Timestamp,Country,Status,Source_URL
+2026-03-21T16:00:00Z,Middle East & Gulf Region,Restricted,https://icao.int/safety
+2026-03-27T10:00:22.941Z,Strait of Hormuz (International Waters),Open,https://www.aljazeera.com/economy/2026/3/27/malaysias-ships-allowed-to-pass-strait-of-hormuz-pm-anwar-says
+2026-03-30T18:00:19.297Z,Spain,Restricted,https://www.aljazeera.com/news/2026/3/30/spain-closes-airspace-to-us-planes-involved-in-war-on-iran?traffic_source=rss
+2026-09-10T16:00:13.834Z,Lebanon,High Risk,https://www.theguardian.com/environment/2026/sep/10/how-the-fate-of-a-small-furry-animal-reveals-the-ecological-tragedy-of-israels-war-on-lebanon
+2026-09-10T20:00:06.788Z,Israel,Normal Operations,https://www.bbc.co.uk/news/articles/cy9znljypnjo?at_medium=RSS&at_campaign=rss
+2026-09-10T22:00:12.295Z,Gaza,Restricted,https://www.aljazeera.com/video/newsfeed/2026/9/10/family-of-four-killed-as-they-slept-in-israeli-strike-on-gaza?traffic_source=rss
+2026-09-11T06:00:11.436Z,Moldova,Restricted,https://www.nytimes.com/2026/09/10/world/europe/zelensky-plane-drone-moldova.html
+2026-09-11T14:00:48.798Z,Saudi Arabia,Restricted,https://www.nytimes.com/2026/09/09/business/saudi-arabia-houthis-red-sea-oil-shipping.html
+2026-09-11T18:00:47.282Z,Yemen,High Risk,https://www.nytimes.com/2026/09/11/world/middleeast/yemen-houthis-bab-al-mandab.html
+2026-09-11T19:00:00.000Z,Strait of Hormuz (International Waters),"Open, but under Iranian supervision; US blockade continues; European leaders discussing guarding.",https://example.org/hormuz
+2026-09-11T20:00:00.000Z,Yemen,Naval Blockade Active,https://example.org/yemen
