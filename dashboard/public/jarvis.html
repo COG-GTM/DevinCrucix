@@ -799,6 +799,18 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .inv-flag.ok{color:#4caf50}
 .inv-flag.partial{color:#ffd54f}
 .inv-err{padding:8px 10px;border:1px solid rgba(255,95,99,0.4);background:rgba(255,95,99,0.06);color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:8px}
+.inv-model{margin-top:6px;padding:7px 9px;border:1px dashed rgba(255,171,64,0.55);background:rgba(255,171,64,0.05)}
+.inv-model-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--mono);font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#ffab40;margin-bottom:4px}
+.inv-model-head .m{color:var(--dim);letter-spacing:0.04em;text-transform:none}
+.inv-model .big{font-size:13px;color:#ffe0b2}
+.inv-model .clue{font-size:10px;color:#c8d8d2;padding:1px 0 1px 10px;position:relative}
+.inv-model .clue::before{content:'\25B8';position:absolute;left:0;color:#ffab40}
+.inv-model .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.inv-geo-hint{flex:1;min-width:140px;padding:4px 6px;font-family:var(--mono);font-size:10px;color:#c8d8d2;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.12)}
+.inv-btn.warn{border-color:rgba(255,171,64,0.5);color:#ffab40;background:rgba(255,171,64,0.08)}
+.nv-quote{font-size:10px;color:#c8d8d2;padding:2px 0 2px 8px;border-left:2px solid rgba(255,171,64,0.5);margin:2px 0;font-style:italic}
+.ct-assess{fill:rgba(255,171,64,0.08);stroke:#ffab40;stroke-width:1.2;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;cursor:pointer}
+.ct-assess-c{fill:#ffab40;stroke:rgba(0,0,0,0.7)}
 .inv-loading{padding:18px 8px;text-align:center}
 .inv-loading-head{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--accent2);margin-bottom:10px}
 .inv-loading-head span{color:var(--dim);margin-left:8px}
@@ -3170,6 +3182,8 @@ const CT_MX_BBOX={type:'Polygon',coordinates:[[[-118.6,14.3],[-118.6,33.2],[-86.
 let ctActive=(()=>{try{const v=JSON.parse(localStorage.getItem(CT_STORE));if(Array.isArray(v)&&v.length)return new Set(v.filter(id=>CT_LAYER_BY_ID[id]))}catch{}return new Set(CT_PRESETS.current.ids)})();
 let ctOrgFilter=null, ctTransform=null;
 let ctSvg=null, ctBase=null, ctLayersG=null, ctProj=null, ctPath=null, ctZoom=null, ctW=0, ctH=0, ctWorldP=null;
+let ctAssessments=[]; // operator-pinned model geolocation assessments (session only, never persisted server-side)
+function ctUnpinAssessment(id){ctAssessments=ctAssessments.filter(a=>a.id!==id);ctClosePopup();ctDraw()}
 const ctIdSafe=v=>String(v??'').replace(/[^a-z0-9_-]/gi,'').slice(0,40);
 function ctHasCurrent(c){return (c.status==='live'||c.status==='stale')&&Number(c.featureCount)>0}
 function ctOn(id){return ctActive.has(id)}
@@ -3373,6 +3387,16 @@ function ctDraw(){
       if(p)p.attr('stroke-width',e.confidence?.grade==='A'||e.confidence?.grade==='B'?2:1).attr('stroke-dasharray',e.historical?'2 1.5':null);
     });
   }
+  // ---- MODEL ASSESSMENTS (photo geolocation pinned from Investigate) — dashed geodesic uncertainty circle, never a point ----
+  if(ctAssessments.length){
+    const ag=ctLayersG.append('g').attr('class','ct-assess-g');
+    ctAssessments.forEach(a=>{
+      const circ=d3.geoCircle().center([a.lon,a.lat]).radius(Math.max(0.02,a.radiusKm/111.32))();
+      const pop=ev=>ctPopup(ev,'MODEL ASSESSMENT — VERIFY',`${esc(a.place||'unresolved place')}<br>${a.lat}, ${a.lon} · ±${esc(String(a.radiusKm))} km · confidence ${esc(a.confidence)}${a.clues.length?'<br>'+a.clues.map(c=>'\u25B8 '+esc(c)).join('<br>'):''}<br><a href="javascript:void 0" onclick="ctUnpinAssessment('${esc(a.id)}')">unpin</a>`,`${esc(a.model)} · ${esc(a.file||'image')} · not a sourced fact`);
+      ag.append('path').datum(circ).attr('class','ct-assess').attr('d',ctPath).on('click',ev=>{ev.stopPropagation();pop(ev)});
+      pin(ag,a.lon,a.lat,3.2,'#ffab40','rgba(0,0,0,0.7)','ct-cur ct-assess-c',pop);
+    });
+  }
   const note=document.getElementById('cartelMapNote');
   if(note){
     const cnt=ctLayersG.selectAll('.ct-poly,.ct-pin,.ct-line,.ct-sym,.ct-hist-fill').size();
@@ -3564,7 +3588,8 @@ function nvRow(e){
       ${cited?`<div class="k">Cited by the article</div><div>${cited}</div>`:''}
       ${(e.people||[]).length?`<div class="k">People named</div><div>${esc(e.people.join(' \u00b7 '))}</div>`:''}
       ${(e.types||[]).length>1?`<div class="k">Event types</div><div>${esc(e.types.map(t=>(D.narco?.legend?.eventTypes||{})[t]||t).join(' \u00b7 '))}</div>`:''}
-      ${l?`<div class="k">Location</div><div>${esc(nvLoc(e))} \u00b7 ${esc(l.precision||'')} precision${mappable?` \u00b7 ${l.lat.toFixed(3)}, ${l.lon.toFixed(3)} \u00b7 <a href="javascript:void 0" onclick="event.stopPropagation();ctFocusAt(${Number(l.lat)},${Number(l.lon)})">show on map</a>`:''}</div>`:''}
+      ${l?`<div class="k">Location</div><div>${l.locality?`${esc(l.locality)} \u00b7 `:''}${esc(nvLoc(e))} \u00b7 ${esc(l.precision||'')} precision${l.source&&l.source!=='rules'?` \u00b7 <span style="color:#ffab40">${l.source==='llm'?'model-resolved':'model-refined'}, gazetteer-snapped</span>`:''}${mappable?` \u00b7 ${l.lat.toFixed(3)}, ${l.lon.toFixed(3)} \u00b7 <a href="javascript:void 0" onclick="event.stopPropagation();ctFocusAt(${Number(l.lat)},${Number(l.lon)})">show on map</a>`:''}</div>`:''}
+      ${l&&(l.evidence||[]).length?`<div class="k">Location evidence \u00b7 verbatim from the article</div>${l.evidence.map(q=>`<div class="nv-quote">\u201c${esc(q)}\u201d</div>`).join('')}`:''}
       ${sp||sg?`<div class="k" style="color:#ff8a80">OFAC SDN matches</div>${sp}${sg}<div class="nv-sub">Name matches are conservative (all name tokens must appear) but still require analyst confirmation against the Treasury record.</div>`:''}
     </div>`;
 }
@@ -3922,7 +3947,7 @@ const INV_SOURCES_BY_TYPE = {
 };
 function invNewCase(){return {name:'Untitled case',created:new Date().toISOString(),entities:{},edges:[],dossiers:{},notes:'',exported:false,viewedGraph:false,metadata:[]}}
 function invLoadCase(){try{const c=JSON.parse(localStorage.getItem('crucix_case')||'null');if(c&&c.entities&&c.edges)return {...invNewCase(),...c}}catch{}return invNewCase()}
-const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', case:invLoadCase(), meta:null, metaLoading:false, metaError:null, graphFocus:null };
+const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', case:invLoadCase(), meta:null, metaLoading:false, metaError:null, metaFile:null, geo:null, geoLoading:false, geoHint:'', graphFocus:null };
 // Resume the last dossier of a persisted case so the workbench is not empty after a reload.
 if(INV.case.lastKey&&INV.case.dossiers[INV.case.lastKey]){INV.dossier=INV.case.dossiers[INV.case.lastKey];INV.graphFocus=INV.case.lastKey;INV.query=INV.dossier.target||''}
 function invSaveCase(){try{localStorage.setItem('crucix_case',JSON.stringify(INV.case))}catch(e){console.warn('case too large for localStorage',e)}}
@@ -4336,12 +4361,59 @@ function renderMetaTool(){
     ['GPS',m.gps?`<b>${m.gps.lat}, ${m.gps.lon}</b>${m.gps.altitude!=null?` · ${m.gps.altitude} m`:''}${m.gps.direction!=null?` · heading ${m.gps.direction}°`:''}${m.gps.timestamp?` · ${esc(m.gps.timestamp)} UTC`:''} ${invExt(osm,'map')} <a class="inv-link" onclick="invAddGeoToCase()">add to case</a>`:null],
     ['SHA-256',`${invLink(m.sha256)} <span class="ts-base">pivot → VT/OTX</span>`],['MD5',invLink(m.md5)],['SHA-1',invLink(m.sha1)],
     ['EXIF',exif.length?`<dl class="inv-kv" style="grid-template-columns:120px 1fr">${exif.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(Array.isArray(v)?v.join(', '):v)}</dd>`).join('')}</dl>`:invDim('no EXIF tags')],
-    ['Text chunks',(m.textChunks||[]).length?m.textChunks.map(t=>`<div><span class="ts-base">${esc(t.key)}</span> ${esc(t.value)}</div>`).join(''):null],['Warnings',(m.warnings||[]).map(esc).join('; ')||null]])}</div>`;
+    ['Text chunks',(m.textChunks||[]).length?m.textChunks.map(t=>`<div><span class="ts-base">${esc(t.key)}</span> ${esc(t.value)}</div>`).join(''):null],['Warnings',(m.warnings||[]).map(esc).join('; ')||null]])}</div>`+renderGeoTool(m);
+}
+// Content-based geolocation: operator-initiated, only offered when EXIF carries no fix. Output is a model
+// assessment with an uncertainty radius — rendered apart from the parsed metadata so the two are never confused.
+function renderGeoTool(m){
+  const a=m.geoloc||{},g=INV.geo;
+  const head=(sub)=>`<div class="inv-model-head"><span>Model assessment · location from image content</span><span class="m">${sub}</span></div>`;
+  if(m.gps)return '';
+  if(!a.available&&!g)return `<div class="inv-model">${head('not run')}<div class="sh-note" style="margin:0">${a.reason==='no-model'||a.reason==='no-key'?'No vision-capable model configured (set LLM_PROVIDER / LLM_API_KEY to enable). ':''}${esc(a.detail||'Unavailable')}. EXIF carries no GPS fix, so no location is asserted for this image.</div></div>`;
+  const ctl=INV.geoLoading?`<div class="row"><span class="inv-loading-head">ESTIMATING… image sent to ${esc(a.detail||'model')} only</span></div>`
+    :`<div class="row"><input class="inv-geo-hint" maxlength="200" placeholder="optional context (e.g. 'posted by a Sinaloa account, Aug 2026') — sent to the model as unverified" value="${esc(INV.geoHint||'')}" oninput="INV.geoHint=this.value"><button class="inv-btn warn" onclick="invGeoEstimate()">${g?'Re-run':'Estimate location'} · ${esc(a.detail||'model')}</button></div>`;
+  if(!g)return `<div class="inv-model">${head('EXIF has no fix · operator-initiated')}<div class="sh-note" style="margin:0 0 2px">Asks the configured vision model for a bounded place estimate from visible cues (signage, plates, terrain). The image is not stored. The answer is snapped to the Mexico gazetteer where possible and always shown with an uncertainty radius — it is a lead to verify, not a fix.</div>${ctl}</div>`;
+  if(g.status!=='ok'){
+    const why={unavailable:g.detail,'no-estimate':'The model found no usable geographic cue in this image.',error:'Model request failed — no estimate.'}[g.status]||g.detail||'No estimate';
+    return `<div class="inv-model">${head(esc(g.model||''))}<div class="sh-note" style="margin:0">${esc(why||'No estimate')} No location is asserted.</div>${ctl}</div>`;
+  }
+  const s=g.assessment,place=[s.city,s.state,s.country].filter(Boolean).join(', ')||'unresolved place';
+  const osm=`https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lon}#map=${s.radiusKm<=10?12:s.radiusKm<=100?8:5}/${s.lat}/${s.lon}`;
+  return `<div class="inv-model">${head(esc(g.model||'model'))}
+    <div class="big">${esc(place)}</div>
+    <div style="font-family:var(--mono);font-size:10px;color:#c8d8d2;margin-top:2px">${s.lat}, ${s.lon} · ±${invFmtNum(s.radiusKm,0)} km · ${esc(s.precision||'')} precision · confidence <b>${esc(s.confidence)}</b> · ${s.snapped?'snapped to MX gazetteer':'not gazetteer-validated'} ${invExt(osm,'map')}</div>
+    ${s.conflict?`<div class="inv-flag">&#9650; Internally inconsistent answer: ${esc(s.conflict)}</div>`:''}
+    ${(s.clues||[]).length?`<div class="k" style="font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);margin-top:5px">Visible cues the model cited</div>${s.clues.map(c=>`<div class="clue">${esc(c)}</div>`).join('')}`:''}
+    <div class="row"><button class="inv-btn warn" onclick="invGeoPin()">Pin on Cartels map</button><button class="inv-btn" onclick="invGeoAddToCase()">Add to case (as assessment)</button></div>
+    <div class="sh-note" style="margin:4px 0 0">Model output, not sourced metadata. Verify against imagery, the cited cues and independent reporting before acting.</div>${ctl}</div>`;
+}
+async function invGeoEstimate(){
+  const f=INV.metaFile;if(!f||INV.geoLoading)return;
+  INV.geoLoading=true;renderLower();
+  try{
+    const hint=String(INV.geoHint||'').replace(/[^\p{L}\p{N} .,;:'’()/-]/gu,'').slice(0,200);
+    const r=await fetch('/api/investigate/geolocate',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-File-Name':f.name.replace(/[^\w. -]/g,'').slice(0,120),'X-Geo-Hint':hint},body:f});
+    const body=await r.json().catch(()=>({}));
+    INV.geo=r.ok?body:{status:'error',detail:body.error||'Geolocation failed'};
+  }catch{INV.geo={status:'error',detail:'Geolocation failed'}}
+  INV.geoLoading=false;renderLower();
+}
+function invGeoPin(){
+  const g=INV.geo,s=g?.assessment;if(!s)return;
+  ctAssessments=[{id:'ga'+Date.now(),lat:s.lat,lon:s.lon,radiusKm:s.radiusKm,confidence:s.confidence,place:[s.city,s.state,s.country].filter(Boolean).join(', '),clues:(s.clues||[]).slice(0,4),model:g.model||'model',file:INV.meta?.name||'',ts:new Date().toISOString()},...ctAssessments.filter(a=>!(a.lat===s.lat&&a.lon===s.lon))].slice(0,10);
+  setTab('cartels');
+  invToast('Pinned as model assessment on the Cartels map');
+  setTimeout(()=>{ctDraw();ctFocusAt(s.lat,s.lon,s.radiusKm<=10?9:s.radiusKm<=100?4:1.5)},450);
+}
+function invGeoAddToCase(){
+  const g=INV.geo,s=g?.assessment,m=INV.meta;if(!s||!m)return;
+  const k=invAddEntity('location',`${s.lat}, ${s.lon} (±${s.radiusKm} km, model assessment)`,{lat:s.lat,lon:s.lon,radiusKm:s.radiusKm,confidence:s.confidence,assessment:true,model:g.model,source:m.name});
+  const f=invAddEntity('hash',m.sha256,{source:m.name});invAddEdge(f,k,'model geolocation (unverified)');invSaveCase();invToast('Assessment added to case graph');renderLeftRail();
 }
 async function invMetaFile(file){
   if(!file)return;
   if(file.size>12*1024*1024){INV.metaError='File exceeds 12 MB';renderLower();return}
-  INV.metaLoading=true;INV.metaError=null;renderLower();
+  INV.metaLoading=true;INV.metaError=null;INV.metaFile=file;INV.geo=null;renderLower();
   try{
     const r=await fetch('/api/investigate/metadata',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-File-Name':file.name.replace(/[^\w. -]/g,'').slice(0,120)},body:file});
     const body=await r.json().catch(()=>({}));

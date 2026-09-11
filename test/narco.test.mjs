@@ -15,7 +15,7 @@ import {
   EVENT_TYPES, EVENT_TYPE_IDS, EVENT_TYPE_LABELS,
 } from '../lib/narco/extract.mjs';
 import { normalizeEvent, sameIncident, clusterEvents, gradeConfidence, sourceKind, typeFamily, CONFIDENCE, EVENT_SCHEMA, CLUSTER_SCHEMA } from '../lib/narco/events.mjs';
-import { validateLLMOutput, mergeLLM, needsLLM, parseJSON, llmEnrichRecords } from '../lib/narco/llm.mjs';
+import { validateLLMOutput, mergeLLM, needsLLM, parseJSON, llmEnrichRecords, verbatimSpans, MAX_EVIDENCE, VAGUE_PRECISIONS } from '../lib/narco/llm.mjs';
 import { isNarcoRelevant, isNarcoEvent, borderDocs, dojDocs } from '../lib/narco/pipeline.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -381,6 +381,38 @@ describe('LLM gap-filling (validated, deterministic fields win)', () => {
     assert.equal(kept.eventType, 'arrest', 'rule-based type wins');
     assert.equal(kept.location.state, 'Zacatecas', 'rule-based location wins');
     assert.equal(kept.counts.killed, 4, 'rule-based counts win');
+  });
+
+  it('keeps only verbatim location evidence and refines vague locations inside the same state', () => {
+    const text = 'The shooting happened in the colonia Las Quintas of Culiacán, Sinaloa, late on Tuesday. Police said the attackers fled on a motorcycle toward the airport highway.';
+    const v = validateLLMOutput({
+      eventType: 'homicide', state: 'Sinaloa', city: 'Culiacán', locality: 'colonia Las Quintas',
+      locationEvidence: ['The shooting happened in the colonia Las Quintas of Culiacán, Sinaloa, late on Tuesday.', 'The gunmen were CJNG hitmen from Jalisco.', 'x'],
+    }, { gz, groups, text });
+    assert.deepEqual(v.locationEvidence, ['The shooting happened in the colonia Las Quintas of Culiacán, Sinaloa, late on Tuesday.'], 'invented sentence dropped');
+    assert.equal(v.locality, 'colonia Las Quintas');
+    assert.equal(validateLLMOutput({ eventType: 'homicide', locality: 'colonia Inventada' }, { gz, groups, text }).locality, undefined, 'locality must appear in the article');
+    assert.deepEqual(verbatimSpans(['THE SHOOTING happened in the colonia las quintas of Culiacan, Sinaloa, late on Tuesday.'], text).length, 1, 'accent/case-insensitive match');
+    assert.deepEqual(verbatimSpans(['a', 'b'], text), []);
+    assert.equal(verbatimSpans(Array.from({ length: 5 }, (_, i) => text.slice(i * 10, i * 10 + 30)), text).length, MAX_EVIDENCE);
+
+    const vague = normalizeEvent(doc({ title: 'Gunmen kill two in Sinaloa', text }), { gz, groups });
+    vague.location = { country: 'MX', adm1: gz.stateKey.get('sinaloa').adm1, state: 'Sinaloa', municipality: null, city: null, lat: 25, lon: -107.5, precision: 'state' };
+    const refined = mergeLLM(vague, v, { gz, groups });
+    assert.equal(refined.location.city, 'Culiacán');
+    assert.equal(refined.location.precision, 'city');
+    assert.equal(refined.location.source, 'rules+llm');
+    assert.equal(refined.location.rulePrecision, 'state');
+    assert.equal(refined.location.locality, 'colonia Las Quintas');
+    assert.equal(refined.location.evidence.length, 1);
+
+    const elsewhere = mergeLLM(vague, validateLLMOutput({ eventType: 'homicide', state: 'Jalisco', city: 'Guadalajara' }, { gz, groups, text }), { gz, groups });
+    assert.equal(elsewhere.location.city, null, 'a city outside the rule-found state is ignored');
+    assert.equal(elsewhere.location.precision, 'state');
+    const precise = normalizeEvent(doc(), { gz, groups });
+    assert.ok(!VAGUE_PRECISIONS.has(precise.location.precision));
+    assert.equal(needsLLM(precise), false);
+    assert.equal(mergeLLM(precise, v, { gz, groups }).location.city, precise.location.city, 'precise rule location untouched');
   });
 
   it('is a no-op when disabled or without a provider', async () => {
