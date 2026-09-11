@@ -185,6 +185,14 @@ The Cartels tab also carries a normalized **event layer** built after every swee
 
 Events from the last 30 days draw as pins on the Cartels map (fill = event family, ring = confidence grade); 31–90-day events are a separate dashed layer. Runtime state lives under `runs/narco/`, `runs/doj/` and `runs/ofacnarco/`.
 
+### Iran War Live (Iran theater)
+
+The **IRAN WAR LIVE** tab plots the public output of [IranWarLive](https://iranwarlive.com) (Tileterra Systems) on a dedicated theater map (lat 10–43, lon 28–66): kinetic events (air strikes, missile/rocket, drone, interceptions) from `/feed.json` merged with the published *strikes* Google Sheet, plus the separate *ground operations*, *actors & casualties*, *airspace / sea lanes* and *global posturing* sheets. No API key is required; all six parts are public, unauthenticated CSV/JSON polled once per sweep and cached 30 minutes.
+
+IranWarLive is an **observational, machine-extracted layer, not verified intelligence**: the site describes itself as a single-operator pipeline that runs five English news-wire RSS feeds through an LLM extractor with no human review. Coordinates are city-level approximations, casualty figures are the wire's claim, and Western-aligned sources are over-represented. The dashboard says this on every panel and in every pin popup, and links each row to the cited article. The Situation strip only ever emits an *info* pointer, and only when `feed.json` fetched live, is under 6 h old and has events in the last 24 h.
+
+Source health: `LIVE` (feed and strikes sheet both answered, feed < 6 h old) · `LIMITED` (a supporting sheet failed or the feed is older) · `STALE` (serving a cached copy after an upstream failure) · `EMPTY` (the feed answered with no events) · `UNAVAILABLE`. A degraded IranWarLive never changes CRUCIX's overall `/api/health` status. Every third-party string is bounded and stripped of markup at ingestion and HTML-escaped again at render; only `http(s)` source links survive. The compact view model rides in the dashboard payload; point geometry is served separately from `GET /api/iranwar/geo` and fetched only when the tab (or the `Iran Theater` main-map layers) is opened. Attribution: IranWarLive publishes under CC BY 4.0 in its feed metadata while its Terms limit reuse to research and journalistic use with attribution — keep the source line and links intact.
+
 ## Border Watch Ingestion (Python)
 
 `ingest/` is a standalone Python 3.10+ service that continuously collects, cleans, deduplicates and entity-extracts border-region reporting from English- and Spanish-language outlets, loads government/research datasets as historical baselines, and flags anomalies (e.g. a spike in violence reporting in a border county relative to its own history). The Node dashboard reads its JSON API and renders the **Border Watch** panel.
