@@ -42,9 +42,9 @@ test('signal layers win defaults and are capped at MAX_DEFAULT_LAYERS', () => {
   const r = evaluateLayers(V2, { prc });
   const signal = r.layers.filter(l => l.state === 'signal').map(l => l.id);
   assert.deepEqual(signal, ['prc', 'military', 'gps', 'conflict', 'carriers', 'nuke', 'air', 'osint']);
-  assert.equal(r.defaults.length, MAX_DEFAULT_LAYERS);
-  assert.deepEqual(r.defaults, ['prc', 'military', 'gps', 'conflict', 'carriers']);
+  assert.deepEqual(r.defaults, ['prc', 'military', 'gps', 'conflict', 'carriers', 'air']);
   assert.equal(r.layers.find(l => l.id === 'nuke').on, false, 'signal layers past the cap stay off by default');
+  assert.equal(r.layers.find(l => l.id === 'air').on, true, 'pinned layers are on even past the signal cap');
   assert.equal(r.layers.find(l => l.id === 'air').why, 'Middle East: ≥15% no callsign');
 });
 
@@ -62,6 +62,28 @@ test('quiet sweep: defaults are padded with data layers up to MIN_DEFAULT_LAYERS
   assert.deepEqual(r.defaults, ['nuke', 'air', 'maritime']);
   assert.equal(r.layers.find(l => l.id === 'news').state, 'data');
   assert.equal(r.layers.find(l => l.id === 'news').on, false);
+});
+
+test('pinned layers (air, carriers) are on whenever they have data, off when they have nothing', () => {
+  const pinned = LAYERS.filter(l => l.pinned).map(l => l.id);
+  assert.deepEqual(pinned, ['carriers', 'air']);
+  const busy = evaluateLayers({
+    air: [air('Middle East', 100)],
+    carriers: { carriers: [{ lat: 1, lng: 1, source: 'USNI' }] },
+    adsbMilitary: { categories: { reconnaissance: [{ lat: 1, lon: 1 }] } },
+    gpsJamming: { zones: [{ lat: 1, lng: 1, severity: 'high' }] },
+    acled: { deadliestEvents: [{ lat: 1, lon: 1, fatalities: 12 }] },
+    nuke: [{ site: 'X', anom: true, cpm: 90 }],
+    tg: { urgent: [{}] },
+  }, { prc: { level: 'ELEVATED', score: 80, straitCn: 30, scsTotal: 40, isr: 1 } });
+  assert.equal(busy.layers.filter(l => l.state === 'signal').length, 6, 'more signal layers than the cap');
+  assert.deepEqual(busy.defaults, ['prc', 'military', 'gps', 'conflict', 'carriers', 'nuke', 'air']);
+  for (const l of busy.layers) assert.equal(l.pinned, pinned.includes(l.id));
+
+  const empty = evaluateLayers({ nuke: [{ site: 'X', anom: false, cpm: 20 }], news: [{ lat: 1, lon: 1 }], space: { stationPositions: [{ lat: 1, lon: 1 }] } });
+  assert.equal(empty.layers.find(l => l.id === 'air').on, false, 'a pinned layer with nothing to plot stays off');
+  assert.equal(empty.layers.find(l => l.id === 'carriers').on, false);
+  assert.deepEqual(empty.defaults, ['nuke', 'space', 'news']);
 });
 
 test('a throwing eval degrades that layer to none instead of blanking the map', () => {
