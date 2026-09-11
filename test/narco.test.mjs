@@ -171,6 +171,9 @@ describe('rule-based extraction', () => {
     assert.equal(s.weapons, 3);
     const lb = extractSeizures('found 220 pounds of cocaine');
     assert.ok(Math.abs(lb.drugs[0].kg - 99.8) < 0.5);
+    assert.equal(extractSeizures('Le aseguraron 5,445 cartuchos y un vehículo.').vehicles, undefined, '"cartuchos" is not "cars"');
+    assert.equal(extractSeizures('agents seized 12 stolen cars and 3 trucks').vehicles, 12);
+    assert.equal(extractSeizures('aseguraron dos camionetas').vehicles, 2);
   });
 
   it('does not report fees, payments or prices as cash seizures, nor money as weapon counts', () => {
