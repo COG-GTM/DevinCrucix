@@ -232,9 +232,18 @@ Structured datasets are loaded on their own schedules and exposed under `/baseli
 
 The dashboard proxies the read-only routes at `/api/ingest/*` (allow-list in `apis/sources/borderingest.mjs`) and serves the synthesized panel data at `/api/border`. Tests: `cd ingest && pytest` (recorded fixtures under `ingest/tests/fixtures/`), `ruff check .`, `mypy crucix_ingest`.
 
-### CBP Enforcement Statistics (official CSVs)
+### Border / CBP (CBP Public Data Portal)
 
-`apis/sources/cbpstats.mjs` reads the monthly CSVs U.S. Customs and Border Protection publishes (public domain): *Nationwide Encounters by Area of Responsibility* and *Nationwide Drug Seizures*. Because the file name moves every month, each sweep first reads the official document pages (`/document/stats/nationwide-encounters`, `/document/stats/nationwide-drug-seizures`), picks the newest `.csv` link, and falls back to the last verified URL if the page is unreachable. Downloads are conditional (ETag / Last-Modified) and cached under `runs/cbp/`, so a CBP outage degrades the panel to `STALE` instead of blanking it; a changed header row is refused rather than guessed at. The panel shows Southwest-land-border encounters (total, USBP vs OFO, 13-month trend, per-sector MoM/YoY, demographic, top citizenships) and Southwest drug seizures (lbs and events by drug type and AOR). Fiscal-year months are converted to calendar months (FY starts 1 October). Note that cbp.gov's edge returns 403 to curl-style clients; the source relies on Node's native `fetch`.
+The Regional tab carries a consolidated **Border / CBP** panel group fed by four adapters that read what U.S. Customs and Border Protection publishes on its [Public Data Portal](https://www.cbp.gov/newsroom/stats/cbp-public-data-portal) (public domain; *"This product uses U.S. Customs and Border Protection data, but is not endorsed by CBP."*). All four share `apis/sources/cbpcommon.mjs`: each sweep first reads the official document page, picks the newest `.csv` link (the file name moves every month), honours `robots.txt`, downloads conditionally (ETag / Last-Modified) and caches under `runs/cbp/`, so a CBP outage degrades a dataset to `STALE` instead of blanking it; a changed header row or page layout is refused rather than guessed at. Fiscal-year months are converted to calendar months (FY starts 1 October). Note that cbp.gov's edge returns 403 to curl-style clients; the sources rely on Node's native `fetch`.
+
+| Source | Module | Datasets | Panel |
+|---|---|---|---|
+| `CBPStats` | `apis/sources/cbpstats.mjs` | Nationwide Encounters by AOR, Nationwide Drug Seizures | Southwest encounters (total, USBP vs OFO, 13-month trend, per-sector MoM/YoY, demographics, citizenships) and Southwest drug seizures by type and AOR |
+| `CBPSeizures` | `apis/sources/cbpseizures.mjs` | AMO Drug Seizures, Currency & Monetary Instrument Seizures, Weapons & Ammunition Seizures | AMO lbs / events by drug and region, currency USD by AOR and direction, weapon events (deduplicated by event ID, outbound share, weapons vs ammunition/parts) |
+| `CBPForce` | `apis/sources/cbpforce.mjs` | Assault Incidents, Assault Types, Use-of-Force Incidents, Use-of-Force Types | Assaults on officers/agents and CBP use of force: incidents, officers involved, Southern Border share, Southwest sectors, assault/force type tables |
+| `CBPCustody` | `apis/sources/cbpcustody.mjs` | Custody & Transfer Statistics page, CBP Enforcement Statistics page (HTML tables — CBP publishes no CSV) | USBP in-custody by sector, OFO custody vs capacity, dispositions, transfers, fiscal-year enforcement encounters, TSDS encounters, criminal noncitizens, rescues, gang affiliations |
+
+Tableau-only views on `publicstats.cbp.gov` (dosage-unit / street-value estimates, UFLPA) are linked out from the group header rather than scraped. Tests: `node --test test/cbpstats.test.mjs test/cbpportal.test.mjs` (recorded fixtures under `test/fixtures/cbp/`).
 
 ---
 
