@@ -160,6 +160,10 @@ export function anchors(sortedPeriods) {
 // Discovery + conditional download + on-disk cache
 // ---------------------------------------------------------------------------
 
+function parseJsonBody(text) {
+  try { return JSON.parse(text); } catch { return undefined; }
+}
+
 export async function timedFetch(fetchImpl, url, headers, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -193,27 +197,34 @@ async function discover(dataset, fetchImpl) {
 
 export function readJson(p, fallback) { try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return fallback; } }
 
-// Load one dataset. Two kinds:
+// Load one dataset. Three kinds:
 //   CSV  (default)  discoveryPage + linkPattern + fallbackUrl + expectedHeader → { meta, records }
 //   HTML (kind:'html')  fixed pageUrl, validated by dataset.validate(text) → { meta, text }
+//   JSON (kind:'json')  fixed pageUrl, validated by dataset.validate(parsed) → { meta, text, json, records }
 // meta.status: ok | not_modified | stale | error
-export async function loadDataset(dataset, { fetchImpl, dataDir, state, now }) {
+// `ignoreRobots` is an operator opt-in for hosts whose robots.txt blanket-disallows non-search
+// crawlers; the note it leaves is surfaced on the dashboard.
+export async function loadDataset(dataset, { fetchImpl, dataDir, state, now, ignoreRobots = false }) {
   const cachePath = join(dataDir, dataset.cacheFile);
   const prev = state[dataset.id] || {};
   const notes = [];
   const isHtml = dataset.kind === 'html';
+  const isJson = dataset.kind === 'json';
+  const fixedUrl = isHtml || isJson;
+  const publisher = dataset.publisher || 'CBP';
   let url = dataset.pageUrl;
   let discoveredOk = false;
-  if (!isHtml) {
+  if (!fixedUrl) {
     const discovered = await discover(dataset, fetchImpl);
     url = discovered.url || prev.url || dataset.fallbackUrl;
     discoveredOk = Boolean(discovered.url);
     if (!discovered.url) notes.push(`${discovered.reason}; using ${prev.url ? 'last known' : 'fallback'} URL`);
   }
 
-  const robots = await checkRobots(url, { fetch: fetchImpl });
+  const robots = ignoreRobots ? { allowed: true } : await checkRobots(url, { fetch: fetchImpl });
+  if (ignoreRobots) notes.push('robots.txt override enabled by operator');
   const meta = {
-    id: dataset.id, title: dataset.title, kind: isHtml ? 'html' : 'csv', url, discoveryPage: dataset.discoveryPage || dataset.pageUrl, discovered: discoveredOk,
+    id: dataset.id, title: dataset.title, kind: isHtml ? 'html' : isJson ? 'json' : 'csv', url, discoveryPage: dataset.discoveryPage || dataset.pageUrl, discovered: discoveredOk,
     header: prev.header || null, etag: prev.etag || null, lastModified: prev.lastModified || null, fetchedAt: prev.fetchedAt || null, bytes: prev.bytes || null,
     status: 'error', httpStatus: null, reason: null, notes,
   };
@@ -222,7 +233,7 @@ export async function loadDataset(dataset, { fetchImpl, dataDir, state, now }) {
   if (!robots.allowed) {
     meta.reason = 'robots-disallowed';
   } else {
-    const headers = { Accept: isHtml ? 'text/html' : 'text/csv,*/*;q=0.5' };
+    const headers = { Accept: isHtml ? 'text/html' : isJson ? 'application/json,*/*;q=0.5' : 'text/csv,*/*;q=0.5' };
     if (url === prev.url && prev.etag) headers['If-None-Match'] = prev.etag;
     if (url === prev.url && prev.lastModified) headers['If-Modified-Since'] = prev.lastModified;
     try {
@@ -236,13 +247,16 @@ export async function loadDataset(dataset, { fetchImpl, dataDir, state, now }) {
         let problem = null;
         if (isHtml) {
           problem = dataset.validate ? dataset.validate(body) : null;
+        } else if (isJson) {
+          const parsed = parseJsonBody(body);
+          problem = parsed === undefined ? 'body is not valid JSON' : dataset.validate ? dataset.validate(parsed) : null;
         } else {
           header = csvRecords(body).header;
           if (!headerMatches(header, dataset.expectedHeader)) problem = `unexpected header: ${header.join(',').slice(0, 160)}`;
         }
         if (problem) {
           meta.reason = problem;
-          notes.push(isHtml ? 'CBP changed the page layout; parser not applied' : 'CBP changed the CSV layout; parser not applied');
+          notes.push(`${publisher} changed the ${isHtml ? 'page layout' : isJson ? 'JSON layout' : 'CSV layout'}; parser not applied`);
         } else {
           mkdirSync(dataDir, { recursive: true });
           writeFileSync(cachePath, body);
@@ -262,6 +276,10 @@ export async function loadDataset(dataset, { fetchImpl, dataDir, state, now }) {
     if (meta.status !== 'not_modified') { meta.status = 'stale'; notes.push(`serving cached copy from ${meta.fetchedAt || 'earlier sweep'}`); }
   }
   if (isHtml) return { meta, text, records: [] };
+  if (isJson) {
+    const json = text ? parseJsonBody(text) : undefined;
+    return { meta, text, json, records: Array.isArray(json) ? json : [] };
+  }
   const parsed = text ? csvRecords(text) : { header: [], records: [] };
   if (text && !meta.header) meta.header = parsed.header;
   return { meta, text, records: parsed.records };
@@ -277,8 +295,10 @@ export async function loadDatasets(datasets, opts = {}) {
   const statePath = join(dataDir, opts.stateFile || 'state.json');
   const state = readJson(statePath, {});
 
+  const ignoreRobots = opts.ignoreRobots === true;
+
   const loaded = [];
-  for (const ds of datasets) loaded.push(await loadDataset(ds, { fetchImpl, dataDir, state, now }));
+  for (const ds of datasets) loaded.push(await loadDataset(ds, { fetchImpl, dataDir, state, now, ignoreRobots }));
 
   for (const d of loaded) {
     if (d.meta.status === 'ok' || d.meta.status === 'not_modified') {

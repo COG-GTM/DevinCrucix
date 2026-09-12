@@ -1262,6 +1262,71 @@ export async function synthesize(data) {
         } : null,
       };
     })(),
+    // ICE detention (TRAC). Facilities are aggregated to state centroids in the source; the
+    // browser never sees the 18k-row facility history.
+    trac: (() => {
+      const t = data.sources.TRAC || {};
+      const pop = t.population;
+      const bk = t.bookIns;
+      const fac = t.facilities;
+      const atd = t.atd;
+      const snap = s => ({ date: cbpStr(s.date, 10), total: cbpNullable(s.total), ice: cbpNullable(s.ice), cbp: cbpNullable(s.cbp), convicted: cbpNullable(s.convicted), pending: cbpNullable(s.pending), noRecord: cbpNullable(s.noRecord) });
+      const change = c => (c ? { date: cbpStr(c.date, 10), total: cbpNullable(c.total), changePct: cbpPct(c.changePct) } : null);
+      const month = m => ({ month: cbpStr(m.month, 7), label: cbpStr(m.label, 8), total: cbpNullable(m.total), ice: cbpNullable(m.ice), cbp: cbpNullable(m.cbp) });
+      return {
+        ...cbpSourceMeta(t, 4),
+        siteUrl: sanitizeExternalUrl(t.siteUrl),
+        population: pop ? {
+          asOf: cbpStr(pop.asOf, 10), snapshots: cbpNum(pop.snapshots),
+          latest: { ...snap(pop.latest), icePct: cbpPct(pop.latest.icePct), convictedPct: cbpPct(pop.latest.convictedPct), pendingPct: cbpPct(pop.latest.pendingPct), noRecordPct: cbpPct(pop.latest.noRecordPct), noConvictionPct: cbpPct(pop.latest.noConvictionPct) },
+          previous: change(pop.previous), yearAgo: change(pop.yearAgo),
+          series: cbpSeries(pop.series, 26).map(snap),
+        } : null,
+        bookIns: bk ? {
+          asOf: cbpStr(bk.asOf, 10),
+          latest: { ...month(bk.latest), icePct: cbpPct(bk.latest.icePct) },
+          momPct: cbpPct(bk.momPct), yoyPct: cbpPct(bk.yoyPct),
+          partial: cbpSeries(bk.partial, 2).map(month),
+          series: cbpSeries(bk.series, 13).map(month),
+        } : null,
+        facilities: fac ? {
+          asOf: cbpStr(fac.asOf, 10), total: cbpNum(fac.total), guaranteedMin: cbpNum(fac.guaranteedMin), facilities: cbpNum(fac.facilities), withGuaranteedMin: cbpNum(fac.withGuaranteedMin),
+          byType: cbpSeries(fac.byType, 12).map(g => ({ type: cbpStr(g.type, 12), facilities: cbpNum(g.facilities), detainees: cbpNum(g.detainees), guaranteedMin: cbpNum(g.guaranteedMin) })),
+          byState: cbpSeries(fac.byState, 60).map(g => ({ state: cbpStr(g.state, 2), facilities: cbpNum(g.facilities), detainees: cbpNum(g.detainees), guaranteedMin: cbpNum(g.guaranteedMin), lat: cbpNullable(g.lat), lon: cbpNullable(g.lon), sharePct: cbpPct(g.sharePct) })),
+          top: cbpSeries(fac.top, 15).map(f => ({ name: cbpStr(f.name, 80), city: cbpStr(f.city, 40), state: cbpStr(f.state, 2), type: cbpStr(f.type, 12), count: cbpNum(f.count), guaranteedMin: cbpNullable(f.guaranteedMin) })),
+        } : null,
+        atd: atd ? {
+          asOf: cbpStr(atd.asOf, 10), total: cbpNum(atd.total), avgDays: cbpNullable(atd.avgDays), aors: cbpNum(atd.aors), yearAgo: change(atd.yearAgo),
+          byTech: cbpSeries(atd.byTech, 8).map(x => ({ technology: cbpStr(x.technology, 24), count: cbpNum(x.count), sharePct: cbpPct(x.sharePct) })),
+          topAors: cbpSeries(atd.topAors, 10).map(a => ({ aor: cbpStr(a.aor, 40), count: cbpNum(a.count), avgDays: cbpNullable(a.avgDays) })),
+          series: cbpSeries(atd.series, 13).map(s => ({ date: cbpStr(s.date, 10), total: cbpNullable(s.total) })),
+        } : null,
+      };
+    })(),
+    // Taiwan MND daily PLA activity reports (robots-gated; see apis/sources/plamnd.mjs)
+    plamnd: (() => {
+      const p = data.sources.PLAMND || {};
+      const a = p.activity;
+      const day = r => ({ date: cbpStr(r.date, 10), aircraft: cbpNullable(r.aircraft), adizSorties: cbpNullable(r.adizSorties), ships: cbpNullable(r.ships), officialShips: cbpNullable(r.officialShips), balloons: cbpNullable(r.balloons), medianLine: !!r.medianLine });
+      const win = w => (w ? { days: cbpNum(w.days), aircraft: cbpNum(w.aircraft), adizSorties: cbpNum(w.adizSorties), ships: cbpNullable(w.ships), officialShips: cbpNullable(w.officialShips), balloons: cbpNum(w.balloons), aircraftPerDay: cbpNullable(w.aircraftPerDay), medianLineDays: cbpNullable(w.medianLineDays) } : null);
+      return {
+        ...cbpSourceMeta(p, 2),
+        message: p.message ? cbpStr(p.message, 200) : null,
+        siteUrl: sanitizeExternalUrl(p.siteUrl),
+        robotsOverride: !!p.robotsOverride,
+        activity: a ? {
+          asOf: cbpStr(a.asOf, 10), reports: cbpNum(a.reports), earliest: cbpStr(a.earliest, 10),
+          latest: a.latest ? {
+            ...day(a.latest), window: cbpStr(a.latest.window, 120), windowEndUtc: a.latest.windowEndUtc ? cbpStr(a.latest.windowEndUtc, 30) : null,
+            adizSectors: cbpSeries(a.latest.adizSectors, 9).map(s => cbpStr(s, 16)), url: sanitizeExternalUrl(a.latest.url), chartUrl: sanitizeExternalUrl(a.latest.chartUrl), text: cbpStr(a.latest.text, 400),
+          } : null,
+          last7: win(a.last7), last30: win(a.last30),
+          aircraftPerDayDelta7: cbpNullable(a.aircraftPerDayDelta7),
+          peak: a.peak ? { date: cbpStr(a.peak.date, 10), aircraft: cbpNullable(a.peak.aircraft), adizSorties: cbpNullable(a.peak.adizSorties), url: sanitizeExternalUrl(a.peak.url) } : null,
+          series: cbpSeries(a.series, 30).map(day),
+        } : null,
+      };
+    })(),
     // Phase 5: Telegram OSINT Live (background scraper data)
     telegramLive: (() => {
       const tlData = data.sources.TelegramLive || {};
