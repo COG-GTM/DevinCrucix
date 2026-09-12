@@ -1,0 +1,147 @@
+{
+ "version": "2.1",
+ "last_updated": "2026-09-11T18:00:47.282Z",
+ "title": "IranWarLive OSINT Machine Feed",
+ "home_page_url": "https://iranwarlive.com",
+ "window_hours": 48,
+ "items": [
+  {
+   "event_id": "IRW-V5-1789142458111-0",
+   "type": "Air Strike",
+   "location": "Ali al-Taher ridge, Lebanon",
+   "timestamp": "2026-09-11T16:00:48.323Z",
+   "confidence": "US/IDF Military (High)",
+   "event_summary": "On 2026-09-11, a Air Strike targeted Underground Hezbollah base and tunnel complex in Ali al-Taher ridge, Lebanon, resulting in 0 casualties.",
+   "source_url": "https://www.bbc.co.uk/news/articles/c4gl92lw8vpo?at_medium=RSS&at_campaign=rss",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 33.34,
+     "lng": 35.45
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789135290174-0",
+   "type": "Ground Forces",
+   "location": "Ali al-Taher, Lebanon",
+   "timestamp": "2026-09-11T14:00:48.798Z",
+   "confidence": "News Wire",
+   "event_summary": "On 2026-09-11, a Ground Forces targeted Underground Hezbollah base and tunnel complex on strategic ridge in Ali al-Taher, Lebanon, resulting in 0 casualties.",
+   "source_url": "https://www.nytimes.com/2026/09/11/world/middleeast/blast-lebanon-israel-hezbollah-base.html",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 33.32,
+     "lng": 35.48
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789128059781-0",
+   "type": "Ground Forces",
+   "location": "Bab el-Mandeb, Yemen",
+   "timestamp": "2026-09-11T12:00:49.169Z",
+   "confidence": "News Wire",
+   "event_summary": "On 2026-09-11, a Ground Forces targeted Strategic volcanic island (Perim) captured by Houthi forces in the Red Sea strait. in Bab el-Mandeb, Yemen, resulting in 0 casualties.",
+   "source_url": "https://www.theguardian.com/world/2026/sep/11/iran-houthi-allies-capture-strategic-island-bab-al-mandab-strait",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 12.58,
+     "lng": 43.34
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789128059781-1",
+   "type": "Missile Strike",
+   "location": "Manama, Bahrain",
+   "timestamp": "2026-09-11T12:00:49.169Z",
+   "confidence": "News Wire",
+   "event_summary": "On 2026-09-11, a Missile Strike targeted US Naval Base near Manama sustained heavy damage from Iranian strikes. in Manama, Bahrain, resulting in 0 casualties.",
+   "source_url": "https://www.aljazeera.com/news/2026/9/11/blew-the-hell-out-of-it-how-iran-damaged-us-bases-in-bahrain-jordan",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 26.22,
+     "lng": 50.59
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789128059781-2",
+   "type": "Missile Strike",
+   "location": "Muwaffaq Salti Air Base, Jordan",
+   "timestamp": "2026-09-11T12:00:49.169Z",
+   "confidence": "News Wire",
+   "event_summary": "On 2026-09-11, a Missile Strike targeted US-occupied air base sustained damage in Iranian strikes. in Muwaffaq Salti Air Base, Jordan, resulting in 0 casualties.",
+   "source_url": "https://www.aljazeera.com/news/2026/9/11/blew-the-hell-out-of-it-how-iran-damaged-us-bases-in-bahrain-jordan",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 31.83,
+     "lng": 36.78
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789128059781-3",
+   "type": "Ground Forces",
+   "location": "South Lebanon, Lebanon",
+   "timestamp": "2026-09-11T12:00:49.169Z",
+   "confidence": "US/IDF Military (High)",
+   "event_summary": "On 2026-09-11, a Ground Forces targeted Demolition of Hezbollah tunnel network using 1,100 tonnes of explosives. in South Lebanon, Lebanon, resulting in 0 casualties.",
+   "source_url": "https://www.aljazeera.com/video/newsfeed/2026/9/11/09-11-reported-israel-hezb-tunnels-lebanon-mp4",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 33.27,
+     "lng": 35.2
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789000000000-9",
+   "type": "Missile Strike",
+   "location": "Tehran, Iran",
+   "timestamp": "2026-09-10T09:00:00.000Z",
+   "confidence": "State Media/Unverified",
+   "event_summary": "<script>alert(1)</script>Feed copy of the sheet row",
+   "source_url": "javascript:alert(1)",
+   "_osint_meta": {
+    "casualties": 1250,
+    "coordinates": {
+     "lat": 35.69,
+     "lng": 51.39
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789099999999-0",
+   "type": "Interception",
+   "location": "Eilat, Israel",
+   "timestamp": "2026-09-11T17:30:00.000Z",
+   "confidence": "US/IDF Military (High)",
+   "event_summary": "Feed-only item not yet on the sheet",
+   "source_url": "https://example.org/eilat",
+   "_osint_meta": {
+    "casualties": 0,
+    "coordinates": {
+     "lat": 29.56,
+     "lng": 34.95
+    }
+   }
+  },
+  {
+   "event_id": "IRW-V5-1789088888888-0",
+   "type": "Air Strike",
+   "timestamp": "2026-09-11T17:00:00.000Z",
+   "event_summary": "No coordinates → dropped",
+   "source_url": "https://example.org/nocoords",
+   "_osint_meta": {
+    "casualties": 0
+   }
+  }
+ ]
+}
