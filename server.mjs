@@ -14,6 +14,7 @@ import { collectQuick as yfinanceQuick } from './apis/sources/yfinance.mjs';
 import { synthesize, generateIdeas } from './dashboard/inject.mjs';
 import { MemoryManager } from './lib/delta/index.mjs';
 import { createLLMProvider } from './lib/llm/index.mjs';
+import { geolocatePhoto, photoGeolocAvailability, sanitizeHint } from './lib/geoloc/photo.mjs';
 import { generateLLMIdeas } from './lib/llm/ideas.mjs';
 import { TelegramAlerter } from './lib/alerts/telegram.mjs';
 import { DiscordAlerter } from './lib/alerts/discord.mjs';
@@ -64,7 +65,8 @@ for (const dir of [RUNS_DIR, MEMORY_DIR, join(MEMORY_DIR, 'cold')]) {
 // === State ===
 let currentData = null;    // Current synthesized dashboard data
 let frontGeo = null;       // DeepStateMAP geometry from the last sweep (served separately from /api/data)
-let cartelGeo = null;      // Cartel-map KML geometry from the last sweep (served separately from /api/data)
+let cartelGeo = null;      // Cartel-map KML geometry from the last sweep
+let iranGeo = null;        // Iran War Live geocoded events (kinetic + ground) from the last sweep (served separately from /api/data)
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
@@ -491,6 +493,18 @@ app.get('/api/cartels/geo', (req, res) => {
   res.json(cartelGeo);
 });
 
+// API: Iran War Live (LLM-extracted Iran-theater aggregator) — summary in /api/data, geocoded events on demand
+app.get('/api/iranwar', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.iranwar || { status: 'unavailable' });
+});
+
+app.get('/api/iranwar/geo', (req, res) => {
+  if (!iranGeo) return res.status(404).json({ error: 'No Iran War Live geometry yet' });
+  res.set('Cache-Control', 'private, max-age=300');
+  res.json(iranGeo);
+});
+
 // API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
 // independent corroboration and cross-matched against the OFAC SDN narco-program index.
 const NARCO_ID_RE = /^[a-z0-9_-]{1,40}$/;
@@ -636,10 +650,33 @@ app.post('/api/investigate/metadata', express.raw({ type: () => true, limit: MET
   const name = String(req.get('x-file-name') || '').replace(/[^\w. -]/g, '').slice(0, 120);
   console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate_metadata', ip: req.ip, bytes: req.body.length }));
   try {
-    res.json({ name, ...parseImageMetadata(req.body) });
+    const meta = parseImageMetadata(req.body);
+    // The model path is offered (not run) here; the operator triggers it explicitly and only when EXIF has no fix.
+    const geoloc = meta.gps ? { available: false, reason: 'exif-gps', detail: 'EXIF GPS fix present; model estimate not needed' }
+      : photoGeolocAvailability(llmProvider, { format: meta.format, bytes: req.body.length });
+    res.json({ name, ...meta, geoloc });
   } catch (err) {
     console.error('[Crucix] Metadata parse error:', err);
     res.status(500).json({ error: 'Metadata extraction failed' });
+  }
+});
+
+// API: Content-based photo geolocation — operator-initiated vision-model estimate for images with no EXIF fix.
+// The image stays in memory and goes only to the configured LLM provider; the answer is bounded and
+// gazetteer-snapped in lib/geoloc/photo.mjs and always flagged as a model assessment.
+app.post('/api/investigate/geolocate', express.raw({ type: () => true, limit: META_MAX_BYTES }), async (req, res) => {
+  if (!Buffer.isBuffer(req.body) || req.body.length < 16) return res.status(400).json({ error: 'Invalid request' });
+  if (investigateRateLimited(req.ip)) return res.status(429).json({ error: 'Too many investigations; wait a minute' });
+  const name = String(req.get('x-file-name') || '').replace(/[^\w. -]/g, '').slice(0, 120);
+  const hint = sanitizeHint(req.get('x-geo-hint'));
+  try {
+    const meta = parseImageMetadata(req.body);
+    const result = await geolocatePhoto(llmProvider, req.body, { format: meta.format, meta, hint });
+    console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate_geolocate', ip: req.ip, bytes: req.body.length, status: result.status, model: result.model || null }));
+    res.json({ name, sha256: meta.sha256, format: meta.format, exifGps: meta.gps, ...result });
+  } catch (err) {
+    console.error('[Crucix] Geolocate error:', err);
+    res.status(500).json({ error: 'Geolocation failed' });
   }
 });
 
@@ -806,6 +843,7 @@ async function runSweepCycle() {
     lastSweepTime = new Date().toISOString();
     if (rawData.sources?.Frontlines?.geo) frontGeo = rawData.sources.Frontlines.geo;
     if (rawData.sources?.Cartels?.geo) cartelGeo = rawData.sources.Cartels.geo;
+    if (rawData.sources?.IranWarLive?.geo) iranGeo = rawData.sources.IranWarLive.geo;
 
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
@@ -1049,6 +1087,7 @@ async function start() {
       const existing = JSON.parse(readFileSync(join(RUNS_DIR, 'latest.json'), 'utf8'));
       if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
       if (existing.sources?.Cartels?.geo) cartelGeo = existing.sources.Cartels.geo;
+      if (existing.sources?.IranWarLive?.geo) iranGeo = existing.sources.IranWarLive.geo;
       const data = await synthesize(existing);
       data.narco = buildNarcoView(narcoData, existing.sources || {});
       data.delta = memory.getLastDelta() || null;

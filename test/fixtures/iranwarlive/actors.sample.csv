@@ -1,0 +1,10 @@
+Country,Alliance,Est_Troops,Est_Aircraft,Est_Armor,Military_Deaths,Civilian_Deaths,Status,Manual_Lock
+Iran,Axis of Resistance,"610,000",340,"3,000",6677,1861,Active Combatant,
+Israel,Western Coalition,"170,000",340,"2,200",27,40,Active Combatant,
+United States,Western Coalition,"1,300,000","13,200","5,500",33,0,Active Combatant,
+Hezbollah,Axis of Resistance,"50,000",0,150,1700,0,Active Combatant,
+Popular Mobilization Forces,Axis of Resistance,"160,000",0,200,85,0,Active Combatant,
+Hamas,Axis of Resistance,"20,000",0,0,0,0,Active Combatant,
+Houthi Rebels,Axis of Resistance,"200,000",0,250,0,0,Active Combatant,
+Lebanon,Non-Aligned,"80,000",70,300,2,4395,Active Combatant,
+Yemen,N/A,N/A,N/A,N/A,740,43,Active Combatant,

@@ -80,6 +80,7 @@ import { briefing as satellites } from './sources/satellites.mjs';
 import { briefing as livenews } from './sources/livenews.mjs';
 import { briefing as typosquat } from './sources/typosquat.mjs';
 import { briefing as cartels } from './sources/cartels.mjs';
+import { briefing as iranwarlive } from './sources/iranwarlive.mjs';
 
 // Border-region news ingestion + structured baselines (Python service bridge)
 import { briefing as borderingest } from './sources/borderingest.mjs';
@@ -205,6 +206,8 @@ export async function fullBriefing() {
 
     // Tier 15: Cartels — crowd-sourced Mexico areas-of-influence map (KML)
     runSource('Cartels', cartels),
+    // Tier 15b: Iran War Live — single-operator, LLM-extracted Iran-theater event aggregator (feed.json + published Sheets)
+    runSource('IranWarLive', iranwarlive),
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),

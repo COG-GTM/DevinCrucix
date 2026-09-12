@@ -14,6 +14,7 @@ import { createLLMProvider } from '../lib/llm/index.mjs';
 import { generateLLMIdeas } from '../lib/llm/ideas.mjs';
 import { buildSourceHealth } from '../lib/sourcehealth.mjs';
 import { buildCartelsView } from '../lib/cartelview.mjs';
+import { buildIranWarView } from '../lib/iranwarview.mjs';
 import { buildNarcoView } from '../lib/narco/view.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -1375,6 +1376,9 @@ export async function synthesize(data) {
     // Cartels page: crowd-sourced KML summary + START 2020 baseline + Mexico-filtered live feeds.
     // Geometry stays out of the payload; the browser pulls /api/cartels/geo on demand.
     cartels: buildCartelsView(data.sources),
+    // Iran War Live page: LLM-extracted Iran-theater events + actors / airspace / posturing tables, plus
+    // a corroboration feed from GDELT / ACLED. Geometry stays out of the payload (/api/iranwar/geo).
+    iranwar: buildIranWarView(data.sources),
     // Homeland / Narco: DOJ + OFAC + feed health now; event clusters are computed post-sweep by the
     // server (lib/narco/pipeline.mjs) which replaces this placeholder with buildNarcoView(result, sources).
     narco: buildNarcoView(null, data.sources),
