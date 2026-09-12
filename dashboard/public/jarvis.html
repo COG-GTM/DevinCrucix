@@ -4249,13 +4249,15 @@ function renderTwMndPanel(){
 function renderTwCgaPanel(){
   const c=D.taiwan?.cga||{};
   if(!twOk(c))return offPanel('Grey-Zone Incidents — Taiwan Coast Guard','TaiwanCGA',twOffWhy(c,'Taiwan CGA'),'tw-cga-panel');
-  const kindColor=k=>k==='ccg-intrusion'?'#ff5252':k==='research-vessel'?'#ffb74d':k==='fishing'?'#ffd54f':k==='harassment'?'#ff8a65':'#29b6f6';
+  const kindColor=k=>k==='ccg-intrusion'?'#ff5252':k==='research-vessel'?'#ffb74d':k==='mainland-vessel-incursion'?'#ffd54f':k==='prc-official-vessel'?'#ff8a65':k==='pla-related'?'#ff1744':'#29b6f6';
+  const TW_CGA_CHIP={'ccg-intrusion':'CCG INTRUSION','ccg-claim-rebuttal':'CGA REBUTTAL','research-vessel':'RESEARCH VESSEL','prc-official-vessel':'PRC OFFICIAL','pla-related':'PLA-RELATED','mainland-vessel-incursion':'VESSEL INCURSION','grey-zone-statement':'GREY-ZONE STMT',other:'OTHER PRC'};
   const rows=(c.incidents||[]).map(i=>{
     const col=kindColor(i.kind);
+    const chip=TW_CGA_CHIP[String(i.kind||'')]||String(i.kindLabel||i.kind||'').toUpperCase();
     const meta=[i.area?`${esc(i.area.en)}${i.area.zh?' '+esc(i.area.zh):''}`:'<span style="color:var(--warn)">area not stated</span>',Number.isFinite(i.vesselCount)?`${i.vesselCount} vessel${i.vesselCount===1?'':'s'}`:null,(i.hulls||[]).length?'hulls '+i.hulls.map(esc).join(', '):null,i.entryTime?`in ${esc(i.entryTime)}${i.exitTime?' \u2192 out '+esc(i.exitTime):''}`:null].filter(Boolean).join(' \u00b7 ');
     const sub=`<div class="ct-org-sub">${meta}${i.partial?' \u00b7 <span style="color:var(--warn)">partial</span>':''} ${twLink(i.url,'release')}${i.photoUrl?' \u00b7 '+twLink(i.photoUrl,'photo'):''}</div>${i.gloss?`<div class="ct-org-sub" style="color:#9fb3ad">${esc(i.gloss)}</div>`:''}`;
     const go=i.area&&Number.isFinite(i.area.lat)?` onclick="twFocusAt(${Number(i.area.lat)},${Number(i.area.lon)},5)" title="Centre the theater map on this area"`:' style="cursor:default"';
-    return `<div class="front-row"${go}><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}">${esc(String(i.kindLabel||i.kind||'').toUpperCase().slice(0,18))}</span><span style="flex:1;min-width:0"><span lang="zh-Hant" style="color:#e6f2ee">${esc(i.title)}</span>${sub}</span><span class="front-when">${esc(twWhen(i.published))}</span></div>`;
+    return `<div class="front-row"${go}><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}" title="${esc(i.kindLabel||i.kind||'')}">${esc(chip)}</span><span style="flex:1;min-width:0"><span lang="zh-Hant" style="color:#e6f2ee">${esc(i.title)}</span>${sub}</span><span class="front-when">${esc(twWhen(i.published))}</span></div>`;
   });
   const byKind=Object.entries(c.stats?.byKind||{}).map(([k,v])=>`<span><i style="background:${kindColor(k)};border-radius:50%"></i>${esc(k)} <b>${v}</b></span>`).join('');
   return `<div class="g-panel tw-cga-panel"><div class="sec-head"><h3>${shDot('TaiwanCGA')}Grey-Zone Incidents — Taiwan Coast Guard</h3><span class="badge ${Number(c.stats?.last7d)?'warn':''}">${Number(c.stats?.last7d)||0} IN 7D \u00b7 ${Number(c.stats?.last30d)||0} IN 30D</span></div>
