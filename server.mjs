@@ -21,6 +21,7 @@ import { DiscordAlerter } from './lib/alerts/discord.mjs';
 import { installAuthGate } from './lib/authgate.mjs';
 import { securityHeaders } from './lib/securityHeaders.mjs';
 import { buildSituation } from './lib/situation.mjs';
+import { buildTaiwanGeo } from './lib/taiwanview.mjs';
 
 // Phase 4: Analytical Features
 import { computeCII } from './apis/sources/cii.mjs';
@@ -67,6 +68,7 @@ let currentData = null;    // Current synthesized dashboard data
 let frontGeo = null;       // DeepStateMAP geometry from the last sweep (served separately from /api/data)
 let cartelGeo = null;      // Cartel-map KML geometry from the last sweep
 let iranGeo = null;        // Iran War Live geocoded events (kinetic + ground) from the last sweep (served separately from /api/data)
+let taiwanGeo = null;      // China / Taiwan theater geometry (MND ADIZ sectors, CGA area circles, GCA points) from the last sweep
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
@@ -76,6 +78,9 @@ let narcoData = loadNarcoEvents(); // Full narco event clusters from the last po
 const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
+// Heartbeat events keep the stream busy so proxies (Fly, corporate) never see an idle
+// connection between broadcasts, and let the browser detect a half-open stream.
+const SSE_HEARTBEAT_MS = parseInt(process.env.SSE_HEARTBEAT_MS) || 20000;
 
 function sourceSummaryLine() {
   const meta = currentData?.meta || {};
@@ -505,6 +510,19 @@ app.get('/api/iranwar/geo', (req, res) => {
   res.json(iranGeo);
 });
 
+// API: China / Taiwan — MND daily PLA bulletin, CGA grey-zone incidents, headlines, GCA strip, markets
+// (summary in /api/data); area/sector geometry on demand for the theater map
+app.get('/api/taiwan', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.taiwan || { status: 'unavailable' });
+});
+
+app.get('/api/taiwan/geo', (req, res) => {
+  if (!taiwanGeo) return res.status(404).json({ error: 'No China / Taiwan geometry yet' });
+  res.set('Cache-Control', 'private, max-age=300');
+  res.json(taiwanGeo);
+});
+
 // API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
 // independent corroboration and cross-matched against the OFAC SDN narco-program index.
 const NARCO_ID_RE = /^[a-z0-9_-]{1,40}$/;
@@ -784,22 +802,34 @@ app.get('/api/locales', (req, res) => {
 });
 
 // SSE: live updates
+let sseHeartbeat = null;
 app.get('/events', (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-cache, no-transform',
     'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
     'Access-Control-Allow-Origin': '*',
   });
-  res.write('data: {"type":"connected"}\n\n');
+  res.flushHeaders();
+  res.write(`data: {"type":"connected","heartbeatMs":${SSE_HEARTBEAT_MS}}\n\n`);
   sseClients.add(res);
-  req.on('close', () => sseClients.delete(res));
+  if (!sseHeartbeat) sseHeartbeat = setInterval(() => broadcast({ type: 'heartbeat' }), SSE_HEARTBEAT_MS).unref();
+  const drop = () => dropSseClient(res);
+  req.on('close', drop);
+  res.on('error', drop);
 });
 
+function dropSseClient(res) {
+  sseClients.delete(res);
+  if (sseClients.size === 0 && sseHeartbeat) { clearInterval(sseHeartbeat); sseHeartbeat = null; }
+}
+
 function broadcast(data) {
-  const msg = `data: ${JSON.stringify(data)}\n\n`;
+  const frame = `data: ${JSON.stringify(data)}\n\n`;
   for (const client of sseClients) {
-    try { client.write(msg); } catch { sseClients.delete(client); }
+    if (client.destroyed || client.writableEnded) { dropSseClient(client); continue; }
+    try { client.write(frame); } catch { dropSseClient(client); }
   }
 }
 
@@ -844,6 +874,7 @@ async function runSweepCycle() {
     if (rawData.sources?.Frontlines?.geo) frontGeo = rawData.sources.Frontlines.geo;
     if (rawData.sources?.Cartels?.geo) cartelGeo = rawData.sources.Cartels.geo;
     if (rawData.sources?.IranWarLive?.geo) iranGeo = rawData.sources.IranWarLive.geo;
+    taiwanGeo = buildTaiwanGeo(rawData.sources || {});
 
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
@@ -1088,6 +1119,7 @@ async function start() {
       if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
       if (existing.sources?.Cartels?.geo) cartelGeo = existing.sources.Cartels.geo;
       if (existing.sources?.IranWarLive?.geo) iranGeo = existing.sources.IranWarLive.geo;
+      taiwanGeo = buildTaiwanGeo(existing.sources || {});
       const data = await synthesize(existing);
       data.narco = buildNarcoView(narcoData, existing.sources || {});
       data.delta = memory.getLastDelta() || null;
