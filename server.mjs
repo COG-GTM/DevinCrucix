@@ -76,6 +76,9 @@ let narcoData = loadNarcoEvents(); // Full narco event clusters from the last po
 const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
+// Heartbeat events keep the stream busy so proxies (Fly, corporate) never see an idle
+// connection between broadcasts, and let the browser detect a half-open stream.
+const SSE_HEARTBEAT_MS = parseInt(process.env.SSE_HEARTBEAT_MS) || 20000;
 
 function sourceSummaryLine() {
   const meta = currentData?.meta || {};
@@ -784,22 +787,34 @@ app.get('/api/locales', (req, res) => {
 });
 
 // SSE: live updates
+let sseHeartbeat = null;
 app.get('/events', (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-cache, no-transform',
     'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
     'Access-Control-Allow-Origin': '*',
   });
-  res.write('data: {"type":"connected"}\n\n');
+  res.flushHeaders();
+  res.write(`data: {"type":"connected","heartbeatMs":${SSE_HEARTBEAT_MS}}\n\n`);
   sseClients.add(res);
-  req.on('close', () => sseClients.delete(res));
+  if (!sseHeartbeat) sseHeartbeat = setInterval(() => broadcast({ type: 'heartbeat' }), SSE_HEARTBEAT_MS).unref();
+  const drop = () => dropSseClient(res);
+  req.on('close', drop);
+  res.on('error', drop);
 });
 
+function dropSseClient(res) {
+  sseClients.delete(res);
+  if (sseClients.size === 0 && sseHeartbeat) { clearInterval(sseHeartbeat); sseHeartbeat = null; }
+}
+
 function broadcast(data) {
-  const msg = `data: ${JSON.stringify(data)}\n\n`;
+  const frame = `data: ${JSON.stringify(data)}\n\n`;
   for (const client of sseClients) {
-    try { client.write(msg); } catch { sseClients.delete(client); }
+    if (client.destroyed || client.writableEnded) { dropSseClient(client); continue; }
+    try { client.write(frame); } catch { dropSseClient(client); }
   }
 }
 
