@@ -81,6 +81,14 @@ import { briefing as livenews } from './sources/livenews.mjs';
 import { briefing as typosquat } from './sources/typosquat.mjs';
 import { briefing as cartels } from './sources/cartels.mjs';
 import { briefing as iranwarlive } from './sources/iranwarlive.mjs';
+// China / Taiwan: MND daily PLA bulletin (+ Skyfaring CC BY mirror), Coast Guard grey-zone releases,
+// Focus Taiwan / Taipei Times security headlines, Global Conflict Awareness observational feed,
+// Polymarket threat markets (explicit slug list)
+import { briefing as taiwanmnd } from './sources/taiwanmnd.mjs';
+import { briefing as taiwancga } from './sources/taiwancga.mjs';
+import { briefing as taiwannews } from './sources/taiwannews.mjs';
+import { briefing as gcataiwan } from './sources/gcataiwan.mjs';
+import { briefing as taiwanmarkets } from './sources/taiwanmarkets.mjs';
 
 // Border-region news ingestion + structured baselines (Python service bridge)
 import { briefing as borderingest } from './sources/borderingest.mjs';
@@ -208,6 +216,12 @@ export async function fullBriefing() {
     runSource('Cartels', cartels),
     // Tier 15b: Iran War Live — single-operator, LLM-extracted Iran-theater event aggregator (feed.json + published Sheets)
     runSource('IranWarLive', iranwarlive),
+    // Tier 15c: China / Taiwan theater
+    runSource('TaiwanMND', taiwanmnd),
+    runSource('TaiwanCGA', taiwancga),
+    runSource('TaiwanNews', taiwannews),
+    runSource('GCATaiwan', gcataiwan),
+    runSource('TaiwanMarkets', taiwanmarkets),
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),

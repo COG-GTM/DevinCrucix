@@ -15,6 +15,7 @@ import { generateLLMIdeas } from '../lib/llm/ideas.mjs';
 import { buildSourceHealth } from '../lib/sourcehealth.mjs';
 import { buildCartelsView } from '../lib/cartelview.mjs';
 import { buildIranWarView } from '../lib/iranwarview.mjs';
+import { buildTaiwanView } from '../lib/taiwanview.mjs';
 import { buildNarcoView } from '../lib/narco/view.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -1420,6 +1421,12 @@ export async function synthesize(data) {
     // newsFeed for ticker (merged RSS + GDELT + Telegram + InSight Crime)
     newsFeed: buildNewsFeed(news, gdeltData, tgUrgent, tgTop, data.sources.InSightCrime, data.sources.BorderNews),
   };
+
+  // China / Taiwan page: MND daily PLA bulletin + Skyfaring trend, CGA grey-zone incidents, filtered
+  // Taiwan headlines, GCA observational strip, Polymarket threat markets — plus the theater signals
+  // CRUCIX already computes (built after V2 so it can read air / adsbMilitary / carriers). Geometry
+  // stays out of the payload (/api/taiwan/geo).
+  V2.taiwan = buildTaiwanView(data.sources, V2);
 
   return V2;
 }
