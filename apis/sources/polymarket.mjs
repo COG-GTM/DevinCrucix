@@ -48,7 +48,7 @@ function isGeopolitical(question) {
   return GEO_KEYWORDS.some(kw => q.includes(kw));
 }
 
-function parseMarket(m) {
+export function parseMarket(m) {
   const question = m.question || 'Unknown';
   const volume24hr = parseFloat(m.volume24hr || 0);
   const totalVolume = parseFloat(m.volume || 0);

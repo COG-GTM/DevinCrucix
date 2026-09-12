@@ -21,6 +21,7 @@ import { DiscordAlerter } from './lib/alerts/discord.mjs';
 import { installAuthGate } from './lib/authgate.mjs';
 import { securityHeaders } from './lib/securityHeaders.mjs';
 import { buildSituation } from './lib/situation.mjs';
+import { buildTaiwanGeo } from './lib/taiwanview.mjs';
 
 // Phase 4: Analytical Features
 import { computeCII } from './apis/sources/cii.mjs';
@@ -67,6 +68,7 @@ let currentData = null;    // Current synthesized dashboard data
 let frontGeo = null;       // DeepStateMAP geometry from the last sweep (served separately from /api/data)
 let cartelGeo = null;      // Cartel-map KML geometry from the last sweep
 let iranGeo = null;        // Iran War Live geocoded events (kinetic + ground) from the last sweep (served separately from /api/data)
+let taiwanGeo = null;      // China / Taiwan theater geometry (MND ADIZ sectors, CGA area circles, GCA points) from the last sweep
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
@@ -505,6 +507,19 @@ app.get('/api/iranwar/geo', (req, res) => {
   res.json(iranGeo);
 });
 
+// API: China / Taiwan — MND daily PLA bulletin, CGA grey-zone incidents, headlines, GCA strip, markets
+// (summary in /api/data); area/sector geometry on demand for the theater map
+app.get('/api/taiwan', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.taiwan || { status: 'unavailable' });
+});
+
+app.get('/api/taiwan/geo', (req, res) => {
+  if (!taiwanGeo) return res.status(404).json({ error: 'No China / Taiwan geometry yet' });
+  res.set('Cache-Control', 'private, max-age=300');
+  res.json(taiwanGeo);
+});
+
 // API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
 // independent corroboration and cross-matched against the OFAC SDN narco-program index.
 const NARCO_ID_RE = /^[a-z0-9_-]{1,40}$/;
@@ -844,6 +859,7 @@ async function runSweepCycle() {
     if (rawData.sources?.Frontlines?.geo) frontGeo = rawData.sources.Frontlines.geo;
     if (rawData.sources?.Cartels?.geo) cartelGeo = rawData.sources.Cartels.geo;
     if (rawData.sources?.IranWarLive?.geo) iranGeo = rawData.sources.IranWarLive.geo;
+    taiwanGeo = buildTaiwanGeo(rawData.sources || {});
 
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
@@ -1088,6 +1104,7 @@ async function start() {
       if (existing.sources?.Frontlines?.geo) frontGeo = existing.sources.Frontlines.geo;
       if (existing.sources?.Cartels?.geo) cartelGeo = existing.sources.Cartels.geo;
       if (existing.sources?.IranWarLive?.geo) iranGeo = existing.sources.IranWarLive.geo;
+      taiwanGeo = buildTaiwanGeo(existing.sources || {});
       const data = await synthesize(existing);
       data.narco = buildNarcoView(narcoData, existing.sources || {});
       data.delta = memory.getLastDelta() || null;
