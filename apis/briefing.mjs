@@ -45,6 +45,9 @@ import { briefing as spiderfoot } from './sources/spiderfoot.mjs';
 import { briefing as insightcrime } from './sources/insightcrime.mjs';
 import { briefing as bordernews } from './sources/bordernews.mjs';
 import { briefing as cbpstats } from './sources/cbpstats.mjs';
+import { briefing as cbpseizures } from './sources/cbpseizures.mjs';
+import { briefing as cbpforce } from './sources/cbpforce.mjs';
+import { briefing as cbpcustody } from './sources/cbpcustody.mjs';
 
 // === Tier 8: Market Intelligence ===
 import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
@@ -97,7 +100,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'DOJ', 'OFACNarco']); // sources that need extra time (CBPStats ~7 MB CSV, DOJ paged backfill, OFAC 30 MB XML)
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'DOJ', 'OFACNarco']); // sources that need extra time (CBP multi-MB CSVs, DOJ paged backfill, OFAC 30 MB XML)
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
@@ -208,8 +211,13 @@ export async function fullBriefing() {
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),
-    // CBP Enforcement Statistics — official monthly encounter / drug-seizure CSVs by sector
+    // Border / CBP — official CBP Public Data Portal: encounters + drug seizures by sector (CBPStats),
+    // AMO / currency / weapons seizures (CBPSeizures), assaults + use of force (CBPForce),
+    // custody & enforcement HTML tables (CBPCustody)
     runSource('CBPStats', cbpstats),
+    runSource('CBPSeizures', cbpseizures),
+    runSource('CBPForce', cbpforce),
+    runSource('CBPCustody', cbpcustody),
 
     // Tier 17: Homeland / Narco — official records + sanctions + commercial slots
     runSource('DOJ', doj),

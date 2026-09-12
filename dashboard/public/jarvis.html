@@ -607,6 +607,22 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .cbp-scroll{max-height:320px;overflow-y:auto;margin-top:4px}
 .cbp-scroll::-webkit-scrollbar{width:3px}
 .cbp-scroll::-webkit-scrollbar-thumb{background:rgba(2,148,222,0.25);border-radius:2px}
+/* Border / CBP group header (Regional tab) */
+.cbp-group{padding:6px 10px 4px}
+.cbp-group .sec-head{margin-bottom:2px}
+.cbp-group-row{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:3px}
+.cbp-src{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:#c8d8d2;letter-spacing:0.04em}
+.cbp-src .hdot{margin-right:0}
+.cbp-src .n{color:var(--dim)}
+.cbp-link{color:#7fc4ea;text-decoration:none;border-bottom:1px dotted rgba(127,196,234,0.4)}
+.cbp-link:hover{color:#fff}
+.cbp-xlink{cursor:pointer;color:#21c19a;border:1px solid rgba(33,193,154,0.35);background:rgba(33,193,154,0.08);padding:2px 6px;letter-spacing:0.06em}
+.cbp-xlink:hover{background:rgba(33,193,154,0.18)}
+.cbp-kpi .v small{color:var(--dim);font-size:9px}
+.cbp-bar.usd{background:rgba(33,193,154,0.45)}.cbp-bar.wpn{background:rgba(255,167,38,0.5)}.cbp-bar.uof{background:rgba(255,138,128,0.5)}.cbp-bar.cus{background:rgba(57,105,202,0.55)}
+.cbp-table td.k{color:var(--dim);white-space:normal}
+.cbp-note{font-family:var(--mono);font-size:7.5px;color:var(--dim);margin:3px 0 1px;line-height:1.4}
+.cbp-fy{color:#7fc4ea}
 .narco-scroll{max-height:320px;overflow-y:auto}
 .narco-scroll::-webkit-scrollbar{width:3px}
 .narco-scroll::-webkit-scrollbar-thumb{background:rgba(255,64,129,0.2);border-radius:2px}
@@ -1366,7 +1382,11 @@ const PANEL_CAPTIONS={
   'country instability':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'border watch':'US\u2013Mexico border reporting from public feeds listed in config/border-sources.json. A spike is a place mentioned above its own baseline.',
   'border ingest':'Border Watch\u2019s Python ingestion service (crucix_ingest): robots.txt-compliant feed polling, NER/geotagging, violence scoring and structured baselines (SESNSP, CBP, FRA). OFFLINE means the service is not running next to the dashboard.',
-  'cbp enforcement stats':'Official CBP monthly encounters and drug seizures by Southwest sector, read from the CSVs CBP publishes. Figures are subject to revision by CBP; nothing here is estimated.',
+  'border / cbp':'Consolidated CBP Public Data Portal group: four adapters read CBP\u2019s own CSVs and statistics pages. Every figure is CBP\u2019s published number \u2014 nothing is estimated, and each dataset carries its own LIVE / STALE / ERROR state.',
+  'cbp encounters & drug seizures':'Official CBP monthly encounters and drug seizures by Southwest sector, read from the CSVs CBP publishes. Figures are subject to revision by CBP; nothing here is estimated.',
+  'cbp seizures: amo · currency · weapons':'Nationwide CBP seizure CSVs: Air and Marine Operations drug interdictions, currency / monetary-instrument seizures and weapons + ammunition seizures. SW = Southwest border AORs. Outbound weapons events are the southbound-smuggling signal.',
+  'cbp officer safety & use of force':'Assaults on CBP officers / agents and CBP use-of-force incidents from the official CSVs. One incident may involve several officers; Southern Border is CBP\u2019s own region label. Sector rows are USBP Southwest sectors.',
+  'cbp custody & enforcement':'Parsed from CBP\u2019s Custody and Transfer and Enforcement Statistics pages (no CSV exists). In-custody counts are month-end snapshots; TSDS, criminal-noncitizen, gang and rescue figures are fiscal-year totals with the current year partial.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
   'osint workbench':'Passive, read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Blue values pivot; nothing is written to the target.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
@@ -1457,7 +1477,7 @@ function renderLeftRail(){
     {name:t('layers.spaceActivity','Satellites'),count:D.space?.militarySats||0,dot:'space',sub:`${D.space?.totalNewObjects||0} ${t('space.newLast30d','new (30d)')}`,src:'Space'},
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`,src:'InSightCrime'},
     {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
-    {name:'CBP Enforcement Stats',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${esc(D.cbpStats.encounters.latest?.label)}`:'official monthly CSVs',src:'CBPStats'},
+    {name:'Border / CBP',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${esc(D.cbpStats.encounters.latest?.label)} · ${cbpLiveCount()}/4 sources live`:'CBP Public Data Portal',src:['CBPStats','CBPSeizures','CBPForce','CBPCustody']},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`,src:'UnusualWhales'},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
@@ -1523,7 +1543,7 @@ function renderLeftRail(){
     military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
     cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
     macro:['Market Intel','Polymarket','Instability Index'],
-    regional:['Border Watch','CBP Enforcement Stats','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
+    regional:['Border Watch','Border / CBP','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
   };
   const layerNames=TAB_LAYERS[currentTab];
@@ -3070,7 +3090,9 @@ function renderLower(){
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderFrontPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(renderCbpPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),
+      wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
+      wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
@@ -4184,7 +4206,7 @@ function renderCbpPanel(){
   const cs = D.cbpStats || {};
   const enc = cs.encounters, drg = cs.drugs;
   if(!enc && !drg){
-    return offPanel('CBP Enforcement Stats','CBPStats',cs.error||'CBP CSVs have not been downloaded yet','cbp-panel');
+    return offPanel('CBP Encounters &amp; Drug Seizures','CBPStats',cs.error||'CBP CSVs have not been downloaded yet','cbp-panel');
   }
   const dsHtml = (cs.datasets||[]).map(d => {
     const st = CBP_DS_LABEL[d.status] ? d.status : 'error';
@@ -4232,10 +4254,238 @@ function renderCbpPanel(){
     : cs.status==='partial' ? '<span class="badge warn">1 DATASET DOWN</span>'
     : `<span class="badge ${shBadgeClass(st)}" style="color:#7fc4ea;border-color:rgba(2,148,222,0.35);background:rgba(2,148,222,0.1)">THRU ${esc((enc||drg).latest?.label||'').toUpperCase()}</span>`;
   return `<div class="g-panel cbp-panel">
-      <div class="sec-head"><h3>${shDot('CBPStats')}CBP Enforcement Stats</h3>${badge}</div>
+      <div class="sec-head"><h3>${shDot('CBPStats')}CBP Encounters &amp; Drug Seizures</h3>${badge}</div>
       <div class="bw-feeds">${dsHtml}</div>
       <div class="cbp-scroll">${encHtml}${drgHtml}</div>
       <div class="bw-foot">${esc(cs.attribution||'')} · SOUTHWEST LAND BORDER ONLY · ${esc(cs.pipelineVersion||'')}</div>
+    </div>`;
+}
+
+// === BORDER / CBP PANEL GROUP (Regional tab) ===
+// Four independent adapters share one group header so an analyst reads the CBP picture in one place
+// while each dataset keeps its own health state. All CBP-derived labels are third-party -> esc().
+const CBP_SOURCES=[
+  {src:'CBPStats',key:'cbpStats',name:'Encounters & Drugs'},
+  {src:'CBPSeizures',key:'cbpSeizures',name:'AMO · Currency · Weapons'},
+  {src:'CBPForce',key:'cbpForce',name:'Officer Safety'},
+  {src:'CBPCustody',key:'cbpCustody',name:'Custody & Enforcement'},
+];
+const CBP_PORTAL_URL='https://www.cbp.gov/newsroom/stats/cbp-public-data-portal';
+const CBP_TABLEAU_URL='https://publicstats.cbp.gov/';
+function cbpLiveCount(){ return CBP_SOURCES.filter(s=>shWorst(s.src)?.state==='live').length; }
+function cbpUsd(n){
+  if(!Number.isFinite(n)) return '—';
+  if(n>=1e9) return `$${(n/1e9).toFixed(2)}B`;
+  if(n>=1e6) return `$${(n/1e6).toFixed(2)}M`;
+  if(n>=1e3) return `$${(n/1e3).toFixed(0)}K`;
+  return `$${n.toLocaleString()}`;
+}
+function cbpSpark(series, key, title, cls=''){
+  if(!series||!series.length) return '';
+  const vals=series.map(s=>Number.isFinite(s[key])?s[key]:0);
+  const max=Math.max(1,...vals);
+  const bars=series.map((s,i)=>`<div class="b${i===series.length-1?' last':''}" style="height:${Math.max(3,Math.round(vals[i]/max*100))}%${cls?`;background:${cls}`:''}" title="${esc(s.label||s.period)}: ${cbpNum(vals[i],1)}"></div>`).join('');
+  return `<div class="cbp-spark">${bars}</div><div class="cbp-spark-lbl"><span>${esc(series[0].label||series[0].period||'')}</span><span>${title}</span><span>${esc(series[series.length-1].label||series[series.length-1].period||'')}</span></div>`;
+}
+function cbpDatasetsHtml(src, names){
+  return (src.datasets||[]).map(d => {
+    const st = CBP_DS_LABEL[d.status] ? d.status : 'error';
+    const why = [d.reason, ...(d.notes||[])].filter(Boolean).join(' · ');
+    const href = safeExternalUrl(d.url||d.discoveryPage);
+    const name = names[d.id] || d.title;
+    const label = href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none">${esc(name)}</a>` : esc(name);
+    const rows = d.rows ? esc(cbpNum(d.rows))+(d.kind==='html'?' cells':' rows') : '';
+    return `<span class="bw-feed"${why?` title="${esc(why)}"`:''}><span class="bw-outlet">${label}</span><span class="bw-st ${st}">${CBP_DS_LABEL[st]}</span><span>${rows}</span>${d.lastModified?`<span>CBP ${esc(String(d.lastModified).slice(5,16))}</span>`:''}</span>`;
+  }).join('');
+}
+function cbpBadge(src, srcName, thruLabel){
+  const down=(src.datasets||[]).filter(d=>d.status==='error').length;
+  if(src.status==='stale') return '<span class="badge warn">STALE · CACHED</span>';
+  if(src.status==='partial') return `<span class="badge warn">${down||1} DATASET${down===1?'':'S'} DOWN</span>`;
+  return `<span class="badge ${shBadgeClass(shWorst(srcName))}" style="color:#7fc4ea;border-color:rgba(2,148,222,0.35);background:rgba(2,148,222,0.1)">THRU ${esc(String(thruLabel||'')).toUpperCase()}</span>`;
+}
+function cbpFoot(src, scope){
+  return `<div class="bw-foot">${esc(src.attribution||'')} · ${scope} · ${esc(src.pipelineVersion||'')}</div>`;
+}
+function cbpFyLabel(col){ return col ? `<span class="cbp-fy">${esc(col.label)}</span>` : '—'; }
+
+function renderCbpGroupHead(){
+  const pills = CBP_SOURCES.map(s => {
+    const st = shWorst(s.src);
+    const d = D[s.key] || {};
+    const n = (d.datasets||[]).length;
+    const ok = (d.datasets||[]).filter(x=>x.status==='ok'||x.status==='not_modified').length;
+    return `<span class="cbp-src" title="${esc(s.src)}: ${st?SH_LABEL[st.state]:'not reporting'}${st?.reason?' \u2014 '+esc(st.reason):''}">${shDot(s.src)}${esc(s.name)}<span class="n">${n?`${ok}/${n}`:'—'}</span></span>`;
+  }).join('');
+  const live = cbpLiveCount();
+  const badgeCls = live===CBP_SOURCES.length ? '' : live===0 ? 'err' : 'warn';
+  const cust = D.cbpCustody?.enforcement?.asOf?.label;
+  const enc = D.cbpStats?.encounters?.latest?.label;
+  const asOf = [enc?`monthly thru ${enc}`:null, cust?`FY tables ${cust}`:null].filter(Boolean).join(' · ');
+  return `<div class="g-panel cbp-group">
+      <div class="sec-head"><h3>${shDot(CBP_SOURCES.map(s=>s.src))}Border / CBP</h3><span class="badge ${badgeCls}">${live}/${CBP_SOURCES.length} SOURCES LIVE</span></div>
+      <div class="cbp-group-row">${pills}
+        <span>${esc(asOf)}</span>
+        <a class="cbp-link" href="${CBP_PORTAL_URL}" target="_blank" rel="noopener noreferrer">CBP Public Data Portal</a>
+        <a class="cbp-link" href="${CBP_TABLEAU_URL}" target="_blank" rel="noopener noreferrer" title="CBP Tableau dashboards (dosage / street-value / UFLPA views) publish no data export — presentation layer only">CBP dashboards ↗</a>
+        <span class="cbp-xlink" onclick="setTab('cartels')" title="Graded cartel events, DOJ prosecutions and sanctions for the same corridor">CARTELS TAB →</span>
+      </div>
+    </div>`;
+}
+
+function renderCbpSeizuresPanel(){
+  const cs = D.cbpSeizures || {};
+  const amo = cs.amo, cur = cs.currency, wpn = cs.weapons;
+  if(!amo && !cur && !wpn){
+    return offPanel('CBP Seizures: AMO · Currency · Weapons','CBPSeizures',cs.error||'CBP seizure CSVs have not been downloaded yet','cbp-panel');
+  }
+  const dsHtml = cbpDatasetsHtml(cs,{amo:'AMO drug seizures',currency:'Currency seizures',weapons:'Weapons & ammo'});
+  const fent = (amo?.drugs||[]).find(x=>/fentanyl/i.test(x.type));
+  const kpis = [
+    amo ? `<div class="cbp-kpi"><div class="k">AMO DRUGS · LBS · ${esc(amo.latest.label)}</div><div class="v">${cbpNum(amo.latest.lbs)}</div><div class="d">${cbpNum(amo.latest.events)} events · SW ${cbpNum(amo.latest.swLbs)} lb · ${cbpDelta(amo.latest.yoyLbsPct,' YoY')}</div></div>` : '',
+    fent ? `<div class="cbp-kpi"><div class="k">AMO FENTANYL · LBS</div><div class="v">${cbpNum(fent.latest.lbs,1)}</div><div class="d">${cbpNum(fent.latest.events)} events · ${cbpDelta(fent.yoyLbsPct,' YoY')}</div></div>` : '',
+    cur ? `<div class="cbp-kpi"><div class="k">CURRENCY SEIZED · ${esc(cur.latest.label)}</div><div class="v">${cbpUsd(cur.latest.usd)}</div><div class="d">${cbpNum(cur.latest.events)} events · SW ${cbpUsd(cur.latest.swUsd)} · ${cbpDelta(cur.latest.yoyUsdPct,' YoY')}</div></div>` : '',
+    wpn ? `<div class="cbp-kpi"><div class="k">WEAPONS EVENTS · ${esc(wpn.latest.label)}</div><div class="v">${cbpNum(wpn.latest.events)} <small>${cbpNum(wpn.latest.outboundEvents)} outbound</small></div><div class="d">${cbpNum(wpn.latest.weapons)} weapons · ${cbpNum(wpn.latest.ammoParts)} ammo/parts · ${cbpDelta(wpn.latest.yoyEventsPct,' YoY')}</div></div>` : '',
+  ].join('');
+  let amoHtml='';
+  if(amo){
+    const dmax = Math.max(1, ...(amo.drugs||[]).map(d=>d.latest.lbs));
+    const rows = (amo.drugs||[]).filter(d=>d.latest.lbs>0||d.latest.events>0).slice(0,8).map(d => `<tr><td>${esc(d.type)}</td><td class="n"><span class="cbp-bar drug" style="width:${Math.round(d.latest.lbs/dmax*48)}px"></span>${cbpNum(d.latest.lbs,1)}</td><td class="n">${cbpNum(d.latest.events)}</td><td class="n">${cbpDelta(d.yoyLbsPct)}</td></tr>`).join('');
+    const regions = (amo.regions||[]).map(r=>`<span class="bw-chip place" title="${cbpNum(r.events)} events">${esc(r.region)} ${cbpNum(r.lbs)} lb</span>`).join('');
+    const branches = (amo.branches||[]).slice(0,5).map(b=>`<span class="bw-chip" title="${esc(b.region)} · ${cbpNum(b.events)} events">${esc(b.branch)} ${cbpNum(b.lbs)} lb</span>`).join('');
+    amoHtml = `${cbpSpark(amo.series,'lbs','AMO DRUG LBS / MONTH')}
+      <div class="bw-sub">AMO SEIZURES BY DRUG · ${esc(amo.latest.label)}</div>
+      <table class="cbp-table"><thead><tr><th>DRUG</th><th class="n">LBS</th><th class="n">EVENTS</th><th class="n">YoY LBS</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="bw-sub">AMO REGIONS · TOP BRANCHES</div><div class="bw-chips">${regions}${branches}</div>`;
+  }
+  let curHtml='';
+  if(cur){
+    const cmax = Math.max(1, ...(cur.byAor||[]).map(a=>a.usd));
+    const rows = (cur.byAor||[]).slice(0,7).map(a => `<tr title="${esc(a.region)}"><td>${esc(a.aor.replace(' Field Office',' FO').replace(' Sector',''))}</td><td class="n"><span class="cbp-bar usd" style="width:${Math.round(a.usd/cmax*48)}px"></span>${cbpUsd(a.usd)}</td><td class="n">${cbpNum(a.events)}</td></tr>`).join('');
+    const dir = (cur.direction||[]).map(d=>`<span class="bw-chip" title="${cbpNum(d.events)} events">${esc(d.key)} ${cbpUsd(d.usd)}</span>`).join('');
+    const comp = (cur.components||[]).map(c=>`<span class="bw-chip place">${esc(c.key)} ${cbpUsd(c.usd)}</span>`).join('');
+    curHtml = `<div class="bw-sub">CURRENCY SEIZURES BY AOR · ${esc(cur.latest.label)}</div>
+      <table class="cbp-table"><thead><tr><th>AOR</th><th class="n">USD</th><th class="n">EVENTS</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="bw-chips">${dir}${comp}</div>`;
+  }
+  let wpnHtml='';
+  if(wpn){
+    const list = (wpn.swByAor||[]).length ? wpn.swByAor : (wpn.byAor||[]);
+    const wmax = Math.max(1, ...list.map(a=>a.events));
+    const rows = list.slice(0,9).map(a => `<tr title="${esc(a.component||a.region||'')}"><td>${esc(a.aor.replace(' Field Office',' FO').replace(' Sector',''))}</td><td class="n"><span class="cbp-bar wpn" style="width:${Math.round(a.events/wmax*48)}px"></span>${cbpNum(a.events)}</td><td class="n">${cbpNum(a.outboundEvents)}</td><td class="n">${cbpNum(a.weapons)}</td><td class="n">${cbpNum(a.ammoParts)}</td></tr>`).join('');
+    const cats = (wpn.categories||[]).slice(0,6).map(c=>`<span class="bw-chip">${esc(c.key)} ${cbpNum(c.qty)}</span>`).join('');
+    const modes = (wpn.modes||[]).slice(0,4).map(m=>`<span class="bw-chip place">${esc(m.key)} ${cbpNum(m.events)}</span>`).join('');
+    wpnHtml = `<div class="bw-sub">WEAPONS &amp; AMMO · ${(wpn.swByAor||[]).length?'SW BORDER AORs':'TOP AORs'} · ${esc(wpn.latest.label)}</div>
+      <table class="cbp-table"><thead><tr><th>AOR</th><th class="n">EVENTS</th><th class="n">OUTBOUND</th><th class="n">WEAPONS</th><th class="n">AMMO/PARTS</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="bw-chips">${cats}${modes}</div>`;
+  }
+  const thru = (amo||cur||wpn).latest?.label;
+  return `<div class="g-panel cbp-panel">
+      <div class="sec-head"><h3>${shDot('CBPSeizures')}CBP Seizures: AMO · Currency · Weapons</h3>${cbpBadge(cs,'CBPSeizures',thru)}</div>
+      <div class="bw-feeds">${dsHtml}</div>
+      <div class="cbp-scroll">${kpis?`<div class="cbp-kpis">${kpis}</div>`:''}${amoHtml}${curHtml}${wpnHtml}</div>
+      ${cbpFoot(cs,'NATIONWIDE · SW = SOUTHWEST BORDER AORs')}
+    </div>`;
+}
+
+function renderCbpForcePanel(){
+  const cf = D.cbpForce || {};
+  const as = cf.assaults, uof = cf.useOfForce, at = cf.assaultTypes, ft = cf.forceTypes;
+  if(!as && !uof){
+    return offPanel('CBP Officer Safety &amp; Use of Force','CBPForce',cf.error||'CBP assault / use-of-force CSVs have not been downloaded yet','cbp-panel');
+  }
+  const dsHtml = cbpDatasetsHtml(cf,{assaults:'Assault incidents',assaultTypes:'Assault types',uof:'Use of force',uofTypes:'Force types'});
+  const kpis = [
+    as ? `<div class="cbp-kpi"><div class="k">ASSAULTS ON CBP · ${esc(as.latest.label)}</div><div class="v">${cbpNum(as.latest.incidents)} <small>${cbpNum(as.latest.officers)} officers</small></div><div class="d">${cbpDelta(as.latest.momPct,' MoM')} · ${cbpDelta(as.latest.yoyPct,' YoY')} · FYTD ${cbpNum(as.fytd.incidents)}</div></div>` : '',
+    as ? `<div class="cbp-kpi"><div class="k">SOUTHERN BORDER SHARE</div><div class="v">${cbpNum(as.latest.southernIncidents)} <small>/ ${cbpNum(as.latest.incidents)}</small></div><div class="d">${cbpNum(as.latest.southernOfficers)} officers assaulted · SB</div></div>` : '',
+    uof ? `<div class="cbp-kpi"><div class="k">USE OF FORCE · ${esc(uof.latest.label)}</div><div class="v">${cbpNum(uof.latest.incidents)} <small>${cbpNum(uof.latest.officers)} officers</small></div><div class="d">${cbpDelta(uof.latest.momPct,' MoM')} · ${cbpDelta(uof.latest.yoyPct,' YoY')} · FYTD ${cbpNum(uof.fytd.incidents)}</div></div>` : '',
+    uof ? `<div class="cbp-kpi"><div class="k">UOF SOUTHERN BORDER</div><div class="v">${cbpNum(uof.latest.southernIncidents)} <small>/ ${cbpNum(uof.latest.incidents)}</small></div><div class="d">${cbpNum(uof.latest.southernOfficers)} officers using force · SB</div></div>` : '',
+  ].join('');
+  const spark = as ? cbpSpark(as.series,'incidents','ASSAULT INCIDENTS / MONTH','rgba(255,138,128,0.45)') : cbpSpark(uof.series,'incidents','USE-OF-FORCE INCIDENTS / MONTH','rgba(255,138,128,0.45)');
+  // Sector table joins assaults and use of force by USBP sector abbreviation.
+  const byAbbv = new Map();
+  for(const s of (as?.sectors||[])) byAbbv.set(s.abbv,{...s, a:s, u:null});
+  for(const s of (uof?.sectors||[])){ const r=byAbbv.get(s.abbv)||{...s,a:null,u:null}; r.u=s; byAbbv.set(s.abbv,r); }
+  const sectors=[...byAbbv.values()].sort((x,y)=>((y.a?.latest||0)+(y.u?.latest||0))-((x.a?.latest||0)+(x.u?.latest||0)));
+  const smax=Math.max(1,...sectors.map(s=>s.a?.latest||0));
+  const rows = sectors.map(s=>`<tr title="${esc(s.aor)}"><td>${esc(s.sector)}</td><td class="n"><span class="cbp-bar" style="width:${Math.round((s.a?.latest||0)/smax*40)}px"></span>${cbpNum(s.a?.latest)}</td><td class="n">${cbpNum(s.a?.fytd)}</td><td class="n">${cbpNum(s.u?.latest)}</td><td class="n">${cbpNum(s.u?.fytd)}</td></tr>`).join('');
+  const typeTable=(t,title,cls)=>{
+    if(!t||!(t.types||[]).length) return '';
+    const tmax=Math.max(1,...t.types.map(x=>x.fytd));
+    const trs=t.types.slice(0,6).map(x=>`<tr><td>${esc(x.type)}</td><td class="n">${cbpNum(x.latest)}</td><td class="n"><span class="cbp-bar ${cls}" style="width:${Math.round(x.fytd/tmax*40)}px"></span>${cbpNum(x.fytd)}</td><td class="n">${cbpDelta(x.yoyPct)}</td></tr>`).join('');
+    return `<div class="bw-sub">${title} · ${esc(t.latest.label)}</div><table class="cbp-table"><thead><tr><th>TYPE</th><th class="n">MONTH</th><th class="n">FYTD</th><th class="n">YoY</th></tr></thead><tbody>${trs}</tbody></table>`;
+  };
+  const comps = [...(as?.components||[]).map(c=>`<span class="bw-chip" title="${cbpNum(c.officers)} officers assaulted">${esc(c.key)} ${cbpNum(c.incidents)} assaults</span>`), ...(uof?.components||[]).map(c=>`<span class="bw-chip place" title="${cbpNum(c.officers)} officers using force">${esc(c.key)} ${cbpNum(c.incidents)} UoF</span>`)].join('');
+  const thru=(as||uof).latest?.label;
+  return `<div class="g-panel cbp-panel">
+      <div class="sec-head"><h3>${shDot('CBPForce')}CBP Officer Safety &amp; Use of Force</h3>${cbpBadge(cf,'CBPForce',thru)}</div>
+      <div class="bw-feeds">${dsHtml}</div>
+      <div class="cbp-scroll">
+        <div class="cbp-kpis">${kpis}</div>${spark}
+        ${sectors.length?`<div class="bw-sub">USBP SW SECTORS · ${esc(thru)}</div><table class="cbp-table"><thead><tr><th>SECTOR</th><th class="n">ASSAULTS</th><th class="n">FYTD</th><th class="n">UOF</th><th class="n">FYTD</th></tr></thead><tbody>${rows}</tbody></table>`:''}
+        ${comps?`<div class="bw-sub">BY COMPONENT · ${esc(thru)}</div><div class="bw-chips">${comps}</div>`:''}
+        ${typeTable(at,'ASSAULT TYPE USED BY SUBJECT','uof')}${typeTable(ft,'FORCE TYPE USED BY CBP','uof')}
+      </div>
+      ${cbpFoot(cf,'NATIONWIDE · SB = CBP SOUTHERN BORDER REGION · FYTD = CURRENT FISCAL YEAR TO DATE')}
+    </div>`;
+}
+
+function renderCbpCustodyPanel(){
+  const cc = D.cbpCustody || {};
+  const cus = cc.custody, enf = cc.enforcement;
+  if(!cus && !enf){
+    return offPanel('CBP Custody &amp; Enforcement','CBPCustody',cc.error||'CBP statistics pages have not been read yet','cbp-panel');
+  }
+  const dsHtml = cbpDatasetsHtml(cc,{custody:'Custody & transfer',enforcement:'Enforcement statistics'});
+  const tsdsSw = (enf?.tsds||[]).map(t=>({t,row:(t.rows||[]).find(r=>/southwest/i.test(r.key))})).filter(x=>x.row);
+  const tsdsTotal = tsdsSw.reduce((s,x)=>s+(x.row.latest||0),0);
+  const crimOfo=(enf?.criminalNoncitizens?.ofo||[]).find(r=>/total/i.test(r.key))||(enf?.criminalNoncitizens?.ofo||[])[0];
+  const crimUsbp=(enf?.criminalNoncitizens?.usbp||[]).find(r=>/total/i.test(r.key))||(enf?.criminalNoncitizens?.usbp||[])[0];
+  const kpis = [
+    cus?.inCustody?.total ? `<div class="cbp-kpi"><div class="k">USBP IN CUSTODY · ${esc(cus.label)}</div><div class="v">${cbpNum(cus.inCustody.total.latest)}</div><div class="d">${cbpDelta(cus.inCustody.total.momPct,' MoM')} · month-end snapshot</div></div>` : '',
+    cus?.ofo ? `<div class="cbp-kpi"><div class="k">OFO IN CUSTODY / CAPACITY</div><div class="v">${cbpNum(cus.ofo.inCustody)} <small>/ ${cbpNum(cus.ofo.capacity)}</small></div><div class="d">${cus.ofo.pct!=null?esc(String(cus.ofo.pct))+'% utilization':'—'} · ${esc(cus.ofo.label)}</div></div>` : '',
+    tsdsSw.length ? `<div class="cbp-kpi"><div class="k">TSDS ENCOUNTERS · SW · ${esc(enf.asOf?.label||'')}</div><div class="v">${cbpNum(tsdsTotal)}</div><div class="d">${tsdsSw.map(x=>`${/between ports/i.test(x.t.label)?'USBP':'OFO'} ${cbpNum(x.row.latest)}`).join(' · ')} · ${enf.lastFull?esc(enf.lastFull.label)+' '+cbpNum(tsdsSw.reduce((s,x)=>s+(x.row.lastFull||0),0)):''}</div></div>` : '',
+    (crimOfo||crimUsbp) ? `<div class="cbp-kpi"><div class="k">CRIMINAL NONCITIZENS · ${esc(enf.asOf?.label||'')}</div><div class="v">${cbpNum((crimOfo?.latest||0)+(crimUsbp?.latest||0))}</div><div class="d">OFO ${cbpNum(crimOfo?.latest)} · USBP ${cbpNum(crimUsbp?.latest)} · ${enf.lastFull?esc(enf.lastFull.label)+' '+cbpNum((crimOfo?.lastFull||0)+(crimUsbp?.lastFull||0)):''}</div></div>` : '',
+  ].join('');
+  let cusHtml='';
+  if(cus){
+    const tot=cus.inCustody?.total;
+    const spark = tot ? cbpSpark(tot.series.filter(s=>s.count!=null),'count','USBP IN CUSTODY · MONTH-END','rgba(57,105,202,0.55)') : '';
+    const secs=(cus.inCustody?.sectors||[]).filter(s=>s.latest!=null).sort((a,b)=>b.latest-a.latest);
+    const smax=Math.max(1,...secs.map(s=>s.latest));
+    const rows=secs.map(s=>`<tr><td>${esc(s.sector)}</td><td class="n"><span class="cbp-bar cus" style="width:${Math.round(s.latest/smax*48)}px"></span>${cbpNum(s.latest)}</td><td class="n">${cbpNum(s.previous)}</td><td class="n">${cbpDelta(s.momPct)}</td></tr>`).join('');
+    const chips=(g,cls)=>g?(g.rows||[]).filter(r=>r.latest>0).slice(0,6).map(r=>`<span class="bw-chip${cls}" title="${r.share!=null?esc(String(r.share))+'% of '+esc(g.label):''}">${esc(r.key)} ${cbpNum(r.latest)}</span>`).join(''):'';
+    cusHtml=`${spark}
+      ${rows?`<div class="bw-sub">USBP SW SECTORS IN CUSTODY · ${esc(cus.label)}</div><table class="cbp-table"><thead><tr><th>SECTOR</th><th class="n">IN CUSTODY</th><th class="n">PRIOR</th><th class="n">MoM</th></tr></thead><tbody>${rows}</tbody></table>`:''}
+      ${cus.dispositions?`<div class="bw-sub">DISPOSITIONS · ${esc(cus.dispositions.label)} · ${cbpNum(cus.dispositions.total?.latest)}</div><div class="bw-chips">${chips(cus.dispositions,'')}</div>`:''}
+      ${cus.transfers?`<div class="bw-sub">TRANSFERS OUT OF CBP · ${esc(cus.transfers.label)} · ${cbpNum(cus.transfers.total?.latest)}</div><div class="bw-chips">${chips(cus.transfers,' place')}</div>`:''}`;
+  }
+  let enfHtml='';
+  if(enf){
+    const fyHead=`<th>&nbsp;</th><th class="n">${cbpFyLabel(enf.asOf)}</th><th class="n">${cbpFyLabel(enf.lastFull)}</th><th class="n">YoY FY</th>`;
+    const fyRows=(rows)=>(rows||[]).map(r=>`<tr><td class="k">${esc(r.key)}</td><td class="n">${cbpNum(r.latest)}</td><td class="n">${cbpNum(r.lastFull)}</td><td class="n">${cbpDelta(r.yoyFullPct)}</td></tr>`).join('');
+    const fyTable=(title,rows)=>rows&&rows.length?`<div class="bw-sub">${title}</div><table class="cbp-table"><thead><tr>${fyHead}</tr></thead><tbody>${fyRows(rows)}</tbody></table>`:'';
+    const tsds=(enf.tsds||[]).map(t=>{
+      const comp=/between ports/i.test(t.label)?'USBP BETWEEN PORTS':'OFO AT PORTS OF ENTRY';
+      const pct=t.pctOfEncounters?.latest!=null?` · ${esc(String(t.pctOfEncounters.latest))}% OF ENCOUNTERS`:'';
+      return fyTable(`TSDS ENCOUNTERS · ${comp}${pct}`,t.rows);
+    }).join('');
+    const gangRows=(enf.gangs?.rows||[]).slice(0,8);
+    const gmax=Math.max(1,...gangRows.map(g=>g.latest||0));
+    const gangs=gangRows.length?`<div class="bw-sub">GANG-AFFILIATED ENCOUNTERS · ${cbpFyLabel(enf.gangs.latest)} · TOTAL ${cbpNum(enf.gangs.total?.latest)}</div><table class="cbp-table"><thead><tr><th>GANG</th><th class="n">${cbpFyLabel(enf.gangs.latest)}</th><th class="n">${cbpFyLabel(enf.gangs.lastFull)}</th></tr></thead><tbody>${gangRows.map(g=>`<tr><td>${esc(g.key)}</td><td class="n"><span class="cbp-bar uof" style="width:${Math.round((g.latest||0)/gmax*40)}px"></span>${cbpNum(g.latest)}</td><td class="n">${cbpNum(g.lastFull)}</td></tr>`).join('')}</tbody></table>`:'';
+    enfHtml=`${fyTable('ENFORCEMENT ENCOUNTERS · FISCAL YEAR',enf.enforcement?.rows)}
+      ${tsds}
+      ${fyTable('CRIMINAL NONCITIZENS · OFO',enf.criminalNoncitizens?.ofo)}${fyTable('CRIMINAL NONCITIZENS · USBP',enf.criminalNoncitizens?.usbp)}
+      ${fyTable('RESCUES',enf.rescues?.rows)}
+      ${gangs}
+      <div class="cbp-note">${esc(enf.asOf?.label||'')} is a partial fiscal year; YoY FY compares the last two complete fiscal years. Source pages: <a class="cbp-link" href="${esc(safeExternalUrl((cc.datasets||[]).find(d=>d.id==='enforcement')?.discoveryPage)||CBP_PORTAL_URL)}" target="_blank" rel="noopener noreferrer">CBP Enforcement Statistics</a> · <a class="cbp-link" href="${esc(safeExternalUrl((cc.datasets||[]).find(d=>d.id==='custody')?.discoveryPage)||CBP_PORTAL_URL)}" target="_blank" rel="noopener noreferrer">Custody and Transfer</a></div>`;
+  }
+  const thru = cus?.label || enf?.asOf?.label;
+  return `<div class="g-panel cbp-panel">
+      <div class="sec-head"><h3>${shDot('CBPCustody')}CBP Custody &amp; Enforcement</h3>${cbpBadge(cc,'CBPCustody',thru)}</div>
+      <div class="bw-feeds">${dsHtml}</div>
+      <div class="cbp-scroll">${kpis?`<div class="cbp-kpis">${kpis}</div>`:''}${cusHtml}${enfHtml}</div>
+      ${cbpFoot(cc,'HTML TABLES · PARSED ONLY WHEN CBP\u2019S PAGE LAYOUT MATCHES')}
     </div>`;
 }
 

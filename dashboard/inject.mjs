@@ -106,6 +106,29 @@ function sanitizeExternalUrl(raw) {
   }
 }
 
+// Border / CBP projection helpers — every CBP-derived value is bounded here before it reaches the page.
+const cbpStr = (v, n) => String(v ?? '').substring(0, n);
+const cbpNum = (v) => (Number.isFinite(v) ? v : 0);
+const cbpNullable = (v) => (Number.isFinite(v) ? v : null);
+const cbpPct = (v) => (Number.isFinite(v) ? v : null);
+const cbpSeries = (arr, n) => (Array.isArray(arr) ? arr.slice(0, n) : []);
+const cbpCoverage = (c) => ({ first: cbpStr(c?.first, 7), last: cbpStr(c?.last, 7), months: cbpNum(c?.months) });
+function cbpSourceMeta(src, maxDatasets) {
+  return {
+    status: src.status || 'unavailable',
+    error: src.error ? cbpStr(src.error, 200) : null,
+    timestamp: src.timestamp || null,
+    pipelineVersion: cbpStr(src.pipelineVersion, 40),
+    attribution: cbpStr(src.attribution, 240),
+    datasets: (src.datasets || []).slice(0, maxDatasets).map(d => ({
+      id: cbpStr(d.id, 20), title: cbpStr(d.title, 80), kind: cbpStr(d.kind || 'csv', 8), status: cbpStr(d.status, 20), httpStatus: d.httpStatus ?? null,
+      url: sanitizeExternalUrl(d.url), discoveryPage: sanitizeExternalUrl(d.discoveryPage), discovered: !!d.discovered,
+      reason: d.reason ? cbpStr(d.reason, 160) : null, notes: (d.notes || []).slice(0, 4).map(n => cbpStr(n, 160)),
+      fetchedAt: d.fetchedAt || null, lastModified: d.lastModified ? cbpStr(d.lastModified, 40) : null, rows: cbpNum(d.rows),
+    })),
+  };
+}
+
 function airSourceLabel(openSky) {
   const c = openSky?.coverage;
   if (!c || openSky.method === 'opensky') return 'OpenSky';
@@ -1106,7 +1129,7 @@ export async function synthesize(data) {
         error: cs.error ? str(cs.error, 200) : null,
         timestamp: cs.timestamp || null,
         pipelineVersion: str(cs.pipelineVersion, 40),
-        attribution: str(cs.attribution, 200),
+        attribution: str(cs.attribution, 240),
         datasets: (cs.datasets || []).slice(0, 4).map(d => ({
           id: str(d.id, 20), title: str(d.title, 80), status: str(d.status, 20), httpStatus: d.httpStatus ?? null,
           url: sanitizeExternalUrl(d.url), discoveryPage: sanitizeExternalUrl(d.discoveryPage), discovered: !!d.discovered,
@@ -1137,6 +1160,105 @@ export async function synthesize(data) {
             series: (d.series || []).slice(0, 13).map(x => ({ period: str(x.period, 7), lbs: num(x.lbs), events: num(x.events) })),
           })),
           byAor: (drg.byAor || []).slice(0, 13).map(a => ({ aor: str(a.aor, 40), events: num(a.events), lbs: num(a.lbs) })),
+        } : null,
+      };
+    })(),
+    // Border / CBP — AMO drug seizures, currency seizures, weapons & ammunition seizures (official CSVs, nationwide)
+    cbpSeizures: (() => {
+      const cs = data.sources.CBPSeizures || {};
+      const amo = cs.amo;
+      const cur = cs.currency;
+      const wpn = cs.weapons;
+      const sm = (v) => cbpSeries(v, 13);
+      return {
+        ...cbpSourceMeta(cs, 4),
+        amo: amo ? {
+          coverage: cbpCoverage(amo.coverage),
+          latest: { period: cbpStr(amo.latest?.period, 7), label: cbpStr(amo.latest?.label, 12), events: cbpNum(amo.latest?.events), lbs: cbpNum(amo.latest?.lbs), swLbs: cbpNum(amo.latest?.swLbs), momLbsPct: cbpPct(amo.latest?.momLbsPct), yoyLbsPct: cbpPct(amo.latest?.yoyLbsPct) },
+          series: sm(amo.series).map(s => ({ period: cbpStr(s.period, 7), label: cbpStr(s.label, 12), events: cbpNum(s.events), lbs: cbpNum(s.lbs), swLbs: cbpNum(s.swLbs) })),
+          drugs: (amo.drugs || []).slice(0, 10).map(d => ({
+            type: cbpStr(d.type, 40), latest: { events: cbpNum(d.latest?.events), lbs: cbpNum(d.latest?.lbs) }, momLbsPct: cbpPct(d.momLbsPct), yoyLbsPct: cbpPct(d.yoyLbsPct),
+            series: sm(d.series).map(x => ({ period: cbpStr(x.period, 7), lbs: cbpNum(x.lbs), events: cbpNum(x.events) })),
+          })),
+          regions: (amo.regions || []).slice(0, 4).map(r => ({ region: cbpStr(r.region, 40), events: cbpNum(r.events), lbs: cbpNum(r.lbs) })),
+          branches: (amo.branches || []).slice(0, 8).map(b => ({ branch: cbpStr(b.branch, 60), region: cbpStr(b.region, 40), events: cbpNum(b.events), lbs: cbpNum(b.lbs) })),
+        } : null,
+        currency: cur ? {
+          coverage: cbpCoverage(cur.coverage),
+          latest: { period: cbpStr(cur.latest?.period, 7), label: cbpStr(cur.latest?.label, 12), events: cbpNum(cur.latest?.events), usd: cbpNum(cur.latest?.usd), swEvents: cbpNum(cur.latest?.swEvents), swUsd: cbpNum(cur.latest?.swUsd), momUsdPct: cbpPct(cur.latest?.momUsdPct), yoyUsdPct: cbpPct(cur.latest?.yoyUsdPct) },
+          series: sm(cur.series).map(s => ({ period: cbpStr(s.period, 7), label: cbpStr(s.label, 12), events: cbpNum(s.events), usd: cbpNum(s.usd), swUsd: cbpNum(s.swUsd) })),
+          direction: (cur.direction || []).slice(0, 3).map(d => ({ key: cbpStr(d.key, 20), usd: cbpNum(d.usd), events: cbpNum(d.events) })),
+          components: (cur.components || []).slice(0, 3).map(c => ({ key: cbpStr(c.key, 40), usd: cbpNum(c.usd) })),
+          byAor: (cur.byAor || []).slice(0, 10).map(a => ({ aor: cbpStr(a.aor, 40), region: cbpStr(a.region, 30), events: cbpNum(a.events), usd: cbpNum(a.usd) })),
+        } : null,
+        weapons: wpn ? {
+          coverage: cbpCoverage(wpn.coverage),
+          latest: { period: cbpStr(wpn.latest?.period, 7), label: cbpStr(wpn.latest?.label, 12), events: cbpNum(wpn.latest?.events), swEvents: cbpNum(wpn.latest?.swEvents), weapons: cbpNum(wpn.latest?.weapons), ammoParts: cbpNum(wpn.latest?.ammoParts), outboundEvents: cbpNum(wpn.latest?.outboundEvents), momEventsPct: cbpPct(wpn.latest?.momEventsPct), yoyEventsPct: cbpPct(wpn.latest?.yoyEventsPct) },
+          series: sm(wpn.series).map(s => ({ period: cbpStr(s.period, 7), label: cbpStr(s.label, 12), events: cbpNum(s.events), weapons: cbpNum(s.weapons), ammoParts: cbpNum(s.ammoParts) })),
+          direction: (wpn.direction || []).slice(0, 3).map(d => ({ key: cbpStr(d.key, 20), events: cbpNum(d.events) })),
+          modes: (wpn.modes || []).slice(0, 5).map(d => ({ key: cbpStr(d.key, 20), events: cbpNum(d.events) })),
+          categories: (wpn.categories || []).slice(0, 8).map(c => ({ key: cbpStr(c.key, 40), qty: cbpNum(c.qty) })),
+          byAor: (wpn.byAor || []).slice(0, 8).map(a => ({ aor: cbpStr(a.aor, 40), region: cbpStr(a.region, 30), events: cbpNum(a.events), outboundEvents: cbpNum(a.outboundEvents), weapons: cbpNum(a.weapons), ammoParts: cbpNum(a.ammoParts) })),
+          swByAor: (wpn.swByAor || []).slice(0, 13).map(a => ({ aor: cbpStr(a.aor, 40), component: cbpStr(a.component, 40), events: cbpNum(a.events), outboundEvents: cbpNum(a.outboundEvents), weapons: cbpNum(a.weapons), ammoParts: cbpNum(a.ammoParts) })),
+        } : null,
+      };
+    })(),
+    // Border / CBP — assaults on officers/agents and CBP use of force (official CSVs)
+    cbpForce: (() => {
+      const cf = data.sources.CBPForce || {};
+      const incidents = (x) => (x ? {
+        coverage: cbpCoverage(x.coverage),
+        latest: { period: cbpStr(x.latest?.period, 7), label: cbpStr(x.latest?.label, 12), incidents: cbpNum(x.latest?.incidents), officers: cbpNum(x.latest?.officers), southernIncidents: cbpNum(x.latest?.southernIncidents), southernOfficers: cbpNum(x.latest?.southernOfficers), momPct: cbpPct(x.latest?.momPct), yoyPct: cbpPct(x.latest?.yoyPct) },
+        fytd: { incidents: cbpNum(x.fytd?.incidents), officers: cbpNum(x.fytd?.officers) },
+        series: cbpSeries(x.series, 13).map(s => ({ period: cbpStr(s.period, 7), label: cbpStr(s.label, 12), incidents: cbpNum(s.incidents), southern: cbpNum(s.southern), officers: cbpNum(s.officers) })),
+        components: (x.components || []).slice(0, 4).map(c => ({ key: cbpStr(c.key, 40), incidents: cbpNum(c.incidents), officers: cbpNum(c.officers) })),
+        sectors: (x.sectors || []).slice(0, 9).map(s => ({
+          aor: cbpStr(s.aor, 40), abbv: cbpStr(s.abbv, 4), sector: cbpStr(s.sector, 30),
+          lat: Number.isFinite(s.lat) ? s.lat : null, lon: Number.isFinite(s.lon) ? s.lon : null,
+          latest: cbpNum(s.latest), previous: s.previous == null ? null : cbpNum(s.previous), yoyPct: cbpPct(s.yoyPct), fytd: cbpNum(s.fytd),
+          series: cbpSeries(s.series, 13).map(p => ({ period: cbpStr(p.period, 7), count: cbpNum(p.count) })),
+        })),
+      } : null);
+      const types = (x) => (x ? {
+        latest: { period: cbpStr(x.latest?.period, 7), label: cbpStr(x.latest?.label, 12) },
+        types: (x.types || []).slice(0, 8).map(t => ({ type: cbpStr(t.type, 40), latest: cbpNum(t.latest), yoyPct: cbpPct(t.yoyPct), fytd: cbpNum(t.fytd), series: cbpSeries(t.series, 13).map(p => ({ period: cbpStr(p.period, 7), count: cbpNum(p.count) })) })),
+      } : null);
+      return {
+        ...cbpSourceMeta(cf, 4),
+        assaults: incidents(cf.assaults),
+        assaultTypes: types(cf.assaultTypes),
+        useOfForce: incidents(cf.useOfForce),
+        forceTypes: types(cf.forceTypes),
+      };
+    })(),
+    // Border / CBP — custody & transfer + enforcement statistics (official HTML tables, no CSV published)
+    cbpCustody: (() => {
+      const cc = data.sources.CBPCustody || {};
+      const cus = cc.custody;
+      const enf = cc.enforcement;
+      const fyCol = (c) => (c ? { label: cbpStr(c.label, 20), fy: cbpNum(c.fy), partial: !!c.partial, thru: c.thru ? cbpStr(c.thru, 12) : null } : null);
+      const fyRows = (rows, n) => (rows || []).slice(0, n).map(r => ({ key: cbpStr(r.key, 80), latest: cbpNullable(r.latest), lastFull: cbpNullable(r.lastFull), priorFull: cbpNullable(r.priorFull), yoyFullPct: cbpPct(r.yoyFullPct) }));
+      const monthlyRows = (rows, n) => (rows || []).slice(0, n).map(r => ({ key: cbpStr(r.key, 80), latest: cbpNum(r.latest), momPct: cbpPct(r.momPct), share: cbpPct(r.share) }));
+      return {
+        ...cbpSourceMeta(cc, 2),
+        custody: cus ? {
+          region: cbpStr(cus.region, 40),
+          period: cbpStr(cus.period, 7), label: cbpStr(cus.label, 12),
+          inCustody: {
+            total: cus.inCustody?.total ? { latest: cbpNum(cus.inCustody.total.latest), previous: cbpNullable(cus.inCustody.total.previous), momPct: cbpPct(cus.inCustody.total.momPct), series: cbpSeries(cus.inCustody.total.series, 12).map(s => ({ period: cbpStr(s.period, 7), label: cbpStr(s.label, 12), count: cbpNullable(s.count) })) } : null,
+            sectors: (cus.inCustody?.sectors || []).slice(0, 9).map(s => ({ sector: cbpStr(s.sector, 30), latest: cbpNullable(s.latest), previous: cbpNullable(s.previous), momPct: cbpPct(s.momPct), series: cbpSeries(s.series, 12).map(p => ({ period: cbpStr(p.period, 7), count: cbpNullable(p.count) })) })),
+          },
+          dispositions: cus.dispositions ? { period: cbpStr(cus.dispositions.period, 7), label: cbpStr(cus.dispositions.label, 12), total: cus.dispositions.total ? { latest: cbpNum(cus.dispositions.total.latest), momPct: cbpPct(cus.dispositions.total.momPct) } : null, rows: monthlyRows(cus.dispositions.rows, 8) } : null,
+          transfers: cus.transfers ? { period: cbpStr(cus.transfers.period, 7), label: cbpStr(cus.transfers.label, 12), total: cus.transfers.total ? { latest: cbpNum(cus.transfers.total.latest), momPct: cbpPct(cus.transfers.total.momPct) } : null, rows: monthlyRows(cus.transfers.rows, 8) } : null,
+          ofo: cus.ofo ? { period: cbpStr(cus.ofo.period, 7), label: cbpStr(cus.ofo.label, 12), capacity: cbpNullable(cus.ofo.capacity), inCustody: cbpNullable(cus.ofo.inCustody), pct: cbpPct(cus.ofo.pct) } : null,
+        } : null,
+        enforcement: enf ? {
+          asOf: fyCol(enf.asOf), lastFull: fyCol(enf.lastFull),
+          enforcement: { columns: (enf.enforcement?.columns || []).slice(0, 12).map(fyCol), rows: fyRows(enf.enforcement?.rows, 4) },
+          rescues: enf.rescues ? { columns: (enf.rescues.columns || []).slice(0, 12).map(fyCol), rows: fyRows(enf.rescues.rows, 3) } : null,
+          criminalNoncitizens: { ofo: enf.criminalNoncitizens?.ofo ? fyRows(enf.criminalNoncitizens.ofo, 3) : null, usbp: enf.criminalNoncitizens?.usbp ? fyRows(enf.criminalNoncitizens.usbp, 3) : null },
+          gangs: enf.gangs ? { latest: fyCol(enf.gangs.latest), lastFull: fyCol(enf.gangs.lastFull), rows: fyRows(enf.gangs.rows, 20), total: enf.gangs.total ? fyRows([enf.gangs.total], 1)[0] : null } : null,
+          tsds: (enf.tsds || []).slice(0, 2).map(t => ({ label: cbpStr(t.label, 160), latest: fyCol(t.latest), lastFull: fyCol(t.lastFull), rows: fyRows(t.rows, 4), pctOfEncounters: t.pctOfEncounters ? { latest: cbpPct(t.pctOfEncounters.latest), lastFull: cbpPct(t.pctOfEncounters.lastFull) } : null })),
         } : null,
       };
     })(),

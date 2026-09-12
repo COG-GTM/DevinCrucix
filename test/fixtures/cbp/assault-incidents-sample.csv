@@ -1,0 +1,937 @@
+Fiscal Year,Month (abbv),Component,Region,Area of Responsibility,Unique ID,Count of Officers/Agents
+2025,APR,Air and Marine Operations,Coastal/Interior,Operations Directorate,250400003,2
+2025,APR,Air and Marine Operations,Coastal/Interior,Operations Directorate,250400004,2
+2025,APR,Air and Marine Operations,Coastal/Interior,Operations Directorate,250400005,1
+2025,APR,Air and Marine Operations,Coastal/Interior,Operations Directorate,250400006,2
+2025,APR,Air and Marine Operations,Coastal/Interior,Operations Directorate,250400007,3
+2025,APR,Air and Marine Operations,Coastal/Interior,"Training, Safety, And Standards Directorate",250400005,1
+2025,APR,Office of Field Operations,Coastal/Interior,Houston Field Office,250400064,2
+2025,APR,Office of Field Operations,Coastal/Interior,Tampa Field Office,250400056,2
+2025,APR,Office of Field Operations,Southern Border,San Diego Field Office,250400059,3
+2025,APR,Office of Field Operations,Southern Border,San Diego Field Office,250400060,3
+2025,APR,Office of Field Operations,Southern Border,Tucson Field Office,250400062,1
+2025,APR,U.S. Border Patrol,Coastal/Interior,Miami Sector,250400034,1
+2025,APR,U.S. Border Patrol,Northern Border,Buffalo Sector,250400014,1
+2025,APR,U.S. Border Patrol,Northern Border,Spokane Sector,250400047,1
+2025,APR,U.S. Border Patrol,Southern Border,Big Bend Sector,250400013,1
+2025,APR,U.S. Border Patrol,Southern Border,Del Rio Sector,250400015,1
+2025,APR,U.S. Border Patrol,Southern Border,Del Rio Sector,250400016,1
+2025,APR,U.S. Border Patrol,Southern Border,Del Rio Sector,250400017,2
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400002,1
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400019,1
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400022,1
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400024,2
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400025,6
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400026,1
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400027,1
+2025,APR,U.S. Border Patrol,Southern Border,El Paso Sector,250400065,2
+2025,APR,U.S. Border Patrol,Southern Border,Laredo Sector,250400032,1
+2025,APR,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250400035,1
+2025,APR,U.S. Border Patrol,Southern Border,San Diego Sector,250400042,1
+2025,APR,U.S. Border Patrol,Southern Border,Tucson Sector,250400048,1
+2025,APR,U.S. Border Patrol,Southern Border,Tucson Sector,250400049,1
+2025,APR,U.S. Border Patrol,Southern Border,Tucson Sector,250400050,1
+2025,APR,U.S. Border Patrol,Southern Border,Tucson Sector,250400051,1
+2025,AUG,Air and Marine Operations,Coastal/Interior,Operations Directorate,250800002,1
+2025,AUG,Office of Field Operations,Coastal/Interior,Atlanta Field Office,250800079,2
+2025,AUG,Office of Field Operations,Coastal/Interior,Baltimore Field Office,250800097,1
+2025,AUG,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250800089,2
+2025,AUG,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250800091,1
+2025,AUG,Office of Field Operations,Coastal/Interior,New York Field Office,250800078,7
+2025,AUG,Office of Field Operations,Northern Border,Boston Field Office,250800077,2
+2025,AUG,Office of Field Operations,Northern Border,Buffalo Field Office,250800078,1
+2025,AUG,Office of Field Operations,Northern Border,Detroit Field Office,250800093,8
+2025,AUG,Office of Field Operations,Southern Border,El Paso Field Office,250800082,1
+2025,AUG,Office of Field Operations,Southern Border,San Diego Field Office,250800084,2
+2025,AUG,Office of Field Operations,Southern Border,San Diego Field Office,250800085,3
+2025,AUG,Office of Field Operations,Southern Border,Tucson Field Office,250800088,2
+2025,AUG,U.S. Border Patrol,Coastal/Interior,Miami Sector,250800051,1
+2025,AUG,U.S. Border Patrol,Coastal/Interior,Miami Sector,250800054,1
+2025,AUG,U.S. Border Patrol,Northern Border,Grand Forks Sector,250800038,1
+2025,AUG,U.S. Border Patrol,Northern Border,Grand Forks Sector,250800039,1
+2025,AUG,U.S. Border Patrol,Northern Border,Houlton Sector,250800041,1
+2025,AUG,U.S. Border Patrol,Northern Border,Swanton Sector,250800066,1
+2025,AUG,U.S. Border Patrol,Southern Border,Del Rio Sector,250800009,1
+2025,AUG,U.S. Border Patrol,Southern Border,Del Rio Sector,250800010,2
+2025,AUG,U.S. Border Patrol,Southern Border,Del Rio Sector,250800012,1
+2025,AUG,U.S. Border Patrol,Southern Border,El Paso Sector,250800023,2
+2025,AUG,U.S. Border Patrol,Southern Border,El Paso Sector,250800025,1
+2025,AUG,U.S. Border Patrol,Southern Border,El Paso Sector,250800028,1
+2025,AUG,U.S. Border Patrol,Southern Border,El Paso Sector,250800031,1
+2025,AUG,U.S. Border Patrol,Southern Border,El Paso Sector,250800036,1
+2025,AUG,U.S. Border Patrol,Southern Border,El Paso Sector,250800094,3
+2025,AUG,U.S. Border Patrol,Southern Border,Laredo Sector,250800043,1
+2025,AUG,U.S. Border Patrol,Southern Border,Laredo Sector,250800046,1
+2025,AUG,U.S. Border Patrol,Southern Border,Laredo Sector,250800047,1
+2025,AUG,U.S. Border Patrol,Southern Border,Laredo Sector,250800048,2
+2025,AUG,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250800055,1
+2025,AUG,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250800095,1
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800014,1
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800018,1
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800019,1
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800020,5
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800021,1
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800022,1
+2025,AUG,U.S. Border Patrol,Southern Border,San Diego Sector,250800056,5
+2025,AUG,U.S. Border Patrol,Southern Border,Special Operations Group,250800042,1
+2025,AUG,U.S. Border Patrol,Southern Border,Tucson Sector,250800068,1
+2025,AUG,U.S. Border Patrol,Southern Border,Tucson Sector,250800069,1
+2025,AUG,U.S. Border Patrol,Southern Border,Tucson Sector,250800072,1
+2025,DEC,Air and Marine Operations,Coastal/Interior,Operations Directorate,251200001,2
+2025,DEC,Air and Marine Operations,Coastal/Interior,Operations Directorate,251200002,2
+2025,DEC,Air and Marine Operations,Coastal/Interior,Operations Directorate,251200009,1
+2025,DEC,Office of Field Operations,Coastal/Interior,Miami Field Office,251200071,2
+2025,DEC,Office of Field Operations,Coastal/Interior,San Juan Field Office,251200009,1
+2025,DEC,Office of Field Operations,Coastal/Interior,Tampa Field Office,251200065,1
+2025,DEC,Office of Field Operations,Northern Border,Seattle Field Office,251200069,3
+2025,DEC,Office of Field Operations,Southern Border,San Diego Field Office,251200073,1
+2025,DEC,U.S. Border Patrol,Coastal/Interior,Ramey Sector,251200037,1
+2025,DEC,U.S. Border Patrol,Northern Border,Detroit Sector,251200013,1
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200017,1
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200019,3
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200024,3
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200025,1
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200026,1
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200027,2
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200028,1
+2025,DEC,U.S. Border Patrol,Southern Border,El Paso Sector,251200029,1
+2025,DEC,U.S. Border Patrol,Southern Border,Laredo Sector,251200032,1
+2025,DEC,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251200035,1
+2025,DEC,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251200036,1
+2025,DEC,U.S. Border Patrol,Southern Border,San Diego Sector,251200042,1
+2025,DEC,U.S. Border Patrol,Southern Border,San Diego Sector,251200046,1
+2025,DEC,U.S. Border Patrol,Southern Border,San Diego Sector,251200047,1
+2025,DEC,U.S. Border Patrol,Southern Border,San Diego Sector,251200048,1
+2025,DEC,U.S. Border Patrol,Southern Border,Tucson Sector,251200062,1
+2025,FEB,Air and Marine Operations,Coastal/Interior,Operations Directorate,250200002,1
+2025,FEB,Air and Marine Operations,Coastal/Interior,Operations Directorate,250200003,1
+2025,FEB,Office of Field Operations,Coastal/Interior,Miami Field Office,250200065,3
+2025,FEB,Office of Field Operations,Coastal/Interior,San Juan Field Office,250200064,1
+2025,FEB,Office of Field Operations,Northern Border,Detroit Field Office,250200063,1
+2025,FEB,Office of Field Operations,Southern Border,Laredo Field Office,250200057,2
+2025,FEB,Office of Field Operations,Southern Border,San Diego Field Office,250200061,1
+2025,FEB,Office of Field Operations,Southern Border,San Diego Field Office,250200062,3
+2025,FEB,U.S. Border Patrol,Northern Border,Detroit Sector,250200017,2
+2025,FEB,U.S. Border Patrol,Northern Border,Swanton Sector,250200047,1
+2025,FEB,U.S. Border Patrol,Southern Border,Big Bend Sector,250200010,1
+2025,FEB,U.S. Border Patrol,Southern Border,Del Rio Sector,250200011,1
+2025,FEB,U.S. Border Patrol,Southern Border,Del Rio Sector,250200013,2
+2025,FEB,U.S. Border Patrol,Southern Border,El Centro Sector,250200068,1
+2025,FEB,U.S. Border Patrol,Southern Border,El Paso Sector,250200020,1
+2025,FEB,U.S. Border Patrol,Southern Border,El Paso Sector,250200025,1
+2025,FEB,U.S. Border Patrol,Southern Border,El Paso Sector,250200027,1
+2025,FEB,U.S. Border Patrol,Southern Border,El Paso Sector,250200028,2
+2025,FEB,U.S. Border Patrol,Southern Border,Laredo Sector,250200034,1
+2025,FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250200002,1
+2025,FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250200003,1
+2025,FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250200036,3
+2025,FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250200040,1
+2025,FEB,U.S. Border Patrol,Southern Border,San Diego Sector,250200041,3
+2025,FEB,U.S. Border Patrol,Southern Border,San Diego Sector,250200042,1
+2025,FEB,U.S. Border Patrol,Southern Border,San Diego Sector,250200043,2
+2025,FEB,U.S. Border Patrol,Southern Border,Tucson Sector,250200049,1
+2025,FEB,U.S. Border Patrol,Southern Border,Tucson Sector,250200050,1
+2025,JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,250100001,1
+2025,JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,250100002,1
+2025,JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,250100003,4
+2025,JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,250100004,2
+2025,JAN,Office of Field Operations,Northern Border,Boston Field Office,250100058,1
+2025,JAN,Office of Field Operations,Southern Border,San Diego Field Office,250100061,2
+2025,JAN,Office of Field Operations,Southern Border,San Diego Field Office,250100064,1
+2025,JAN,U.S. Border Patrol,Northern Border,Swanton Sector,250100042,1
+2025,JAN,U.S. Border Patrol,Southern Border,El Paso Sector,250100009,1
+2025,JAN,U.S. Border Patrol,Southern Border,El Paso Sector,250100011,1
+2025,JAN,U.S. Border Patrol,Southern Border,El Paso Sector,250100016,1
+2025,JAN,U.S. Border Patrol,Southern Border,El Paso Sector,250100062,1
+2025,JAN,U.S. Border Patrol,Southern Border,Laredo Sector,250100024,1
+2025,JAN,U.S. Border Patrol,Southern Border,Laredo Sector,250100025,3
+2025,JAN,U.S. Border Patrol,Southern Border,Laredo Sector,250100026,2
+2025,JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250100002,1
+2025,JAN,U.S. Border Patrol,Southern Border,San Diego Sector,250100034,1
+2025,JAN,U.S. Border Patrol,Southern Border,San Diego Sector,250100035,3
+2025,JAN,U.S. Border Patrol,Southern Border,San Diego Sector,250100039,1
+2025,JAN,U.S. Border Patrol,Southern Border,San Diego Sector,250100040,1
+2025,JAN,U.S. Border Patrol,Southern Border,Tucson Sector,250100052,2
+2025,JAN,U.S. Border Patrol,Southern Border,Yuma Sector,250100056,7
+2025,JAN,U.S. Border Patrol,Southern Border,Yuma Sector,250100057,1
+2025,JUL,Air and Marine Operations,Coastal/Interior,Operations Directorate,250700006,2
+2025,JUL,Air and Marine Operations,Coastal/Interior,Operations Directorate,250700074,1
+2025,JUL,Office of Field Operations,Coastal/Interior,Houston Field Office,250700058,1
+2025,JUL,Office of Field Operations,Coastal/Interior,Houston Field Office,250700073,1
+2025,JUL,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250700059,1
+2025,JUL,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250700060,3
+2025,JUL,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250700061,1
+2025,JUL,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250700062,4
+2025,JUL,Office of Field Operations,Coastal/Interior,Miami Field Office,250700069,5
+2025,JUL,Office of Field Operations,Coastal/Interior,New York Field Office,250700066,1
+2025,JUL,Office of Field Operations,Northern Border,Boston Field Office,250700052,3
+2025,JUL,Office of Field Operations,Southern Border,El Paso Field Office,250700056,1
+2025,JUL,Office of Field Operations,Southern Border,Laredo Field Office,250700053,1
+2025,JUL,Office of Field Operations,Southern Border,Tucson Field Office,250700005,1
+2025,JUL,U.S. Border Patrol,Coastal/Interior,Miami Sector,250700033,1
+2025,JUL,U.S. Border Patrol,Northern Border,Buffalo Sector,250700010,1
+2025,JUL,U.S. Border Patrol,Southern Border,Big Bend Sector,250700009,1
+2025,JUL,U.S. Border Patrol,Southern Border,El Centro Sector,250700018,2
+2025,JUL,U.S. Border Patrol,Southern Border,El Centro Sector,250700021,1
+2025,JUL,U.S. Border Patrol,Southern Border,El Paso Sector,250700024,1
+2025,JUL,U.S. Border Patrol,Southern Border,El Paso Sector,250700025,1
+2025,JUL,U.S. Border Patrol,Southern Border,El Paso Sector,250700026,2
+2025,JUL,U.S. Border Patrol,Southern Border,El Paso Sector,250700029,1
+2025,JUL,U.S. Border Patrol,Southern Border,El Paso Sector,250700030,1
+2025,JUL,U.S. Border Patrol,Southern Border,Laredo Sector,250700031,1
+2025,JUL,U.S. Border Patrol,Southern Border,Laredo Sector,250700032,1
+2025,JUL,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250700034,1
+2025,JUL,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250700036,11
+2025,JUL,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250700037,1
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700001,1
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700012,3
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700014,1
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700016,2
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700017,4
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700019,1
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700020,1
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700035,5
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700040,1
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700041,6
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700070,23
+2025,JUL,U.S. Border Patrol,Southern Border,San Diego Sector,250700071,7
+2025,JUL,U.S. Border Patrol,Southern Border,Tucson Sector,250700043,4
+2025,JUL,U.S. Border Patrol,Southern Border,Tucson Sector,250700044,1
+2025,JUL,U.S. Border Patrol,Southern Border,Yuma Sector,250700050,1
+2025,JUN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250600079,4
+2025,JUN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250600081,6
+2025,JUN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,250600082,1
+2025,JUN,Office of Field Operations,Coastal/Interior,Miami Field Office,250600089,1
+2025,JUN,Office of Field Operations,Coastal/Interior,San Francisco Field Office,250600083,1
+2025,JUN,Office of Field Operations,Northern Border,Detroit Field Office,250600085,1
+2025,JUN,Office of Field Operations,Northern Border,Portland Field Office,250600084,4
+2025,JUN,Office of Field Operations,Northern Border,Portland Field Office,250600086,5
+2025,JUN,Office of Field Operations,Northern Border,Seattle Field Office,250600081,1
+2025,JUN,Office of Field Operations,Northern Border,Seattle Field Office,250600087,1
+2025,JUN,Office of Field Operations,Southern Border,El Paso Field Office,250600073,1
+2025,JUN,Office of Field Operations,Southern Border,Laredo Field Office,250600070,1
+2025,JUN,Office of Field Operations,Southern Border,Laredo Field Office,250600071,1
+2025,JUN,Office of Field Operations,Southern Border,Laredo Field Office,250600085,1
+2025,JUN,Office of Field Operations,Southern Border,Laredo Field Office,250600086,1
+2025,JUN,Office of Field Operations,Southern Border,San Diego Field Office,250600074,1
+2025,JUN,Office of Field Operations,Southern Border,San Diego Field Office,250600079,5
+2025,JUN,Office of Field Operations,Southern Border,San Diego Field Office,250600081,1
+2025,JUN,Office of Field Operations,Southern Border,Tucson Field Office,250600077,1
+2025,JUN,U.S. Border Patrol,Coastal/Interior,Ramey Sector,250600047,1
+2025,JUN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,250600051,1
+2025,JUN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,250600055,6
+2025,JUN,U.S. Border Patrol,Northern Border,Blaine Sector,250600002,1
+2025,JUN,U.S. Border Patrol,Northern Border,Blaine Sector,250600051,4
+2025,JUN,U.S. Border Patrol,Northern Border,Blaine Sector,250600055,3
+2025,JUN,U.S. Border Patrol,Northern Border,Buffalo Sector,250600003,4
+2025,JUN,U.S. Border Patrol,Northern Border,Detroit Sector,250600006,1
+2025,JUN,U.S. Border Patrol,Northern Border,Houlton Sector,250600032,2
+2025,JUN,U.S. Border Patrol,Northern Border,Houlton Sector,250600033,1
+2025,JUN,U.S. Border Patrol,Northern Border,Swanton Sector,250600069,1
+2025,JUN,U.S. Border Patrol,Southern Border,Big Bend Sector,250600001,2
+2025,JUN,U.S. Border Patrol,Southern Border,Del Rio Sector,250600005,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600007,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600008,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600009,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600010,2
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600011,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600017,2
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600019,4
+2025,JUN,U.S. Border Patrol,Southern Border,El Centro Sector,250600021,4
+2025,JUN,U.S. Border Patrol,Southern Border,El Paso Sector,250600025,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Paso Sector,250600026,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Paso Sector,250600027,1
+2025,JUN,U.S. Border Patrol,Southern Border,El Paso Sector,250600030,1
+2025,JUN,U.S. Border Patrol,Southern Border,Laredo Sector,250600039,2
+2025,JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250600020,3
+2025,JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250600042,2
+2025,JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250600045,1
+2025,JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250600046,2
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600010,1
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600012,7
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600013,3
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600031,1
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600062,16
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600064,1
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600092,16
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600093,17
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600094,25
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600095,21
+2025,JUN,U.S. Border Patrol,Southern Border,San Diego Sector,250600097,23
+2025,JUN,U.S. Border Patrol,Southern Border,Tucson Sector,250600056,2
+2025,JUN,U.S. Border Patrol,Southern Border,Tucson Sector,250600057,3
+2025,JUN,U.S. Border Patrol,Southern Border,Tucson Sector,250600060,3
+2025,JUN,U.S. Border Patrol,Southern Border,Tucson Sector,250600063,1
+2025,JUN,U.S. Border Patrol,Southern Border,Yuma Sector,250600009,1
+2025,JUN,U.S. Border Patrol,Southern Border,Yuma Sector,250600095,1
+2025,MAR,Air and Marine Operations,Coastal/Interior,Operations Directorate,250300034,2
+2025,MAR,Office of Field Operations,Coastal/Interior,Atlanta Field Office,250300057,1
+2025,MAR,Office of Field Operations,Coastal/Interior,Baltimore Field Office,250300056,1
+2025,MAR,Office of Field Operations,Northern Border,Detroit Field Office,250300064,1
+2025,MAR,Office of Field Operations,Northern Border,Seattle Field Office,250300063,2
+2025,MAR,Office of Field Operations,Southern Border,El Paso Field Office,250300060,2
+2025,MAR,Office of Field Operations,Southern Border,San Diego Field Office,250300062,1
+2025,MAR,U.S. Border Patrol,Coastal/Interior,Miami Sector,250300067,1
+2025,MAR,U.S. Border Patrol,Northern Border,Detroit Sector,250300015,1
+2025,MAR,U.S. Border Patrol,Northern Border,Detroit Sector,250300016,1
+2025,MAR,U.S. Border Patrol,Northern Border,Spokane Sector,250300043,1
+2025,MAR,U.S. Border Patrol,Northern Border,Swanton Sector,250300044,1
+2025,MAR,U.S. Border Patrol,Southern Border,El Centro Sector,250300018,1
+2025,MAR,U.S. Border Patrol,Southern Border,El Paso Sector,250300023,4
+2025,MAR,U.S. Border Patrol,Southern Border,Laredo Sector,250300026,2
+2025,MAR,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250300031,1
+2025,MAR,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250300033,1
+2025,MAR,U.S. Border Patrol,Southern Border,San Diego Sector,250300034,1
+2025,MAR,U.S. Border Patrol,Southern Border,San Diego Sector,250300039,1
+2025,MAR,U.S. Border Patrol,Southern Border,San Diego Sector,250300066,1
+2025,MAR,U.S. Border Patrol,Southern Border,Tucson Sector,250300046,1
+2025,MAR,U.S. Border Patrol,Southern Border,Tucson Sector,250300050,1
+2025,MAY,Office of Field Operations,Coastal/Interior,Baltimore Field Office,250500058,1
+2025,MAY,Office of Field Operations,Coastal/Interior,Miami Field Office,250500069,1
+2025,MAY,Office of Field Operations,Northern Border,Boston Field Office,250500057,1
+2025,MAY,Office of Field Operations,Southern Border,Laredo Field Office,250500059,4
+2025,MAY,Office of Field Operations,Southern Border,Laredo Field Office,250500060,3
+2025,MAY,Office of Field Operations,Southern Border,Tucson Field Office,250500063,1
+2025,MAY,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,250500002,1
+2025,MAY,U.S. Border Patrol,Northern Border,Detroit Sector,250500070,1
+2025,MAY,U.S. Border Patrol,Northern Border,Swanton Sector,250500044,2
+2025,MAY,U.S. Border Patrol,Southern Border,Del Rio Sector,250500066,1
+2025,MAY,U.S. Border Patrol,Southern Border,El Paso Sector,250500013,2
+2025,MAY,U.S. Border Patrol,Southern Border,El Paso Sector,250500016,1
+2025,MAY,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250500027,2
+2025,MAY,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250500029,1
+2025,MAY,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250500030,2
+2025,MAY,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250500031,2
+2025,MAY,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250500034,1
+2025,MAY,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,250500035,1
+2025,MAY,U.S. Border Patrol,Southern Border,San Diego Sector,250500041,2
+2025,MAY,U.S. Border Patrol,Southern Border,San Diego Sector,250500042,1
+2025,MAY,U.S. Border Patrol,Southern Border,San Diego Sector,250500043,1
+2025,MAY,U.S. Border Patrol,Southern Border,Tucson Sector,250500046,1
+2025,MAY,U.S. Border Patrol,Southern Border,Tucson Sector,250500053,1
+2025,NOV,Office of Field Operations,Northern Border,Boston Field Office,251100088,2
+2025,NOV,Office of Field Operations,Southern Border,San Diego Field Office,251100078,1
+2025,NOV,Office of Field Operations,Southern Border,San Diego Field Office,251100079,1
+2025,NOV,Office of Field Operations,Southern Border,San Diego Field Office,251100083,1
+2025,NOV,Office of Field Operations,Southern Border,Tucson Field Office,251100081,1
+2025,NOV,Office of Field Operations,Southern Border,Tucson Field Office,251100082,2
+2025,NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,251100036,2
+2025,NOV,U.S. Border Patrol,Northern Border,Swanton Sector,251100059,1
+2025,NOV,U.S. Border Patrol,Southern Border,Big Bend Sector,251100014,1
+2025,NOV,U.S. Border Patrol,Southern Border,Del Rio Sector,251100016,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100001,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100018,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100021,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100026,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100027,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100028,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100029,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100030,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100032,3
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100086,1
+2025,NOV,U.S. Border Patrol,Southern Border,El Paso Sector,251100087,1
+2025,NOV,U.S. Border Patrol,Southern Border,Laredo Sector,251100034,1
+2025,NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251100002,1
+2025,NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251100037,1
+2025,NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251100039,1
+2025,NOV,U.S. Border Patrol,Southern Border,San Diego Sector,251100042,1
+2025,NOV,U.S. Border Patrol,Southern Border,San Diego Sector,251100057,1
+2025,NOV,U.S. Border Patrol,Southern Border,Tucson Sector,251100062,1
+2025,NOV,U.S. Border Patrol,Southern Border,Tucson Sector,251100064,1
+2025,NOV,U.S. Border Patrol,Southern Border,Tucson Sector,251100066,1
+2025,NOV,U.S. Border Patrol,Southern Border,Tucson Sector,251100071,1
+2025,OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,251000013,3
+2025,OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,251000015,2
+2025,OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,251000067,3
+2025,OCT,Office of Field Operations,Coastal/Interior,Atlanta Field Office,251000060,1
+2025,OCT,Office of Field Operations,Northern Border,Buffalo Field Office,251000059,1
+2025,OCT,Office of Field Operations,Southern Border,El Paso Field Office,251000062,1
+2025,OCT,Office of Field Operations,Southern Border,Laredo Field Office,251000061,2
+2025,OCT,Office of Field Operations,Southern Border,Tucson Field Office,251000064,1
+2025,OCT,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,251000035,1
+2025,OCT,U.S. Border Patrol,Northern Border,Detroit Sector,251000003,1
+2025,OCT,U.S. Border Patrol,Southern Border,El Centro Sector,251000005,1
+2025,OCT,U.S. Border Patrol,Southern Border,El Paso Sector,251000006,1
+2025,OCT,U.S. Border Patrol,Southern Border,El Paso Sector,251000007,1
+2025,OCT,U.S. Border Patrol,Southern Border,El Paso Sector,251000027,1
+2025,OCT,U.S. Border Patrol,Southern Border,El Paso Sector,251000029,1
+2025,OCT,U.S. Border Patrol,Southern Border,El Paso Sector,251000030,1
+2025,OCT,U.S. Border Patrol,Southern Border,Laredo Sector,251000034,1
+2025,OCT,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251000068,1
+2025,OCT,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,251000069,1
+2025,OCT,U.S. Border Patrol,Southern Border,San Diego Sector,251000045,1
+2025,OCT,U.S. Border Patrol,Southern Border,Tucson Sector,251000048,1
+2025,OCT,U.S. Border Patrol,Southern Border,Tucson Sector,251000054,1
+2025,OCT,U.S. Border Patrol,Southern Border,Yuma Sector,251000058,1
+2025,SEP,Air and Marine Operations,Coastal/Interior,Operations Directorate,250900003,3
+2025,SEP,Air and Marine Operations,Coastal/Interior,Operations Directorate,250900004,1
+2025,SEP,Air and Marine Operations,Coastal/Interior,Operations Directorate,250900073,2
+2025,SEP,Office of Field Operations,Coastal/Interior,Baltimore Field Office,250900056,1
+2025,SEP,Office of Field Operations,Coastal/Interior,Baltimore Field Office,250900070,2
+2025,SEP,Office of Field Operations,Coastal/Interior,Chicago Field Office,250900069,5
+2025,SEP,Office of Field Operations,Coastal/Interior,Chicago Field Office,250900071,8
+2025,SEP,Office of Field Operations,Coastal/Interior,Miami Field Office,250900066,1
+2025,SEP,Office of Field Operations,Coastal/Interior,National Targeting Center,250900068,2
+2025,SEP,Office of Field Operations,Northern Border,Boston Field Office,250900071,1
+2025,SEP,Office of Field Operations,Northern Border,Seattle Field Office,250900004,1
+2025,SEP,Office of Field Operations,Southern Border,El Paso Field Office,250900060,3
+2025,SEP,Office of Field Operations,Southern Border,El Paso Field Office,250900061,2
+2025,SEP,Office of Field Operations,Southern Border,Laredo Field Office,250900069,1
+2025,SEP,Office of Field Operations,Southern Border,San Diego Field Office,250900062,1
+2025,SEP,Office of Field Operations,Southern Border,San Diego Field Office,250900064,1
+2025,SEP,U.S. Border Patrol,Coastal/Interior,Miami Sector,250900033,1
+2025,SEP,U.S. Border Patrol,Coastal/Interior,Special Operations Group,250900040,1
+2025,SEP,U.S. Border Patrol,Northern Border,Blaine Sector,250900007,1
+2025,SEP,U.S. Border Patrol,Northern Border,Detroit Sector,250900013,1
+2025,SEP,U.S. Border Patrol,Northern Border,Detroit Sector,250900014,5
+2025,SEP,U.S. Border Patrol,Northern Border,Detroit Sector,250900039,4
+2025,SEP,U.S. Border Patrol,Northern Border,Detroit Sector,250900050,3
+2025,SEP,U.S. Border Patrol,Northern Border,Detroit Sector,250900075,49
+2025,SEP,U.S. Border Patrol,Southern Border,Del Rio Sector,250900001,2
+2025,SEP,U.S. Border Patrol,Southern Border,Del Rio Sector,250900008,1
+2025,SEP,U.S. Border Patrol,Southern Border,Del Rio Sector,250900010,3
+2025,SEP,U.S. Border Patrol,Southern Border,Del Rio Sector,250900011,1
+2025,SEP,U.S. Border Patrol,Southern Border,Del Rio Sector,250900012,1
+2025,SEP,U.S. Border Patrol,Southern Border,El Centro Sector,250900016,1
+2025,SEP,U.S. Border Patrol,Southern Border,El Centro Sector,250900017,2
+2025,SEP,U.S. Border Patrol,Southern Border,El Paso Sector,250900020,1
+2025,SEP,U.S. Border Patrol,Southern Border,El Paso Sector,250900023,2
+2025,SEP,U.S. Border Patrol,Southern Border,El Paso Sector,250900027,1
+2025,SEP,U.S. Border Patrol,Southern Border,El Paso Sector,250900028,2
+2025,SEP,U.S. Border Patrol,Southern Border,El Paso Sector,250900029,1
+2025,SEP,U.S. Border Patrol,Southern Border,Laredo Sector,250900002,1
+2025,SEP,U.S. Border Patrol,Southern Border,Laredo Sector,250900031,2
+2025,SEP,U.S. Border Patrol,Southern Border,Laredo Sector,250900032,1
+2025,SEP,U.S. Border Patrol,Southern Border,San Diego Sector,250900017,1
+2025,SEP,U.S. Border Patrol,Southern Border,San Diego Sector,250900038,1
+2025,SEP,U.S. Border Patrol,Southern Border,Tucson Sector,250900044,1
+2025,SEP,U.S. Border Patrol,Southern Border,Tucson Sector,250900045,1
+2025,SEP,U.S. Border Patrol,Southern Border,Tucson Sector,250900051,2
+2025,SEP,U.S. Border Patrol,Southern Border,Yuma Sector,250900055,1
+2026 (FYTD),APR,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260400069,1
+2026 (FYTD),APR,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260400078,1
+2026 (FYTD),APR,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260400079,1
+2026 (FYTD),APR,Office of Field Operations,Southern Border,San Diego Field Office,260400068,1
+2026 (FYTD),APR,Office of Field Operations,Southern Border,Tucson Field Office,260400077,1
+2026 (FYTD),APR,U.S. Border Patrol,Coastal/Interior,Miami Sector,260400029,2
+2026 (FYTD),APR,U.S. Border Patrol,Coastal/Interior,Miami Sector,260400030,1
+2026 (FYTD),APR,U.S. Border Patrol,Coastal/Interior,Miami Sector,260400031,1
+2026 (FYTD),APR,U.S. Border Patrol,Coastal/Interior,Miami Sector,260400052,1
+2026 (FYTD),APR,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,260400032,1
+2026 (FYTD),APR,U.S. Border Patrol,Northern Border,Buffalo Sector,260400010,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Del Rio Sector,260400011,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Del Rio Sector,260400014,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,El Centro Sector,260400015,2
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,El Centro Sector,260400072,2
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,El Centro Sector,260400073,2
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,El Paso Sector,260400016,3
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,El Paso Sector,260400018,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,El Paso Sector,260400019,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Laredo Sector,260400021,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260400075,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,San Diego Sector,260400046,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Tucson Sector,260400048,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Tucson Sector,260400049,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Tucson Sector,260400050,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Tucson Sector,260400053,1
+2026 (FYTD),APR,U.S. Border Patrol,Southern Border,Tucson Sector,260400054,1
+2026 (FYTD),DEC,Air and Marine Operations,Coastal/Interior,Operations Directorate,261200003,2
+2026 (FYTD),DEC,Air and Marine Operations,Coastal/Interior,Operations Directorate,261200004,1
+2026 (FYTD),DEC,Air and Marine Operations,Coastal/Interior,"Training, Safety, And Standards Directorate",261200004,1
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,Atlanta Field Office,261200073,2
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,Baltimore Field Office,261200092,1
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,Chicago Field Office,261200089,7
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,Chicago Field Office,261200090,6
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,Chicago Field Office,261200091,2
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,New York Field Office,261200086,2
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,New York Field Office,261200087,1
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,New York Field Office,261200088,2
+2026 (FYTD),DEC,Office of Field Operations,Coastal/Interior,Special Operations Group,261200075,1
+2026 (FYTD),DEC,Office of Field Operations,Northern Border,Buffalo Field Office,261200070,2
+2026 (FYTD),DEC,Office of Field Operations,Northern Border,Buffalo Field Office,261200071,1
+2026 (FYTD),DEC,Office of Field Operations,Southern Border,Laredo Field Office,261200077,1
+2026 (FYTD),DEC,Office of Field Operations,Southern Border,San Diego Field Office,261200080,1
+2026 (FYTD),DEC,Office of Field Operations,Southern Border,Tucson Field Office,261200074,1
+2026 (FYTD),DEC,Office of Field Operations,Southern Border,Tucson Field Office,261200081,1
+2026 (FYTD),DEC,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261200012,3
+2026 (FYTD),DEC,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261200019,2
+2026 (FYTD),DEC,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261200020,1
+2026 (FYTD),DEC,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261200021,6
+2026 (FYTD),DEC,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261200050,1
+2026 (FYTD),DEC,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261200093,1
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Blaine Sector,261200006,1
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Blaine Sector,261200007,1
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Buffalo Sector,261200008,1
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Buffalo Sector,261200009,1
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Detroit Sector,261200024,2
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Detroit Sector,261200025,2
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Detroit Sector,261200028,2
+2026 (FYTD),DEC,U.S. Border Patrol,Northern Border,Swanton Sector,261200061,2
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Del Rio Sector,261200010,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Del Rio Sector,261200011,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Centro Sector,261200013,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Centro Sector,261200014,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Centro Sector,261200015,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Centro Sector,261200029,3
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Centro Sector,261200030,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Paso Sector,261200033,2
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Paso Sector,261200035,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Paso Sector,261200040,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Paso Sector,261200041,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Paso Sector,261200087,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,El Paso Sector,261200099,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Laredo Sector,261200045,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Laredo Sector,261200046,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Laredo Sector,261200048,2
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261200053,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,San Diego Sector,261200056,1
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Tucson Sector,261200063,2
+2026 (FYTD),DEC,U.S. Border Patrol,Southern Border,Tucson Sector,261200065,4
+2026 (FYTD),FEB,Air and Marine Operations,Coastal/Interior,Operations Directorate,260200001,1
+2026 (FYTD),FEB,Office of Field Operations,Coastal/Interior,Atlanta Field Office,260200051,2
+2026 (FYTD),FEB,Office of Field Operations,Coastal/Interior,Houston Field Office,260200063,1
+2026 (FYTD),FEB,Office of Field Operations,Coastal/Interior,New York Field Office,260200062,1
+2026 (FYTD),FEB,Office of Field Operations,Northern Border,Boston Field Office,260200048,1
+2026 (FYTD),FEB,Office of Field Operations,Northern Border,Seattle Field Office,260200061,3
+2026 (FYTD),FEB,Office of Field Operations,Southern Border,El Paso Field Office,260200056,1
+2026 (FYTD),FEB,Office of Field Operations,Southern Border,Laredo Field Office,260200053,1
+2026 (FYTD),FEB,Office of Field Operations,Southern Border,San Diego Field Office,260200057,1
+2026 (FYTD),FEB,Office of Field Operations,Southern Border,San Diego Field Office,260200058,1
+2026 (FYTD),FEB,Office of Field Operations,Southern Border,San Diego Field Office,260200059,1
+2026 (FYTD),FEB,U.S. Border Patrol,Coastal/Interior,Miami Sector,260200017,1
+2026 (FYTD),FEB,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,260200021,1
+2026 (FYTD),FEB,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,260200022,1
+2026 (FYTD),FEB,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260200038,4
+2026 (FYTD),FEB,U.S. Border Patrol,Northern Border,Grand Forks Sector,260200007,1
+2026 (FYTD),FEB,U.S. Border Patrol,Northern Border,Grand Forks Sector,260200041,1
+2026 (FYTD),FEB,U.S. Border Patrol,Northern Border,Spokane Sector,260200038,1
+2026 (FYTD),FEB,U.S. Border Patrol,Northern Border,Swanton Sector,260200039,1
+2026 (FYTD),FEB,U.S. Border Patrol,Northern Border,Swanton Sector,260200040,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,El Paso Sector,260200009,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,El Paso Sector,260200010,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,El Paso Sector,260200013,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,El Paso Sector,260200014,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260200024,2
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260200025,3
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260200026,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260200028,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260200066,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,San Diego Sector,260200037,1
+2026 (FYTD),FEB,U.S. Border Patrol,Southern Border,Yuma Sector,260200001,1
+2026 (FYTD),JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,260100006,1
+2026 (FYTD),JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,260100007,2
+2026 (FYTD),JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,260100008,2
+2026 (FYTD),JAN,Air and Marine Operations,Coastal/Interior,Operations Directorate,260100102,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Atlanta Field Office,260100104,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100113,2
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100115,8
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100116,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100117,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100118,3
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100119,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100120,27
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100154,8
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Chicago Field Office,260100161,4
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Houston Field Office,260100123,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260100110,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260100111,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260100112,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260100149,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260100150,1
+2026 (FYTD),JAN,Office of Field Operations,Coastal/Interior,New York Field Office,260100122,1
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Boston Field Office,260100002,1
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Detroit Field Office,260100114,1
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Portland Field Office,260100110,1
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Portland Field Office,260100112,4
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Portland Field Office,260100140,2
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Portland Field Office,260100149,3
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Portland Field Office,260100150,3
+2026 (FYTD),JAN,Office of Field Operations,Northern Border,Seattle Field Office,260100111,2
+2026 (FYTD),JAN,Office of Field Operations,Southern Border,El Paso Field Office,260100107,1
+2026 (FYTD),JAN,Office of Field Operations,Southern Border,Laredo Field Office,260100106,1
+2026 (FYTD),JAN,Office of Field Operations,Southern Border,Tucson Field Office,260100147,1
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Miami Sector,260100001,1
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Ramey Sector,260100084,4
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100023,2
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100029,4
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100030,2
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100036,2
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100091,1
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100133,5
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100140,2
+2026 (FYTD),JAN,U.S. Border Patrol,Coastal/Interior,Special Operations Group,260100142,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100011,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100092,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100140,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100141,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100142,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100143,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Blaine Sector,260100144,5
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Buffalo Sector,260100153,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Buffalo Sector,260100158,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Detroit Sector,260100045,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Detroit Sector,260100165,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100019,5
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100020,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100022,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100023,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100024,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100025,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100026,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100029,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100030,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100032,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100033,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100037,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100045,28
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100046,45
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100047,56
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100048,42
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100049,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100126,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100127,9
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100128,5
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100129,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100130,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100131,6
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100132,7
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100133,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100134,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100135,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100136,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100137,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100153,4
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100154,6
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100155,1
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100157,7
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100161,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100162,2
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100163,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Grand Forks Sector,260100165,28
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Havre Sector,260100068,3
+2026 (FYTD),JAN,U.S. Border Patrol,Northern Border,Spokane Sector,260100142,3
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Big Bend Sector,260100009,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Big Bend Sector,260100010,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Big Bend Sector,260100125,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Del Rio Sector,260100013,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Del Rio Sector,260100165,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100017,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100018,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100035,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100040,3
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100041,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100043,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100044,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100051,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100053,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100054,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100055,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100057,3
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100151,3
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100153,9
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100160,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Centro Sector,260100161,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Paso Sector,260100002,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Paso Sector,260100067,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Paso Sector,260100153,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Paso Sector,260100161,3
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,El Paso Sector,260100165,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Laredo Sector,260100071,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Laredo Sector,260100074,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Laredo Sector,260100075,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Laredo Sector,260100076,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Laredo Sector,260100161,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Laredo Sector,260100165,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260100048,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260100081,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260100083,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260100137,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260100153,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260100161,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,San Diego Sector,260100089,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,San Diego Sector,260100090,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Tucson Sector,260100098,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Tucson Sector,260100100,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Tucson Sector,260100140,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Tucson Sector,260100142,2
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Tucson Sector,260100147,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Yuma Sector,260100103,1
+2026 (FYTD),JAN,U.S. Border Patrol,Southern Border,Yuma Sector,260100142,3
+2026 (FYTD),JUL,Office of Field Operations,Southern Border,El Paso Field Office,260700056,1
+2026 (FYTD),JUL,Office of Field Operations,Southern Border,Laredo Field Office,260700053,1
+2026 (FYTD),JUL,Office of Field Operations,Southern Border,Laredo Field Office,260700054,1
+2026 (FYTD),JUL,Office of Field Operations,Southern Border,Laredo Field Office,260700055,2
+2026 (FYTD),JUL,Office of Field Operations,Southern Border,San Diego Field Office,260700059,1
+2026 (FYTD),JUL,Office of Field Operations,Southern Border,Tucson Field Office,260700061,1
+2026 (FYTD),JUL,U.S. Border Patrol,Coastal/Interior,Miami Sector,260700026,1
+2026 (FYTD),JUL,U.S. Border Patrol,Northern Border,Buffalo Sector,260700004,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Del Rio Sector,260700008,2
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Del Rio Sector,260700010,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Del Rio Sector,260700011,3
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,El Paso Sector,260700017,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260700027,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,San Diego Sector,260700028,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,San Diego Sector,260700034,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Tucson Sector,260700039,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Tucson Sector,260700040,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Tucson Sector,260700042,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Yuma Sector,260700050,1
+2026 (FYTD),JUL,U.S. Border Patrol,Southern Border,Yuma Sector,260700051,1
+2026 (FYTD),JUN,Office of Field Operations,Coastal/Interior,New York Field Office,260600061,1
+2026 (FYTD),JUN,Office of Field Operations,Coastal/Interior,New York Field Office,260600062,1
+2026 (FYTD),JUN,Office of Field Operations,Southern Border,Laredo Field Office,260600056,1
+2026 (FYTD),JUN,Office of Field Operations,Southern Border,San Diego Field Office,260600059,1
+2026 (FYTD),JUN,U.S. Border Patrol,Northern Border,Blaine Sector,260600001,1
+2026 (FYTD),JUN,U.S. Border Patrol,Northern Border,Buffalo Sector,260600003,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Del Rio Sector,260600004,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Del Rio Sector,260600006,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,El Centro Sector,260600035,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,El Paso Sector,260600010,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Laredo Sector,260600017,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Laredo Sector,260600018,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Laredo Sector,260600024,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260600029,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260600030,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260600031,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260600032,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,San Diego Sector,260600044,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Tucson Sector,260600048,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Tucson Sector,260600050,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Tucson Sector,260600051,1
+2026 (FYTD),JUN,U.S. Border Patrol,Southern Border,Tucson Sector,260600055,1
+2026 (FYTD),MAR,Air and Marine Operations,Coastal/Interior,Operations Directorate,260300001,1
+2026 (FYTD),MAR,Air and Marine Operations,Coastal/Interior,Operations Directorate,260300002,1
+2026 (FYTD),MAR,Air and Marine Operations,Coastal/Interior,Operations Directorate,260300003,1
+2026 (FYTD),MAR,Air and Marine Operations,Coastal/Interior,"Training, Safety, And Standards Directorate",260300002,2
+2026 (FYTD),MAR,Office of Field Operations,Coastal/Interior,Los Angeles Field Office,260300070,5
+2026 (FYTD),MAR,Office of Field Operations,Northern Border,Detroit Field Office,260300015,1
+2026 (FYTD),MAR,Office of Field Operations,Southern Border,El Paso Field Office,260300058,2
+2026 (FYTD),MAR,Office of Field Operations,Southern Border,El Paso Field Office,260300059,1
+2026 (FYTD),MAR,Office of Field Operations,Southern Border,San Diego Field Office,260300066,1
+2026 (FYTD),MAR,Office of Field Operations,Southern Border,Tucson Field Office,260300042,1
+2026 (FYTD),MAR,Office of Field Operations,Southern Border,Tucson Field Office,260300068,1
+2026 (FYTD),MAR,Office of Field Operations,Southern Border,Tucson Field Office,260300069,2
+2026 (FYTD),MAR,U.S. Border Patrol,Northern Border,Blaine Sector,260300010,5
+2026 (FYTD),MAR,U.S. Border Patrol,Northern Border,Buffalo Sector,260300011,2
+2026 (FYTD),MAR,U.S. Border Patrol,Northern Border,Detroit Sector,260300015,1
+2026 (FYTD),MAR,U.S. Border Patrol,Northern Border,Spokane Sector,260300010,1
+2026 (FYTD),MAR,U.S. Border Patrol,Northern Border,Swanton Sector,260300038,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Big Bend Sector,260300008,3
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Del Rio Sector,260300012,5
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Del Rio Sector,260300013,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Del Rio Sector,260300014,2
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,El Paso Sector,260300008,4
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,El Paso Sector,260300019,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Laredo Sector,260300028,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260300001,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,260300025,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Tucson Sector,260300041,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Tucson Sector,260300049,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Tucson Sector,260300050,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Tucson Sector,260300053,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Tucson Sector,260300055,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Yuma Sector,260300003,1
+2026 (FYTD),MAR,U.S. Border Patrol,Southern Border,Yuma Sector,260300056,1
+2026 (FYTD),MAY,Office of Field Operations,Coastal/Interior,Baltimore Field Office,260500072,4
+2026 (FYTD),MAY,Office of Field Operations,Coastal/Interior,Houston Field Office,260500068,2
+2026 (FYTD),MAY,Office of Field Operations,Northern Border,Buffalo Field Office,260500060,2
+2026 (FYTD),MAY,Office of Field Operations,Southern Border,El Paso Field Office,260500062,1
+2026 (FYTD),MAY,Office of Field Operations,Southern Border,Tucson Field Office,260500066,1
+2026 (FYTD),MAY,Office of Field Operations,Southern Border,Tucson Field Office,260500071,3
+2026 (FYTD),MAY,U.S. Border Patrol,Coastal/Interior,Miami Sector,260500030,2
+2026 (FYTD),MAY,U.S. Border Patrol,Coastal/Interior,Miami Sector,260500032,3
+2026 (FYTD),MAY,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,260500033,1
+2026 (FYTD),MAY,U.S. Border Patrol,Northern Border,Detroit Sector,260500012,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,Del Rio Sector,260500010,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,El Paso Sector,260500016,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,El Paso Sector,260500018,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,El Paso Sector,260500022,2
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,El Paso Sector,260500023,2
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,San Diego Sector,260500043,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,San Diego Sector,260500045,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,San Diego Sector,260500069,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,Tucson Sector,260500052,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,Tucson Sector,260500053,1
+2026 (FYTD),MAY,U.S. Border Patrol,Southern Border,Yuma Sector,260500059,1
+2026 (FYTD),NOV,Air and Marine Operations,Coastal/Interior,Operations Directorate,261100003,1
+2026 (FYTD),NOV,Office of Field Operations,Coastal/Interior,Chicago Field Office,261100096,3
+2026 (FYTD),NOV,Office of Field Operations,Coastal/Interior,Miami Field Office,261100092,3
+2026 (FYTD),NOV,Office of Field Operations,Coastal/Interior,New York Field Office,261100107,5
+2026 (FYTD),NOV,Office of Field Operations,Northern Border,Boston Field Office,261100080,1
+2026 (FYTD),NOV,Office of Field Operations,Northern Border,Buffalo Field Office,261100106,1
+2026 (FYTD),NOV,Office of Field Operations,Northern Border,Detroit Field Office,261100090,1
+2026 (FYTD),NOV,Office of Field Operations,Northern Border,Portland Field Office,261100087,1
+2026 (FYTD),NOV,Office of Field Operations,Northern Border,Seattle Field Office,261100089,1
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,El Paso Field Office,261100084,1
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,El Paso Field Office,261100085,1
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,El Paso Field Office,261100088,1
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,El Paso Field Office,261100096,1
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,Laredo Field Office,261100082,3
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,Laredo Field Office,261100096,1
+2026 (FYTD),NOV,Office of Field Operations,Southern Border,Tucson Field Office,261100086,1
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100048,2
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100051,1
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100098,2
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100099,4
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100100,3
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100101,3
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100103,3
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100109,6
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Miami Sector,261100110,8
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261100052,2
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Ramey Sector,261100056,1
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261100019,1
+2026 (FYTD),NOV,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261100024,4
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Blaine Sector,261100008,1
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Blaine Sector,261100009,2
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Blaine Sector,261100064,1
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Buffalo Sector,261100029,1
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100011,1
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100014,2
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100018,6
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100022,4
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100023,1
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100025,7
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100026,2
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100027,8
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100028,4
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100046,1
+2026 (FYTD),NOV,U.S. Border Patrol,Northern Border,Detroit Sector,261100097,6
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Big Bend Sector,261100004,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Big Bend Sector,261100007,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Del Rio Sector,261100027,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100012,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100015,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100016,3
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100020,3
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100021,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100026,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100029,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Centro Sector,261100030,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Paso Sector,261100033,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,El Paso Sector,261100037,4
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261100002,4
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261100054,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261100055,2
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261100104,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,San Diego Sector,261100060,2
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,San Diego Sector,261100061,4
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,San Diego Sector,261100063,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,San Diego Sector,261100065,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Tucson Sector,261100031,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Tucson Sector,261100067,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Tucson Sector,261100071,2
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Tucson Sector,261100075,1
+2026 (FYTD),NOV,U.S. Border Patrol,Southern Border,Tucson Sector,261100076,1
+2026 (FYTD),OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,261000001,3
+2026 (FYTD),OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,261000002,2
+2026 (FYTD),OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,261000028,2
+2026 (FYTD),OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,261000029,1
+2026 (FYTD),OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,261000030,3
+2026 (FYTD),OCT,Air and Marine Operations,Coastal/Interior,Operations Directorate,261000144,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Baltimore Field Office,261000155,2
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Chicago Field Office,261000055,4
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Chicago Field Office,261000148,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Houston Field Office,261000027,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Houston Field Office,261000132,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Houston Field Office,261000137,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,New York Field Office,261000025,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,New York Field Office,261000130,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,San Francisco Field Office,261000154,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,San Juan Field Office,261000137,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Special Operations Group,261000018,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Special Operations Group,261000023,1
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Special Operations Group,261000133,5
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Special Operations Group,261000136,3
+2026 (FYTD),OCT,Office of Field Operations,Coastal/Interior,Special Operations Group,261000144,2
+2026 (FYTD),OCT,Office of Field Operations,Northern Border,Buffalo Field Office,261000026,2
+2026 (FYTD),OCT,Office of Field Operations,Northern Border,Portland Field Office,261000154,1
+2026 (FYTD),OCT,Office of Field Operations,Northern Border,Seattle Field Office,261000026,1
+2026 (FYTD),OCT,Office of Field Operations,Northern Border,Seattle Field Office,261000131,1
+2026 (FYTD),OCT,Office of Field Operations,Southern Border,Laredo Field Office,261000137,1
+2026 (FYTD),OCT,Office of Field Operations,Southern Border,San Diego Field Office,261000017,1
+2026 (FYTD),OCT,Office of Field Operations,Southern Border,Tucson Field Office,261000126,1
+2026 (FYTD),OCT,Office of Field Operations,Southern Border,Tucson Field Office,261000138,1
+2026 (FYTD),OCT,Office of Field Operations,Southern Border,Tucson Field Office,261000144,2
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Miami Sector,261000032,1
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261000100,1
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,New Orleans Sector,261000102,1
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261000001,1
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261000017,4
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261000018,2
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261000023,1
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261000067,1
+2026 (FYTD),OCT,U.S. Border Patrol,Coastal/Interior,Special Operations Group,261000113,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Blaine Sector,261000153,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000006,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000008,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000016,5
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000036,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000038,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000043,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000044,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000047,7
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000051,4
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000053,5
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000054,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000055,4
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000059,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000060,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000066,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000068,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000070,4
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000071,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000075,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000076,4
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000078,5
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000086,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000087,44
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000088,4
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000097,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000101,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000108,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000123,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000140,11
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000141,8
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000142,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000143,25
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000144,28
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000145,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000146,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000147,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000148,3
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000149,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Detroit Sector,261000151,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Grand Forks Sector,261000090,2
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Havre Sector,261000094,1
+2026 (FYTD),OCT,U.S. Border Patrol,Northern Border,Houlton Sector,261000091,2
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Del Rio Sector,261000042,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Del Rio Sector,261000043,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000001,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000007,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000009,3
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000049,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000050,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000052,2
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000061,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000064,3
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000067,5
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000069,2
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000073,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000140,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Centro Sector,261000149,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Paso Sector,261000080,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Paso Sector,261000081,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Paso Sector,261000082,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,El Paso Sector,261000089,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261000017,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261000104,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Rio Grande Valley Sector,261000115,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,San Diego Sector,261000152,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Tucson Sector,261000017,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Tucson Sector,261000018,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Tucson Sector,261000019,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Tucson Sector,261000115,2
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Tucson Sector,261000120,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Yuma Sector,261000058,1
+2026 (FYTD),OCT,U.S. Border Patrol,Southern Border,Yuma Sector,261000125,1
