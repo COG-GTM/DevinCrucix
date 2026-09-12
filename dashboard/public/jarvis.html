@@ -43,6 +43,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 /* MAIN */
 #main{opacity:0;min-height:100vh;position:relative;padding:10px 12px}
 .live-banner{position:sticky;top:0;z-index:60;margin-bottom:8px;padding:8px 14px;border:1px solid var(--warn);background:rgba(255,184,76,0.14);color:var(--warn);font-family:var(--mono);font-size:12px;letter-spacing:0.08em;text-align:center;backdrop-filter:blur(12px)}
+.live-banner.soft{border-color:rgba(100,240,200,0.4);background:rgba(100,240,200,0.08);color:var(--accent)}
 .live-banner[hidden]{display:none}
 
 /* TOPBAR */
@@ -5540,15 +5541,21 @@ function setLiveStatus(state){
   liveStatus = state;
   const el = document.getElementById('liveBanner');
   if (!el) return;
+  el.classList.toggle('soft', state === 'reconnecting');
   if (state === 'live') { el.hidden = true; el.textContent = ''; return; }
   const reason = state === 'offline' ? 'OFFLINE — LIVE FEED UNREACHABLE'
+    : state === 'reconnecting' ? 'LIVE FEED INTERRUPTED — RECONNECTING'
     : state === 'sweep-failed' ? 'LAST SWEEP FAILED — SHOWING PREVIOUS DATA'
     : state === 'render-error' ? 'RENDER ERROR — SOME PANELS MAY BE STALE'
     : 'STALE DATA';
-  el.textContent = [reason, lastGoodLabel(), state === 'offline' ? 'RETRYING' : ''].filter(Boolean).join(' · ');
+  const tail = state === 'offline' ? 'RETRYING' : state === 'reconnecting' ? 'SERVER REACHABLE' : '';
+  el.textContent = [reason, lastGoodLabel(), tail].filter(Boolean).join(' · ');
   el.hidden = false;
 }
-setInterval(() => { if (liveStatus !== 'live') setLiveStatus(liveStatus); }, 30000);
+setInterval(() => {
+  if (liveStatus === 'reconnecting') setLiveStatus(sseDropSeverity());
+  else if (liveStatus !== 'live') setLiveStatus(liveStatus);
+}, 30000);
 
 function redirectToLogin(){
   location.replace('/login');
@@ -5569,22 +5576,31 @@ function bootStatus(text, isError=false){
 }
 
 let liveRetryMs = 5000;
+let liveRetryTimer = null;
+let liveLoadInFlight = false;
 async function loadLive(){
-  let res;
+  if (liveLoadInFlight) return;
+  liveLoadInFlight = true;
+  clearTimeout(liveRetryTimer); liveRetryTimer = null;
   try {
-    res = await fetch('/api/data', { cache: 'no-store', headers: { Accept: 'application/json' } });
-  } catch {
-    return onLiveFailure('network error');
+    let res;
+    try {
+      res = await fetch('/api/data', { cache: 'no-store', headers: { Accept: 'application/json' } });
+    } catch {
+      return onLiveFailure('network error');
+    }
+    if (res.status === 401) return redirectToLogin();
+    if (res.status === 503) return onLiveFailure('first sweep in progress');
+    if (!res.ok) return onLiveFailure(`HTTP ${res.status}`);
+    let data;
+    try { data = await res.json(); } catch { return onLiveFailure('malformed response'); }
+    if (!applyPayload(data)) return onLiveFailure('unexpected payload');
+    liveRetryMs = 5000;
+    setLiveStatus('live');
+    if (booted) reinit(); else { init(); connectSSE(); }
+  } finally {
+    liveLoadInFlight = false;
   }
-  if (res.status === 401) return redirectToLogin();
-  if (res.status === 503) return onLiveFailure('first sweep in progress');
-  if (!res.ok) return onLiveFailure(`HTTP ${res.status}`);
-  let data;
-  try { data = await res.json(); } catch { return onLiveFailure('malformed response'); }
-  if (!applyPayload(data)) return onLiveFailure('unexpected payload');
-  liveRetryMs = 5000;
-  setLiveStatus('live');
-  if (booted) reinit(); else { init(); connectSSE(); }
 }
 function onLiveFailure(why){
   if (booted) {
@@ -5592,26 +5608,48 @@ function onLiveFailure(why){
   } else {
     bootStatus(`LIVE DATA UNAVAILABLE (${why}) — retrying in ${Math.round(liveRetryMs/1000)}s`, true);
   }
-  setTimeout(loadLive, liveRetryMs);
+  clearTimeout(liveRetryTimer);
+  liveRetryTimer = setTimeout(loadLive, liveRetryMs);
   liveRetryMs = Math.min(liveRetryMs * 2, 30000);
 }
 
 // === SSE: Live Updates from Server ===
-let sseRetryMs = 5000;
+// A dropped stream is a transient (proxy idle timeout, network blip, server restart) until
+// proven otherwise: the banner says RECONNECTING while /api/data still answers, and only
+// escalates to OFFLINE when the server itself is unreachable or the reconnect keeps failing.
+const SSE_OFFLINE_AFTER_MS = 45000;
+let sseRetryMs = 3000;
+let sseDroppedAt = 0;
+let sseHeartbeatMs = 20000;
+let sseWatchdog = null;
+function sseDropSeverity(){
+  return Date.now() - sseDroppedAt >= SSE_OFFLINE_AFTER_MS ? 'offline' : 'reconnecting';
+}
 function connectSSE(){
   if (typeof EventSource === 'undefined') return;
   // Only connect if served from localhost (not file://)
   if (location.protocol === 'file:') return;
 
   const es = new EventSource('/events');
+  // The server emits a heartbeat event every heartbeatMs; a stream that goes silent for
+  // three of them is half-open (the browser never fires onerror for those) and is recycled.
+  const armWatchdog = () => {
+    clearTimeout(sseWatchdog);
+    sseWatchdog = setTimeout(() => { console.warn('[Crucix] SSE silent, reconnecting'); es.onerror(); }, sseHeartbeatMs * 3);
+  };
   es.onopen = () => {
-    sseRetryMs = 5000;
-    if (liveStatus === 'offline') loadLive();
+    sseRetryMs = 3000;
+    armWatchdog();
+    if (sseDroppedAt) { sseDroppedAt = 0; loadLive(); }
   };
   es.onmessage = (e) => {
+    armWatchdog();
     try {
       const msg = JSON.parse(e.data);
-      if (msg.type === 'update' && msg.data) {
+      if (msg.type === 'connected') {
+        if (Number.isFinite(msg.heartbeatMs) && msg.heartbeatMs > 0) sseHeartbeatMs = msg.heartbeatMs;
+        armWatchdog();
+      } else if (msg.type === 'update' && msg.data) {
         if (!applyPayload(msg.data)) { setLiveStatus('sweep-failed'); return; }
         setLiveStatus('live');
         reinit();
@@ -5636,14 +5674,22 @@ function connectSSE(){
       console.error('[Crucix] SSE message rejected', err);
     }
   };
+  let dropped = false;
   es.onerror = () => {
+    if (dropped) return;
+    dropped = true;
     es.close();
-    setLiveStatus('offline');
-    // A dead stream is either a server restart or an expired session; a HEAD
-    // probe tells them apart without pulling the full payload.
+    clearTimeout(sseWatchdog);
+    if (!sseDroppedAt) sseDroppedAt = Date.now();
+    if (liveStatus !== 'offline') setLiveStatus(sseDropSeverity());
+    // A HEAD probe tells a dead server (OFFLINE) from a dropped stream (RECONNECTING)
+    // or an expired session (login) without pulling the full payload.
     fetch('/api/data', { method: 'HEAD', cache: 'no-store' })
-      .then(r => { if (r.status === 401) redirectToLogin(); })
-      .catch(() => {});
+      .then(r => {
+        if (r.status === 401) return redirectToLogin();
+        if (!r.ok && r.status !== 503) setLiveStatus('offline');
+      })
+      .catch(() => setLiveStatus('offline'));
     setTimeout(connectSSE, sseRetryMs);
     sseRetryMs = Math.min(sseRetryMs * 2, 30000);
   };
