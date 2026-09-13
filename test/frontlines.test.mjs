@@ -196,7 +196,7 @@ describe('dashboard wiring', () => {
     const s = buildSituation({ frontlines: summary, sourceHealth: { summary: { live: 1, degraded: 0, no_key: 0, off: 0, error: 0, total: 1, reporting: 1 }, sources: [] } });
     const h = s.headlines.find(x => x.rule === 'front');
     assert.ok(h, 'front headline present');
-    assert.equal(h.tab, 'military');
+    assert.equal(h.tab, 'ukraine');
     assert.equal(h.panel, 'front-panel');
     assert.match(h.title, /Ukraine front/);
     assert.match(h.why, /not verified ground truth/);
