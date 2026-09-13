@@ -1249,7 +1249,7 @@ const TAB_DEFS=[
   {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
-  {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
+  {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal + strike candidates, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
   {id:'cartels',label:'Cartels & Border',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 official CBP data (encounters, seizures, use of force, custody) \u00b7 US\u2013Mexico border reporting \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
   {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
@@ -1411,6 +1411,7 @@ const PANEL_CAPTIONS={
   'ukraine theater':'D3 theater map: DeepStateMAP front polygons, attack axes and RU unit / airfield markers over the sensors CRUCIX already sweeps for this box. Map data \u00a9 DeepStateMAP \u2014 an assessment, not verified ground truth.',
   'front change log':'Per-day DeepStateMAP advances and regains (7 d / 30 d) with the latest update rows. Occupied km\u00b2 delta is against the previous sweep of this dashboard, not a daily official figure.',
   'theater air & gps jamming':'OpenSky / ADS-B counts inside the Ukraine and Black Sea boxes plus the Eastern Ukraine GPS-jamming zone. Counts track receiver coverage as much as activity; RU callsigns are pattern matches.',
+  'strike candidates':'NASA FIRMS night or \u226520 MW detections within 30 km of the DeepStateMAP contact line (attack axes, update places, grey-zone edges), clustered per fire and tiered by proximity, night pass and intensity. Candidate indicators only \u2014 FIRMS does not attribute cause; shelling fires, crop burning and industry look the same from orbit.',
   'thermal detections':'NASA FIRMS thermal anomalies in the Ukraine bbox: detections, night detections and >10 MW FRP. Fires, flares and industry all show up \u2014 not strike confirmation.',
   'znpp & nuclear sites':'Status of Zaporizhzhia and other UA / RU nuclear facilities from the sites registry, with Safecast citizen readings near ZNPP. A reading is not a release; status is public reporting.',
   'theater wires, channels & odds':'GDELT Ukraine / Russia headlines and tone, public Telegram posts from the conflict channels, and Polymarket Russia / Ukraine odds. Unverified reporting and crowd estimates, not intelligence.',
@@ -3193,7 +3194,7 @@ function renderLower(){
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
+    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
       wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
@@ -4055,6 +4056,7 @@ const UA_LAYERS=[
   {id:'changes',label:'Updates \u00b7 7 d',color:'#64b5f6',src:'Frontlines'},
   {id:'gps',label:'GPS jamming',color:'#ef5350',src:'GPSJamming'},
   {id:'thermal',label:'FIRMS thermal',color:'#ff5f63',src:'FIRMS'},
+  {id:'strikes',label:'Strike candidates',color:'#ffd740',src:['FIRMS','Frontlines']},
   {id:'nuclear',label:'Nuclear sites',color:'#ffe082',src:'Nuclear'},
   {id:'air',label:'Theater air',color:'#64f0c8',src:['OpenSky','ADS-B']},
   {id:'sdr',label:'KiwiSDR receivers',color:'#44ccff',src:'KiwiSDR'},
@@ -4188,6 +4190,7 @@ function uaLayerCounts(){
     changes:(g?.changes||[]).length,
     gps:(u.air?.gps?.zones||[]).length,
     thermal:(u.thermal?.rows||[]).length,
+    strikes:(u.strikes?.clusters||[]).length,
     nuclear:(u.nuclear?.facilities||[]).length,
     air,
     sdr:(u.sdr?.receivers||[]).length,
@@ -4196,6 +4199,7 @@ function uaLayerCounts(){
 function uaLayerWhy(id){
   const u=uaView(),g=uaGeoNow();
   if(['front','attack','orbat','changes'].includes(id))return !uaFrontLive()?'DeepStateMAP not live this sweep':uaGeoFailed?'geometry unavailable':!g?'geometry loading':'nothing in the current map';
+  if(id==='strikes')return uaStrikesWhy(u.strikes);
   const h=id==='gps'?u.air?.gps?.health:id==='thermal'?u.thermal?.health:id==='nuclear'?u.nuclear?.health:id==='sdr'?u.sdr?.health:null;
   if(id==='air'){const o=u.air?.opensky,a=u.air?.adsb;return o?.total>0&&!(o.tracks||[]).length?`${o.total} aircraft counted, no positions in payload`:`OpenSky ${SH_LABEL[uaState(o?.health)]}, ADS-B ${SH_LABEL[uaState(a?.health)]} \u2014 no theater positions`}
   if(h&&uaState(h)!=='live')return `${SH_LABEL[uaState(h)]}${h.reason?' \u2014 '+h.reason:''}`;
@@ -4284,6 +4288,20 @@ function uaDraw(){
         e=>uaPopup(e,`Thermal anomaly \u00b7 ${Number.isFinite(r.frp)?r.frp.toFixed(1)+' MW':'FRP n/a'}`,`${esc(r.date)} ${esc(r.time)}Z \u00b7 ${r.night?'night':'day'} pass${r.confidence?` \u00b7 confidence ${esc(r.confidence)}`:''}${Number.isFinite(r.brightness)?`<br>Brightness ${r.brightness.toFixed(0)} K`:''}<br><span style="color:var(--dim)">NASA FIRMS satellite fire detection. A hot pixel, not an attributed strike \u2014 agriculture and industry also burn.</span>`,'FIRMS \u00b7 VIIRS/MODIS')))drawn++;
     });
   }
+  // 6b. FIRMS strike candidates: night / ≥HOT_FRP clusters within the strike radius of DeepState front anchors.
+  //     Tier A pulses. Every value is a validated number from lib/firmsstrikes.mjs; strings are esc()'d.
+  if(on('strikes')){
+    const gr=uaLayersG.append('g'),s=u.strikes||{};
+    (s.clusters||[]).forEach(c=>{
+      const a=c.tier==='A',r=a?5.5:4,col=a?'#ffd740':'#ffb300';
+      const when=c.latestAt?uaWhen(c.latestAt):'time n/a';
+      const text=`${c.n} pixel${c.n===1?'':'s'} · ${c.night} night · max ${Number.isFinite(c.maxFrp)?c.maxFrp.toFixed(1):'—'} MW${Number.isFinite(c.maxBright)?` · ${c.maxBright.toFixed(0)} K`:''}${c.conf?` · conf ${esc(c.conf.toUpperCase())}`:''}`
+        +`<br>${Number.isFinite(c.distKm)?`${c.distKm.toFixed(1)} km from ${esc(c.near||'front anchor')}`:'distance n/a'}${c.place?` · ${c.place.km.toFixed(0)} km from ${esc(c.place.name)}`:''}`
+        +`<br>Latest pass ${esc(when)}${c.firstAt&&c.firstAt!==c.latestAt?` · first ${esc(uaWhen(c.firstAt))}`:''}`
+        +`<br><span style="color:var(--dim)">Tier ${esc(c.tier)} — candidate indicator, not a confirmed strike. FIRMS does not attribute cause.</span>`+uaDsLink(c.lat,c.lon);
+      if(pin(gr,c.lon,c.lat,r,ctRgba(col,0.9),'rgba(0,0,0,0.85)',1.2,e=>uaPopup(e,`Strike candidate · tier ${c.tier}`,text,'NASA FIRMS × DeepStateMAP · candidate'))){drawn++;if(a)halo(gr,c.lon,c.lat,11,col);}
+    });
+  }
   // 7. Nuclear sites: ZNPP red with a pulse, other plants amber.
   if(on('nuclear')){
     const gr=uaLayersG.append('g'),n=u.nuclear||{},sc=n.safecast||{};
@@ -4340,7 +4358,7 @@ function renderUaMapPanel(){
     </div>`
     :`<div class="g-off-why" style="margin:6px 0">DeepStateMAP is ${SH_LABEL[uaState(f.health)]||'not live'}${f.health?.reason?' \u2014 '+esc(f.health.reason):''}. The theater basemap and the other sensors are still drawn; no front polygons are shown because none were received \u2014 nothing here is synthesized.</div>`;
   const legend=Object.keys(FRONT_STYLE).map(k=>`<span><i style="background:${FRONT_STYLE[k].fill};border:1px solid ${FRONT_STYLE[k].stroke}"></i>${esc(FRONT_STYLE[k].label)}</span>`).join('')
-    +`<span><i style="background:${FRONT_CHANGE_COLOR.advance};border-radius:50%"></i>advance</span><span><i style="background:${FRONT_CHANGE_COLOR.regain};border-radius:50%"></i>regain</span><span style="color:#ff8a65">\u2192 attack axis</span><span><i style="background:rgba(255,171,145,0.8)"></i>RU unit</span><span><i style="background:rgba(255,204,128,0.8);transform:rotate(45deg)"></i>airfield</span><span><i style="background:#ff5252;border-radius:50%"></i>ZNPP</span><span><i style="background:rgba(239,83,80,0.5);border:1px dashed #ef5350"></i>GPS jamming</span><span><i style="background:rgba(255,95,99,0.9);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>FIRMS</span>`;
+    +`<span><i style="background:${FRONT_CHANGE_COLOR.advance};border-radius:50%"></i>advance</span><span><i style="background:${FRONT_CHANGE_COLOR.regain};border-radius:50%"></i>regain</span><span style="color:#ff8a65">\u2192 attack axis</span><span><i style="background:rgba(255,171,145,0.8)"></i>RU unit</span><span><i style="background:rgba(255,204,128,0.8);transform:rotate(45deg)"></i>airfield</span><span><i style="background:#ff5252;border-radius:50%"></i>ZNPP</span><span><i style="background:rgba(239,83,80,0.5);border:1px dashed #ef5350"></i>GPS jamming</span><span><i style="background:rgba(255,95,99,0.9);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>FIRMS</span><span><i style="background:#ffd740;border-radius:50%;box-shadow:0 0 0 2px rgba(255,215,64,0.35)"></i>strike candidate</span>`;
   const site=f.siteUrl?safeExternalUrl(f.siteUrl):null;
   return `<div class="g-panel ua-map-panel">
       <div class="sec-head"><h3>${shDot('Frontlines')}Ukraine Theater — DeepStateMAP Front & Sensors</h3>${uaBadge(f.health,`${f.mapId?'MAP '+esc(String(f.mapId)):'LIVE'} \u00b7 ${uaAgeTxt(f.mapAgeH)}`,stale?'warn':'')}</div>
@@ -4426,6 +4444,32 @@ function renderUaThermalPanel(){
     ${uaSection('Highest-FRP detections',`${(t.rows||[]).length} rows \u00b7 click to centre map`)}
     ${rows?`<div class="ct-scroll" style="max-height:30vh"><table class="ua-tbl"><thead><tr><th>Pass</th><th>Position</th><th class="n">FRP MW</th><th class="n">Bright K</th><th>Conf</th><th class="n">Acquired</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="g-off-why">No high-intensity detections inside the box this sweep.</div>'}
     <div class="sh-note">NASA FIRMS (VIIRS / MODIS) active-fire detections clipped to the 44\u201353N 22\u201341E box. A hot pixel is not an attributed strike \u2014 crop burning, industry and wildfire also register. Confidence is FIRMS\u2019 own.</div></div>`;
+}
+// Why the strike-candidate layer / panel is empty, from the status lib/firmsstrikes.mjs reports.
+function uaStrikesWhy(s){
+  const st=s?.status;
+  if(!s||st==='no_firms')return `FIRMS ${SH_LABEL[uaState(s?.firmsHealth)]||'OFF'}${s?.reason?' \u2014 '+s.reason:''}`;
+  if(st==='no_detections')return 'FIRMS Ukraine box carried no per-pixel rows this sweep';
+  if(st==='no_front')return s.reason||'DeepStateMAP contact-line geometry unavailable';
+  if(st==='empty')return s.reason||'no night / high-FRP detections near the front';
+  return 'nothing to plot';
+}
+function renderUaStrikesPanel(){
+  const s=uaView().strikes||{},t=s.totals||{},k=s.anchorKinds||{};
+  if(!s.status||s.status==='no_firms')return offPanel('Strike Candidates — Frontlines',['FIRMS','Frontlines'],uaStrikesWhy(s),'ua-strikes');
+  const live=s.status==='live',rows=(s.clusters||[]).map(c=>`<tr class="go" onclick="uaFocusAt(${c.lat},${c.lon},8)"><td style="color:${c.tier==='A'?'#ffd740':'#ffb300'};font-weight:600">${esc(c.tier)}</td><td>${c.lat.toFixed(2)}N ${c.lon.toFixed(2)}E</td><td>${c.place?esc(c.place.name):'<span style="color:var(--dim)">\u2014</span>'}</td><td class="n">${Number.isFinite(c.distKm)?c.distKm.toFixed(1):'\u2014'}</td><td class="n">${c.n}<span style="color:var(--dim)"> / ${c.night}</span></td><td class="n" style="color:${c.maxFrp>=50?'#ff5252':'#c8d8d2'}">${Number.isFinite(c.maxFrp)?c.maxFrp.toFixed(1):'\u2014'}</td><td class="n">${c.latestAt?esc(uaWhen(c.latestAt)):'\u2014'}</td></tr>`).join('');
+  const badge=live?uaBadge(s.firmsHealth,`${uaN(t.clusters)} CANDIDATES \u00b7 ${uaN(t.tierA)} TIER A`,t.tierA?'warn':''):`<span class="badge off">${esc(s.status==='empty'?'NONE THIS WINDOW':s.status==='no_front'?'NO FRONT GEOMETRY':'NO PIXEL ROWS')}</span>`;
+  const frontTxt=s.anchors?`${uaN(s.anchors)} anchors \u00b7 ${k.attack|0} attack axes \u00b7 ${k.update|0} update places \u00b7 ${uaN(k.grey)} grey-zone vertices${s.mapId?` \u00b7 map ${esc(String(s.mapId))}`:''}`:'no contact-line anchors';
+  return `<div class="g-panel ua-strikes"><div class="sec-head"><h3>${shDot('FIRMS')}Strike Candidates — Frontlines</h3>${badge}</div>
+    <div class="ua-grid four">
+      <div class="front-kpi"><div class="k">Candidates</div><div class="v" style="color:#ffd740">${uaN(t.clusters)}</div><div class="s">${uaN(t.candidates)} pixels in ${uaN(t.clusters)} clusters \u00b7 ${s.windowH|0} h window</div></div>
+      <div class="front-kpi"><div class="k">Tier A</div><div class="v" style="color:${t.tierA?'var(--warn)':'#c8d8d2'}">${uaN(t.tierA)}</div><div class="s">night pass \u2264 ${s.tierAKm|0} km, \u2265 ${s.tierAFrpMw|0} MW or 3+ pixels</div></div>
+      <div class="front-kpi"><div class="k">Near front</div><div class="v">${uaN(t.nearFront)}<span style="font-size:9px;color:var(--dim)"> / ${uaN(t.detections)}</span></div><div class="s">pixels \u2264 ${s.radiusKm|0} km of the line \u00b7 ${uaN(t.nearFrontNight)} at night</div></div>
+      <div class="front-kpi"><div class="k">Night rear</div><div class="v">${uaN(t.nightRear)}</div><div class="s">night pixels &gt; ${s.radiusKm|0} km out \u2014 excluded (industry, harvest)</div></div>
+    </div>
+    ${uaSection('Ranked candidates',`${uaSrc('FIRMS',s.firmsHealth)} ${uaSrc('DeepStateMAP',s.frontHealth)}`)}
+    ${rows?`<div class="ct-scroll" style="max-height:30vh"><table class="ua-tbl"><thead><tr><th>Tier</th><th>Position</th><th>Near</th><th class="n">km</th><th class="n">Px / night</th><th class="n">Max MW</th><th class="n">Latest</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="g-off-why">${esc(uaStrikesWhy(s))}</div>`}
+    <div class="sh-note">${esc(s.caveat||'Candidate indicators, not confirmed strikes.')} Criteria: night pass or \u2265 ${s.hotFrpMw|0} MW, within ${s.radiusKm|0} km of a DeepStateMAP attack axis, update place or grey-zone edge; pixels within ${Number.isFinite(s.clusterKm)?s.clusterKm:2.5} km merged. Front context: ${frontTxt}. ${esc(s.attribution||'')}</div></div>`;
 }
 function renderUaNuclearPanel(){
   const n=uaView().nuclear||{},sc=n.safecast||{},z=n.znpp;

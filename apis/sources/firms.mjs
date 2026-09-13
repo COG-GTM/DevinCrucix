@@ -6,9 +6,14 @@ import '../utils/env.mjs';
 import { safeOutboundFetch } from '../../lib/safeOutboundFetch.mjs';
 
 const FIRMS_BASE = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv';
+const WINDOW_DAYS = 2;
+// Per-detection rows are kept only for boxes a downstream view fuses with other geometry
+// (lib/firmsstrikes.mjs needs every Ukraine pixel, not the top-15 by FRP). Night rows first, then by FRP,
+// so a cap drops the least informative daytime pixels.
+export const MAX_DETECTIONS = 4000;
 
 // Parse FIRMS CSV response into structured data
-function parseCSV(rawText) {
+export function parseCSV(rawText) {
   if (!rawText || typeof rawText !== 'string') return [];
   const lines = rawText.trim().split('\n');
   if (lines.length < 2) return [];
@@ -53,17 +58,39 @@ async function fetchFires(opts = {}) {
 // Key conflict/hotspot zones
 const HOTSPOTS = {
   middleEast: { west: 30, south: 12, east: 65, north: 42, label: 'Middle East' },
-  ukraine: { west: 22, south: 44, east: 41, north: 53, label: 'Ukraine' },
+  ukraine: { west: 22, south: 44, east: 41, north: 53, label: 'Ukraine', keepDetections: true },
   iran: { west: 44, south: 25, east: 63, north: 40, label: 'Iran' },
   sudanHorn: { west: 21, south: 2, east: 52, north: 23, label: 'Sudan / Horn of Africa' },
   myanmar: { west: 92, south: 9, east: 102, north: 29, label: 'Myanmar' },
   southAsia: { west: 60, south: 5, east: 98, north: 37, label: 'South Asia' },
 };
 
+const isCoord = (v, lim) => Number.isFinite(v) && Math.abs(v) <= lim;
+
+// One CSV row -> compact validated detection, or null when the position is unusable.
+export function toDetection(f) {
+  const lat = parseFloat(f?.latitude), lon = parseFloat(f?.longitude);
+  if (!isCoord(lat, 90) || !isCoord(lon, 180)) return null;
+  const frp = parseFloat(f.frp), bright = parseFloat(f.bright_ti4);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(String(f.acq_date || '')) ? f.acq_date : null;
+  const time = /^\d{1,4}$/.test(String(f.acq_time || '')) ? String(f.acq_time).padStart(4, '0') : null;
+  return {
+    lat, lon,
+    frp: Number.isFinite(frp) ? frp : 0,
+    bright: Number.isFinite(bright) ? bright : null,
+    date, time,
+    conf: ['h', 'n', 'l', 'high', 'nominal', 'low'].includes(f.confidence) ? f.confidence[0] : null,
+    night: f.daynight === 'N',
+  };
+}
+
 // Analyze fire detections for potential military/strike activity
-function analyzeFires(fires, regionLabel) {
+export function analyzeFires(fires, regionLabel, opts = {}) {
   if (!Array.isArray(fires) || fires.length === 0) {
-    return { region: regionLabel, totalDetections: 0, highConfidence: 0, highIntensity: [], summary: 'No detections' };
+    return {
+      region: regionLabel, totalDetections: 0, highConfidence: 0, nightDetections: 0, highIntensity: [], summary: 'No detections',
+      windowDays: WINDOW_DAYS, ...(opts.keepDetections ? { detections: [] } : {}),
+    };
   }
 
   const highConf = fires.filter(f => f.confidence === 'h' || f.confidence === 'high');
@@ -88,7 +115,7 @@ function analyzeFires(fires, regionLabel) {
   // Night detections are more significant (less likely agricultural burning)
   const nightFires = fires.filter(f => f.daynight === 'N');
 
-  return {
+  const out = {
     region: regionLabel,
     totalDetections: fires.length,
     highConfidence: highConf.length,
@@ -96,7 +123,15 @@ function analyzeFires(fires, regionLabel) {
     nightDetections: nightFires.length,
     highIntensity,
     avgFRP: fires.reduce((sum, f) => sum + (parseFloat(f.frp) || 0), 0) / fires.length,
+    windowDays: WINDOW_DAYS,
   };
+  if (opts.keepDetections) {
+    const dets = fires.map(toDetection).filter(Boolean)
+      .sort((a, b) => (b.night - a.night) || (b.frp - a.frp));
+    out.detections = dets.slice(0, MAX_DETECTIONS);
+    out.detectionsDropped = Math.max(0, dets.length - out.detections.length) + (fires.length - dets.length);
+  }
+  return out;
 }
 
 // Briefing
@@ -115,14 +150,14 @@ export async function briefing() {
   const entries = Object.entries(HOTSPOTS);
   const rawResults = await Promise.all(
     entries.map(async ([key, box]) => {
-      const fires = await fetchFires({ ...box, days: 2 });
-      return { key, label: box.label, fires };
+      const fires = await fetchFires({ ...box, days: WINDOW_DAYS });
+      return { key, label: box.label, keepDetections: Boolean(box.keepDetections), fires };
     })
   );
 
   const hotspots = rawResults.map(r => {
     if (r.fires?.error) return { region: r.label, error: r.fires.error };
-    return analyzeFires(r.fires, r.label);
+    return analyzeFires(r.fires, r.label, { keepDetections: r.keepDetections });
   });
 
   // Generate signals
