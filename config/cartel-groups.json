@@ -4,10 +4,10 @@
   "groups": [
     {
       "id": "cjng", "orgId": "cjng", "type": "cartel", "name": "Cártel de Jalisco Nueva Generación", "short": "CJNG",
-      "aliases": ["cartel de jalisco nueva generacion", "jalisco nueva generacion", "jalisco new generation cartel", "jalisco new generation", "cjng", "cuatro letras", "matazetas", "los menchos"],
+      "aliases": ["cartel de jalisco nueva generacion", "cartel jalisco nueva generacion", "jalisco nueva generacion", "jalisco new generation cartel", "jalisco new generation", "jalisco cartel new generation", "jalisco cartel", "cjng", "cuatro letras", "matazetas", "los menchos"],
       "usDesignation": "FTO/SDGT (2025-02-20)",
       "homeStates": ["14", "08", "11", "16", "30"],
-      "leaders": ["Nemesio Oseguera Cervantes", "El Mencho"]
+      "leaders": ["Nemesio Oseguera Cervantes", "Nemesio Rubén Oseguera Cervantes", "El Mencho"]
     },
     {
       "id": "cjng_fuerzas_especiales", "orgId": "cjng", "parent": "cjng", "type": "faction", "name": "CJNG — Fuerzas Especiales Mencho", "short": "FEM",
@@ -16,6 +16,22 @@
     {
       "id": "cjng_puros", "orgId": "cjng", "parent": "cjng", "type": "faction", "name": "CJNG — Los Puros (Ciudad Juárez cell)", "short": "Los Puros",
       "aliases": ["los puros"]
+    },
+    {
+      "id": "cjng_cuinis", "orgId": "cjng", "parent": "cjng", "type": "faction", "name": "CJNG — Los Cuinis (financial arm)", "short": "Los Cuinis",
+      "aliases": ["los cuinis", "cuinis"],
+      "leaders": ["Abigael González Valencia", "El Cuini"]
+    },
+    {
+      "id": "milenio", "orgId": "other", "type": "cartel", "name": "Cártel del Milenio", "short": "Milenio",
+      "aliases": ["cartel del milenio", "milenio cartel", "los valencia"],
+      "homeStates": ["16", "14"]
+    },
+    {
+      "id": "nueva_plaza", "orgId": "other", "type": "cartel", "name": "Cártel Nueva Plaza", "short": "Nueva Plaza",
+      "aliases": ["cartel nueva plaza", "nueva plaza cartel"],
+      "homeStates": ["14"],
+      "leaders": ["Carlos Enrique Sánchez Martínez", "El Cholo"]
     },
     {
       "id": "sinaloa", "orgId": "sinaloa", "type": "cartel", "name": "Cártel de Sinaloa", "short": "Sinaloa",
@@ -122,7 +138,7 @@
     },
     {
       "id": "blo", "orgId": "blo", "type": "cartel", "name": "Beltrán Leyva Organization", "short": "BLO",
-      "aliases": ["beltran leyva", "beltran leyva organization", "cartel de los beltran leyva", "blo", "los beltranes"],
+      "aliases": ["beltran leyva", "beltran leyva organization", "beltran leyva org", "cartel de los beltran leyva", "blo", "los beltranes"],
       "homeStates": ["17", "12", "25"]
     },
     {

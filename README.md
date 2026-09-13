@@ -198,6 +198,18 @@ The Cartels & Border tab also carries a normalized **event layer** built after e
 
 Events from the last 30 days draw as pins on the Cartels map (fill = event family, ring = confidence grade); 31–90-day events are a separate dashed layer. Runtime state lives under `runs/narco/`, `runs/doj/` and `runs/ofacnarco/`.
 
+### CJNG knowledge graph (InSight Crime corpus)
+
+Below the border-reporting group on the Cartels & Border tab sits a **CJNG-only knowledge graph** machine-read from InSight Crime's public archive (`lib/cjng/`). It is deliberately scoped to one organisation: the corpus is every post tagged *Jalisco Cartel* (tag 676) or *El Mencho* (tag 3426) plus every post whose full text matches `CJNG`, pulled from the public WordPress REST API (`insightcrime.org/wp-json/wp/v2/posts`, no key, no HTML scraping, robots.txt honoured, one request every ~1.2 s with bounded back-off on 429/5xx). Posts are de-duplicated by WordPress id and kept in the graph only when InSight Crime tagged them or the text names the group in the title / repeatedly in the body — passing mentions stay in the corpus file but out of the graph.
+
+- **Nodes** — the CJNG root, its factions and the cartels named alongside it (`config/cartel-groups.json`), people (rule-based name extraction with alias / nickname / spelling-variant merging; presidents, governors, prosecutors, journalists and other officials are never typed as members), Mexican states and cities (`config/mx-gazetteer.json`), countries and InSight Crime topic tags.
+- **Edges** — `leader_of`, `member_of`, `family_of`, `rival_of`, `allied_with`, `lineage` (splinter / offshoot), `operates_in`, `linked_topic` and plain `mentioned_with`. A *typed* edge needs a cue word ("led by", "rival", "split from", "presence in" …) inside a short window around both names in one sentence; anything weaker is a co-mention, drawn dashed. Every edge carries article count, first / last date and up to three verbatim evidence sentences with the source article id and canonical URL.
+- **Bounds** — 400 nodes, 1,500 edges, 3 evidence sentences per edge, 800 article summaries; article bodies are never redistributed, only the evidence sentences and links.
+- **Refresh** — the server rebuilds the corpus incrementally (`modified_after` per query) every `CJNG_GRAPH_REFRESH_HOURS` (default 12; `CJNG_GRAPH_REFRESH=false` disables it) and saves `runs/insightcrime/cjng/graph.json`. A fresh checkout renders from the committed gzip snapshot `config/cjng-graph-snapshot.json.gz` (labelled `SNAPSHOT`) until the first refresh. `node scripts/cjng-graph.mjs [--full|--offline]` does the same from the command line.
+- `GET /api/narco/graph?type=person,org&rel=leader_of&min=3` — whitelisted node types / relations and a 1–999 article-support floor; anything else is a 400. The sweep payload only carries a header summary; the browser fetches the graph on demand when the tab opens.
+
+The panel is a D3 force layout with node-type, relation and minimum-support chips (persisted in `localStorage`); clicking a node lists its relations with the evidence sentences and links to the original article. Relations are as reported in the cited sentence, not verified ground truth, and rule-based cues miss relations phrased differently.
+
 ### Ukraine War (Ukraine theater)
 
 The **UKRAINE WAR** tab gives the Russia–Ukraine war its own theater view. No new upstream adapters are involved: every panel is a theater slice of something CRUCIX already sweeps, assembled by `lib/ukraineview.mjs` into a bounded `ukraine` view model and rendered next to the existing **Ukraine Front** panel.
@@ -609,6 +621,7 @@ crucix/
 | `npm run inject` | `node dashboard/inject.mjs` | Inject latest data into static HTML |
 | `npm run brief:save` | `node apis/save-briefing.mjs` | Run sweep + save timestamped JSON |
 | `npm run diag` | `node diag.mjs` | Run diagnostics (Node version, imports, port check) |
+| `npm run cjng:graph` | `node scripts/cjng-graph.mjs` | Refresh the InSight Crime CJNG corpus and rebuild the knowledge graph (`--full` re-pulls everything, `--offline` rebuilds from the cached corpus) |
 | `npm run ingest` | `python -m crucix_ingest serve` | Start the Border Watch ingestion service (needs the `ingest/` venv active) |
 | `npm run ingest:poll` | `python -m crucix_ingest poll` | One polling pass over every enabled source |
 | `npm run ingest:test` | `cd ingest && python -m pytest` | Ingestion test suite (recorded fixtures, no network) |
@@ -664,6 +677,7 @@ When running `npm run dev`:
 | `GET /api/typosquat` | Registered look-alike domains for the watchlist |
 | `GET /api/cartels` | Current cartel-map summary (status, counts, organizations, wars, recent entries, disclaimer) |
 | `GET /api/cartels/geo` | Cartel-map geometry (polygons, points, lines) for the CARTELS tab; 404 until the first successful fetch |
+| `GET /api/narco/graph` | CJNG knowledge graph (nodes, edges with evidence, article index); optional `type`, `rel`, `min` filters |
 
 ---
 

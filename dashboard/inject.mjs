@@ -18,6 +18,7 @@ import { buildIranWarView } from '../lib/iranwarview.mjs';
 import { buildTaiwanView } from '../lib/taiwanview.mjs';
 import { buildUkraineView } from '../lib/ukraineview.mjs';
 import { buildNarcoView } from '../lib/narco/view.mjs';
+import { loadGraph as loadCjngGraph, summarizeGraph as summarizeCjngGraph } from '../lib/cjng/graph.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -1387,7 +1388,14 @@ export async function synthesize(data) {
     ukraine: buildUkraineView(data.sources, sourceHealth.sources),
     // Homeland / Narco: DOJ + OFAC + feed health now; event clusters are computed post-sweep by the
     // server (lib/narco/pipeline.mjs) which replaces this placeholder with buildNarcoView(result, sources).
-    narco: buildNarcoView(null, data.sources),
+    narco: (() => {
+      const v = buildNarcoView(null, data.sources);
+      // CJNG knowledge-graph header summary from the runtime graph or the committed snapshot; the
+      // server refreshes it, the static inject only ever reads it.
+      const g = loadCjngGraph();
+      v.cjng = summarizeCjngGraph(g, { status: g ? (g.snapshot ? 'snapshot' : 'cached') : 'pending', lastAttempt: null, lastSuccess: g?.computedAt || null, error: null, inProgress: false });
+      return v;
+    })(),
     satTracking: (() => {
       const stData = data.sources.SatTracking || {};
       return {
