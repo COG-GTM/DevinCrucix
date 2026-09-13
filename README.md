@@ -115,6 +115,8 @@ fly secrets set CRUCIX_PASSWORD='your-access-code' CRUCIX_SESSION_SECRET=$(opens
 fly deploy
 ```
 
+After the first launch, every push to `master` deploys automatically: the `deploy-fly` job in `.github/workflows/docker-publish.yml` runs `flyctl deploy --remote-only` once the image build succeeds. It needs a `FLY_API_TOKEN` repository secret — create one with `fly tokens create deploy -a crucix` (scoped to this app only) and add it under *Settings → Secrets and variables → Actions*. `fly deploy` from a checkout still works for manual deploys.
+
 Setting `CRUCIX_PASSWORD` puts a login page in front of the dashboard and all `/api/*` routes (except `/api/health`). Failed attempts are rate-limited (5 per IP, 15-minute lockout). Leave it unset for local use. Anyone without the access code sees only the login page, so a deployment can stay private to whoever holds the code.
 
 ### Investigations tab & Typosquat Watch
