@@ -185,6 +185,21 @@ The Cartels tab also carries a normalized **event layer** built after every swee
 
 Events from the last 30 days draw as pins on the Cartels map (fill = event family, ring = confidence grade); 31–90-day events are a separate dashed layer. Runtime state lives under `runs/narco/`, `runs/doj/` and `runs/ofacnarco/`.
 
+### Ukraine War (Ukraine theater)
+
+The **UKRAINE WAR** tab gives the Russia–Ukraine war its own theater view. No new upstream adapters are involved: every panel is a theater slice of something CRUCIX already sweeps, assembled by `lib/ukraineview.mjs` into a bounded `ukraine` view model and rendered next to the existing **Ukraine Front** panel.
+
+- **Theater map** — D3 Mercator over lon 22–41 / lat 44–53 (Kharkiv → Odesa → Crimea → Kursk) with world-atlas land and borders and Ukraine highlighted. Layers (toggle chips, persisted in the browser): DeepStateMAP front polygons (occupied since 2022 / pre-2022 / contested / liberated, same colours as the globe legend), attack axes, RU units / airfields, the last 7 days of front updates, the Eastern Ukraine GPS-jamming zone, FIRMS hotspots, UA / RU nuclear sites (Zaporizhzhia in red), theater aircraft when the sweep carries positions, and KiwiSDR receivers. Geometry comes from the existing `GET /api/frontlines/geo` route, fetched only when the tab opens and shared with the globe's front layer. Every polygon and marker popup links to DeepStateMAP at that place.
+- **Front change log** — per-day advance / regain bars for 7 and 30 days, the latest update rows (click → DeepStateMAP), and the assessed-occupied km² delta against the previous sweep (`front_occupied_km2` from the delta engine).
+- **Theater air & GPS jamming** — the OpenSky `ukraine` box, the ADS-B `Ukraine/Black Sea` military box with `RF`/`RFF` callsigns picked out, and the `Eastern Ukraine` GPS-jamming zone. Counts track receiver coverage as much as activity.
+- **Thermal detections** — NASA FIRMS `ukraine` bbox: detections, night detections, > 10 MW FRP and a bounded hotspot table. Fires, flares and industry all show up; not strike confirmation.
+- **ZNPP & nuclear sites** — Zaporizhzhia (occupied / critical), Rivne, Khmelnytskyi, South Ukraine and Kursk from the nuclear-sites registry, plus Safecast readings from the `zaporizhzhia` ring.
+- **Theater wires, channels & odds** — GDELT `Ukraine/Russia` tone and headlines, Telegram posts from the conflict channels (DeepStateUA, General Staff, mod_russia and peers, labelled by side), Polymarket `russia` / `ukraine` markets.
+- **UA / RU instability** — the two Country Instability Index rows only.
+- **Left rail** — DeepStateMAP source health (state, map id, map age, attribution), the Sensor Grid filtered to theater layers, and a **Theater Reporting** list of GDELT / Telegram / ACLED items from the same 72 h window as the front updates (what else is reporting — not proof the map is right).
+
+DeepStateMAP is an **observational map product**: the areas shown are its assessment computed from its polygons, not verified ground truth, and “occupied” includes Crimea and pre-2022 ORDLO. Every panel and popup carries `Map data © DeepStateMAP (deepstatemap.live)`. Each panel shows its own `LIVE` / `DEGRADED` / `NO KEY` / `OFF` / `FAILED` state from the sweep's source health (ACLED is usually `NO KEY`; nothing is faked to fill a gap). All third-party strings are bounded server-side and HTML-escaped at render, coordinates are range-checked before plotting, only `http(s)` links survive, and the browser talks only to same-origin `/api/...` routes. The Situation strip's *Ukraine front* headline routes to this tab.
+
 ### Iran War Live (Iran theater)
 
 The **IRAN WAR LIVE** tab plots the public output of [IranWarLive](https://iranwarlive.com) (Tileterra Systems) on a dedicated theater map (lat 10–43, lon 28–66): kinetic events (air strikes, missile/rocket, drone, interceptions) from `/feed.json` merged with the published *strikes* Google Sheet, plus the separate *ground operations*, *actors & casualties*, *airspace / sea lanes* and *global posturing* sheets. No API key is required; all six parts are public, unauthenticated CSV/JSON polled once per sweep and cached 30 minutes.

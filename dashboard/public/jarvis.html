@@ -138,6 +138,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .ldot.air{background:var(--accent);box-shadow:0 0 6px rgba(100,240,200,0.4)}
 .ldot.thermal{background:var(--danger);box-shadow:0 0 6px rgba(255,95,99,0.4)}
+.ldot.front{background:#ff6e40;box-shadow:0 0 6px rgba(255,110,64,0.4)}
 .ldot.sdr{background:var(--accent2);box-shadow:0 0 6px rgba(68,204,255,0.4)}
 .ldot.nuke{background:#ffe082;box-shadow:0 0 6px rgba(255,224,130,0.4)}
 .ldot.incident{background:var(--warn);box-shadow:0 0 6px rgba(255,184,76,0.4)}
@@ -232,9 +233,39 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .front-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:4px}
 /* Cartels tab: Mexico-framed map. Current (crowd-sourced KML) layers are solid; START 2020 baseline layers are amber + dashed. */
 .ct-map{position:relative;height:clamp(420px,58vh,660px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden;margin-top:6px}
-#cartelMapSvg,#iwMapSvg,#twMapSvg{width:100%;height:100%;display:block;cursor:grab}
-#cartelMapSvg:active,#iwMapSvg:active,#twMapSvg:active{cursor:grabbing}
-#cartelMapSvg .land,#iwMapSvg .land,#twMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+#cartelMapSvg,#iwMapSvg,#twMapSvg,#uaMapSvg{width:100%;height:100%;display:block;cursor:grab}
+#cartelMapSvg:active,#iwMapSvg:active,#twMapSvg:active,#uaMapSvg:active{cursor:grabbing}
+#cartelMapSvg .land,#iwMapSvg .land,#twMapSvg .land,#uaMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+/* Ukraine War tab: DeepStateMAP front polygons keep the FRONT_STYLE colours used by the globe legend. */
+#uaMapSvg .land.ua{fill:rgba(255,213,79,0.07);stroke:rgba(255,213,79,0.6);stroke-width:0.9}
+#uaMapSvg .land.ru{fill:rgba(255,82,82,0.035);stroke:rgba(255,82,82,0.3)}
+#uaMapSvg .ua-poly{cursor:pointer;stroke-width:1;vector-effect:non-scaling-stroke;transition:fill-opacity 0.15s}
+#uaMapSvg .ua-poly:hover{fill-opacity:0.6}
+#uaMapSvg .ua-pin,#uaMapSvg .ua-sym,#uaMapSvg .ua-cell{cursor:pointer;vector-effect:non-scaling-stroke}
+#uaMapSvg .ua-axis{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;cursor:pointer}
+#uaMapSvg .ua-halo{fill:none;pointer-events:none;vector-effect:non-scaling-stroke;stroke-width:1;animation:iwPulse 2.4s ease-out infinite}
+#uaMapSvg .ua-lbl{font-family:var(--mono);fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.06em}
+#uaMapSvg .ua-lbl.ru{fill:rgba(255,138,128,0.85)}
+.ua-bars{display:flex;align-items:flex-end;gap:2px;height:54px;padding:4px 2px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.ua-bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:1px;min-width:0;cursor:default}
+.ua-bar i{display:block;width:100%;min-height:0}
+.ua-bar i.adv{background:rgba(255,110,64,0.85)}
+.ua-bar i.reg{background:rgba(100,181,246,0.85)}
+.ua-bar i.oth{background:rgba(200,200,200,0.35)}
+.ua-bar-lbls{display:flex;gap:2px;font-family:var(--mono);font-size:7px;color:var(--dim);letter-spacing:0.02em;margin-bottom:4px}
+.ua-bar-lbls span{flex:1;text-align:center;overflow:hidden;white-space:nowrap}
+.ua-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.ua-grid.four{grid-template-columns:repeat(4,1fr)}
+.ua-src{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:0.06em;color:var(--dim);text-transform:uppercase}
+.ua-src .hdot{width:6px;height:6px}
+.ua-sec{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
+.ua-sec b{color:#c8d8d2;font-weight:600}
+.ua-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px}
+.ua-tbl th{text-align:left;color:var(--dim);font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:8px;padding:3px 4px;border-bottom:1px solid var(--border)}
+.ua-tbl td{padding:3px 4px;border-bottom:1px solid rgba(255,255,255,0.04);color:#c8d8d2;white-space:nowrap}
+.ua-tbl th.n,.ua-tbl td.n{text-align:right}
+.ua-tbl tr.go{cursor:pointer}
+.ua-tbl tr.go:hover td{background:rgba(100,240,200,0.04)}
 #cartelMapSvg .land.mx{fill:rgba(100,240,200,0.05);stroke:rgba(100,240,200,0.45)}
 #iwMapSvg .land.ir{fill:rgba(255,90,54,0.06);stroke:rgba(255,90,54,0.5)}
 #twMapSvg .land.tw{fill:rgba(100,240,200,0.10);stroke:rgba(100,240,200,0.6)}
@@ -244,8 +275,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 #twMapSvg .tw-ref.median{stroke:rgba(255,213,79,0.7);stroke-dasharray:2 3}
 #twMapSvg .tw-lbl{font-family:var(--mono);fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.06em}
 #twMapSvg .tw-lbl.ref{fill:rgba(255,213,79,0.8)}
-#cartelMapSvg .border,#iwMapSvg .border,#twMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
-#cartelMapSvg .graticule,#iwMapSvg .graticule,#twMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .border,#iwMapSvg .border,#twMapSvg .border,#uaMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .graticule,#iwMapSvg .graticule,#twMapSvg .graticule,#uaMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
 #iwMapSvg .iw-pin,#iwMapSvg .iw-sym{cursor:pointer;vector-effect:non-scaling-stroke}
 #iwMapSvg .iw-halo{fill:none;pointer-events:none;vector-effect:non-scaling-stroke;stroke-width:1;animation:iwPulse 2.4s ease-out infinite}
 @keyframes iwPulse{0%{opacity:0.9}70%{opacity:0.15}100%{opacity:0.9}}
@@ -1218,6 +1249,7 @@ const TAB_DEFS=[
   {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
+  {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
   {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
   {id:'cartels',label:'Cartels',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
@@ -1245,6 +1277,7 @@ function tabCounts(){
   const iw=D.iranwar||{};
   const iwCount=iw.status==='live'?{n:`${iw.counts?.events48h||0} / 48H`,cls:'',title:`${iw.counts?.events48h||0} kinetic events in 48 h \u00b7 ${iw.counts?.ground48h||0} ground-ops rows \u00b7 ${iw.counts?.airspaceClosed||0} closed / ${iw.counts?.airspaceRestricted||0} restricted airspace entries \u00b7 feed ${Number.isFinite(iw.feedAgeH)?Math.round(iw.feedAgeH)+'h old':'age unknown'}`}
     :iw.status==='limited'?{n:'LIMITED',cls:'warn',title:iw.error||'IranWarLive partially available'}:iw.status==='stale'?{n:'STALE',cls:'warn',title:iw.error||'Serving a cached IranWarLive copy'}:iw.status==='empty'?{n:'EMPTY',cls:'warn',title:'IranWarLive answered but published no events'}:iw.status?{n:'OFF',cls:'warn',title:iw.error||'IranWarLive not reachable this sweep'}:null;
+  const uaCount=uaTabCount();
   const tw=D.taiwan||{};const twb=tw.mnd?.bulletin;
   const twCount=twOk(tw)?(twb&&Number.isFinite(twb.aircraft)?{n:`${twb.aircraft} PLA A/C`,cls:tw.status==='live'?'':'warn',title:`MND ${twb.publishedDate||''}: ${twb.aircraft} PLA aircraft \u00b7 ${twb.adizEntries??'?'} entered ADIZ \u00b7 ${twb.planShips??'?'} PLAN ships${tw.cga?.stats?.last7d?` \u00b7 ${tw.cga.stats.last7d} CGA grey-zone releases / 7 d`:''}${tw.status!=='live'?' \u00b7 some parts degraded':''}`}:{n:tw.status.toUpperCase(),cls:'warn',title:'China / Taiwan sources partially available; MND bulletin missing'}):tw.status?{n:'OFFLINE',cls:'warn',title:'No China / Taiwan source reachable this sweep'}:null;
   return {
@@ -1252,6 +1285,7 @@ function tabCounts(){
     military: airTotal?{n:airTotal,cls:'',title:`${airTotal} aircraft across ${(D.air||[]).length} theaters`}:null,
     cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
+    ukraine: uaCount,
     regional: spikes?{n:`${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:'Border Watch place spikes vs baseline'}:null,
     cartels: ctCount,
     iranwar: iwCount,
@@ -1370,6 +1404,15 @@ const PANEL_CAPTIONS={
   'cisa kev threats':'CISA Known Exploited Vulnerabilities, newest first. Click a CVE or vendor to pivot into Investigate.',
   'cross-source signals':'<b>Derived.</b> Zones where two or more independent feeds overlap. Built from the panels above; adds no new data.',
   'carrier strike groups':'Positions estimated from public reporting (USNI, GDELT). Fallback positions are last known, not tracked.',
+  'ukraine theater':'D3 theater map: DeepStateMAP front polygons, attack axes and RU unit / airfield markers over the sensors CRUCIX already sweeps for this box. Map data \u00a9 DeepStateMAP \u2014 an assessment, not verified ground truth.',
+  'front change log':'Per-day DeepStateMAP advances and regains (7 d / 30 d) with the latest update rows. Occupied km\u00b2 delta is against the previous sweep of this dashboard, not a daily official figure.',
+  'theater air & gps jamming':'OpenSky / ADS-B counts inside the Ukraine and Black Sea boxes plus the Eastern Ukraine GPS-jamming zone. Counts track receiver coverage as much as activity; RU callsigns are pattern matches.',
+  'thermal detections':'NASA FIRMS thermal anomalies in the Ukraine bbox: detections, night detections and >10 MW FRP. Fires, flares and industry all show up \u2014 not strike confirmation.',
+  'znpp & nuclear sites':'Status of Zaporizhzhia and other UA / RU nuclear facilities from the sites registry, with Safecast citizen readings near ZNPP. A reading is not a release; status is public reporting.',
+  'theater wires, channels & odds':'GDELT Ukraine / Russia headlines and tone, public Telegram posts from the conflict channels, and Polymarket Russia / Ukraine odds. Unverified reporting and crowd estimates, not intelligence.',
+  'ua / ru instability':'Composite Instability Index rows for Ukraine and Russia only. <b>Derived.</b> Moves with its inputs (unrest, security, information) and adds no independent data.',
+  'deepstatemap source':'Health of the DeepStateMAP poll: state, map id, map age and attribution. Map data \u00a9 DeepStateMAP (deepstatemap.live).',
+  'theater reporting':'Independent items about the theater from GDELT, Telegram and ACLED in the same 72 h window as the DeepStateMAP updates. What else is reporting \u2014 not proof the map is right.',
   'ukraine front':'DeepStateMAP\u2019s assessment of occupied, contested and liberated ground plus its update log. An observational map product with attribution \u2014 not verified ground truth, and km\u00b2 are computed from its polygons.',
   'cartel influence':'Two layers that must not be confused: <b>current</b> = a crowd-sourced, single-maintainer Google My Maps KML (@MexicoCartelMap, solid colours); <b>historical</b> = START\u2019s June 2020 research briefs (amber, dashed). Neither is verified control of territory.',
   'organizations':'Organizations named on the current map, ranked by assessed influence area. Attribution follows the map maintainer\u2019s colour legend, not an official designation.',
@@ -1488,6 +1531,8 @@ function renderLeftRail(){
   const layers=[
     {name:t('layers.airActivity','Air Activity'),count:totalAir,dot:'air',sub:D.airMeta?.method&&D.airMeta.method!=='opensky'?esc(D.airMeta.source):`${D.air.length} ${t('layers.theaters','theaters')}`,src:D.airMeta?.fallback?['ADS-B']:['OpenSky']},
     {name:t('layers.thermalSpikes','Thermal Spikes'),count:totalThermal.toLocaleString(),dot:'thermal',sub:`${totalNight.toLocaleString()} ${t('layers.nightDet','night det.')}`,src:'FIRMS'},
+    {name:'Ukraine Front',count:D.frontlines?.featureCount||0,dot:'front',sub:`${D.frontlines?.attackDirections||0} axes \u00b7 ${uaKm(D.frontlines?.occupiedKm2)} km\u00b2 assessed occupied`,src:'Frontlines'},
+    {name:'RU Units / Airfields',count:(D.frontlines?.units||0)+(D.frontlines?.airfields||0),dot:'front',sub:`${D.frontlines?.units||0} RU units \u00b7 ${D.frontlines?.airfields||0} airfields \u00b7 DeepStateMAP`,src:'Frontlines'},
     {name:t('layers.sdrCoverage','SDR Coverage'),count:D.sdr.total,dot:'sdr',sub:`${D.sdr.online} ${t('layers.online','online')}`,src:'KiwiSDR'},
     {name:t('layers.maritimeWatch','Maritime Watch'),count:D.chokepoints.length,dot:'maritime',sub:t('layers.chokepoints','chokepoints'),src:'Maritime'},
     {name:t('layers.nuclearSites','Nuclear Sites'),count:D.nuke.length,dot:'nuke',sub:t('layers.monitors','monitors'),src:'Safecast'},
@@ -1564,6 +1609,7 @@ function renderLeftRail(){
     military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
     cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
     macro:['Market Intel','Polymarket','Instability Index'],
+    ukraine:['Ukraine Front','RU Units / Airfields','GPS Jamming','Thermal Spikes','Air Activity','Nuclear Sites','Telegram Live'],
     regional:['Border Watch','Border / CBP','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
   };
@@ -1618,6 +1664,7 @@ function renderLeftRail(){
     military:[sensorGridPanel,nuclearPanel,seismicPanel,spacePanel],
     cyber:[sensorGridPanel,renderSignalIntelPanel()],
     macro:[riskPanel,sensorGridPanel],
+    ukraine:[renderUaSourcePanel(),sensorGridPanel,renderUaCorroborationPanel()],
     regional:[sensorGridPanel,renderSourceHealthPanel()],
     cartels:[renderNarcoSourcePanel(),renderCartelSourcePanel(),renderCartelOrgsPanel()],
     iranwar:[renderIwSourcePanel(),renderIwActorsPanel(),renderIwCorroborationPanel()],
@@ -3137,9 +3184,10 @@ function renderLower(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
-    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderFrontPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
+    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
       wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
@@ -3154,6 +3202,7 @@ function renderLower(){
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
+  if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
 }
 
@@ -3958,6 +4007,483 @@ function renderIwCorroborationPanel(){
   }).join('');
   return `<div class="g-panel iw-corroboration"><div class="sec-head"><h3>${shDot(names)}Independent Reporting</h3><span class="badge">${items.length} ITEMS \u00b7 72H</span></div><div class="ct-scroll" style="max-height:40vh">${rows}</div>
     <div class="sh-note">Theater-filtered items from feeds CRUCIX already polls. This is what else is reporting \u2014 it does not confirm any individual IranWarLive event.</div></div>`;
+}
+
+// === UKRAINE WAR TAB ===
+// D.ukraine is the bounded view (lib/ukraineview.mjs) over sources CRUCIX already sweeps; DeepStateMAP
+// geometry comes from /api/frontlines/geo on demand and shares the frontGeo cache used by the globe.
+// Every string here is third-party → esc(); every coordinate was validated server-side and is re-checked
+// by the projection. Areas are DeepStateMAP assessments, not verified ground truth.
+const UA_STORE='crucix_ua_layers';
+// Clockwise ring (D3 spherical winding) so fitExtent frames Kharkiv → Odesa → Crimea → Kursk.
+const UA_BBOX={type:'Polygon',coordinates:[[[22,44],[22,53],[41,53],[41,44],[22,44]]]};
+const UA_LAYERS=[
+  {id:'front',label:'Front polygons',color:'#ff6e40',src:'Frontlines'},
+  {id:'attack',label:'Attack axes',color:'#ff8a65',src:'Frontlines'},
+  {id:'orbat',label:'RU units / airfields',color:'#ffab91',src:'Frontlines'},
+  {id:'changes',label:'Updates \u00b7 7 d',color:'#64b5f6',src:'Frontlines'},
+  {id:'gps',label:'GPS jamming',color:'#ef5350',src:'GPSJamming'},
+  {id:'thermal',label:'FIRMS thermal',color:'#ff5f63',src:'FIRMS'},
+  {id:'nuclear',label:'Nuclear sites',color:'#ffe082',src:'Nuclear'},
+  {id:'air',label:'Theater air',color:'#64f0c8',src:['OpenSky','ADS-B']},
+  {id:'sdr',label:'KiwiSDR receivers',color:'#44ccff',src:'KiwiSDR'},
+];
+const UA_LANDMARKS=[
+  {n:'KYIV',lat:50.45,lon:30.52},{n:'KHARKIV',lat:49.99,lon:36.23},{n:'SUMY',lat:50.91,lon:34.8},{n:'DNIPRO',lat:48.46,lon:35.05},
+  {n:'ZAPORIZHZHIA',lat:47.84,lon:35.14},{n:'KHERSON',lat:46.64,lon:32.61},{n:'ODESA',lat:46.48,lon:30.73},{n:'MYKOLAIV',lat:46.97,lon:32.0},
+  {n:'DONETSK',lat:48.0,lon:37.8},{n:'LUHANSK',lat:48.57,lon:39.31},{n:'MARIUPOL',lat:47.1,lon:37.55},{n:'SEVASTOPOL',lat:44.6,lon:33.52},
+  {n:'LVIV',lat:49.84,lon:24.03},{n:'KURSK',lat:51.73,lon:36.19,ru:true},{n:'BELGOROD',lat:50.6,lon:36.59,ru:true},{n:'ROSTOV',lat:47.23,lon:39.7,ru:true},{n:'VORONEZH',lat:51.67,lon:39.2,ru:true},
+];
+const UA_GPS_COLOR={high:'rgba(239,83,80,0.55)',medium:'rgba(255,167,38,0.45)',low:'rgba(255,213,79,0.35)'};
+let uaActive=(()=>{try{const v=JSON.parse(localStorage.getItem(UA_STORE));if(Array.isArray(v))return new Set(v.filter(id=>UA_LAYERS.some(l=>l.id===id)))}catch{}return new Set(UA_LAYERS.map(l=>l.id))})();
+let uaGeoFailed=false, uaTransform=null, uaSvg=null, uaBase=null, uaLayersG=null, uaProj=null, uaPath=null, uaZoom=null, uaW=0, uaH=0;
+function uaView(){return D.ukraine||{}}
+function uaFrontLive(){const f=uaView().front;return Boolean(f&&f.live)}
+function uaSave(){try{localStorage.setItem(UA_STORE,JSON.stringify([...uaActive]))}catch{}}
+function uaToggle(id){if(!UA_LAYERS.some(l=>l.id===id))return;if(uaActive.has(id))uaActive.delete(id);else uaActive.add(id);uaSave();renderUaChips();uaDraw()}
+function uaSetAll(on){uaActive=new Set(on?UA_LAYERS.map(l=>l.id):[]);uaSave();renderUaChips();uaDraw()}
+function uaWhen(at){const t=Date.parse(at||'');return Number.isFinite(t)?new Date(t).toISOString().slice(5,16).replace('T',' ')+'Z':''}
+function uaAgeTxt(h){return !Number.isFinite(h)?'age unknown':h<1?'<1h old':h<48?`${Math.round(h)}h old`:`${Math.round(h/24)}d old`}
+function uaKm(v){return Number.isFinite(v)?Math.round(v).toLocaleString('en-US'):'\u2014'}
+function uaN(v){return (Number(v)||0).toLocaleString('en-US')}
+// Source-health chrome. `h` is the per-source {state,reason} the view model copied from lib/sourcehealth.mjs
+// for this sweep; state null means the adapter never ran. Nothing here invents a LIVE.
+function uaState(h){return h&&h.state?h.state:'off'}
+// LIVE and DEGRADED both carry this sweep's data (degraded = partial / fallback path); OFF, NO KEY and FAILED do not.
+function uaHas(h){const s=uaState(h);return s==='live'||s==='degraded'}
+function uaBadge(h,liveText,cls){
+  const st=uaState(h);
+  if(st==='live')return `<span class="badge ${cls||''}">${liveText||'LIVE'}</span>`;
+  if(st==='degraded')return `<span class="badge warn" title="${esc(h?.reason||'')}">DEGRADED</span>`;
+  if(st==='error')return `<span class="badge err" title="${esc(h?.reason||'')}">FAILED</span>`;
+  return `<span class="badge off" title="${esc(h?.reason||'')}">${SH_LABEL[st]||'OFF'}</span>`;
+}
+function uaSrc(label,h){const st=uaState(h);return `<span class="ua-src" title="${esc(`${label}: ${SH_LABEL[st]||'OFF'}${h?.reason?' \u2014 '+h.reason:''}`)}"><span class="hdot ${st}"></span>${esc(label)} \u00b7 ${SH_LABEL[st]||'OFF'}</span>`}
+function uaOffWhy(h,fallback){const st=uaState(h);return st==='no_key'?`needs a key${h?.reason?' \u2014 '+h.reason:''}`:st==='off'?(h?.reason||'adapter disabled or not polled'):st==='error'?(h?.reason||'request failed this sweep'):(h?.reason||fallback||'no data this sweep')}
+function uaSection(title,right){return `<div class="ua-sec"><b>${title}</b><span>${right||''}</span></div>`}
+// Occupied-km² movement vs the previous sweep, from the delta engine's `front_occupied_km2` count metric
+// (±10 km² threshold). null = no prior sweep to compare against.
+function uaOccDelta(){
+  const s=D.delta?.signals;if(!s)return null;
+  const hit=[].concat(s.escalated||[],s.deescalated||[]).find(x=>x.key==='front_occupied_km2');
+  if(hit&&Number.isFinite(hit.change))return {change:hit.change,from:hit.from,to:hit.to};
+  if((s.unchanged||[]).includes('front_occupied_km2'))return {change:0};
+  return null;
+}
+function uaOccDeltaTxt(d){if(!d)return 'no prior sweep to compare';if(!d.change)return 'within \u00b110 km\u00b2 of last sweep';return `${d.change>0?'+':'\u2212'}${uaKm(Math.abs(d.change))} km\u00b2 vs last sweep`}
+function uaTabCount(){
+  const f=uaView().front;if(!f||!f.live)return null;
+  const h=f.history||{},d=uaOccDelta();
+  return {n:`${h.recent7d|0} UPD/7D`,cls:(h.advances7d|0)>0?'hot':'',title:`${h.recent7d|0} DeepStateMAP updates in 7 d \u00b7 ${h.advances7d|0} advances \u00b7 ${h.regains7d|0} regains \u00b7 ${uaKm(f.occupiedKm2)} km\u00b2 assessed occupied (${uaOccDeltaTxt(d)}) \u00b7 assessment, not verified ground truth`};
+}
+// Geometry: reuse the frontGeo cache the globe keeps; fetch once per map id when this tab needs it.
+function uaGeoNow(){
+  if(!uaFrontLive())return null;
+  const key=String(D.frontlines?.mapId||uaView().front?.mapId||'latest');
+  if(frontGeo&&frontGeoKey===key)return frontGeo;
+  if(!frontGeoBusy)loadUaGeo(key);
+  return frontGeo;
+}
+function loadUaGeo(key){
+  frontGeoBusy=true;
+  fetch('/api/frontlines/geo',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(g=>{
+    frontGeoBusy=false;
+    if(!g||!Array.isArray(g.polygons)){uaGeoFailed=true;uaDraw();return;}
+    g.polygons.forEach(windForD3);
+    frontGeo=g;frontGeoKey=key;uaGeoFailed=false;
+    renderUaChips();uaDraw();
+  }).catch(()=>{frontGeoBusy=false;uaGeoFailed=true;uaDraw()});
+}
+function uaClosePopup(){document.getElementById('uaPopup')?.classList.remove('show')}
+function uaPopup(ev,head,html,meta){
+  const popup=document.getElementById('uaPopup'),wrap=document.getElementById('uaMapWrap');
+  if(!popup||!wrap)return;
+  const rect=wrap.getBoundingClientRect();
+  const left=ev&&ev.clientX!=null?ev.clientX-rect.left+10:rect.width/2-140, top=ev&&ev.clientY!=null?ev.clientY-rect.top-10:rect.height/2-60;
+  fillPopup(popup,head,html,meta);
+  placePopup(popup,rect,left,top);
+}
+// Deep link into DeepStateMAP at a place. Coordinates are clamped numbers (deepStateUrl), never feed strings.
+function uaDsLink(lat,lon){return `<br><a href="${esc(deepStateUrl(lat,lon))}" target="_blank" rel="noopener noreferrer" style="color:#ff8a65;font-family:var(--mono);font-size:9px;letter-spacing:0.06em">OPEN DEEPSTATEMAP \u2197</a>`}
+function uaFocusAt(lat,lon,k){
+  if(!uaSvg||!uaProj||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  const [x,y]=uaProj([lon,lat]);const z=k||5;
+  uaSvg.transition().duration(500).call(uaZoom.transform,d3.zoomIdentity.translate(uaW/2-x*z,uaH/2-y*z).scale(z));
+  document.getElementById('uaMapWrap')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function uaResetView(){if(uaSvg)uaSvg.transition().duration(400).call(uaZoom.transform,d3.zoomIdentity)}
+function initUaMap(){
+  const wrap=document.getElementById('uaMapWrap'),svgEl=document.getElementById('uaMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  uaW=wrap.clientWidth||900;uaH=wrap.clientHeight||520;
+  uaSvg=d3.select(svgEl).attr('viewBox',`0 0 ${uaW} ${uaH}`).attr('preserveAspectRatio','xMidYMid meet');
+  uaSvg.selectAll('*').remove();
+  uaProj=d3.geoMercator().fitExtent([[14,14],[uaW-14,uaH-14]],UA_BBOX);
+  uaPath=d3.geoPath(uaProj);
+  const root=uaSvg.append('g');
+  uaBase=root.append('g').attr('class','ua-base');
+  uaLayersG=root.append('g').attr('class','ua-layers');
+  uaZoom=d3.zoom().scaleExtent([0.6,18]).on('zoom',ev=>{uaTransform=ev.transform;root.attr('transform',ev.transform);uaScale(ev.transform.k)});
+  uaSvg.call(uaZoom).on('click',()=>uaClosePopup());
+  if(uaTransform)uaSvg.call(uaZoom.transform,uaTransform);
+  uaBase.append('path').datum(d3.geoGraticule().step([2,2])()).attr('class','graticule').attr('d',uaPath);
+  ctWorld().then(world=>{
+    if(!world||!uaBase||!window.topojson)return;
+    const countries=topojson.feature(world,world.objects.countries);
+    uaBase.selectAll('path.land').data(countries.features).enter().append('path').attr('class',d=>'land'+(String(d.id)==='804'?' ua':String(d.id)==='643'?' ru':'')).attr('d',uaPath);
+    uaBase.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',uaPath);
+    const k=uaTransform?uaTransform.k:1;
+    UA_LANDMARKS.forEach(l=>{const xy=uaProj([l.lon,l.lat]);if(!xy)return;uaBase.append('text').attr('class','ua-lbl'+(l.ru?' ru':'')).attr('x',xy[0]).attr('y',xy[1]-5).attr('text-anchor','middle').attr('data-fs',7).style('font-size',7/k+'px').text(l.n)});
+    uaLayersG.raise();
+  });
+  renderUaChips();
+  uaDraw();
+}
+function uaScale(k){
+  if(!uaLayersG)return;
+  uaLayersG.selectAll('.ua-pin').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  uaLayersG.selectAll('.ua-halo').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  uaLayersG.selectAll('.ua-sym').attr('transform',function(){return `translate(${this.dataset.x},${this.dataset.y}) scale(${1/Math.sqrt(k)})`});
+  if(uaBase)uaBase.selectAll('.ua-lbl').style('font-size',function(){return (+this.dataset.fs||7)/k+'px'});
+}
+// What each layer would draw this sweep (0 = chip disabled with the reason), independent of the toggles.
+function uaLayerCounts(){
+  const u=uaView(),g=uaGeoNow(),pts=g?.points||[];
+  const air=(u.air?.opensky?.tracks||[]).length+(u.air?.adsb?.aircraft||[]).length;
+  return {
+    front:g?g.polygons.length:0,
+    attack:pts.filter(p=>p.cat==='attack').length,
+    orbat:pts.filter(p=>p.cat==='unit'||p.cat==='airfield').length,
+    changes:(g?.changes||[]).length,
+    gps:(u.air?.gps?.zones||[]).length,
+    thermal:(u.thermal?.rows||[]).length,
+    nuclear:(u.nuclear?.facilities||[]).length,
+    air,
+    sdr:(u.sdr?.receivers||[]).length,
+  };
+}
+function uaLayerWhy(id){
+  const u=uaView(),g=uaGeoNow();
+  if(['front','attack','orbat','changes'].includes(id))return !uaFrontLive()?'DeepStateMAP not live this sweep':uaGeoFailed?'geometry unavailable':!g?'geometry loading':'nothing in the current map';
+  const h=id==='gps'?u.air?.gps?.health:id==='thermal'?u.thermal?.health:id==='nuclear'?u.nuclear?.health:id==='sdr'?u.sdr?.health:null;
+  if(id==='air'){const o=u.air?.opensky,a=u.air?.adsb;return o?.total>0&&!(o.tracks||[]).length?`${o.total} aircraft counted, no positions in payload`:`OpenSky ${SH_LABEL[uaState(o?.health)]}, ADS-B ${SH_LABEL[uaState(a?.health)]} \u2014 no theater positions`}
+  if(h&&uaState(h)!=='live')return `${SH_LABEL[uaState(h)]}${h.reason?' \u2014 '+h.reason:''}`;
+  return id==='thermal'?'no high-FRP detections in the Ukraine box':id==='gps'?'no jamming cells in the Eastern Ukraine zone':id==='sdr'?'no receivers reporting inside the box':'nothing to plot';
+}
+function uaDraw(){
+  if(!uaLayersG||!uaProj)return;
+  uaClosePopup();
+  uaLayersG.selectAll('*').remove();
+  const k=uaTransform?uaTransform.k:1,u=uaView(),g=uaGeoNow(),on=id=>uaActive.has(id);
+  const pin=(gr,lon,lat,r,fill,stroke,sw,onclick)=>{
+    const xy=uaProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
+    return gr.append('circle').attr('class','ua-pin').attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r).attr('r',r/Math.sqrt(k)).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw).on('click',e=>{e.stopPropagation();onclick(e)});
+  };
+  const sym=(gr,lon,lat,d,fill,stroke,onclick)=>{
+    const xy=uaProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
+    return gr.append('path').attr('class','ua-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).attr('d',d).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',1).on('click',e=>{e.stopPropagation();onclick(e)});
+  };
+  const halo=(gr,lon,lat,r,color)=>{const xy=uaProj([lon,lat]);if(!xy)return;gr.append('circle').attr('class','ua-halo').attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r).attr('r',r/Math.sqrt(k)).attr('stroke',color)};
+  let drawn=0;
+  // 1. GPS-jamming cells (under everything else).
+  if(on('gps')){
+    const gr=uaLayersG.append('g'),gz=u.air?.gps||{};
+    (gz.zones||[]).forEach(z=>{
+      const s=Number.isFinite(z.gridSize)&&z.gridSize>0?z.gridSize:2,half=s/2;
+      const ring=[[z.lon-half,z.lat-half],[z.lon-half,z.lat+half],[z.lon+half,z.lat+half],[z.lon+half,z.lat-half],[z.lon-half,z.lat-half]];
+      const d=uaPath({type:'Polygon',coordinates:[ring]});if(!d)return;
+      const pct=Number.isFinite(z.ratio)?Math.round(z.ratio*100):null;
+      gr.append('path').attr('class','ua-cell').attr('d',d).attr('fill',UA_GPS_COLOR[z.severity]||UA_GPS_COLOR.low).attr('stroke','rgba(239,83,80,0.8)').attr('stroke-width',0.8).attr('stroke-dasharray','3 2')
+        .on('click',e=>{e.stopPropagation();uaPopup(e,`GPS jamming \u00b7 ${String(z.severity).toUpperCase()}`,`${z.degraded} of ${z.total} aircraft in this ${s}\u00b0 cell reporting degraded navigation${pct!=null?` (${pct}%)`:''}.<br><span style="color:var(--dim)">Derived from ADS-B NIC/NACp integrity fields in the ${esc(gz.zone||'Eastern Ukraine')} zone \u2014 an inference about receiver-side interference, not a direct EW observation.</span>`,'GPS Jamming \u00b7 ADS-B integrity')});
+      drawn++;
+    });
+  }
+  // 2. DeepStateMAP polygons, pre-2022 first so the 2022+ occupation and grey zone sit on top.
+  if(g&&on('front')){
+    const gr=uaLayersG.append('g'),order={occupied_pre2022:0,liberated:1,occupied:2,contested:3};
+    [...g.polygons].sort((a,b)=>(order[a.cat]??1)-(order[b.cat]??1)).forEach(p=>{
+      if(!Array.isArray(p.rings)||!p.rings.length)return;
+      const geom={type:'Polygon',coordinates:p.rings},d=uaPath(geom);if(!d)return;
+      const st=FRONT_STYLE[p.cat]||FRONT_STYLE.contested,pop=frontPolyPop(p),c=d3.geoCentroid(geom);
+      gr.append('path').attr('class','ua-poly').attr('d',d).attr('fill',st.fill).attr('stroke',st.stroke)
+        .on('click',e=>{e.stopPropagation();uaPopup(e,pop.head,pop.text+uaDsLink(c[1],c[0]),pop.meta)});
+      drawn++;
+    });
+  }
+  // 3. Attack axes: an arrow along DeepState's heading when it published one, a triangle otherwise.
+  if(g&&on('attack')){
+    const gr=uaLayersG.append('g'),col='#ff8a65';
+    g.points.filter(p=>p.cat==='attack').forEach(p=>{
+      const head=`Attack axis${p.name?' \u00b7 '+String(p.name).slice(0,60):''}`;
+      const text=`${esc(p.name||'Assessed direction of Russian pressure')}${Number.isFinite(p.heading)?`<br>Heading ${Math.round(p.heading)}\u00b0`:''}<br><span style="color:var(--dim)">Attack direction as drawn by DeepStateMAP \u2014 an assessment of pressure, not a confirmed axis of advance.</span>${uaDsLink(p.lat,p.lon)}`;
+      const click=e=>uaPopup(e,head,text,'DeepStateMAP \u00b7 attack direction');
+      if(Number.isFinite(p.heading)){
+        const pts=frontArrow(p.lat,p.lon,p.heading,16).map(([la,lo])=>[lo,la]);
+        const d=uaPath({type:'LineString',coordinates:pts});if(!d)return;
+        gr.append('path').attr('class','ua-axis').attr('d',d).attr('stroke',col).on('click',e=>{e.stopPropagation();click(e)});
+        drawn++;
+      } else if(sym(gr,p.lon,p.lat,'M0,-6 L5,4 L-5,4 Z',ctRgba(col,0.85),'rgba(0,0,0,0.7)',click))drawn++;
+    });
+  }
+  // 4. RU units (squares) and airfields (diamonds).
+  if(g&&on('orbat')){
+    const gr=uaLayersG.append('g');
+    g.points.filter(p=>p.cat==='unit'||p.cat==='airfield').forEach(p=>{
+      if(p.cat==='unit'){
+        const pop=frontUnitPop(p);
+        if(sym(gr,p.lon,p.lat,'M-4,-4 H4 V4 H-4 Z',ctRgba('#ffab91',0.8),'rgba(0,0,0,0.7)',e=>uaPopup(e,pop.head,pop.text+uaDsLink(p.lat,p.lon),pop.meta)))drawn++;
+      } else if(sym(gr,p.lon,p.lat,'M0,-5.5 L5.5,0 L0,5.5 L-5.5,0 Z',ctRgba('#ffcc80',0.8),'rgba(0,0,0,0.7)',e=>uaPopup(e,'Airfield',`${esc(p.name||'Airfield')}<br><span style="color:var(--dim)">Airfield marker per DeepStateMAP.</span>${uaDsLink(p.lat,p.lon)}`,'DeepStateMAP')))drawn++;
+    });
+  }
+  // 5. Update places from the DeepState history (last 7 d), pulsing when under 24 h old.
+  if(g&&on('changes')){
+    const gr=uaLayersG.append('g'),now=Date.now();
+    frontLabelled(g.changes||[]).forEach(c=>{
+      const col=FRONT_CHANGE_COLOR[c.kind]||FRONT_CHANGE_COLOR.other,pop=frontChangePop(c);
+      if(pin(gr,c.lon,c.lat,3.6,col,'rgba(0,0,0,0.75)',1,e=>uaPopup(e,pop.head,pop.text+uaDsLink(c.lat,c.lon),pop.meta))){drawn++;
+        if(now-Date.parse(c.at||'')<=24*3600000)halo(gr,c.lon,c.lat,9,col);}
+    });
+  }
+  // 6. FIRMS high-FRP detections (VIIRS / MODIS), sized by radiative power.
+  if(on('thermal')){
+    const gr=uaLayersG.append('g');
+    (u.thermal?.rows||[]).forEach(r=>{
+      const frp=Number.isFinite(r.frp)?r.frp:0,size=3+Math.min(frp,150)/25;
+      if(sym(gr,r.lon,r.lat,`M0,${-size} L${size*0.9},${size*0.7} L${-size*0.9},${size*0.7} Z`,r.night?'rgba(255,95,99,0.9)':'rgba(255,167,38,0.85)','rgba(0,0,0,0.7)',
+        e=>uaPopup(e,`Thermal anomaly \u00b7 ${Number.isFinite(r.frp)?r.frp.toFixed(1)+' MW':'FRP n/a'}`,`${esc(r.date)} ${esc(r.time)}Z \u00b7 ${r.night?'night':'day'} pass${r.confidence?` \u00b7 confidence ${esc(r.confidence)}`:''}${Number.isFinite(r.brightness)?`<br>Brightness ${r.brightness.toFixed(0)} K`:''}<br><span style="color:var(--dim)">NASA FIRMS satellite fire detection. A hot pixel, not an attributed strike \u2014 agriculture and industry also burn.</span>`,'FIRMS \u00b7 VIIRS/MODIS')))drawn++;
+    });
+  }
+  // 7. Nuclear sites: ZNPP red with a pulse, other plants amber.
+  if(on('nuclear')){
+    const gr=uaLayersG.append('g'),n=u.nuclear||{},sc=n.safecast||{};
+    (n.facilities||[]).forEach(f=>{
+      const znpp=/zaporizh/i.test(f.name),crit=f.risk==='critical'||f.status==='occupied';
+      const col=znpp||crit?'#ff5252':f.country==='RU'?'#ffab91':'#ffe082';
+      const text=`${esc(f.operator||'')}${f.reactors?` \u00b7 ${f.reactors} reactors`:''}${f.capacityMW?` \u00b7 ${uaN(f.capacityMW)} MW`:''}<br>Status: <b style="color:${col}">${esc(String(f.status).toUpperCase())}</b>${f.risk?` \u00b7 risk ${esc(f.risk)}`:''}`
+        +(znpp&&sc.present?`<br>Safecast ring: ${sc.recentReadings} readings${Number.isFinite(sc.avgCPM)?` \u00b7 avg ${sc.avgCPM.toFixed(0)} CPM`:''}${Number.isFinite(sc.maxCPM)?` \u00b7 max ${sc.maxCPM.toFixed(0)} CPM`:''}${sc.anomaly?' \u00b7 <b style="color:#ff5252">ANOMALY</b>':' \u00b7 no anomaly'}`:znpp?`<br><span style="color:var(--dim)">Safecast ring: ${SH_LABEL[uaState(sc.health)]}</span>`:'')
+        +`<br><span style="color:var(--dim)">Site status from CRUCIX\u2019s nuclear-facility list; radiation from citizen-science Safecast counters, not IAEA telemetry.</span>`;
+      if(pin(gr,f.lon,f.lat,znpp?6:4.5,ctRgba(col,0.9),'rgba(0,0,0,0.8)',1.2,e=>uaPopup(e,`${f.name}${f.country?' \u00b7 '+f.country:''}`.slice(0,80),text,'Nuclear Sites \u00b7 Safecast'))){drawn++;if(znpp)halo(gr,f.lon,f.lat,13,col);}
+    });
+  }
+  // 8. Theater air — only real positions from the payload (OpenSky state vectors, ADS-B military hits).
+  if(on('air')){
+    const gr=uaLayersG.append('g'),os=u.air?.opensky||{},ad=u.air?.adsb||{};
+    (os.tracks||[]).forEach(t=>{
+      const hd=Number.isFinite(t.heading)?t.heading:0;
+      const xy=uaProj([t.lon,t.lat]);if(!xy||!Number.isFinite(xy[0]))return;
+      gr.append('path').attr('class','ua-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).attr('d','M0,-5 L3.5,4 L0,2 L-3.5,4 Z').attr('fill',t.callsign?'rgba(100,240,200,0.9)':'rgba(255,213,79,0.9)').attr('stroke','rgba(0,0,0,0.7)').attr('stroke-width',1)
+        .style('transform-box','fill-box').attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)}) rotate(${hd})`)
+        .on('click',e=>{e.stopPropagation();uaPopup(e,`${t.callsign||t.icao24||'aircraft'} \u00b7 ${t.country||'unknown registry'}`,`${Number.isFinite(t.altitude)?`Alt ${Math.round(t.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(t.velocity)?`${Math.round(t.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(t.heading)?`hdg ${Math.round(t.heading)}\u00b0`:''}${t.onGround?' \u00b7 on ground':''}<br><span style="color:var(--dim)">OpenSky state vector in the ukraine box \u00b7 registry country, not operator${t.callsign?'':' \u00b7 no callsign broadcast'}.</span>`,'Air Activity \u00b7 OpenSky')});
+      drawn++;
+    });
+    (ad.aircraft||[]).forEach(a=>{
+      const col=a.ru?'#ff5252':'#64f0c8';
+      if(pin(gr,a.lon,a.lat,4.2,ctRgba(col,0.9),'rgba(0,0,0,0.8)',1.2,e=>uaPopup(e,`${a.callsign||'military'}${a.type?' \u00b7 '+a.type:''}`.slice(0,80),`${esc(a.country||'military match')}${Number.isFinite(a.altitude)?` \u00b7 alt ${Math.round(a.altitude).toLocaleString('en-US')} ft`:''}${Number.isFinite(a.speed)?` \u00b7 ${Math.round(a.speed)} kt`:''}${a.ru?'<br><b style="color:#ff5252">RU callsign prefix (RF / RFF)</b>':''}<br><span style="color:var(--dim)">ADS-B military-pattern hit inside the Ukraine / Black Sea box; positions are self-reported transponder data and can be spoofed or absent.</span>`,'Air Activity \u00b7 ADS-B military')))drawn++;
+    });
+  }
+  // 9. KiwiSDR receivers listening inside the box.
+  if(on('sdr')){
+    const gr=uaLayersG.append('g');
+    (u.sdr?.receivers||[]).forEach(r=>{
+      if(sym(gr,r.lon,r.lat,'M0,-5 L4.5,-1.5 L3,4.5 L-3,4.5 L-4.5,-1.5 Z',r.users>0?'rgba(68,204,255,0.9)':'rgba(68,204,255,0.4)','rgba(0,0,0,0.7)',e=>uaPopup(e,r.name||'KiwiSDR receiver',`${esc(r.location||'')}${r.country?' \u00b7 '+esc(r.country):''}<br>${r.users} listener${r.users===1?'':'s'} now<br><span style="color:var(--dim)">Public KiwiSDR web receiver \u2014 HF coverage, not a signal detection.</span>`,'SDR Coverage \u00b7 KiwiSDR')))drawn++;
+    });
+  }
+  const note=document.getElementById('uaMapNote');
+  if(note)note.textContent=!uaFrontLive()?'DEEPSTATEMAP NOT LIVE \u2014 front layers empty; other sensors still drawn':g?`${drawn.toLocaleString('en-US')} features drawn \u00b7 map ${g.mapId||'?'} \u00b7 ${uaAgeTxt(uaView().front?.mapAgeH)}`:uaGeoFailed?'FRONT GEOMETRY UNAVAILABLE':'LOADING FRONT GEOMETRY\u2026';
+}
+function renderUaChips(){
+  const el=document.getElementById('uaChips');if(!el)return;
+  const counts=uaLayerCounts();
+  const chip=l=>{const n=counts[l.id]||0,on=uaActive.has(l.id),none=!n;return `<button type="button" class="lchip ${none?'none':on?'on':'off'}" style="--lc:${l.color}" title="${esc(none?`${l.label}: ${uaLayerWhy(l.id)}`:`${l.label}: ${n} this sweep. Click to ${on?'hide':'show'}.`)}" ${none?'disabled':`onclick="uaToggle('${l.id}')"`}><span class="ldot"></span>${esc(l.label)}${none?'':` <b>${n}</b>`}</button>`};
+  el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">DEEPSTATEMAP</span>${UA_LAYERS.slice(0,4).map(chip).join('')}<button type="button" class="lchip preset off" onclick="uaResetView()">RESET VIEW</button></div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">THEATER SENSORS</span>${UA_LAYERS.slice(4).map(chip).join('')}<button type="button" class="lchip preset off" onclick="uaSetAll(true)">ALL</button><button type="button" class="lchip preset off" onclick="uaSetAll(false)">NONE</button></div>`;
+}
+function renderUaMapPanel(){
+  const u=uaView(),f=u.front||{},h=f.history||{},a=f.areaKm2||{},live=uaFrontLive(),d=uaOccDelta();
+  const stale=Number.isFinite(f.mapAgeH)&&f.mapAgeH>72;
+  const kpis=live?`<div class="front-kpis">
+      <div class="front-kpi"><div class="k">Assessed occupied</div><div class="v" style="color:#ff8a65">${uaKm(f.occupiedKm2)}</div><div class="s">km\u00b2 \u00b7 ${uaKm(a.occupied)} since 2022 + ${uaKm(a.occupied_pre2022)} pre-2022 \u00b7 ${esc(uaOccDeltaTxt(d))}</div></div>
+      <div class="front-kpi"><div class="k">Contested / liberated</div><div class="v"><span style="color:#ffd54f">${uaKm(f.contestedKm2)}</span><span style="font-size:9px;color:var(--dim)"> grey \u00b7 </span><span style="color:#64b5f6">${uaKm(a.liberated)}</span></div><div class="s">km\u00b2 from DeepStateMAP polygons</div></div>
+      <div class="front-kpi"><div class="k">Updates \u00b7 7 d / 30 d</div><div class="v">${h.recent7d|0}<span style="font-size:9px;color:var(--dim)"> / ${(h.advances30d|0)+(h.regains30d|0)}</span></div><div class="s"><span style="color:#ff8a65">${h.advances7d|0} adv</span> \u00b7 <span style="color:#64b5f6">${h.regains7d|0} regain</span> in 7 d \u00b7 ${h.advances30d|0} / ${h.regains30d|0} in 30 d</div></div>
+      <div class="front-kpi"><div class="k">Attack axes \u00b7 RU markers</div><div class="v">${f.attackDirections|0}<span style="font-size:9px;color:var(--dim)"> axes</span></div><div class="s">${f.units|0} unit markers \u00b7 ${f.airfields|0} airfields \u00b7 map ${f.mapId??'?'} ${uaAgeTxt(f.mapAgeH)}</div></div>
+    </div>`
+    :`<div class="g-off-why" style="margin:6px 0">DeepStateMAP is ${SH_LABEL[uaState(f.health)]||'not live'}${f.health?.reason?' \u2014 '+esc(f.health.reason):''}. The theater basemap and the other sensors are still drawn; no front polygons are shown because none were received \u2014 nothing here is synthesized.</div>`;
+  const legend=Object.keys(FRONT_STYLE).map(k=>`<span><i style="background:${FRONT_STYLE[k].fill};border:1px solid ${FRONT_STYLE[k].stroke}"></i>${esc(FRONT_STYLE[k].label)}</span>`).join('')
+    +`<span><i style="background:${FRONT_CHANGE_COLOR.advance};border-radius:50%"></i>advance</span><span><i style="background:${FRONT_CHANGE_COLOR.regain};border-radius:50%"></i>regain</span><span style="color:#ff8a65">\u2192 attack axis</span><span><i style="background:rgba(255,171,145,0.8)"></i>RU unit</span><span><i style="background:rgba(255,204,128,0.8);transform:rotate(45deg)"></i>airfield</span><span><i style="background:#ff5252;border-radius:50%"></i>ZNPP</span><span><i style="background:rgba(239,83,80,0.5);border:1px dashed #ef5350"></i>GPS jamming</span><span><i style="background:rgba(255,95,99,0.9);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>FIRMS</span>`;
+  const site=f.siteUrl?safeExternalUrl(f.siteUrl):null;
+  return `<div class="g-panel ua-map-panel">
+      <div class="sec-head"><h3>${shDot('Frontlines')}Ukraine Theater — DeepStateMAP Front & Sensors</h3>${uaBadge(f.health,`${f.mapId?'MAP '+esc(String(f.mapId)):'LIVE'} \u00b7 ${uaAgeTxt(f.mapAgeH)}`,stale?'warn':'')}</div>
+      ${kpis}
+      <div id="uaChips" class="ct-chips"></div>
+      <div class="ct-map" id="uaMapWrap">
+        <svg id="uaMapSvg"></svg>
+        <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A FEATURE</div>
+        <div class="ct-key"><span style="color:#ffd54f">UKRAINE OUTLINED</span><span id="uaMapNote"></span></div>
+        <div class="map-popup" id="uaPopup"><div class="pp-close" onclick="uaClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
+      </div>
+      <div class="front-legend">${legend}</div>
+      <div class="ct-disc"><b>Read before use:</b> ${esc(u.caveat||'DeepStateMAP is an observational map product; areas are an assessment, not verified ground truth.')} Sensor layers are separate feeds with their own state (see chips) \u2014 a disabled chip means that source returned nothing this sweep, not that the theater is quiet.</div>
+      <div class="sh-note">${esc(u.attribution||'Map data \u00a9 DeepStateMAP (deepstatemap.live)')}${site?` (<a href="${esc(site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">site \u2197</a>)`:''}, polled every sweep; geometry via the same-origin /api/frontlines/geo route. Basemap: world-atlas TopoJSON. GPS-jamming cells from ADS-B integrity fields; thermal from NASA FIRMS; nuclear sites from CRUCIX\u2019s facility list + Safecast; air from OpenSky / ADS-B; receivers from KiwiSDR.</div>
+    </div>`;
+}
+function uaBars(series,label){
+  const max=Math.max(1,...series.map(d=>d.advances+d.regains+d.other));
+  const bars=series.map(d=>{const tot=d.advances+d.regains+d.other;const px=v=>v?Math.max(2,Math.round(v/max*46)):0;return `<div class="ua-bar" title="${esc(`${d.day}: ${d.advances} advance${d.advances===1?'':'s'} \u00b7 ${d.regains} regain${d.regains===1?'':'s'} \u00b7 ${d.other} other`)}">${d.other?`<i class="oth" style="height:${px(d.other)}px"></i>`:''}${d.regains?`<i class="reg" style="height:${px(d.regains)}px"></i>`:''}${d.advances?`<i class="adv" style="height:${px(d.advances)}px"></i>`:''}${tot?'':'<i class="oth" style="height:1px"></i>'}</div>`}).join('');
+  const lbls=series.map((d,i)=>`<span>${series.length<=7||i%5===0||i===series.length-1?esc(d.day.slice(5)):''}</span>`).join('');
+  return `${uaSection(label,`<span style="color:#ff8a65">${series.reduce((s,d)=>s+d.advances,0)} adv</span> \u00b7 <span style="color:#64b5f6">${series.reduce((s,d)=>s+d.regains,0)} regain</span> \u00b7 max ${max}/day`)}<div class="ua-bars">${bars}</div><div class="ua-bar-lbls">${lbls}</div>`;
+}
+function renderUaChangeLogPanel(){
+  const f=uaView().front||{},h=f.history||{};
+  if(!uaFrontLive())return offPanel('Front Change Log','Frontlines',uaOffWhy(f.health,'DeepStateMAP returned no map this sweep'),'ua-changelog');
+  const d=uaOccDelta();
+  const rows=(h.updates||[]).map(u=>{
+    const pl=(u.places||[])[0];
+    const go=pl?` onclick="openDeepState(${Number(pl.lat)},${Number(pl.lon)})" title="Open DeepStateMAP at ${esc(pl.name||'this place')}"`:' style="cursor:default"';
+    const focus=pl?`<button type="button" class="lchip off" style="--lc:#64b5f6;padding:1px 5px;font-size:8px" onclick="event.stopPropagation();uaFocusAt(${Number(pl.lat)},${Number(pl.lon)},6)" title="Centre the theater map here">MAP</button>`:'';
+    return `<div class="front-row"${go}><span class="front-kind ${u.kind}">${u.kind.toUpperCase()}</span><span style="flex:1;min-width:0">${esc(u.text||'')}${(u.places||[]).length?`<div class="ct-org-sub">${u.places.map(p=>esc(p.name)).filter(Boolean).join(' \u00b7 ')}</div>`:''}</span>${focus}<span class="front-when">${esc(uaWhen(u.at))}</span></div>`;
+  }).join('');
+  return `<div class="g-panel ua-changelog"><div class="sec-head"><h3>${shDot('Frontlines')}Front Change Log</h3>${uaBadge(f.health,`${h.recent7d|0} UPD / 7D`,(h.advances7d|0)>0?'warn':'')}</div>
+    <div class="ua-grid">
+      <div class="front-kpi"><div class="k">Occupied km\u00b2 vs last sweep</div><div class="v" style="color:${d&&d.change>0?'#ff8a65':d&&d.change<0?'#64b5f6':'#c8d8d2'}">${d?(d.change>0?'+':d.change<0?'\u2212':'\u00b1')+uaKm(Math.abs(d.change)):'\u2014'}</div><div class="s">${esc(uaOccDeltaTxt(d))}${d&&d.change&&Number.isFinite(d.from)?` \u00b7 ${uaKm(d.from)} \u2192 ${uaKm(d.to)}`:''}</div></div>
+      <div class="front-kpi"><div class="k">7 d</div><div class="v"><span style="color:#ff8a65">${h.advances7d|0}</span><span style="font-size:9px;color:var(--dim)"> adv \u00b7 </span><span style="color:#64b5f6">${h.regains7d|0}</span><span style="font-size:9px;color:var(--dim)"> regain</span></div><div class="s">${h.recent7d|0} updates \u00b7 latest ${h.latestAt?esc(getAge(h.latestAt)):'\u2014'}</div></div>
+      <div class="front-kpi"><div class="k">30 d</div><div class="v"><span style="color:#ff8a65">${h.advances30d|0}</span><span style="font-size:9px;color:var(--dim)"> adv \u00b7 </span><span style="color:#64b5f6">${h.regains30d|0}</span><span style="font-size:9px;color:var(--dim)"> regain</span></div><div class="s">${(h.updates||[]).length} rows kept from the history feed</div></div>
+    </div>
+    ${uaBars(h.series7d||[],'Per day \u00b7 7 d')}
+    ${uaBars(h.series30d||[],'Per day \u00b7 30 d')}
+    <div class="ct-scroll" style="max-height:34vh">${rows||'<div class="g-off-why">No DeepState update log entries in the window.</div>'}</div>
+    <div class="sh-note">DeepStateMAP\u2019s own update log (advance / regain wording is theirs), newest first. Rows open DeepStateMAP at the place; MAP centres the theater map. The 30-day series only reaches as far back as the history endpoint returns. Occupied-km\u00b2 delta is CRUCIX\u2019s sweep-to-sweep comparison of the assessed total.</div></div>`;
+}
+function renderUaAirEwPanel(){
+  const a=uaView().air||{},os=a.opensky||{},ad=a.adsb||{},gp=a.gps||{};
+  const osLive=uaHas(os.health),adLive=uaHas(ad.health),gpLive=uaHas(gp.health);
+  if(!osLive&&!adLive&&!gpLive)return offPanel('Theater Air & GPS Jamming',['OpenSky','ADS-B','GPSJamming'],`OpenSky ${SH_LABEL[uaState(os.health)]} \u00b7 ADS-B ${SH_LABEL[uaState(ad.health)]} \u00b7 GPS jamming ${SH_LABEL[uaState(gp.health)]}`,'ua-airew');
+  const top=(os.byCountry||[]).map(([c,n])=>`${esc(c)} <b>${n}</b>`).join(' \u00b7 ');
+  const osBlock=osLive&&os.present?`<div class="ua-grid four">
+      <div class="front-kpi"><div class="k">Aircraft in box</div><div class="v" style="color:var(--accent)">${uaN(os.total)}</div><div class="s">${Number.isFinite(os.airborne)?uaN(os.airborne)+' airborne':'airborne n/a'}</div></div>
+      <div class="front-kpi"><div class="k">No callsign</div><div class="v" style="color:${os.total&&os.noCallsign/os.total>=0.15?'var(--warn)':'#c8d8d2'}">${uaN(os.noCallsign)}</div><div class="s">${os.total?Math.round(os.noCallsign/os.total*100):0}% of box</div></div>
+      <div class="front-kpi"><div class="k">High altitude</div><div class="v">${uaN(os.highAltitude)}</div><div class="s">&gt; FL330</div></div>
+      <div class="front-kpi"><div class="k">Positions</div><div class="v">${uaN((os.tracks||[]).length)}</div><div class="s">${(os.tracks||[]).length?'plotted on map':'counts only \u2014 no map layer'}</div></div>
+    </div>${top?`<div class="ct-org-sub" style="margin:0 0 4px">Registry: ${top}</div>`:''}`
+    :`<div class="g-off-why">${osLive?'OpenSky answered but the ukraine box is absent from this sweep':'OpenSky '+SH_LABEL[uaState(os.health)]+(os.health?.reason?' \u2014 '+esc(os.health.reason):'')}${os.error?' \u00b7 '+esc(os.error):''}. Civil ADS-B coverage over Ukraine is near zero since airspace closure \u2014 a low count is expected, not a finding.</div>`;
+  const adRows=(ad.aircraft||[]).map(x=>`<tr class="${Number.isFinite(x.lat)?'go':''}" ${Number.isFinite(x.lat)?`onclick="uaFocusAt(${x.lat},${x.lon},6)"`:''}><td style="color:${x.ru?'#ff5252':'var(--accent)'}">${esc(x.callsign||'\u2014')}</td><td>${esc(x.type||'')}</td><td>${esc(x.country||'')}</td><td class="n">${Number.isFinite(x.altitude)?uaN(Math.round(x.altitude)):'\u2014'}</td><td class="n">${Number.isFinite(x.speed)?Math.round(x.speed):'\u2014'}</td></tr>`).join('');
+  const adBlock=adLive?`${uaSection('ADS-B military \u00b7 Ukraine / Black Sea box',`<b>${ad.inTheater}</b> in box of ${ad.totalMilitary} worldwide \u00b7 <span style="color:#ff5252">${ad.ruCount} RU prefix</span>`)}
+    ${ad.ruCallsigns?.length?`<div class="ct-org-sub" style="margin-bottom:3px">RF / RFF callsigns: ${ad.ruCallsigns.map(c=>`<b style="color:#ff5252">${esc(c)}</b>`).join(' \u00b7 ')}</div>`:''}
+    ${adRows?`<div class="ct-scroll" style="max-height:20vh"><table class="ua-tbl"><thead><tr><th>Callsign</th><th>Type</th><th>Match</th><th class="n">Alt ft</th><th class="n">Kt</th></tr></thead><tbody>${adRows}</tbody></table></div>`:'<div class="g-off-why">No military-pattern ADS-B hits inside the box this sweep.</div>'}`
+    :`${uaSection('ADS-B military','')}<div class="g-off-why">ADS-B ${SH_LABEL[uaState(ad.health)]}${ad.health?.reason?' \u2014 '+esc(ad.health.reason):''}.</div>`;
+  const gpRows=(gp.zones||[]).map(z=>`<tr class="go" onclick="uaFocusAt(${z.lat},${z.lon},6)"><td style="color:${z.severity==='high'?'#ff5252':z.severity==='medium'?'#ffa726':'#ffd54f'}">${esc(z.severity.toUpperCase())}</td><td>${z.lat.toFixed(1)}N ${z.lon.toFixed(1)}E</td><td class="n">${z.degraded} / ${z.total}</td><td class="n">${Number.isFinite(z.ratio)?Math.round(z.ratio*100)+'%':'\u2014'}</td></tr>`).join('');
+  const gpBlock=gpLive?`${uaSection(`GPS jamming \u00b7 ${esc(gp.zone||'Eastern Ukraine')}`,`<span style="color:#ff5252">${gp.high} high</span> \u00b7 <span style="color:#ffa726">${gp.medium} medium</span> \u00b7 ${(gp.zones||[]).length} cells \u00b7 ${uaN(gp.aircraftAnalyzed)} aircraft analyzed`)}
+    ${gpRows?`<div class="ct-scroll" style="max-height:16vh"><table class="ua-tbl"><thead><tr><th>Severity</th><th>Cell</th><th class="n">Degraded / total</th><th class="n">Ratio</th></tr></thead><tbody>${gpRows}</tbody></table></div>`:'<div class="g-off-why">No degraded-navigation cells inside the Eastern Ukraine zone this sweep \u2014 with almost no civil traffic overhead that is a coverage gap, not an all-clear.</div>'}`
+    :`${uaSection('GPS jamming','')}<div class="g-off-why">GPS jamming ${SH_LABEL[uaState(gp.health)]}${gp.health?.reason?' \u2014 '+esc(gp.health.reason):''}.</div>`;
+  return `<div class="g-panel ua-airew"><div class="sec-head"><h3>${shDot(['OpenSky','ADS-B','GPSJamming'])}Theater Air & GPS Jamming</h3><span class="badge ${ad.ruCount||gp.high?'warn':''}">${uaN(os.total)} A/C \u00b7 ${ad.ruCount|0} RU \u00b7 ${gp.high|0} HIGH JAM</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:4px 0">${uaSrc('OpenSky',os.health)}${uaSrc('ADS-B',ad.health)}${uaSrc('GPS jamming',gp.health)}</div>
+    ${uaSection('OpenSky \u00b7 ukraine box 44\u201353N 22\u201341E',os.method?esc(os.method):'')}${osBlock}
+    ${adBlock}
+    ${gpBlock}
+    <div class="sh-note">Air counts are transponder-based and track receiver coverage as much as activity. RU = callsign prefix RF / RFF (Russian state / Air Force registrations) or an explicit Russian military match. GPS jamming is inferred from ADS-B NIC / NACp integrity degradation per grid cell.</div></div>`;
+}
+function renderUaThermalPanel(){
+  const t=uaView().thermal||{};
+  if(uaState(t.health)!=='live'||!t.present)return offPanel('Thermal Detections — Ukraine','FIRMS',uaOffWhy(t.health,t.error||'FIRMS returned no Ukraine box this sweep'),'ua-thermal');
+  const rows=(t.rows||[]).map(r=>`<tr class="go" onclick="uaFocusAt(${r.lat},${r.lon},7)"><td style="color:${r.night?'#ff5f63':'#ffa726'}">${r.night?'NIGHT':'DAY'}</td><td>${r.lat.toFixed(2)}N ${r.lon.toFixed(2)}E</td><td class="n" style="color:${Number.isFinite(r.frp)&&r.frp>=50?'#ff5252':'#c8d8d2'}">${Number.isFinite(r.frp)?r.frp.toFixed(1):'\u2014'}</td><td class="n">${Number.isFinite(r.brightness)?r.brightness.toFixed(0):'\u2014'}</td><td>${esc(r.confidence||'')}</td><td class="n">${esc(r.date.slice(5))} ${esc(r.time)}Z</td></tr>`).join('');
+  return `<div class="g-panel ua-thermal"><div class="sec-head"><h3>${shDot('FIRMS')}Thermal Detections — Ukraine</h3>${uaBadge(t.health,`${uaN(t.total)} DET \u00b7 ${uaN(t.night)} NIGHT`,t.highIntensity?'warn':'')}</div>
+    <div class="ua-grid four">
+      <div class="front-kpi"><div class="k">Detections</div><div class="v" style="color:#ff5f63">${uaN(t.total)}</div><div class="s">24 h \u00b7 FIRMS Ukraine bbox</div></div>
+      <div class="front-kpi"><div class="k">Night</div><div class="v">${uaN(t.night)}</div><div class="s">${t.total?Math.round(t.night/t.total*100):0}% \u2014 night detections skew toward fires, not sun glint</div></div>
+      <div class="front-kpi"><div class="k">&gt; 10 MW</div><div class="v" style="color:${t.highIntensity?'var(--warn)':'#c8d8d2'}">${uaN(t.highIntensity)}</div><div class="s">high radiative power</div></div>
+      <div class="front-kpi"><div class="k">Avg FRP</div><div class="v">${Number.isFinite(t.avgFrp)?t.avgFrp.toFixed(1):'\u2014'}</div><div class="s">MW \u00b7 ${uaN(t.highConfidence)} high confidence</div></div>
+    </div>
+    ${uaSection('Highest-FRP detections',`${(t.rows||[]).length} rows \u00b7 click to centre map`)}
+    ${rows?`<div class="ct-scroll" style="max-height:30vh"><table class="ua-tbl"><thead><tr><th>Pass</th><th>Position</th><th class="n">FRP MW</th><th class="n">Bright K</th><th>Conf</th><th class="n">Acquired</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="g-off-why">No high-intensity detections inside the box this sweep.</div>'}
+    <div class="sh-note">NASA FIRMS (VIIRS / MODIS) active-fire detections clipped to the 44\u201353N 22\u201341E box. A hot pixel is not an attributed strike \u2014 crop burning, industry and wildfire also register. Confidence is FIRMS\u2019 own.</div></div>`;
+}
+function renderUaNuclearPanel(){
+  const n=uaView().nuclear||{},sc=n.safecast||{},z=n.znpp;
+  if(uaState(n.health)!=='live'&&!(n.facilities||[]).length)return offPanel('ZNPP & Nuclear Sites',['Nuclear','Safecast'],uaOffWhy(n.health,'No UA / RU facilities in this sweep'),'ua-nuclear');
+  const stCol=f=>f.status==='occupied'||f.risk==='critical'?'#ff5252':f.status==='operational'||f.status==='operating'?'var(--accent)':f.risk==='elevated'||f.risk==='high'?'#ffa726':'#c8d8d2';
+  const zBlock=z?`<div class="ua-grid">
+      <div class="front-kpi" style="border-color:rgba(255,82,82,0.4)"><div class="k">Zaporizhzhia NPP</div><div class="v" style="color:#ff5252">${esc(String(z.status).toUpperCase())}</div><div class="s">${z.risk?'risk '+esc(z.risk)+' \u00b7 ':''}${z.reactors} reactors \u00b7 ${uaN(z.capacityMW)} MW \u00b7 ${esc(z.operator||'')}</div></div>
+      <div class="front-kpi"><div class="k">Safecast ring \u00b7 ${esc(sc.site||'Zaporizhzhia')}</div><div class="v" style="color:${sc.anomaly?'#ff5252':uaState(sc.health)==='live'&&sc.present?'var(--accent)':'var(--dim)'}">${uaState(sc.health)!=='live'?SH_LABEL[uaState(sc.health)]:sc.present?(sc.anomaly?'ANOMALY':'NORMAL'):'NO RING'}</div><div class="s">${sc.present?`${sc.recentReadings} readings${Number.isFinite(sc.avgCPM)?' \u00b7 avg '+sc.avgCPM.toFixed(0)+' CPM':''}${Number.isFinite(sc.maxCPM)?' \u00b7 max '+sc.maxCPM.toFixed(0)+' CPM':''}${sc.lastReading?' \u00b7 '+esc(getAge(sc.lastReading)):''}`:esc(sc.health?.reason||'no readings in the ring this sweep')}</div></div>
+      <div class="front-kpi"><div class="k">Sites tracked</div><div class="v">${(n.facilities||[]).length}</div><div class="s">${(n.facilities||[]).filter(f=>f.country==='UA').length} UA \u00b7 ${(n.facilities||[]).filter(f=>f.country==='RU').length} RU (Kursk et al.)</div></div>
+    </div>`:'<div class="g-off-why">Zaporizhzhia NPP is not in this sweep\u2019s facility list.</div>';
+  const rows=(n.facilities||[]).map(f=>`<tr class="go" onclick="uaFocusAt(${f.lat},${f.lon},6)"><td style="color:${f.country==='UA'?'#ffd54f':'#ff8a80'}">${esc(f.country)}</td><td style="color:#e6f2ee">${esc(f.name)}</td><td style="color:${stCol(f)}">${esc(String(f.status).toUpperCase())}</td><td>${esc(f.risk||'\u2014')}</td><td class="n">${f.reactors||'\u2014'}</td><td class="n">${f.capacityMW?uaN(f.capacityMW):'\u2014'}</td></tr>`).join('');
+  return `<div class="g-panel ua-nuclear"><div class="sec-head"><h3>${shDot(['Nuclear','Safecast'])}ZNPP & Nuclear Sites</h3><span class="badge ${z&&(z.status==='occupied'||z.risk==='critical')?'err':''}">${z?esc(String(z.status).toUpperCase()):'NO ZNPP'}${z?.risk?' \u00b7 '+esc(z.risk.toUpperCase()):''}</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:4px 0">${uaSrc('Nuclear sites',n.health)}${uaSrc('Safecast',sc.health)}</div>
+    ${zBlock}
+    ${uaSection('UA / RU facilities',`${(n.facilities||[]).length} sites \u00b7 click to centre map`)}
+    <div class="ct-scroll" style="max-height:26vh"><table class="ua-tbl"><thead><tr><th>CC</th><th>Site</th><th>Status</th><th>Risk</th><th class="n">Units</th><th class="n">MW</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sh-note">Facility list and status labels are CRUCIX\u2019s curated nuclear-site table (ZNPP under Russian occupation since March 2022). Radiation is citizen-science Safecast bGeigie counts in a ring around the plant \u2014 not IAEA or Energoatom telemetry; an anomaly is a statistical outlier against the ring\u2019s own baseline.</div></div>`;
+}
+function renderUaWiresPanel(){
+  const w=uaView().wires||{},g=w.gdelt||{},tg=w.telegram||{},pm=w.polymarket||{};
+  const gLive=uaHas(g.health),tLive=uaHas(tg.health),pLive=uaHas(pm.health);
+  const degNote=h=>uaState(h)==='degraded'?` · <span style="color:#ffa726">DEGRADED${h?.reason?' — '+esc(h.reason):''}</span>`:'';
+  if(!gLive&&!tLive&&!pLive)return offPanel('Theater Wires, Channels & Odds',['GDELT','Telegram','Polymarket'],`GDELT ${SH_LABEL[uaState(g.health)]} \u00b7 Telegram ${SH_LABEL[uaState(tg.health)]} \u00b7 Polymarket ${SH_LABEL[uaState(pm.health)]}`,'ua-wires');
+  const tone=g.tone;
+  const toneCol=v=>!Number.isFinite(v)?'#c8d8d2':v<=-6?'#ff5252':v<=-3?'#ffa726':v<0?'#ffd54f':'var(--accent)';
+  const gBlock=gLive?`${uaSection('GDELT \u00b7 Ukraine / Russia theater',(tone?`tone <b style="color:${toneCol(tone.currentTone)}">${Number.isFinite(tone.currentTone)?tone.currentTone.toFixed(1):'\u2014'}</b>${Number.isFinite(tone.shift)?` (${tone.shift>0?'+':''}${tone.shift.toFixed(1)} vs prior)`:''} \u00b7 ${uaN(tone.articleCount)} articles \u00b7 ${uaN(tone.conflictEvents)} conflict events`:'no tone row this sweep')+degNote(g.health))}
+    <div class="ct-scroll" style="max-height:22vh">${(g.titles||[]).map(t=>{const u=t.url?safeExternalUrl(t.url):null;return `<div class="front-row" style="cursor:default"><span class="ct-feed-src" title="${esc(t.domain||'')}">${esc(t.domain||'GDELT')}</span><span style="flex:1;min-width:0">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(t.title)}</a>`:esc(t.title)}${t.place?`<div class="ct-org-sub">${esc(t.place)}</div>`:''}</span>${t.at?`<span class="front-when">${esc(getAge(t.at))}</span>`:''}</div>`}).join('')||'<div class="g-off-why">No theater-matching GDELT titles this sweep.</div>'}</div>`
+    :`${uaSection('GDELT','')}<div class="g-off-why">GDELT ${SH_LABEL[uaState(g.health)]}${g.health?.reason?' \u2014 '+esc(g.health.reason):''}.</div>`;
+  const sideCol={UA:'#ffd54f',RU:'#ff8a80',OSINT:'var(--accent2)'};
+  const tBlock=tLive?`${uaSection('Telegram \u00b7 UA / RU channels',`${tg.reachable}/${tg.monitored} channels reachable \u00b7 ${(tg.posts||[]).length} posts${degNote(tg.health)}`)}
+    ${(tg.channels||[]).length?`<div class="ct-org-sub" style="margin-bottom:3px">${tg.channels.map(c=>`<span style="color:${c.reachable?sideCol[c.side]||'#c8d8d2':'var(--dim)'}" title="${esc(c.title||c.channel)}: ${c.reachable?c.postCount+' posts':'unreachable'}">${esc(c.channel)}</span>`).join(' \u00b7 ')}</div>`:''}
+    <div class="ct-scroll" style="max-height:24vh">${(tg.posts||[]).map(p=>{const u=p.url?safeExternalUrl(p.url):null;return `<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:${sideCol[p.side]||'#c8d8d2'};border-color:${ctRgba(p.side==='UA'?'#ffd54f':p.side==='RU'?'#ff8a80':'#44ccff',0.5)}" title="${esc(p.label)}">${esc(p.side)}</span><span style="flex:1;min-width:0"><span style="color:var(--dim);font-family:var(--mono);font-size:8px">${esc(p.label)}${p.urgent?' \u00b7 <span style="color:#ff5252">URGENT</span>':''}${p.views?' \u00b7 '+uaN(p.views)+' views':''}</span><br>${esc(p.text)}${u?` <a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:8px;color:var(--accent2)">t.me \u2197</a>`:''}</span>${p.at?`<span class="front-when">${esc(getAge(p.at))}</span>`:''}</div>`}).join('')||'<div class="g-off-why">No posts from the monitored UA / RU channels this sweep.</div>'}</div>`
+    :`${uaSection('Telegram','')}<div class="g-off-why">Telegram ${SH_LABEL[uaState(tg.health)]}${tg.health?.reason?' \u2014 '+esc(tg.health.reason):''}.</div>`;
+  const pBlock=pLive?`${uaSection('Polymarket \u00b7 Russia / Ukraine markets',`${(pm.markets||[]).length} markets${degNote(pm.health)}`)}
+    ${(pm.markets||[]).length?`<table class="ua-tbl"><thead><tr><th>Market</th><th class="n">Yes</th><th class="n">24 h</th><th class="n">Vol 24 h</th></tr></thead><tbody>${pm.markets.map(m=>{const u=m.url?safeExternalUrl(m.url):null;const yes=Number.isFinite(m.yesProb)?m.yesProb:null;return `<tr><td style="white-space:normal">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(m.question)}</a>`:esc(m.question)}</td><td class="n" style="color:${yes==null?'var(--dim)':yes>=50?'var(--accent)':'#ffd54f'}">${yes==null?'\u2014':Math.round(yes)+'%'}</td><td class="n" style="color:${!Number.isFinite(m.change24h)?'var(--dim)':m.change24h>0?'var(--accent)':m.change24h<0?'#ff8a80':'#c8d8d2'}">${Number.isFinite(m.change24h)?(m.change24h>0?'+':'')+m.change24h.toFixed(1)+' pt':'\u2014'}</td><td class="n">${Number.isFinite(m.volume24hr)?'$'+uaN(Math.round(m.volume24hr)):'\u2014'}</td></tr>`}).join('')}</tbody></table>`:'<div class="g-off-why">No Russia / Ukraine markets matched this sweep.</div>'}`
+    :`${uaSection('Polymarket','')}<div class="g-off-why">Polymarket ${SH_LABEL[uaState(pm.health)]}${pm.health?.reason?' \u2014 '+esc(pm.health.reason):''}.</div>`;
+  return `<div class="g-panel ua-wires"><div class="sec-head"><h3>${shDot(['GDELT','Telegram','Polymarket'])}Theater Wires, Channels & Odds</h3><span class="badge">${(g.titles||[]).length} WIRES \u00b7 ${(tg.posts||[]).length} POSTS \u00b7 ${(pm.markets||[]).length} MARKETS</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:4px 0">${uaSrc('GDELT',g.health)}${uaSrc('Telegram',tg.health)}${uaSrc('Polymarket',pm.health)}</div>
+    ${gBlock}${tBlock}${pBlock}
+    <div class="sh-note">GDELT titles are filtered to the Ukraine / Russia theater by country code and keyword; tone is GDELT\u2019s average article tone (negative = hostile). Telegram posts come from the public UA (DeepStateUA, General Staff ZSU, \u2026) and RU (Russian MoD, Rybar-adjacent voenkors) channels CRUCIX already polls \u2014 partisan primary sources, not verified reporting. Odds are market-implied probabilities, not forecasts.</div></div>`;
+}
+function renderUaCiiPanel(){
+  const c=uaView().cii||{};
+  if(uaState(c.health)!=='live'||!(c.rows||[]).length)return offPanel('UA / RU Instability','CII',uaOffWhy(c.health,'No UA / RU rows this sweep'),'ua-cii');
+  const levelColors={Critical:'#ff5252',High:'#ff9800',Elevated:'#ffd54f',Normal:'#9e9e9e',Low:'#4caf50'};
+  const trendArrows={Rising:'\u2191',Falling:'\u2193',Stable:'\u2192'};
+  const rows=c.rows.map(r=>{const col=levelColors[r.level]||'#9e9e9e';const comp=r.components||{},b=r.boosts||{};
+    return `<div class="front-kpi" style="border-color:${ctRgba(col,0.35)}"><div class="k">${esc(r.name)} \u00b7 ${esc(r.code)}</div><div class="v" style="color:${col}">${Number.isFinite(r.score)?Math.round(r.score):'\u2014'}<span style="font-size:9px;color:var(--dim)"> /100 \u00b7 ${esc(r.level||'')}</span> <span style="font-size:11px;color:${r.trend==='Rising'?'#ff5252':r.trend==='Falling'?'#4caf50':'var(--dim)'}">${trendArrows[r.trend]||''}${Number.isFinite(r.trendDelta)&&r.trendDelta?(r.trendDelta>0?'+':'')+r.trendDelta.toFixed(1):''}</span></div>
+      <div class="cii-bar" style="width:100%;margin:4px 0"><div class="cii-bar-fill" style="width:${Math.max(0,Math.min(100,Number(r.score)||0))}%;background:${col}"></div></div>
+      <div class="s">unrest ${Math.round(comp.unrest)} \u00b7 security ${Math.round(comp.security)} \u00b7 information ${Math.round(comp.information)}${b.total?` \u00b7 boosts +${b.total.toFixed(1)} (hotspot ${b.hotspot.toFixed(1)}, news ${b.newsUrgency.toFixed(1)}, focal ${b.focalPoint.toFixed(1)})`:''}</div></div>`}).join('');
+  return `<div class="g-panel ua-cii"><div class="sec-head"><h3>${shDot('CII')}UA / RU Instability</h3>${uaBadge(c.health,c.warmingUp?`LEARNING ${c.warmupProgress|0}%`:c.rows.map(r=>`${r.code} ${Number.isFinite(r.score)?Math.round(r.score):'?'}`).join(' \u00b7 '),c.warmingUp?'warn':'')}</div>
+    ${c.warmingUp?`<div class="cii-warmup"><span>LEARNING MODE</span><div class="cii-warmup-bar"><div class="cii-warmup-fill" style="width:${c.warmupProgress||0}%"></div></div><span>${c.warmupProgress||0}%</span></div>`:''}
+    <div class="ua-grid" style="grid-template-columns:repeat(${Math.min(2,c.rows.length)},1fr)">${rows}</div>
+    <div class="sh-note"><b>Derived.</b> The two theater rows of CRUCIX\u2019s Country Instability Index: a composite of ACLED / GDELT conflict signals, news urgency and focal-point boosts. A relative ranking that moves with its inputs \u2014 not a forecast and not independent of the other panels on this tab.</div></div>`;
+}
+// Left rail: how DeepStateMAP behaved this sweep, with the attribution line the licence asks for.
+function renderUaSourcePanel(){
+  const u=uaView(),f=u.front||{},h=f.history||{},live=uaFrontLive(),st=uaState(f.health);
+  const upd=f.mapUpdatedAt?new Date(f.mapUpdatedAt):null;
+  const rows=[
+    ['Status',`${esc(String(f.status||'not polled').toUpperCase())}${f.stale?' \u00b7 cached copy':''}${f.health?.reason&&st!=='live'?' \u2014 '+esc(f.health.reason):''}`,st==='live'?'live':st],
+    ['Map',f.mapId!=null?`#${esc(String(f.mapId))} \u00b7 ${f.featureCount} features`:'\u2014',live?'live':'off'],
+    ['Map updated',upd&&!isNaN(upd)?`${upd.toISOString().slice(0,16).replace('T',' ')}Z (${uaAgeTxt(f.mapAgeH)})`:'\u2014',!Number.isFinite(f.mapAgeH)?'off':f.mapAgeH<=72?'live':'degraded'],
+    ['History',h.total?`${h.total} updates kept \u00b7 latest ${h.latestAt?esc(uaWhen(h.latestAt)):'\u2014'}`:'\u2014',h.total?'live':'off'],
+    ['Geometry',frontGeo&&frontGeoKey===String(D.frontlines?.mapId||f.mapId||'latest')?`${frontGeo.polygons.length} polygons \u00b7 ${(frontGeo.points||[]).length} points \u00b7 ${(frontGeo.changes||[]).length} change points`:uaGeoFailed?'unavailable':'on demand via /api/frontlines/geo',frontGeo?'live':uaGeoFailed?'error':'degraded'],
+    ['View built',u.builtAt?esc(uaWhen(u.builtAt)):'\u2014',u.builtAt?'live':'off'],
+  ];
+  const site=f.siteUrl?safeExternalUrl(f.siteUrl):null;
+  return `<div class="g-panel ua-source"><div class="sec-head"><h3>${shDot('Frontlines')}DeepStateMAP Source</h3>${uaBadge(f.health,f.stale?'CACHED':'LIVE',f.stale?'warn':'')}</div>
+    ${rows.map(([k,v,s])=>`<div class="sh-row ${s}" style="align-items:flex-start"><span class="hdot ${s}" style="margin-top:4px"></span><span class="sh-name" style="flex:0 0 70px">${k}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2;text-align:left">${v}</span></div>`).join('')}
+    <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap"><a class="lchip on" style="--lc:#ff6e40;text-decoration:none" href="${esc(site||deepStateUrl())}" target="_blank" rel="noopener noreferrer" title="Open the live DeepStateMAP in a new tab"><span class="ldot"></span>OPEN DEEPSTATEMAP \u2197</a><button type="button" class="lchip off" style="--lc:#ff6e40" onclick="showFrontLayer()" title="Overlay the front polygons on the CRUCIX globe"><span class="ldot"></span>GLOBE LAYER</button></div>
+    <div class="ct-disc" style="margin-top:8px"><b>${esc(u.attribution||'Map data \u00a9 DeepStateMAP (deepstatemap.live)')}</b> \u2014 ${esc(u.caveat||'an observational map product; areas are an assessment, not verified ground truth.')}</div>
+    <div class="sh-note">LIVE when DeepStateMAP\u2019s public map and history endpoints both answered this sweep; DEGRADED when the map is older than 72 h or a cached copy is served; FAILED when the request errored. A degraded DeepStateMAP never changes CRUCIX\u2019s overall health.</div></div>`;
+}
+function renderUaCorroborationPanel(){
+  const u=uaView(),items=u.corroboration||[],names=['GDELT','Telegram','ACLED'];
+  const acled=u.acled||{};
+  const srcLine=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:4px 0">${uaSrc('GDELT',u.wires?.gdelt?.health)}${uaSrc('Telegram',u.wires?.telegram?.health)}${uaSrc('ACLED',acled.health)}</div>`;
+  if(!items.length){
+    const worst=shWorst(names);
+    return `<div class="g-panel ua-corroboration"><div class="sec-head"><h3>${shDot(names)}Theater Reporting</h3><span class="badge ${worst&&worst.state!=='live'?'off':''}">${worst&&worst.state!=='live'?SH_LABEL[worst.state]:'QUIET'}</span></div>${srcLine}<div class="g-off-why">${worst&&worst.state!=='live'?esc(shWhy(worst)):'No Ukraine / Russia items in the last 72 h from GDELT, the monitored Telegram channels or ACLED.'}</div></div>`;
+  }
+  const rows=items.map(i=>{
+    const url=i.url?safeExternalUrl(i.url):null;
+    const title=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(i.title)}</a>`:esc(i.title||'');
+    return `<div class="front-row" style="cursor:default"><span class="ct-feed-src" title="${esc(i.via||'')}">${esc(i.src||i.via||'')}</span><span style="flex:1;min-width:0">${title}${i.place?`<div class="ct-org-sub">${esc(i.place)}</div>`:''}</span>${i.at?`<span class="front-when">${esc(getAge(i.at))}</span>`:''}</div>`;
+  }).join('');
+  return `<div class="g-panel ua-corroboration"><div class="sec-head"><h3>${shDot(names)}Theater Reporting</h3><span class="badge">${items.length} ITEMS \u00b7 72H</span></div>${srcLine}<div class="ct-scroll" style="max-height:40vh">${rows}</div>
+    <div class="sh-note">Independent Ukraine / Russia items from feeds CRUCIX already polls, in the same 72 h window as the DeepState update log. This is what else is reporting \u2014 it does not confirm any individual DeepStateMAP change. ACLED rows appear only when a key is configured.</div></div>`;
 }
 
 // === CHINA / TAIWAN TAB ===

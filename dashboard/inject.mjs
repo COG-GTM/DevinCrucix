@@ -16,6 +16,7 @@ import { buildSourceHealth } from '../lib/sourcehealth.mjs';
 import { buildCartelsView } from '../lib/cartelview.mjs';
 import { buildIranWarView } from '../lib/iranwarview.mjs';
 import { buildTaiwanView } from '../lib/taiwanview.mjs';
+import { buildUkraineView } from '../lib/ukraineview.mjs';
 import { buildNarcoView } from '../lib/narco/view.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -1380,6 +1381,10 @@ export async function synthesize(data) {
     // Iran War Live page: LLM-extracted Iran-theater events + actors / airspace / posturing tables, plus
     // a corroboration feed from GDELT / ACLED. Geometry stays out of the payload (/api/iranwar/geo).
     iranwar: buildIranWarView(data.sources),
+    // Ukraine War page: theater slices of feeds already in the sweep (DeepStateMAP front KPIs + update
+    // series, OpenSky / ADS-B / GPS-jamming, FIRMS, nuclear + Safecast, GDELT / Telegram / Polymarket,
+    // KiwiSDR, CII, ACLED) with per-source health. Front geometry stays on /api/frontlines/geo.
+    ukraine: buildUkraineView(data.sources, sourceHealth.sources),
     // Homeland / Narco: DOJ + OFAC + feed health now; event clusters are computed post-sweep by the
     // server (lib/narco/pipeline.mjs) which replaces this placeholder with buildNarcoView(result, sources).
     narco: buildNarcoView(null, data.sources),

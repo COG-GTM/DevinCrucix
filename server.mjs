@@ -25,6 +25,7 @@ import { buildTaiwanGeo } from './lib/taiwanview.mjs';
 
 // Phase 4: Analytical Features
 import { computeCII } from './apis/sources/cii.mjs';
+import { trimCii } from './lib/ukraineview.mjs';
 import { computeConvergence } from './apis/sources/convergence.mjs';
 import { computeSignals } from './apis/sources/signals.mjs';
 import { computeFocalPoints } from './apis/sources/focalpoints.mjs';
@@ -901,6 +902,12 @@ async function runSweepCycle() {
       if (criticalFocals.length > 0) {
         const ciiWithBoosts = computeCII(rawData.sources || {}, criticalFocals);
         synthesized.cii = ciiWithBoosts;
+      }
+
+      // CII is a stub at synthesize() time; refresh the Ukraine tab's UA / RU rows from the post-sweep scores.
+      if (synthesized.ukraine?.cii) {
+        const prior = synthesized.ukraine.cii.health || {};
+        synthesized.ukraine.cii = trimCii({ CII: synthesized.cii }, [{ name: 'CII', state: prior.state, reason: prior.reason }]);
       }
 
       // Step 5: Signals (uses raw sources + convergence + CII)
