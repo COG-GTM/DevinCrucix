@@ -1409,7 +1409,6 @@ const PANEL_CAPTIONS={
   'cbp officer safety & use of force':'Assaults on CBP officers / agents and CBP use-of-force incidents from the official CSVs. One incident may involve several officers; Southern Border is CBP\u2019s own region label. Sector rows are USBP Southwest sectors.',
   'cbp custody & enforcement':'Parsed from CBP\u2019s Custody and Transfer and Enforcement Statistics pages (no CSV exists). In-custody counts are month-end snapshots; TSDS, criminal-noncitizen, gang and rescue figures are fiscal-year totals with the current year partial.',
   'ice detention & atd (trac)':'ICE detention tables republished by TRAC (Syracuse University) from ICE\u2019s own releases: who is held, by arresting agency and criminal history, monthly book-ins, facilities and Alternatives to Detention. Snapshots land weeks after the fact and are revised; \u201cno conviction\u201d includes people with pending charges.',
-  'pla activity around taiwan (mnd)':'Taiwan\u2019s Ministry of National Defense daily count of PLA aircraft sorties, PLAN ships, official ships and balloons detected in the 24 h to 06:00 Taipei, parsed from the English release. mnd.gov.tw disallows crawlers in robots.txt, so this feed stays BLOCKED until an operator opts in; the panel then shows the cached series.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
   'osint workbench':'Passive, read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Blue values pivot; nothing is written to the target.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
@@ -1502,7 +1501,6 @@ function renderLeftRail(){
     {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
     {name:'Border / CBP',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${esc(D.cbpStats.encounters.latest?.label)} · ${cbpLiveCount()}/4 sources live`:'CBP Public Data Portal',src:['CBPStats','CBPSeizures','CBPForce','CBPCustody']},
     {name:'ICE Detention',count:D.trac?.population?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.trac?.population?`detained · TRAC thru ${esc(D.trac.population.asOf)} · ${cbpNum(D.trac.facilities?.facilities)} facilities`:'TRAC detention quick facts',src:'TRAC'},
-    {name:'PLA / Taiwan',count:D.plamnd?.activity?.latest?.aircraft??'--',dot:'prc',sub:D.plamnd?.activity?.latest?`sorties · ${cbpNum(D.plamnd.activity.latest.ships)} PLAN ships · MND ${esc(D.plamnd.activity.asOf)}`:'Taiwan MND daily report',src:'PLAMND'},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`,src:'UnusualWhales'},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
@@ -3160,7 +3158,7 @@ function renderLower(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
-    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderFrontPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderPlaMndPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderFrontPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),
@@ -5018,48 +5016,6 @@ function renderTracPanel(){
       <div class="bw-feeds">${dsHtml}${site?`<a class="cbp-link" href="${esc(site)}" target="_blank" rel="noopener noreferrer">TRAC Quick Facts ↗</a>`:''}</div>
       <div class="cbp-scroll">${kpis?`<div class="cbp-kpis">${kpis}</div>`:''}${popHtml}${bkHtml}${facHtml}${atdHtml}</div>
       ${cbpFoot(t,'ADP = AVERAGE DAILY POPULATION · DATA LAG ICE RELEASES BY WEEKS AND ARE REVISED')}
-    </div>`;
-}
-
-// === PLA ACTIVITY AROUND TAIWAN (Taiwan MND daily reports) ===
-// mnd.gov.tw robots.txt disallows non-search crawlers, so the adapter ships blocked until an operator
-// opts in (PLAMND_ROBOTS_OVERRIDE=1); the panel says which state it is in. MND text -> esc().
-function renderPlaMndPanel(){
-  const p = D.plamnd || {};
-  const a = p.activity;
-  if(!a || !a.latest){
-    const site=safeExternalUrl(p.siteUrl);
-    const s=shWorst('PLAMND');
-    return `<div class="g-panel g-off cbp-panel"><div class="sec-head"><h3>${shDot('PLAMND')}PLA Activity Around Taiwan (MND)</h3><span class="badge ${shBadgeClass(s)||'off'}">${SH_LABEL[s?.state||'off']}</span></div>
-      <div class="g-off-why">${esc(p.message||p.error||'No MND daily report has been parsed yet')}</div>
-      ${site?`<div class="bw-feeds"><a class="cbp-link" href="${esc(site)}" target="_blank" rel="noopener noreferrer">MND PLA activities ↗</a></div>`:''}</div>`;
-  }
-  const L = a.latest;
-  const dsHtml = cbpDatasetsHtml(p,{list:'Daily report index',reports:'Daily reports'},'MND');
-  const adizPct = Number.isFinite(L.aircraft)&&L.aircraft>0&&Number.isFinite(L.adizSorties) ? Math.round(L.adizSorties/L.aircraft*100) : null;
-  const kpis = [
-    `<div class="cbp-kpi"><div class="k">PLA AIRCRAFT SORTIES · ${tracDateLabel(L.date)}</div><div class="v">${cbpNum(L.aircraft)}</div><div class="d">${L.adizSorties!=null?`${cbpNum(L.adizSorties)} entered ADIZ${adizPct!=null?` (${adizPct}%)`:''}`:'ADIZ count not stated'}${L.medianLine?' · <span class="cbp-up">crossed median line</span>':''}</div></div>`,
-    `<div class="cbp-kpi"><div class="k">PLAN SHIPS · OFFICIAL SHIPS</div><div class="v">${cbpNum(L.ships)} <small>+ ${cbpNum(L.officialShips)} official</small></div><div class="d">${L.balloons?`${cbpNum(L.balloons)} PRC balloon${L.balloons===1?'':'s'} · `:''}${(L.adizSectors||[]).length?esc(L.adizSectors.join(' / '))+' ADIZ':'no ADIZ sectors named'}</div></div>`,
-    a.last7 ? `<div class="cbp-kpi"><div class="k">7-DAY · ${cbpNum(a.last7.days)} REPORTS</div><div class="v">${cbpNum(a.last7.aircraft)} <small>sorties</small></div><div class="d">${cbpNum(a.last7.aircraftPerDay,1)}/day · ${cbpDelta(a.aircraftPerDayDelta7,' vs prior 7d')} · ${cbpNum(a.last7.adizSorties)} ADIZ</div></div>` : '',
-    a.last30 ? `<div class="cbp-kpi"><div class="k">30-DAY · ${cbpNum(a.last30.days)} REPORTS</div><div class="v">${cbpNum(a.last30.aircraftPerDay,1)} <small>sorties/day</small></div><div class="d">${cbpNum(a.last30.ships,1)} PLAN ships/day · ${cbpNum(a.last30.medianLineDays)} median-line days${a.peak?` · peak ${cbpNum(a.peak.aircraft)} on ${tracDateLabel(a.peak.date)}`:''}</div></div>` : '',
-  ].join('');
-  const series=[...(a.series||[])].reverse().map(r=>({label:tracDateLabel(r.date),aircraft:r.aircraft,ships:r.ships}));
-  const airSpark=cbpSpark(series,'aircraft','PLA AIRCRAFT SORTIES / DAY','rgba(244,67,54,0.45)');
-  const shipSpark=cbpSpark(series,'ships','PLAN SHIPS / DAY','rgba(79,195,247,0.45)');
-  const rows=(a.series||[]).slice(0,10).map(r=>`<tr><td>${tracDateLabel(r.date)}</td><td class="n">${cbpNum(r.aircraft)}</td><td class="n">${cbpNum(r.adizSorties)}</td><td class="n">${cbpNum(r.ships)}</td><td class="n">${cbpNum(r.officialShips)}</td><td class="n">${r.balloons?cbpNum(r.balloons):'—'}</td><td>${r.medianLine?'<span class="cbp-up">yes</span>':''}</td></tr>`).join('');
-  const link=safeExternalUrl(L.url), chart=safeExternalUrl(L.chartUrl), site=safeExternalUrl(p.siteUrl);
-  const robots = p.robotsOverride ? '<span class="bw-chip zero" title="mnd.gov.tw robots.txt disallows non-search crawlers; an operator enabled PLAMND_ROBOTS_OVERRIDE">ROBOTS OVERRIDE ON</span>' : '';
-  return `<div class="g-panel cbp-panel prc-panel">
-      <div class="sec-head"><h3>${shDot('PLAMND')}PLA Activity Around Taiwan (MND)</h3>${cbpBadge(p,'PLAMND',tracDateLabel(L.date))}</div>
-      <div class="bw-feeds">${dsHtml}${robots}${site?`<a class="cbp-link" href="${esc(site)}" target="_blank" rel="noopener noreferrer">MND PLA activities ↗</a>`:''}</div>
-      <div class="cbp-scroll">
-        <div class="cbp-kpis">${kpis}</div>
-        ${L.text?`<div class="sig-title" style="margin:4px 0">${esc(L.text)}</div>`:''}
-        <div class="bw-chips">${link?`<a class="bw-chip" href="${esc(link)}" target="_blank" rel="noopener noreferrer">MND report ${tracDateLabel(L.date)} ↗</a>`:''}${chart?`<a class="bw-chip place" href="${esc(chart)}" target="_blank" rel="noopener noreferrer">flight-path chart ↗</a>`:''}</div>
-        ${airSpark}${shipSpark}
-        ${rows?`<div class="bw-sub">DAILY REPORTS · ${cbpNum(a.reports)} PARSED SINCE ${tracDateLabel(a.earliest)}</div><table class="cbp-table"><thead><tr><th>DATE</th><th class="n">AIRCRAFT</th><th class="n">ADIZ</th><th class="n">PLAN</th><th class="n">OFFICIAL</th><th class="n">BALLOONS</th><th>MEDIAN</th></tr></thead><tbody>${rows}</tbody></table>`:''}
-      </div>
-      ${cbpFoot(p,'24 H ENDING 06:00 TAIPEI · ADIZ = TAIWAN AIR DEFENSE IDENTIFICATION ZONE · COUNTS AS WORDED BY MND')}
     </div>`;
 }
 

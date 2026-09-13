@@ -279,16 +279,6 @@ The **ICE Detention & ATD (TRAC)** panel sits under the Border / CBP group and r
 
 Attribution is TRAC's: *Source: TRAC (Transactional Records Access Clearinghouse), Syracuse University. © TRAC Reports, Inc.; not endorsed by TRAC.* TRAC publishes no reuse licence, so the dashboard shows summaries with a link-out and never redistributes the raw tables. Tests: `node --test test/trac.test.mjs` (fixtures under `test/fixtures/trac/`; facilities and ATD trimmed to the two newest releases).
 
-### PLA Activity Around Taiwan (Taiwan MND)
-
-The **PLA Activity Around Taiwan (MND)** panel on the Military tab (`apis/sources/plamnd.mjs`, source id `PLAMND`) parses the Republic of China Ministry of National Defense's daily English release [*PLA activities in the waters and airspace around Taiwan*](https://www.mnd.gov.tw/en/news/PlaactList): one post per day since late 2020 giving PLA aircraft sorties, PLAN ships, official ships and balloons detected in the 24 h to 06:00 Taipei, how many sorties entered Taiwan's ADIZ (and which sectors / whether they crossed the median line), plus a track chart. MND publishes no API or English RSS, so the adapter reads the server-rendered list page and detail pages; the sentence wording has drifted over the years, so unknown counts stay `null` rather than becoming zero, and a day MND reports no aircraft parses as `0`.
-
-**Access policy.** `mnd.gov.tw/robots.txt` is `User-agent: * / Disallow: /` (only Googlebot is allowed). By default the source therefore makes no request beyond `robots.txt`, reports `robots-disallowed` and links out to the official page. An operator who has decided the site's terms permit it can set `PLAMND_ROBOTS_OVERRIDE=1`; the adapter then fetches the list page once per sweep and at most `MAX_NEW_DETAILS` (3) unseen detail pages, 1 s apart, so steady-state load is two requests a day. Parsed reports are persisted under `runs/plamnd/reports.json` (newest 400 kept) and keep being summarised — flagged `STALE` — if MND is unreachable or the override is later switched off. The override is shown on the panel and in `datasets[].notes`. The `pla_sorties_daily` delta metric reports `NaN` (not zero) whenever the latest report is unavailable, so a blocked feed never reads as a calm day.
-
-Attribution: *Source: Ministry of National Defense, Republic of China (Taiwan), mnd.gov.tw; counts as reported by MND for the 24 h ending 06:00 UTC+8.* Tests: `node --test test/plamnd.test.mjs` (recorded list and detail pages under `test/fixtures/plamnd/`).
-
-PLATracker (`platracker.com`) was evaluated and not integrated: its trackers are Google Sheets behind a login wall with a request-only data-sharing policy, and its Taiwan ADIZ series is itself derived from the MND releases above.
-
 ---
 
 ## What You Get
