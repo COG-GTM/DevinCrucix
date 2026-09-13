@@ -324,7 +324,7 @@ describe('situation / map layers / delta hooks', () => {
 
 describe('dashboard wiring (static checks)', () => {
   it('has an independent CARTELS tab with its own rail, grid, map and panels', () => {
-    assert.match(html, /\{id:'cartels',label:'Cartels'/, 'tab registered in the tab bar');
+    assert.match(html, /\{id:'cartels',label:'Cartels & Border'/, 'tab registered in the tab bar');
     assert.match(html, /id="cartelMapSvg"/);
     for (const fn of ['renderCartelSourcePanel', 'renderCartelOrgsPanel', 'renderCartelMapPanel', 'renderCartelWarsPanel', 'renderCartelActivityPanel', 'renderCartelBaselinePanel', 'renderCartelFeedPanel', 'initCartelMap', 'loadCartelGeo', 'ctFeaturePop']) {
       assert.match(html, new RegExp(`function ${fn}\\(`), fn);
