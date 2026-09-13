@@ -34,6 +34,7 @@ function renderedTitles() {
   }
   for (const m of html.matchAll(/offPanel\('([^']+)'/g)) titles.add(normalizeTitle(m[1]));
   for (const m of html.matchAll(/offPanel\(t\('[^']+','([^']+)'\)/g)) titles.add(normalizeTitle(m[1]));
+  for (const m of html.matchAll(/groupHead\('([^']+)'/g)) titles.add(normalizeTitle(m[1]));
   return titles;
 }
 
@@ -59,7 +60,7 @@ test('every caption key matches a rendered panel title', () => {
 
 test('control total: the panel set is what we expect', () => {
   const titles = renderedTitles();
-  assert.equal(titles.size, 76, [...titles].sort().join(' | '));
+  assert.equal(titles.size, 79, [...titles].sort().join(' | '));
 });
 
 test('map legend is derived from the layer registry, not a hand-typed list', () => {

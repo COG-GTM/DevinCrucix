@@ -646,7 +646,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .cbp-scroll{max-height:320px;overflow-y:auto;margin-top:4px}
 .cbp-scroll::-webkit-scrollbar{width:3px}
 .cbp-scroll::-webkit-scrollbar-thumb{background:rgba(2,148,222,0.25);border-radius:2px}
-/* Border / CBP group header (Regional tab) */
+/* Lower-grid band headers (Cartels & Border tab), incl. the Border / CBP group */
 .cbp-group{padding:6px 10px 4px}
 .cbp-group .sec-head{margin-bottom:2px}
 .cbp-group-row{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:3px}
@@ -1250,16 +1250,19 @@ const TAB_DEFS=[
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
-  {id:'regional',label:'Regional',hint:'Border Watch, narco / organized crime'},
-  {id:'cartels',label:'Cartels',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
+  {id:'cartels',label:'Cartels & Border',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 official CBP data (encounters, seizures, use of force, custody) \u00b7 US\u2013Mexico border reporting \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
   {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
 const TAB_IDS=TAB_DEFS.map(t=>t.id);
-function tabFromHash(){const h=(location.hash||'').replace(/^#/,'');return TAB_IDS.includes(h)?h:null}
-let currentTab = tabFromHash() || (TAB_IDS.includes(localStorage.getItem('crucix_tab')) ? localStorage.getItem('crucix_tab') : 'situation');
+// Retired tab ids keep resolving so old bookmarks / persisted tabs land on the successor, never on a blank view.
+const TAB_ALIASES={regional:'cartels'};
+function resolveTab(id){const v=String(id||'');return TAB_IDS.includes(v)?v:TAB_ALIASES[v]||null}
+function tabFromHash(){return resolveTab((location.hash||'').replace(/^#/,''))}
+let currentTab = tabFromHash() || resolveTab(localStorage.getItem('crucix_tab')) || 'situation';
+if(location.hash&&location.hash!=='#'+currentTab) history.replaceState(null,'',location.pathname+location.search+'#'+currentTab);
 function tabCounts(){
   const sit=D.situation||{};const c=sit.counts||{};
   const hot=(c.critical||0)+(c.high||0);
@@ -1286,8 +1289,7 @@ function tabCounts(){
     cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
     ukraine: uaCount,
-    regional: spikes?{n:`${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:'Border Watch place spikes vs baseline'}:null,
-    cartels: ctCount,
+    cartels: spikes?{n:`${ctCount?ctCount.n+' \u00b7 ':''}${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:`${ctCount?ctCount.title+' \u00b7 ':''}${spikes} Border Watch place spike${spikes>1?'s':''} vs baseline`}:ctCount,
     iranwar: iwCount,
     taiwan: twCount,
     investigations: (()=>{const n=Object.keys(INV.case.entities).length;const hi=Object.values(INV.case.dossiers).some(d=>d.risk&&(d.risk.level==='high'||d.risk.level==='critical'));return n?{n:String(n),cls:hi?'hot':'',title:`${n} entities in case · ${Object.keys(INV.case.dossiers).length} dossiers${hi?' · high-risk selector present':''}`}:null})(),
@@ -1321,7 +1323,7 @@ function scrollTabbar(dir){
   el.scrollBy({left:dir*Math.max(120,el.clientWidth*0.6),behavior:'smooth'});
 }
 function setTab(id, opts={}){
-  if(!TAB_IDS.includes(id)) id='situation';
+  id=resolveTab(id)||'situation';
   const changed=id!==currentTab;
   currentTab=id;
   localStorage.setItem('crucix_tab',id);
@@ -1335,7 +1337,7 @@ function applyTabLayout(){
   const g=document.getElementById('grid');if(!g)return;
   g.classList.toggle('no-map',currentTab!=='situation');
 }
-window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);});
+window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h&&location.hash!=='#'+h)history.replaceState(null,'',location.pathname+location.search+'#'+h);});
 
 // === SITUATION STRIP (rule-based headlines from lib/situation.mjs; all text is third-party-derived → esc()) ===
 const SIT_TAB_LABEL=Object.fromEntries(TAB_DEFS.map(t=>[t.id,t.label]));
@@ -1359,7 +1361,7 @@ function renderSituationStrip(){
   const asOfStr=asOf&&!isNaN(asOf)?asOf.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):'--';
   const cards=(sit.headlines||[]).map((h,i)=>{
     const sev=['critical','high','elevated','info'].includes(h.severity)?h.severity:'info';
-    const tab=TAB_IDS.includes(h.tab)?h.tab:'situation';
+    const tab=resolveTab(h.tab)||'situation';
     return `<div class="sit-card ${sev}" role="button" tabindex="0" data-sit-tab="${tab}" data-sit-panel="${esc(h.panel||'')}" title="Open ${esc(SIT_TAB_LABEL[tab])} \u2192 ${esc(h.panel||'')}">
       <div class="sit-sev">${esc(sev)} \u00b7 ${esc(h.rule||'')}</div>
       <div class="sit-title">${esc(h.title)}</div>
@@ -1446,11 +1448,14 @@ const PANEL_CAPTIONS={
   'country instability':'<b>Derived.</b> Per-country composite of conflict, news and economic feeds. A relative ranking, not a forecast.',
   'border watch':'US\u2013Mexico border reporting from public feeds listed in config/border-sources.json. A spike is a place mentioned above its own baseline.',
   'border ingest':'Border Watch\u2019s Python ingestion service (crucix_ingest): robots.txt-compliant feed polling, NER/geotagging, violence scoring and structured baselines (SESNSP, CBP, FRA). OFFLINE means the service is not running next to the dashboard.',
-  'border / cbp':'Consolidated CBP Public Data Portal group: four adapters read CBP\u2019s own CSVs and statistics pages. Every figure is CBP\u2019s published number \u2014 nothing is estimated, and each dataset carries its own LIVE / STALE / ERROR state.',
+  'mexico · cartel landscape':'Where cartels are assessed to operate and what happened there: the crowd-sourced influence map, graded cartel / border-crime events, wars and truces, recent map entries and the START 2020 baseline. Nothing in this band is verified control of territory.',
+  'us border · official cbp data':'Consolidated CBP Public Data Portal group: four adapters read CBP\u2019s own CSVs and statistics pages. Every figure is CBP\u2019s published number \u2014 nothing is estimated, and each dataset carries its own LIVE / STALE / ERROR state.',
   'cbp encounters & drug seizures':'Official CBP monthly encounters and drug seizures by Southwest sector, read from the CSVs CBP publishes. Figures are subject to revision by CBP; nothing here is estimated.',
   'cbp seizures: amo · currency · weapons':'Nationwide CBP seizure CSVs: Air and Marine Operations drug interdictions, currency / monetary-instrument seizures and weapons + ammunition seizures. SW = Southwest border AORs. Outbound weapons events are the southbound-smuggling signal.',
   'cbp officer safety & use of force':'Assaults on CBP officers / agents and CBP use-of-force incidents from the official CSVs. One incident may involve several officers; Southern Border is CBP\u2019s own region label. Sector rows are USBP Southwest sectors.',
   'cbp custody & enforcement':'Parsed from CBP\u2019s Custody and Transfer and Enforcement Statistics pages (no CSV exists). In-custody counts are month-end snapshots; TSDS, criminal-noncitizen, gang and rescue figures are fiscal-year totals with the current year partial.',
+  'us–mexico border reporting':'Journalism about the border corridor: Border Watch feeds with place / topic spike detection, InSight Crime\u2019s organized-crime reporting and the Python ingestion service behind them. Reporting volume, not event data.',
+  'us enforcement · doj & ofac':'What the U.S. government has put on the record: U.S. Attorney press releases from the south-west border districts and Treasury SDN entries under the narco programs. Charges are allegations until a plea or conviction is stated.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
   'osint workbench':'Passive, read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Blue values pivot; nothing is written to the target.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
@@ -1610,7 +1615,7 @@ function renderLeftRail(){
     cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
     macro:['Market Intel','Polymarket','Instability Index'],
     ukraine:['Ukraine Front','RU Units / Airfields','GPS Jamming','Thermal Spikes','Air Activity','Nuclear Sites','Telegram Live'],
-    regional:['Border Watch','Border / CBP','Narco Intel','World News','Health Watch','Conflict Events','Instability Index'],
+    cartels:['Border Watch','Border / CBP','Narco Intel'],
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
   };
   const layerNames=TAB_LAYERS[currentTab];
@@ -1665,8 +1670,7 @@ function renderLeftRail(){
     cyber:[sensorGridPanel,renderSignalIntelPanel()],
     macro:[riskPanel,sensorGridPanel],
     ukraine:[renderUaSourcePanel(),sensorGridPanel,renderUaCorroborationPanel()],
-    regional:[sensorGridPanel,renderSourceHealthPanel()],
-    cartels:[renderNarcoSourcePanel(),renderCartelSourcePanel(),renderCartelOrgsPanel()],
+    cartels:[renderNarcoSourcePanel(),renderCartelSourcePanel(),renderCartelOrgsPanel(),sensorGridPanel,renderSourceHealthPanel()],
     iranwar:[renderIwSourcePanel(),renderIwActorsPanel(),renderIwCorroborationPanel()],
     taiwan:[renderTwSourcePanel(),renderTwMarketsPanel(),renderPrcPanel()],
     investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
@@ -3188,10 +3192,10 @@ function renderLower(){
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
-    regional:[wrap(renderFrontPanel(),'lp-half'),wrap(borderPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),wrap(narcoPanel,'lp-half'),
+    cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
-      wrap(renderPizzaPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
-    cartels:[wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half')],
+      wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
+      wrap(groupHead('US Enforcement · DOJ & OFAC',['DOJ','OFACNarco']),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
@@ -3342,6 +3346,7 @@ const CT_LAYERS=[
   {id:'h_cities',label:'Narcotics-concentration cities',color:'#ffe0b2',era:'2020'},
   {id:'h_hotspots',label:'Avocado / huachicol hotspots',color:'#ffab40',era:'2020'},
   {id:'h_timeline',label:'CJNG rise 2009\u20132019',color:'#ffa726',era:'2020'},
+  {id:'cbp_sectors',label:'CBP SW sectors',color:'#7fc4ea',era:'cbp'},
 ];
 const CT_LAYER_BY_ID=Object.fromEntries(CT_LAYERS.map(l=>[l.id,l]));
 const CT_PRESETS={
@@ -3352,7 +3357,7 @@ const CT_PRESETS={
 };
 const CT_DENSITY_COLORS=['#fff3c4','#ffe082','#ffca28','#ffa000','#e65100'];
 // Clockwise ring (D3 spherical winding) so fitExtent frames Mexico rather than its complement.
-const CT_MX_BBOX={type:'Polygon',coordinates:[[[-118.6,14.3],[-118.6,33.2],[-86.4,33.2],[-86.4,14.3],[-118.6,14.3]]]};
+const CT_MX_BBOX={type:'Polygon',coordinates:[[[-118.6,14.3],[-118.6,34.6],[-86.4,34.6],[-86.4,14.3],[-118.6,14.3]]]};
 let ctActive=(()=>{try{const v=JSON.parse(localStorage.getItem(CT_STORE));if(Array.isArray(v)&&v.length)return new Set(v.filter(id=>CT_LAYER_BY_ID[id]))}catch{}return new Set(CT_PRESETS.current.ids)})();
 let ctOrgFilter=null, ctTransform=null;
 let ctSvg=null, ctBase=null, ctLayersG=null, ctProj=null, ctPath=null, ctZoom=null, ctW=0, ctH=0, ctWorldP=null;
@@ -3360,6 +3365,13 @@ let ctAssessments=[]; // operator-pinned model geolocation assessments (session 
 function ctUnpinAssessment(id){ctAssessments=ctAssessments.filter(a=>a.id!==id);ctClosePopup();ctDraw()}
 const ctIdSafe=v=>String(v??'').replace(/[^a-z0-9_-]/gi,'').slice(0,40);
 function ctHasCurrent(c){return (c.status==='live'||c.status==='stale')&&Number(c.featureCount)>0}
+// CBP Southwest sectors come straight from the CBPStats projection (CBP's own gazetteer + latest monthly
+// encounters). Anything but a served dataset yields [] so the layer reads OFF rather than plotting zeros.
+function ctCbpSectors(){
+  const cs=D.cbpStats||{};
+  if(!['live','partial','stale'].includes(cs.status)||!cs.encounters?.latest?.period)return [];
+  return (cs.encounters.sectors||[]).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lon)&&Number.isFinite(s.latest)&&s.latest>0);
+}
 function ctOn(id){return ctActive.has(id)}
 function ctLayerColor(layer){return (CT_LAYER_BY_ID[layer]||CT_LAYER_BY_ID.other).color}
 function ctOrgOf(id){return (D.cartels?.orgs||[]).find(o=>o.id===id)||null}
@@ -3561,6 +3573,22 @@ function ctDraw(){
       if(p)p.attr('stroke-width',e.confidence?.grade==='A'||e.confidence?.grade==='B'?2:1).attr('stroke-dasharray',e.historical?'2 1.5':null);
     });
   }
+  // ---- CBP SOUTHWEST BORDER SECTORS (official monthly encounters, radius ~ sqrt(count)) ----
+  if(ctOn('cbp_sectors')){
+    const cs=D.cbpStats,sectors=ctCbpSectors();
+    if(sectors.length){
+      const cg=ctLayersG.append('g').attr('class','ct-cbp-g'),max=Math.max(...sectors.map(s=>s.latest));
+      const pctTxt=(v,l)=>Number.isFinite(v)?`${v>0?'+':''}${v.toFixed(1)}% ${l}`:null;
+      sectors.forEach(s=>{
+        const r=6+Math.sqrt(s.latest/max)*16;
+        const p=pin(cg,s.lon,s.lat,r,ctRgba('#7fc4ea',0.28),'#7fc4ea','ct-cur ct-cbp',ev=>ctPopup(ev,`${esc(s.aor||s.sector)} \u2014 USBP`,
+          `${s.latest.toLocaleString('en-US')} encounters in ${esc(cs.encounters.latest.label)}${s.previous!=null?` (${Number(s.previous).toLocaleString('en-US')} prior month)`:''}<br><span style="color:var(--dim)">${[pctTxt(s.momPct,'MoM'),pctTxt(s.yoyPct,'YoY')].filter(Boolean).join(' \u00b7 ')||'no change series'}</span><br><span style="color:var(--dim)">${esc(cs.attribution||'This product uses U.S. Customs and Border Protection data, but is not endorsed by CBP.')}</span>`,
+          `CBP Public Data Portal \u00b7 Southwest border encounters by sector \u00b7 ${esc(cs.encounters.latest.label)}`));
+        if(p)p.attr('stroke-width',1.5);
+        lbl(cg,s.lon,s.lat,`${s.abbv||s.sector} ${s.latest.toLocaleString('en-US')}`,8,0,'cur',-(r+4));
+      });
+    }
+  }
   // ---- MODEL ASSESSMENTS (photo geolocation pinned from Investigate) — dashed geodesic uncertainty circle, never a point ----
   if(ctAssessments.length){
     const ag=ctLayersG.append('g').attr('class','ct-assess-g');
@@ -3581,16 +3609,17 @@ function renderCartelChips(){
   const el=document.getElementById('cartelChips');if(!el)return;
   const c=D.cartels||{},lc=c.layerCounts||{},b=c.baseline,has=ctHasCurrent(c);
   const chip=l=>{
-    const n=l.era==='now'?(has?Number(lc[l.id])||0:0):l.era==='events'?nvLayerCount(l.id):ctHistCount(l.id,b);
+    const n=l.era==='now'?(has?Number(lc[l.id])||0:0):l.era==='events'?nvLayerCount(l.id):l.era==='cbp'?ctCbpSectors().length:ctHistCount(l.id,b);
     const none=!n,on=!none&&ctOn(l.id);
-    const why=l.era==='now'&&!has?'current map not available':l.era==='events'?(D.narco?.status==='live'?'no mapped events in this window':'events not computed yet'):'nothing in this layer';
-    const title=none?`${l.label}: ${why}`:`${l.label}: ${n} ${l.era==='now'?'crowd-sourced entries':l.era==='events'?'graded events with a resolved location (Border Watch feeds + DOJ)':'baseline records (June 2020)'}. Click to ${on?'hide':'show'}.`;
+    const why=l.era==='now'&&!has?'current map not available':l.era==='events'?(D.narco?.status==='live'?'no mapped events in this window':'events not computed yet'):l.era==='cbp'?'CBP encounters dataset not served this sweep':'nothing in this layer';
+    const title=none?`${l.label}: ${why}`:`${l.label}: ${n} ${l.era==='now'?'crowd-sourced entries':l.era==='events'?'graded events with a resolved location (Border Watch feeds + DOJ)':l.era==='cbp'?`Southwest Border Patrol sectors sized by CBP's ${D.cbpStats?.encounters?.latest?.label||'latest'} encounters`:'baseline records (June 2020)'}. Click to ${on?'hide':'show'}.`;
     return `<button type="button" class="lchip ${none?'none':on?'on':'off'}${l.era==='2020'?' hist':''}" style="--lc:${l.color}" title="${esc(title)}" ${none?'disabled':`onclick="ctToggle('${l.id}')"`}><span class="ldot"></span>${esc(l.label)}${none?'':` <b>${n}</b>`}</button>`;
   };
   const presetOn=name=>{const ids=CT_PRESETS[name].ids;return ids.length===ctActive.size&&ids.every(id=>ctActive.has(id))};
   el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">CURRENT \u00b7 ${has?esc(c.docName||'KML'):'UNAVAILABLE'}</span>${CT_LAYERS.filter(l=>l.era==='now').map(chip).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">EVENTS \u00b7 ${D.narco?.status==='live'?`GRADED A\u2013E \u00b7 ${esc(String(D.narco.totals?.mapped||0))} MAPPED`:'NOT COMPUTED YET'}</span>${CT_LAYERS.filter(l=>l.era==='events').map(chip).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head hist">HISTORICAL \u00b7 START JUNE 2020</span>${CT_LAYERS.filter(l=>l.era==='2020').map(chip).join('')}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">US BORDER \u00b7 ${ctCbpSectors().length?`CBP ${esc(D.cbpStats.encounters.latest.label)}${D.cbpStats.status==='stale'?' \u00b7 CACHED':''}`:'CBP NOT LIVE'}</span>${CT_LAYERS.filter(l=>l.era==='cbp').map(chip).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">PRESETS</span>${Object.entries(CT_PRESETS).map(([k,p])=>`<button type="button" class="lchip preset ${presetOn(k)?'on':'off'}" onclick="ctPreset('${k}')">${p.label}</button>`).join('')}<button type="button" class="lchip preset off" onclick="ctResetView()">RESET VIEW</button>${ctOrgFilter?`<button type="button" class="lchip on" style="--lc:${esc(ctOrgOf(ctOrgFilter)?.color||'#ff5252')}" onclick="ctFocusOrg('${ctIdSafe(ctOrgFilter)}')"><span class="ldot"></span>ONLY ${esc(ctOrgOf(ctOrgFilter)?.short||ctOrgFilter)} \u00d7</button>`:''}</div>`;
 }
 function ctBadge(c){
@@ -3617,7 +3646,7 @@ function renderCartelMapPanel(){
       <div class="ct-map" id="cartelMapWrap">
         <svg id="cartelMapSvg"></svg>
         <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A SHAPE</div>
-        <div class="ct-key"><span><i class="solid"></i>CURRENT \u00b7 crowd-sourced KML (solid, cartel colours)</span><span><i class="dash"></i>HISTORICAL \u00b7 START June 2020 (amber, dashed)</span><span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(255,82,82,0.8)"></i>EVENTS \u00b7 pins: fill = type, ring = grade</span><span id="cartelMapNote"></span></div>
+        <div class="ct-key"><span><i class="solid"></i>CURRENT \u00b7 crowd-sourced KML (solid, cartel colours)</span><span><i class="dash"></i>HISTORICAL \u00b7 START June 2020 (amber, dashed)</span><span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(255,82,82,0.8)"></i>EVENTS \u00b7 pins: fill = type, ring = grade</span><span><i style="border-radius:50%;border-color:#7fc4ea;background:rgba(127,196,234,0.28)"></i>CBP SW SECTORS \u00b7 USBP encounters, latest month (toggle)</span><span id="cartelMapNote"></span></div>
         <div class="map-popup" id="cartelPopup"><div class="pp-close" onclick="ctClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
       </div>
       ${disc}
@@ -5233,7 +5262,28 @@ function renderCbpPanel(){
     </div>`;
 }
 
-// === BORDER / CBP PANEL GROUP (Regional tab) ===
+// === LOWER-GRID BAND HEADERS (Cartels & Border tab) ===
+// One header per band: <h3> title (captioned via PANEL_CAPTIONS), an n/m SOURCES LIVE pill and one dot per
+// source from D.sourceHealth, then optional http(s) link-outs and caller-supplied extra markup.
+function groupHead(title, sources, links=[], extra=''){
+  const list=[].concat(sources||[]).map(s=>typeof s==='string'?{src:s,name:s}:s);
+  const pills=list.map(s=>{
+    const st=shWorst(s.src);
+    return `<span class="cbp-src" title="${esc(s.src)}: ${st?SH_LABEL[st.state]:'not reporting'}${st?.reason?' \u2014 '+esc(st.reason):''}">${shDot(s.src)}${esc(s.name)}${s.n!=null?`<span class="n">${esc(s.n)}</span>`:''}</span>`;
+  }).join('');
+  const live=list.filter(s=>shWorst(s.src)?.state==='live').length;
+  const badgeCls=list.length&&live===list.length?'':live===0?'err':'warn';
+  const linksHtml=(links||[]).map(l=>{
+    const u=safeExternalUrl(l.href);
+    return u?`<a class="cbp-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer"${l.title?` title="${esc(l.title)}"`:''}>${esc(l.label)}</a>`:'';
+  }).join('');
+  return `<div class="g-panel cbp-group">
+      <div class="sec-head"><h3>${shDot(list.map(s=>s.src))}${esc(title)}</h3><span class="badge ${badgeCls}">${live}/${list.length} SOURCES LIVE</span></div>
+      <div class="cbp-group-row">${pills}${extra}${linksHtml}</div>
+    </div>`;
+}
+
+// === BORDER / CBP PANEL GROUP ===
 // Four independent adapters share one group header so an analyst reads the CBP picture in one place
 // while each dataset keeps its own health state. All CBP-derived labels are third-party -> esc().
 const CBP_SOURCES=[
@@ -5282,27 +5332,21 @@ function cbpFoot(src, scope){
 function cbpFyLabel(col){ return col ? `<span class="cbp-fy">${esc(col.label)}</span>` : '—'; }
 
 function renderCbpGroupHead(){
-  const pills = CBP_SOURCES.map(s => {
-    const st = shWorst(s.src);
+  const sources = CBP_SOURCES.map(s => {
     const d = D[s.key] || {};
     const n = (d.datasets||[]).length;
     const ok = (d.datasets||[]).filter(x=>x.status==='ok'||x.status==='not_modified').length;
-    return `<span class="cbp-src" title="${esc(s.src)}: ${st?SH_LABEL[st.state]:'not reporting'}${st?.reason?' \u2014 '+esc(st.reason):''}">${shDot(s.src)}${esc(s.name)}<span class="n">${n?`${ok}/${n}`:'—'}</span></span>`;
-  }).join('');
-  const live = cbpLiveCount();
-  const badgeCls = live===CBP_SOURCES.length ? '' : live===0 ? 'err' : 'warn';
+    return {src:s.src, name:s.name, n:n?`${ok}/${n}`:'—'};
+  });
   const cust = D.cbpCustody?.enforcement?.asOf?.label;
   const enc = D.cbpStats?.encounters?.latest?.label;
   const asOf = [enc?`monthly thru ${enc}`:null, cust?`FY tables ${cust}`:null].filter(Boolean).join(' · ');
-  return `<div class="g-panel cbp-group">
-      <div class="sec-head"><h3>${shDot(CBP_SOURCES.map(s=>s.src))}Border / CBP</h3><span class="badge ${badgeCls}">${live}/${CBP_SOURCES.length} SOURCES LIVE</span></div>
-      <div class="cbp-group-row">${pills}
-        <span>${esc(asOf)}</span>
-        <a class="cbp-link" href="${CBP_PORTAL_URL}" target="_blank" rel="noopener noreferrer">CBP Public Data Portal</a>
-        <a class="cbp-link" href="${CBP_TABLEAU_URL}" target="_blank" rel="noopener noreferrer" title="CBP Tableau dashboards (dosage / street-value / UFLPA views) publish no data export — presentation layer only">CBP dashboards ↗</a>
-        <span class="cbp-xlink" onclick="setTab('cartels')" title="Graded cartel events, DOJ prosecutions and sanctions for the same corridor">CARTELS TAB →</span>
-      </div>
-    </div>`;
+  const extra = `<span>${esc(asOf)}</span>
+        <span class="cbp-xlink" onclick="jumpToPanel('cartels','cartel-map-panel')" title="Scroll up to the Mexico cartel influence map, graded events and sanctions for the same corridor">CARTEL MAP ↑</span>`;
+  return groupHead('US Border · Official CBP Data', sources, [
+    {href:CBP_PORTAL_URL, label:'CBP Public Data Portal'},
+    {href:CBP_TABLEAU_URL, label:'CBP dashboards ↗', title:'CBP Tableau dashboards (dosage / street-value / UFLPA views) publish no data export — presentation layer only'},
+  ], extra);
 }
 
 function renderCbpSeizuresPanel(){
@@ -6310,7 +6354,8 @@ function renderRight(){
     ${renderSignalCorePanel()}
     ${renderCIIPanel()}
     ${renderCyberKevPanel()}
-    ${renderPolymarketPanel()}`;
+    ${renderPolymarketPanel()}
+    ${renderPizzaPanel()}`;
   applyCaptions(rail);
 }
 
