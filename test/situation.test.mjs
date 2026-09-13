@@ -74,12 +74,22 @@ describe('buildSituation', () => {
     assert.match(h.why, /provisional/);
   });
 
-  it('routes Border Watch spikes to the regional tab with the baseline ratio', () => {
+  it('routes Border Watch spikes to the Cartels & Border tab with the baseline ratio', () => {
     const s = buildSituation({ borderNews: { spikes: [{ place: 'hidalgo-county-tx', placeName: 'Hidalgo County, TX', topic: 'migration', count24h: 6, baselineDailyMean: 0.5, ratio: 12 }] } });
     const h = s.headlines.find(x => x.rule === 'border');
-    assert.equal(h.tab, 'regional');
+    assert.equal(h.tab, 'cartels');
     assert.equal(h.panel, 'border-panel');
     assert.match(h.title, /Hidalgo County, TX · migration \(12× baseline\)/);
+  });
+
+  it('routes the DeepStateMAP front headline to the Ukraine War tab, which sits right after macro', () => {
+    assert.equal(TABS[TABS.indexOf('macro') + 1], 'ukraine');
+    const s = buildSituation({ frontlines: { status: 'live', featureCount: 10, occupiedKm2: 112000, history: { recent7d: 3, advances7d: 2, regains7d: 1, updates: [{ at: new Date().toISOString(), kind: 'advance', text: 'Enemy advanced near Pokrovsk' }] } } });
+    const h = s.headlines.find(x => x.rule === 'front');
+    assert.ok(h, 'front headline present');
+    assert.equal(h.tab, 'ukraine');
+    assert.equal(h.panel, 'front-panel');
+    assert.equal(h.source, 'DeepStateMAP');
   });
 
   it('surfaces coverage when a quarter of sources are dark or any source failed, naming the failures', () => {

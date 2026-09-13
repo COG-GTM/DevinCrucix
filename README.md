@@ -161,9 +161,20 @@ Registered outlets: Border Report, The Texas Tribune, ValleyCentral (Rio Grande 
 
 Panel states are reported per feed (`LIVE`, `UNCHANGED`, `EMPTY`, `BLOCKED`, `ERROR`) and per article (`PAYWALL`, `WIRE`, `FEED-ONLY`). Runtime state is kept under `runs/border/`.
 
-### Cartels (Mexico)
+### Cartels & Border (Mexico cartels · US border)
 
-The **CARTELS** tab is a Mexico-framed page that puts two deliberately separate layers side by side:
+The **CARTELS & BORDER** tab (`#cartels`; old `#regional` links redirect here) is the single page for Mexico cartel activity and the US side of the same corridor. Its lower grid is organised in four bands, each with a header showing which sources feed it and how many are live:
+
+| Band | Panels | Fed by |
+|---|---|---|
+| **Mexico · Cartel Landscape** | Cartel Influence map (with optional `CBP SW sectors` layer), Graded Events, Active Wars & Truces, Recent Map Entries, START 2020 Baseline, Mexico / Northern Triangle feed | `Cartels` KML, `BorderNews`, `DOJ` (see below) |
+| **US Border · Official CBP Data** | CBP Encounters & Drug Seizures, CBP Seizures (AMO · currency · weapons), CBP Officer Safety & Use of Force, CBP Custody & Enforcement | the four `CBP*` adapters (see *Border / CBP*) |
+| **US–Mexico Border Reporting** | Border Watch, Narco & Organized Crime (InSight Crime), Border Ingest | `BorderNews`, `InSightCrime`, `BorderIngest` |
+| **US Enforcement · DOJ & OFAC** | DOJ Prosecutions, OFAC Sanctions | `DOJ`, `OFACNarco` |
+
+The left rail keeps the narco / cartel source cards and the organisation list, plus the Sensor Grid (Border Watch, Border / CBP, Narco Intel rows) and Source Health. The tab badge combines the graded-event count with the Border Watch spike count (`41 EVENTS · 10 SPIKES`, red while spikes > 0), and Situation-strip Border Watch headlines open the Border Watch panel here.
+
+The map is a Mexico-framed page that puts two deliberately separate layers side by side:
 
 | Layer | Source | Era | Drawn as |
 |-------|--------|-----|----------|
@@ -174,9 +185,11 @@ Neither layer is verified control of territory: the KML's own disclaimer says it
 
 Every KML string (names, descriptions, folder names, URLs, dates) is bounded and stripped of markup at ingestion and HTML-escaped again at render; only `http(s)` links survive. The trimmed summary is injected into the dashboard payload; polygon/point geometry (~400 KB) is served separately from `GET /api/cartels/geo` and fetched by the browser only when the tab is opened.
 
+A third, default-off map layer — **CBP SW sectors** — draws the nine Southwest Border Patrol sectors (coordinates from `apis/sources/cbpcommon.mjs`, carried in the `CBPStats` projection) as circles sized by the latest month's CBP encounters, with MoM / YoY change in the popup. The layer only appears when the `CBPStats` encounters dataset was served this sweep (live, partial or cached-stale, labelled as such); otherwise its chip is disabled with the reason, and no zero is ever plotted.
+
 ### Narco events, DOJ prosecutions and sanctions (Homeland / Narco)
 
-The Cartels tab also carries a normalized **event layer** built after every sweep from the public sources above (`lib/narco/`). Each Border Watch article that passes an organised-crime + Mexico relevance gate, and each DOJ release from the watched districts, becomes one `narco-event/1` record: publication date, cartel(s) and faction(s) (`config/cartel-groups.json`, alias-matched with group names masked before geocoding), people (rule-based name extraction; person names are masked before place lookup so surnames like *De Leon* do not become León, Guanajuato), Mexican state / municipality / city with coordinates (`config/mx-gazetteer.json`, built from GeoNames by `scripts/build-mx-gazetteer.mjs`), event type (16-type taxonomy, headline first), casualties / arrests / seizures (weapons, drugs with unit conversion, cash, vehicles), and the outlet's own cited sources. Records describing the same incident (same type family, place, ±3 days) are clustered, and each cluster gets a **corroboration grade** — A: official source or 3+ independent outlets · B: two outlets · C: one established outlet · D: one citizen aggregator · E: undated or unlocated. Grades measure corroboration, not severity. Optional LLM gap-filling (`NARCO_LLM_EXTRACT=true`) only fills fields the rules left empty and is validated against the same schema; it may refine a state-level location to a gazetteer city inside that state and add a colonia / highway / landmark **locality** plus up to two **location evidence** sentences, all of which must appear verbatim in the article or are discarded.
+The Cartels & Border tab also carries a normalized **event layer** built after every sweep from the public sources above (`lib/narco/`). Each Border Watch article that passes an organised-crime + Mexico relevance gate, and each DOJ release from the watched districts, becomes one `narco-event/1` record: publication date, cartel(s) and faction(s) (`config/cartel-groups.json`, alias-matched with group names masked before geocoding), people (rule-based name extraction; person names are masked before place lookup so surnames like *De Leon* do not become León, Guanajuato), Mexican state / municipality / city with coordinates (`config/mx-gazetteer.json`, built from GeoNames by `scripts/build-mx-gazetteer.mjs`), event type (16-type taxonomy, headline first), casualties / arrests / seizures (weapons, drugs with unit conversion, cash, vehicles), and the outlet's own cited sources. Records describing the same incident (same type family, place, ±3 days) are clustered, and each cluster gets a **corroboration grade** — A: official source or 3+ independent outlets · B: two outlets · C: one established outlet · D: one citizen aggregator · E: undated or unlocated. Grades measure corroboration, not severity. Optional LLM gap-filling (`NARCO_LLM_EXTRACT=true`) only fills fields the rules left empty and is validated against the same schema; it may refine a state-level location to a gazetteer city inside that state and add a colonia / highway / landmark **locality** plus up to two **location evidence** sentences, all of which must appear verbatim in the article or are discarded.
 
 - **DOJ watcher** (`apis/sources/doj.mjs`) — polls the public DOJ press-release API for the Southern District of California, District of Arizona, District of New Mexico, Western District of Texas and Southern District of Texas, classifies each release (cartel, smugglers, trafficking organisation, weapons, money laundering, human smuggling, tunnel, violent organisation) and anchors it to the district seat when no Mexican place is named. Releases matched only as generic smuggling (export controls, pesticides) stay in the DOJ panel without becoming narco events.
 - **OFAC narco index** (`apis/sources/ofacnarco.mjs`) — downloads the SDN XML at most every `OFAC_NARCO_REFRESH_HOURS`, indexes the SDNTK / SDNT / ILLICIT-DRUGS-EO14059 / TCO programs (plus FTO/SDGT cartel designations) and cross-matches event people and groups conservatively (all query tokens, or 3+ shared tokens for a partial match).
@@ -184,6 +197,21 @@ The Cartels tab also carries a normalized **event layer** built after every swee
 - `GET /api/narco` (view model), `GET /api/narco/events?grade=A&type=seizure&cartel=cjng&state=Jalisco&days=30&limit=50`, `GET /api/narco/events/:id`, `GET /api/narco/doj?district=TXWD&category=tunnel`, `GET /api/narco/sanctions` — whitelisted filters; anything else is a 400.
 
 Events from the last 30 days draw as pins on the Cartels map (fill = event family, ring = confidence grade); 31–90-day events are a separate dashed layer. Runtime state lives under `runs/narco/`, `runs/doj/` and `runs/ofacnarco/`.
+
+### Ukraine War (Ukraine theater)
+
+The **UKRAINE WAR** tab gives the Russia–Ukraine war its own theater view. No new upstream adapters are involved: every panel is a theater slice of something CRUCIX already sweeps, assembled by `lib/ukraineview.mjs` into a bounded `ukraine` view model and rendered next to the existing **Ukraine Front** panel.
+
+- **Theater map** — D3 Mercator over lon 22–41 / lat 44–53 (Kharkiv → Odesa → Crimea → Kursk) with world-atlas land and borders and Ukraine highlighted. Layers (toggle chips, persisted in the browser): DeepStateMAP front polygons (occupied since 2022 / pre-2022 / contested / liberated, same colours as the globe legend), attack axes, RU units / airfields, the last 7 days of front updates, the Eastern Ukraine GPS-jamming zone, FIRMS hotspots, UA / RU nuclear sites (Zaporizhzhia in red), theater aircraft when the sweep carries positions, and KiwiSDR receivers. Geometry comes from the existing `GET /api/frontlines/geo` route, fetched only when the tab opens and shared with the globe's front layer. Every polygon and marker popup links to DeepStateMAP at that place.
+- **Front change log** — per-day advance / regain bars for 7 and 30 days, the latest update rows (click → DeepStateMAP), and the assessed-occupied km² delta against the previous sweep (`front_occupied_km2` from the delta engine).
+- **Theater air & GPS jamming** — the OpenSky `ukraine` box, the ADS-B `Ukraine/Black Sea` military box with `RF`/`RFF` callsigns picked out, and the `Eastern Ukraine` GPS-jamming zone. Counts track receiver coverage as much as activity.
+- **Thermal detections** — NASA FIRMS `ukraine` bbox: detections, night detections, > 10 MW FRP and a bounded hotspot table. Fires, flares and industry all show up; not strike confirmation.
+- **ZNPP & nuclear sites** — Zaporizhzhia (occupied / critical), Rivne, Khmelnytskyi, South Ukraine and Kursk from the nuclear-sites registry, plus Safecast readings from the `zaporizhzhia` ring.
+- **Theater wires, channels & odds** — GDELT `Ukraine/Russia` tone and headlines, Telegram posts from the conflict channels (DeepStateUA, General Staff, mod_russia and peers, labelled by side), Polymarket `russia` / `ukraine` markets.
+- **UA / RU instability** — the two Country Instability Index rows only.
+- **Left rail** — DeepStateMAP source health (state, map id, map age, attribution), the Sensor Grid filtered to theater layers, and a **Theater Reporting** list of GDELT / Telegram / ACLED items from the same 72 h window as the front updates (what else is reporting — not proof the map is right).
+
+DeepStateMAP is an **observational map product**: the areas shown are its assessment computed from its polygons, not verified ground truth, and “occupied” includes Crimea and pre-2022 ORDLO. Every panel and popup carries `Map data © DeepStateMAP (deepstatemap.live)`. Each panel shows its own `LIVE` / `DEGRADED` / `NO KEY` / `OFF` / `FAILED` state from the sweep's source health (ACLED is usually `NO KEY`; nothing is faked to fill a gap). All third-party strings are bounded server-side and HTML-escaped at render, coordinates are range-checked before plotting, only `http(s)` links survive, and the browser talks only to same-origin `/api/...` routes. The Situation strip's *Ukraine front* headline routes to this tab.
 
 ### Iran War Live (Iran theater)
 
@@ -255,7 +283,7 @@ The dashboard proxies the read-only routes at `/api/ingest/*` (allow-list in `ap
 
 ### Border / CBP (CBP Public Data Portal)
 
-The Regional tab carries a consolidated **Border / CBP** panel group fed by four adapters that read what U.S. Customs and Border Protection publishes on its [Public Data Portal](https://www.cbp.gov/newsroom/stats/cbp-public-data-portal) (public domain; *"This product uses U.S. Customs and Border Protection data, but is not endorsed by CBP."*). All four share `apis/sources/cbpcommon.mjs`: each sweep first reads the official document page, picks the newest `.csv` link (the file name moves every month), honours `robots.txt`, downloads conditionally (ETag / Last-Modified) and caches under `runs/cbp/`, so a CBP outage degrades a dataset to `STALE` instead of blanking it; a changed header row or page layout is refused rather than guessed at. Fiscal-year months are converted to calendar months (FY starts 1 October). Note that cbp.gov's edge returns 403 to curl-style clients; the sources rely on Node's native `fetch`.
+The Cartels & Border tab's **US Border · Official CBP Data** band is a consolidated panel group fed by four adapters that read what U.S. Customs and Border Protection publishes on its [Public Data Portal](https://www.cbp.gov/newsroom/stats/cbp-public-data-portal) (public domain; *"This product uses U.S. Customs and Border Protection data, but is not endorsed by CBP."*). All four share `apis/sources/cbpcommon.mjs`: each sweep first reads the official document page, picks the newest `.csv` link (the file name moves every month), honours `robots.txt`, downloads conditionally (ETag / Last-Modified) and caches under `runs/cbp/`, so a CBP outage degrades a dataset to `STALE` instead of blanking it; a changed header row or page layout is refused rather than guessed at. Fiscal-year months are converted to calendar months (FY starts 1 October). Note that cbp.gov's edge returns 403 to curl-style clients; the sources rely on Node's native `fetch`.
 
 | Source | Module | Datasets | Panel |
 |---|---|---|---|
