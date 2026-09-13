@@ -83,12 +83,14 @@ import { briefing as cartels } from './sources/cartels.mjs';
 import { briefing as iranwarlive } from './sources/iranwarlive.mjs';
 // China / Taiwan: MND daily PLA bulletin (+ Skyfaring CC BY mirror), Coast Guard grey-zone releases,
 // Focus Taiwan / Taipei Times security headlines, Global Conflict Awareness observational feed,
-// Polymarket threat markets (explicit slug list)
+// Polymarket threat markets (explicit slug list), Iron Command Pacific Watch derived context
+// (chokepoint states, tripwires, graded multi-source events)
 import { briefing as taiwanmnd } from './sources/taiwanmnd.mjs';
 import { briefing as taiwancga } from './sources/taiwancga.mjs';
 import { briefing as taiwannews } from './sources/taiwannews.mjs';
 import { briefing as gcataiwan } from './sources/gcataiwan.mjs';
 import { briefing as taiwanmarkets } from './sources/taiwanmarkets.mjs';
+import { briefing as ironcommand } from './sources/ironcommand.mjs';
 
 // Border-region news ingestion + structured baselines (Python service bridge)
 import { briefing as borderingest } from './sources/borderingest.mjs';
@@ -222,6 +224,7 @@ export async function fullBriefing() {
     runSource('TaiwanNews', taiwannews),
     runSource('GCATaiwan', gcataiwan),
     runSource('TaiwanMarkets', taiwanmarkets),
+    runSource('IronCommand', ironcommand),
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),

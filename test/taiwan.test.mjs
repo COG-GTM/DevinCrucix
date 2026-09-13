@@ -11,6 +11,7 @@ import * as CGA from '../apis/sources/taiwancga.mjs';
 import * as GCA from '../apis/sources/gcataiwan.mjs';
 import * as NEWS from '../apis/sources/taiwannews.mjs';
 import * as MKT from '../apis/sources/taiwanmarkets.mjs';
+import * as IC from '../apis/sources/ironcommand.mjs';
 import { buildTaiwanView, buildTaiwanGeo, trimMnd, trimGca, theaterSignals, LINK_OUTS } from '../lib/taiwanview.mjs';
 import { buildSituation, TABS } from '../lib/situation.mjs';
 import { LAYERS, evaluateLayers } from '../lib/maplayers.mjs';
@@ -30,6 +31,7 @@ function mndParts() {
 const mndResult = () => { const p = mndParts(); return MND.buildResult({ ...p, fetchedAt: AT }); };
 const cgaResult = () => CGA.buildResult(parseFeed(fx('cga-rss.xml')), AT);
 const gcaResult = () => GCA.buildResult(JSON.parse(fx('gca-events.json')), AT);
+const icResult = () => IC.buildResult(JSON.parse(readFileSync(join(FIX, '..', 'ironcommand', 'pacific-watch.json'), 'utf8')), '2026-09-13T22:30:00.000Z');
 function newsResult() {
   const ft = NEWS.filterFeed(parseFeed(fx('focustaiwan-rss.xml')), NEWS.FEEDS[0], AT);
   const tt = NEWS.filterFeed(parseFeed(fx('taipeitimes-rss.xml')), NEWS.FEEDS[1], AT);
@@ -271,7 +273,7 @@ test('Markets: fixed slug allow-list, market-implied probability fields, missing
 // ---------------------------------------------------------------- View + geo
 
 function sources() {
-  return { TaiwanMND: mndResult(), TaiwanCGA: cgaResult(), TaiwanNews: newsResult(), GCATaiwan: gcaResult(), TaiwanMarkets: marketsResult() };
+  return { TaiwanMND: mndResult(), TaiwanCGA: cgaResult(), TaiwanNews: newsResult(), GCATaiwan: gcaResult(), TaiwanMarkets: marketsResult(), IronCommand: icResult() };
 }
 const V2 = () => ({
   air: [
@@ -296,7 +298,7 @@ test('View: compact payload is bounded, statuses are the known vocabulary, sourc
   const v = buildTaiwanView(sources(), V2());
   assert.equal(v.source, 'Taiwan');
   assert.equal(v.status, 'limited');            // MND limited + GCA stale → limited
-  assert.deepEqual(v.parts, { mnd: 'limited', cga: 'live', news: 'live', gca: 'stale', markets: 'live' });
+  assert.deepEqual(v.parts, { mnd: 'limited', cga: 'live', news: 'live', gca: 'stale', markets: 'live', ironcommand: 'live' });
   assert.ok(v.mnd.trend.length <= 31);
   assert.ok(v.cga.incidents.length <= 40);
   assert.ok(v.news.headlines.length <= 30);

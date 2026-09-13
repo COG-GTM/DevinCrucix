@@ -1252,7 +1252,7 @@ const TAB_DEFS=[
   {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
   {id:'cartels',label:'Cartels & Border',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 official CBP data (encounters, seizures, use of force, custody) \u00b7 US\u2013Mexico border reporting \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
-  {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
+  {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, Iron Command chokepoint states & graded events, market-implied odds \u00b7 official counts vs OSINT kept apart'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
@@ -1432,15 +1432,16 @@ const PANEL_CAPTIONS={
   'posturing & diplomacy':'Statements and stances by country as summarised by the extractor. Useful as a timeline of who said what; not a position of record.',
   'iran war live source':'How the source behaves this sweep: which of its six public parts answered, how old the feed is, and the site\u2019s own quality signals. Green only when the feed itself is fresh.',
   'actors & casualties':'IranWarLive\u2019s actors sheet: alliance, status and cumulative reported deaths per country. Casualty figures are as reported by the underlying articles \u2014 unreconciled, not official.',
-  'taiwan strait theater':'Three kinds of mark that must not be read alike: <b>MND sector badges</b> are the ADIZ sector the daily bulletin named (a count at a fixed reference point), <b>CGA circles</b> are the area a Coast Guard release is about (never a ship), <b>GCA points</b> are keyword-placed news. Only the aircraft symbols are positions.',
+  'taiwan strait theater':'Three kinds of mark that must not be read alike: <b>MND sector badges</b> are the ADIZ sector the daily bulletin named (a count at a fixed reference point), <b>CGA circles</b> are the area a Coast Guard release is about (never a ship), <b>GCA points</b> are keyword-placed news, <b>chokepoint tags</b> are Iron Command\u2019s fused-report count state at a fixed reference point. Only the aircraft symbols are positions.',
   'mnd daily pla activity':'Taiwan\u2019s Ministry of National Defense publishes one bulletin a day: aircraft sorties, how many entered the ADIZ and where, PLAN and official ships, balloons. Official aggregate counts, not tracks. The trend is the Skyfaring CSV mirror of the same bulletins.',
   'grey-zone incidents':'Taiwan Coast Guard press releases about PRC vessels in restricted / prohibited waters, filtered from the full CGA feed. Chinese titles kept as published; hulls, counts and in/out times only when stated.',
   'taiwan security headlines':'Focus Taiwan (CNA) and Taipei Times RSS filtered to cross-strait / defence items. Title, time and link only.',
   'global conflict awareness':'A third-party OSINT aggregator\u2019s Taiwan feed, filtered for relevance and shown with its required attribution. Observational; most records are country-level and are not drawn on the map.',
+  'iron command pacific watch':'Iron Command\u2019s open Pacific Watch snapshot (hourly, 6 h embargo): chokepoint activity states from fused-report counts, standing-watch tripwires, and multi-source event clusters graded on the NATO Admiralty scale. <b>Derived from news and official releases CRUCIX also reads</b>, so its MND daily transcriptions are dropped and nothing here feeds the PRC tension index.',
   'threat markets':'Polymarket YES prices for a fixed allow-list of China / Taiwan markets. <b>Market-implied probabilities</b>, not forecasts.',
   'theater signals already in crucix':'OpenSky hotspot counts, military ADS-B and carrier estimates cut to the Taiwan theater \u2014 the same feeds the Military tab shows.',
   'not polled':'Sources that cannot be fetched server-side, listed so the gap is visible.',
-  'china / taiwan sources':'How each of the five China / Taiwan parts behaved this sweep. LIVE means fetched and parsed; anything else is stated.',
+  'china / taiwan sources':'How each of the six China / Taiwan parts behaved this sweep. LIVE means fetched and parsed; anything else is stated.',
   'independent reporting':'Items about the same theater from feeds CRUCIX already polls (GDELT, ACLED), last 72 h. Shows what else is reporting, not confirmation of any specific IranWarLive event.',
   'graded events':'One row per incident after deduplication across Border Watch feeds (Borderland Beat, El Paso Matters, Fronteras Desk, Border Report, Texas Tribune) and DOJ releases. The letter is <b>corroboration</b>, not severity \u2014 D means one citizen aggregator said it.',
   'doj prosecutions':'U.S. Attorney press releases from the five south-west border districts via DOJ\u2019s public API, keyword-classified by topic. Charges are allegations until a plea or conviction is stated.',
@@ -2435,8 +2436,8 @@ function plotMarkers(){
       points.push({ lat:g.lat, lng:g.lon, size:0.1, alt:0.008, color:IW_GROUND.color, type:'iwl-ground', priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
     });
   }
-  // === TAIWAN THEATER (MND sector badges, CGA area centroids, GCA named/region points; never tracks) ===
-  const tg = (layerOn('mnd-adiz') || layerOn('cga-incident') || layerOn('gca-taiwan')) ? twGeoNow() : null;
+  // === TAIWAN THEATER (MND sector badges, CGA area centroids, GCA named/region points, Iron Command chokepoint tags; never tracks) ===
+  const tg = (layerOn('mnd-adiz') || layerOn('cga-incident') || layerOn('gca-taiwan') || layerOn('ic-chokepoint')) ? twGeoNow() : null;
   if(tg){
     tg.features.forEach(f => {
       if(!layerOn(f.type)) return;
@@ -2450,6 +2451,9 @@ function plotMarkers(){
       } else if(f.type === 'gca-taiwan'){
         if(!twInWindow(f.published)) return;
         points.push({ lat:f.lat, lng:f.lon, size:0.09, alt:0.008, color:TW_LAYERS.gca.color, type:f.type, priority:2, popHead:`${esc(f.source||'GCA')} \u00b7 ${twWhen(f.published)}`, popMeta:'GCA Taiwan feed \u00b7 observational', popText:`${esc(f.title||'')}${f.locationName?`<br>Placed at ${esc(f.locationName)} (${esc(f.precision)})`:''}<br>${twLink(f.url,'article')}` });
+      } else if(f.type === 'ic-chokepoint'){
+        const pop = twIcPop(f);
+        points.push({ lat:f.lat, lng:f.lon, size:0.14, alt:0.01, color:twIcStateColor(f.state), type:f.type, priority:2, popHead:pop.head, popMeta:pop.meta, popText:pop.text });
       }
     });
   }
@@ -2726,14 +2730,15 @@ function plotFlatMarkers(){
       addPt(g.lat,g.lon,1.8,ctRgba(IW_GROUND.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,'iwl-ground');
     });
   }
-  // Taiwan theater on the main flat map: sector badge / area centroid / GCA point, all as small marks
-  const tg=(layerOn('mnd-adiz')||layerOn('cga-incident')||layerOn('gca-taiwan'))?twGeoNow():null;
+  // Taiwan theater on the main flat map: sector badge / area centroid / GCA point / chokepoint tag, all as small marks
+  const tg=(layerOn('mnd-adiz')||layerOn('cga-incident')||layerOn('gca-taiwan')||layerOn('ic-chokepoint'))?twGeoNow():null;
   if(tg){
     tg.features.forEach(f=>{
       if(!layerOn(f.type))return;
       if(f.type==='mnd-adiz'){if(!f.named)return;addPt(f.lat,f.lon,2.2,ctRgba(TW_LAYERS.adiz.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`,`Named in the bulletin \u00b7 ${Number(f.aircraft)||0} aircraft, ${Number(f.adizEntries)||0} entered the ADIZ. Sector reference point, not a track.`,'Taiwan MND daily PLA activity'),2,f.type);}
       else if(f.type==='cga-incident'){if(!twInWindow(f.published))return;const pop=twCgaPop(f);addPt(f.lat,f.lon,1.9,ctRgba(TW_LAYERS.cga.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,f.type);}
       else if(f.type==='gca-taiwan'){if(!twInWindow(f.published))return;addPt(f.lat,f.lon,1.5,ctRgba(TW_LAYERS.gca.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,`${esc(f.source||'GCA')} \u00b7 ${twWhen(f.published)}`,`${esc(f.title||'')}${f.locationName?`<br>Placed at ${esc(f.locationName)} (${esc(f.precision)})`:''}<br>${twLink(f.url,'article')}`,'GCA Taiwan feed \u00b7 observational'),2,f.type);}
+      else if(f.type==='ic-chokepoint'){const pop=twIcPop(f);addPt(f.lat,f.lon,2.0,ctRgba(twIcStateColor(f.state),0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,f.type);}
     });
   }
   if(fg){
@@ -3199,7 +3204,7 @@ function renderLower(){
       wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
       wrap(groupHead('US Enforcement · DOJ & OFAC',['DOJ','OFACNarco']),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
-    taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
+    taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwIronCommandPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     sources:[renderSourceHealthFullPanel()],
   };
@@ -4530,6 +4535,7 @@ const TW_LAYERS={
   adiz:{label:'MND ADIZ sectors (daily count)',color:'#ff9f43'},
   cga:{label:'CGA grey-zone incidents (area)',color:'#29b6f6'},
   gca:{label:'GCA observational (named / region)',color:'#b39ddb'},
+  ic:{label:'Chokepoint state \u00b7 Iron Command (derived)',color:'#ffd54f'},
   air:{label:'Aircraft \u00b7 OpenSky / ADS-B (live)',color:'#64f0c8'},
   isr:{label:'ISR / tanker / bomber airframes',color:'#ff4081'},
   carriers:{label:'Carrier groups (estimated)',color:'#4fc3f7'},
@@ -4566,6 +4572,14 @@ function twBadge(s,liveLabel){
   return `<span class="badge">${esc(liveLabel||'LIVE')}</span>`;
 }
 function twOffWhy(s,name){return s?.error||(s?.status==='empty'?`${name} answered but published nothing in its window`:`${name} not reachable this sweep`)}
+const TW_IC_STATE_COLOR={SPIKE:'#ff5252',ELEVATED:'#ffb74d',NORMAL:'#ffd54f',QUIET:'#9e9e9e',UNKNOWN:'#9e9e9e'};
+function twIcStateColor(s){return TW_IC_STATE_COLOR[String(s||'').toUpperCase()]||TW_IC_STATE_COLOR.UNKNOWN}
+function twIcTrend(t){return t==='up'?'\u2191':t==='down'?'\u2193':'\u2192'}
+function twIcPop(f){
+  return {head:`${esc(f.name||f.key||'Chokepoint')} \u00b7 ${esc(f.state||'UNKNOWN')} ${twIcTrend(f.trend)}`,
+    text:`${Number(f.events7d)||0} fused events / 7 d vs ${Number(f.eventsPrior7d)||0} prior 7 d (${esc(f.basis||'event-count')} basis)${f.generatedAt?`<br>Snapshot ${twWhen(f.generatedAt)}`:''}<br><span style="color:var(--dim)">Count of open-source report clusters Iron Command tied to this chokepoint \u2014 not vessel or aircraft activity. Fixed reference point, 6 h delayed.</span>`,
+    meta:'Iron Command Pacific Watch \u00b7 derived context'};
+}
 // Theater tracks from the payload CRUCIX already carries (OpenSky hotspots), restricted to the map box.
 function twAirTracks(){
   const out=[];const inBox=(la,lo)=>Number.isFinite(la)&&Number.isFinite(lo)&&la>=14&&la<=34&&lo>=110&&lo<=134;
@@ -4575,7 +4589,7 @@ function twAirTracks(){
 function twGeoNow(){
   const t=D.taiwan||{};
   if(!twOk(t))return null;
-  const key=[t.mnd?.fetchedAt,t.cga?.fetchedAt,t.gca?.fetchedAt].join('|');
+  const key=[t.mnd?.fetchedAt,t.cga?.fetchedAt,t.gca?.fetchedAt,t.ironcommand?.fetchedAt].join('|');
   if(twGeo&&twGeoKey===key)return twGeo;
   if(!twGeoBusy)loadTwGeo(key);
   return twGeo;
@@ -4588,7 +4602,7 @@ function loadTwGeo(key){
     const changed=!twGeo||twGeo.generatedAt!==g.generatedAt;
     twGeo=g;twGeoKey=key;twGeoFailed=false;
     renderTwChips();twDraw();
-    if(changed&&currentTab==='situation'&&(layerOn('mnd-adiz')||layerOn('cga-incident')||layerOn('gca-taiwan')))replotMap();
+    if(changed&&currentTab==='situation'&&(layerOn('mnd-adiz')||layerOn('cga-incident')||layerOn('gca-taiwan')||layerOn('ic-chokepoint')))replotMap();
   }).catch(()=>{twGeoBusy=false;twGeoFailed=true;twDraw()});
 }
 function twClosePopup(){document.getElementById('twPopup')?.classList.remove('show')}
@@ -4657,7 +4671,7 @@ function twDraw(){
   twLayersG.selectAll('*').remove();
   const k=twTransform?twTransform.k:1,t=D.taiwan||{},g=twGeoNow();
   const on=x=>twActive.on.has(x);
-  const gArea=twLayersG.append('g'),gAdiz=twLayersG.append('g'),gGca=twLayersG.append('g'),gAir=twLayersG.append('g'),gShip=twLayersG.append('g');
+  const gArea=twLayersG.append('g'),gAdiz=twLayersG.append('g'),gGca=twLayersG.append('g'),gIc=twLayersG.append('g'),gAir=twLayersG.append('g'),gShip=twLayersG.append('g');
   const pin=(gr,lon,lat,r,fill,stroke,sw,onclick,cls)=>{
     const xy=twProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
     return gr.append('circle').attr('class','tw-pin'+(cls?' '+cls:'')).attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r).attr('r',r/Math.sqrt(k)).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw).on('click',e=>{e.stopPropagation();onclick&&onclick(e)});
@@ -4666,7 +4680,7 @@ function twDraw(){
     const xy=twProj([lon,lat]);if(!xy||!Number.isFinite(xy[0]))return null;
     return gr.append('path').attr('class','tw-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('data-rot',rot||'').attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})${rot?` rotate(${rot})`:''}`).attr('d',d).attr('fill',fill).attr('stroke',stroke).attr('stroke-width',1).on('click',e=>{e.stopPropagation();onclick&&onclick(e)});
   };
-  const counts={adiz:0,cga:0,gca:0,air:0,isr:0,carriers:0};
+  const counts={adiz:0,cga:0,gca:0,ic:0,air:0,isr:0,carriers:0};
   if(g){
     // CGA: area circle (stated radius) at the area centroid — a release about that area, not a ship.
     if(on('cga'))g.features.filter(f=>f.type==='cga-incident'&&twInWindow(f.published)).forEach(f=>{
@@ -4696,6 +4710,19 @@ function twDraw(){
         :sym(gGca,f.lon,f.lat,'M0,-4.5 L4.5,0 L0,4.5 L-4.5,0 Z',ctRgba(TW_LAYERS.gca.color,0.45),TW_LAYERS.gca.color,e=>twPopup(e,pop.head,pop.text,pop.meta));
       if(p)counts.gca++;
     });
+    // Iron Command: chokepoint state tag at the chokepoint reference point. A derived count state, never a position.
+    if(on('ic'))g.features.filter(f=>f.type==='ic-chokepoint').forEach(f=>{
+      const xy=twProj([f.lon,f.lat]);if(!xy)return;
+      const col=twIcStateColor(f.state),pop=twIcPop(f);
+      const b=gIc.append('g').attr('class','tw-badge').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).style('cursor','pointer')
+        .on('click',e=>{e.stopPropagation();twPopup(e,pop.head,pop.text,pop.meta)});
+      const short=`${String(f.state||'?').toUpperCase().slice(0,8)} ${twIcTrend(f.trend)}`;
+      const bw=short.length*6.4+10;
+      b.append('rect').attr('x',-bw/2).attr('y',-16).attr('width',bw).attr('height',14).attr('rx',7).attr('fill','rgba(0,0,0,0.7)').attr('stroke',col).attr('stroke-width',1.2);
+      b.append('text').attr('y',-6.5).attr('text-anchor','middle').style('font-family','var(--mono)').style('font-size','8px').style('fill',col).text(short);
+      b.append('circle').attr('r',2.2).attr('fill',ctRgba(col,0.9)).attr('stroke','rgba(0,0,0,0.6)').attr('stroke-width',1);
+      counts.ic++;
+    });
   }
   // Live aircraft from the OpenSky / ADS-B payload — the one layer here that IS a position.
   if(on('air'))twAirTracks().forEach(tr=>{
@@ -4719,7 +4746,7 @@ function twDraw(){
     note.textContent=!twOk(t)?'SOURCES NOT AVAILABLE \u2014 only live aircraft (if any) plotted':g?`${total} features drawn \u00b7 ${TW_WINDOWS[twActive.win].label} window for CGA / GCA \u00b7 ${counts.air} live aircraft`:twGeoFailed?'GEOMETRY UNAVAILABLE \u2014 aircraft / carriers still drawn':'LOADING GEOMETRY\u2026';
   }
 }
-let twLastCounts={adiz:0,cga:0,gca:0,air:0,isr:0,carriers:0};
+let twLastCounts={adiz:0,cga:0,gca:0,ic:0,air:0,isr:0,carriers:0};
 function twCgaPop(f){
   const hulls=(f.hulls||[]).length?`<span style="color:var(--dim)">Hulls: </span>${f.hulls.map(esc).join(', ')}<br>`:'';
   return {head:`${esc(f.kindLabel||f.kind||'CGA release')} \u00b7 ${esc(f.area||'')}${f.published?' \u00b7 '+twWhen(f.published):''}`,
@@ -4733,12 +4760,13 @@ function renderTwChips(){
     adiz:(g?.features||[]).filter(f=>f.type==='mnd-adiz'&&f.named).length,
     cga:(g?.features||[]).filter(f=>f.type==='cga-incident'&&twInWindow(f.published)).length,
     gca:(g?.features||[]).filter(f=>f.type==='gca-taiwan'&&twInWindow(f.published)).length,
+    ic:(g?.features||[]).filter(f=>f.type==='ic-chokepoint').length,
     air:twAirTracks().length,isr:(t.signals?.isr||[]).length,carriers:(t.signals?.carriers||[]).length,
   };
-  const why={adiz:!twOk(t.mnd)?'MND not available':!g?'geometry loading':'no sector named today',cga:!twOk(t.cga)?'CGA not available':!g?'geometry loading':'nothing in this window',gca:!twOk(t.gca)?'GCA not available':!g?'geometry loading':'nothing placeable in this window',air:D.airMeta?.fallback?'ADS-B fallback has no theater tracks':'no tracks in the box this sweep',isr:'no ISR airframes in the Western-Pacific box',carriers:'no carrier estimates in the box'};
+  const why={adiz:!twOk(t.mnd)?'MND not available':!g?'geometry loading':'no sector named today',cga:!twOk(t.cga)?'CGA not available':!g?'geometry loading':'nothing in this window',gca:!twOk(t.gca)?'GCA not available':!g?'geometry loading':'nothing placeable in this window',ic:!twOk(t.ironcommand)?'Iron Command not available':!g?'geometry loading':'no theater chokepoints in the snapshot',air:D.airMeta?.fallback?'ADS-B fallback has no theater tracks':'no tracks in the box this sweep',isr:'no ISR airframes in the Western-Pacific box',carriers:'no carrier estimates in the box'};
   const chip=(k)=>{const v=TW_LAYERS[k],c=n[k],none=!c,on=twActive.on.has(k);return `<button type="button" class="lchip ${none?'none':on?'on':'off'}" style="--lc:${v.color}" title="${esc(none?`${v.label}: ${why[k]}`:`${v.label}: ${c}. Click to ${on?'hide':'show'}.`)}" ${none?'disabled':`onclick="twToggle('${k}')"`}><span class="ldot"></span>${esc(v.label)}${none?'':` <b>${c}</b>`}</button>`};
   el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">WINDOW</span>${Object.entries(TW_WINDOWS).map(([k,v])=>`<button type="button" class="lchip preset ${twActive.win===k?'on':'off'}" onclick="twSetWindow('${k}')">${v.label}</button>`).join('')}<button type="button" class="lchip preset off" onclick="twResetView()">RESET VIEW</button></div>`
-    +`<div class="ct-chiprow"><span class="lchip-head">OFFICIAL / OSINT</span>${['adiz','cga','gca'].map(chip).join('')}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">OFFICIAL / OSINT</span>${['adiz','cga','gca','ic'].map(chip).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">LIVE / ESTIMATED</span>${['air','isr','carriers'].map(chip).join('')}</div>`;
 }
 function renderTwMapPanel(){
@@ -4752,17 +4780,17 @@ function renderTwMapPanel(){
       <div class="front-kpi"><div class="k">PRC tension index (CRUCIX)</div><div class="v" style="color:${tensionColor}">${n(p.score)}<span style="font-size:9px;color:var(--dim)"> /100 \u00b7 ${esc(p.level||'')}</span></div><div class="s">${n(sig.strait?.chinaTracks)} CN tracks in Strait box \u00b7 ${n(sig.isr?.length)} ISR \u00b7 ${n(sig.carriers?.length)} carriers in theater</div></div>
     </div>`;
   return `<div class="g-panel tw-map-panel">
-      <div class="sec-head"><h3>${shDot(['TaiwanMND','TaiwanCGA','GCATaiwan'])}Taiwan Strait Theater — Official Counts, Grey Zone & Live Air</h3>${twBadge(t,'LIVE')}</div>
+      <div class="sec-head"><h3>${shDot(['TaiwanMND','TaiwanCGA','GCATaiwan','IronCommand'])}Taiwan Strait Theater — Official Counts, Grey Zone & Live Air</h3>${twBadge(t,'LIVE')}</div>
       ${kpis}
       <div id="twChips" class="ct-chips"></div>
       <div class="ct-map" id="twMapWrap">
         <svg id="twMapSvg"></svg>
         <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A FEATURE</div>
-        <div class="ct-key"><span><i style="width:14px;height:8px;border:1px solid #ff9f43;background:rgba(255,159,67,0.85);border-radius:2px"></i>ADIZ SECTOR NAMED TODAY</span><span><i style="border-radius:50%;border:1px dashed rgba(41,182,246,0.6);background:rgba(41,182,246,0.1);height:10px;width:10px;border-width:1px"></i>CGA AREA (NOT A SHIP)</span><span><i style="border-color:#b39ddb;background:rgba(179,157,219,0.6);height:8px;width:8px;transform:rotate(45deg)"></i>GCA REGION \u00b7 <i style="border-radius:50%;border-color:#b39ddb;background:rgba(179,157,219,0.85);height:8px;width:8px"></i>NAMED</span><span><i style="border-color:#64f0c8;background:rgba(100,240,200,0.9);height:8px;width:6px;clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)"></i>AIRCRAFT (RED = CN REGISTRY)</span><span><i class="dash" style="border-color:rgba(255,213,79,0.5)"></i>APPROX. ADIZ / MEDIAN LINE</span></div>
+        <div class="ct-key"><span><i style="width:14px;height:8px;border:1px solid #ff9f43;background:rgba(255,159,67,0.85);border-radius:2px"></i>ADIZ SECTOR NAMED TODAY</span><span><i style="border-radius:50%;border:1px dashed rgba(41,182,246,0.6);background:rgba(41,182,246,0.1);height:10px;width:10px;border-width:1px"></i>CGA AREA (NOT A SHIP)</span><span><i style="border-color:#b39ddb;background:rgba(179,157,219,0.6);height:8px;width:8px;transform:rotate(45deg)"></i>GCA REGION \u00b7 <i style="border-radius:50%;border-color:#b39ddb;background:rgba(179,157,219,0.85);height:8px;width:8px"></i>NAMED</span><span><i style="width:16px;height:8px;border:1px solid #ffd54f;background:rgba(0,0,0,0.7);border-radius:5px"></i>CHOKEPOINT STATE (IRON COMMAND, DERIVED)</span><span><i style="border-color:#64f0c8;background:rgba(100,240,200,0.9);height:8px;width:6px;clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)"></i>AIRCRAFT (RED = CN REGISTRY)</span><span><i class="dash" style="border-color:rgba(255,213,79,0.5)"></i>APPROX. ADIZ / MEDIAN LINE</span></div>
         <div class="map-popup" id="twPopup"><div class="pp-close" onclick="twClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
       </div>
       <div class="sh-note" id="twMapNote"></div>
-      <div class="ct-disc"><b>Read before use:</b> MND publishes daily <i>counts</i> and a map image, not tracks \u2014 the sector badges mark which ADIZ sector the bulletin named, at a fixed reference point. CGA circles are the named area of a press release, never a vessel position. GCA points are keyword-placed news items. Only the aircraft symbols are positions (OpenSky / ADS-B, registry country \u2260 operator).</div>
+      <div class="ct-disc"><b>Read before use:</b> MND publishes daily <i>counts</i> and a map image, not tracks \u2014 the sector badges mark which ADIZ sector the bulletin named, at a fixed reference point. CGA circles are the named area of a press release, never a vessel position. GCA points are keyword-placed news items. Chokepoint tags are Iron Command\u2019s fused-report count state (SPIKE / ELEVATED / QUIET) at a fixed reference point, 6 h delayed. Only the aircraft symbols are positions (OpenSky / ADS-B, registry country \u2260 operator).</div>
     </div>`;
 }
 // Tiny SVG trend: bars = aircraft/day (Skyfaring CC BY mirror of MND), dots = median-line crossings.
@@ -4855,6 +4883,38 @@ function renderTwGcaPanel(){
     <div class="ct-scroll">${rows.join('')||'<div class="g-off-why">Nothing on-topic in the feed this sweep.</div>'}</div>
     <div class="ct-disc"><b>${esc(g.attribution||'Source: Global Conflict Awareness (globalconflictawareness.com) \u2014 OSINT aggregation')}</b> \u00b7 ${esc(g.license||'CC BY-NC')}${g.licenseUrl?' \u00b7 '+twLink(g.licenseUrl,'license'):''} \u00b7 <a href="${esc(site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">open their live Taiwan map \u2197</a>. A keyword-filtered news aggregator: most records are pinned to Taiwan\u2019s centroid and the raw feed carries sport / business noise, which CRUCIX filters out. Observational only \u2014 not ground truth, not corroboration.</div></div>`;
 }
+// Iron Command Pacific Watch: chokepoint states, standing-watch tripwires and graded multi-source events.
+// Derived context (news fusion, 6 h delayed), attributed with a link back; never feeds prcTension.
+function twIcSpark(spark,col){
+  const v=(spark||[]).map(x=>Math.max(0,Number(x)||0));if(v.length<2)return '';
+  const W=70,H=16,mx=Math.max(1,...v);
+  const pts=v.map((x,i)=>`${(i*(W-2)/(v.length-1)+1).toFixed(1)},${(H-1-(x/mx)*(H-3)).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="vertical-align:middle;margin-left:6px" role="img" aria-label="${v.length}-day event-count sparkline"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.2"/><title>Daily fused-event counts, oldest \u2192 newest: ${v.join(', ')}</title></svg>`;
+}
+function renderTwIronCommandPanel(){
+  const i=D.taiwan?.ironcommand||{};
+  const site=i.siteUrl?safeExternalUrl(i.siteUrl):'https://www.ironcommand.co/watch';
+  const attrib=esc(i.attribution||'Source: Iron Command Pacific Watch (ironcommand.co) \u2014 multi-source OSINT fusion, 6 h delayed');
+  if(!twOk(i))return `<div class="g-panel g-off tw-ic-panel"><div class="sec-head"><h3>${shDot('IronCommand')}Iron Command Pacific Watch — Derived Context</h3>${twBadge(i)}</div><div class="g-off-why">${esc(twOffWhy(i,'Iron Command snapshot'))}. <a href="${esc(site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">Open Pacific Watch \u2197</a></div><div class="sh-note">${attrib}</div></div>`;
+  const cps=(i.chokepoints||[]).map(c=>{const col=twIcStateColor(c.state);const go=Number.isFinite(c.lat)?` onclick="twFocusAt(${Number(c.lat)},${Number(c.lon)},4)" title="Centre the theater map here"`:' style="cursor:default"';
+    return `<div class="front-row"${go}><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}">${esc(String(c.state||'?'))} ${twIcTrend(c.trend)}</span><span style="flex:1;min-width:0">${esc(c.name||c.key||'')}${twIcSpark(c.spark,col)}<div class="ct-org-sub"><b style="color:${col}">${Number(c.events7d)||0}</b> fused events / 7 d \u00b7 ${Number(c.eventsPrior7d)||0} prior 7 d \u00b7 ${esc(c.basis||'event-count')} basis</div></span></div>`}).join('');
+  const wires=(i.tripwires||[]).filter(w=>w.theater).map(w=>{const col=w.fired7d?'#ff5252':w.lastFired?'#ffd54f':'#9e9e9e';
+    return `<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}">${w.fired7d?'FIRED 7 D':w.lastFired?'ARMED':'NEVER FIRED'}</span><span style="flex:1;min-width:0">${esc(w.description||'')}<div class="ct-org-sub">${w.lastFired?`last fired ${esc(w.lastFired)}`:'no firing on record'}</div></span></div>`}).join('');
+  const gradeCol=g=>({A:'#64f0c8',B:'#90caf9',C:'#ffd54f',D:'#ffab40',E:'#9e9e9e',F:'#9e9e9e'})[g]||'#9e9e9e';
+  const evs=(i.events||[]).map(e=>{const u=e.url?safeExternalUrl(e.url):null;const col=gradeCol(e.grade);
+    const title=u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(e.title)}</a>`:esc(e.title||'');
+    const srcs=(e.sources||[]).slice(0,4).map(esc).join(', ')+((e.sourceCount||0)>4?` +${e.sourceCount-4}`:'');
+    return `<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}" title="Admiralty source-reliability grade ${esc(e.grade||'?')}">${esc(e.grade||'?')} \u00b7 ${Number(e.corroboration)||0}</span><span style="flex:1;min-width:0">${title}<div class="ct-org-sub">${esc(e.place||e.region||'')} (centroid) \u00b7 ${Number(e.sourceCount)||0} sources: ${srcs}</div></span><span class="front-when">${esc(twWhen(e.last))}</span></div>`}).join('');
+  const st=i.stats||{};
+  const meta=[`snapshot ${i.generatedAt?twWhen(i.generatedAt):'\u2014'}`,Number.isFinite(i.embargoHours)?`${i.embargoHours} h embargo`:null,st.feeds?`${st.feeds} feeds`:null,st.mndDuplicates?`${st.mndDuplicates} MND daily transcription${st.mndDuplicates===1?'':'s'} dropped (polled directly)`:null].filter(Boolean).join(' \u00b7 ');
+  return `<div class="g-panel tw-ic-panel"><div class="sec-head"><h3>${shDot('IronCommand')}Iron Command Pacific Watch — Derived Context</h3>${twBadge(i,`${st.spike||0} SPIKE \u00b7 ${st.elevated||0} ELEVATED`)}</div>
+    <div class="front-legend"><span>${esc(meta)}</span></div>
+    <div class="sh-group">Chokepoint activity state \u00b7 fused-event counts, not traffic</div>${cps||'<div class="g-off-why">No theater chokepoints in the snapshot.</div>'}
+    <div class="sh-group">Standing-watch tripwires</div>${wires||'<div class="g-off-why">No theater tripwires in the snapshot.</div>'}
+    <div class="sh-group">Graded multi-source events in theater \u00b7 ${Number(st.shown)||0} shown (grade \u00b7 corroborating reports)</div>
+    <div class="ct-scroll">${evs||'<div class="g-off-why">No in-theater event clusters this sweep.</div>'}</div>
+    <div class="ct-disc"><b>${attrib}</b> \u00b7 ${esc(i.license||'attribution + link-back')} \u00b7 <a href="${esc(site)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">open Pacific Watch \u2197</a>${i.methodologyUrl?' \u00b7 '+twLink(i.methodologyUrl,'methodology'):''}. Grades are NATO Admiralty <i>source reliability</i>, not confidence that an event happened. Chokepoint states count fused report clusters over 7 days versus the prior 7, not ships or aircraft. Coordinates are place centroids. Nothing here feeds the PRC tension index.</div></div>`;
+}
 function renderTwMarketsPanel(){
   const p=D.taiwan?.markets||{};
   if(!twOk(p)||!(p.markets||[]).length)return offPanel('Threat Markets — Market-Implied Odds','TaiwanMarkets',twOffWhy(p,'Polymarket'),'tw-markets-panel');
@@ -4894,10 +4954,10 @@ function renderTwLinkOutsPanel(){
     <div class="ct-scroll">${rows||'<div class="g-off-why">No link-outs listed.</div>'}</div>
     <div class="sh-note">Sources CRUCIX does not fetch server-side (request-based data policies, bot challenges, no feed). Listed so the gap is visible rather than silently skipped; nothing from them is shown as data.</div></div>`;
 }
-// Left rail: how each of the five parts behaved this sweep.
+// Left rail: how each of the six parts behaved this sweep.
 function renderTwSourcePanel(){
   const t=D.taiwan||{};
-  const parts=[['mnd','Taiwan MND bulletin',t.mnd],['cga','Taiwan CGA releases',t.cga],['news','Focus Taiwan / Taipei Times',t.news],['gca','GCA Taiwan feed',t.gca],['markets','Polymarket allow-list',t.markets]];
+  const parts=[['mnd','Taiwan MND bulletin',t.mnd],['cga','Taiwan CGA releases',t.cga],['news','Focus Taiwan / Taipei Times',t.news],['gca','GCA Taiwan feed',t.gca],['markets','Polymarket allow-list',t.markets],['ironcommand','Iron Command snapshot',t.ironcommand]];
   const stClass=s=>s==='live'?'live':s==='limited'||s==='stale'||s==='empty'?'degraded':s==='no-key'?'no_key':s==='link-out'?'off':'error';
   const rows=parts.map(([k,label,s])=>{
     const st=s?.status||'unavailable';
@@ -4906,7 +4966,7 @@ function renderTwSourcePanel(){
     return `<div class="sh-row ${stClass(st)}" style="align-items:flex-start"><span class="hdot ${stClass(st)}" style="margin-top:4px"></span><span class="sh-name" style="flex:0 0 118px">${esc(label)}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2;text-align:left">${esc(detail)}${s?.error&&st!=='live'?`<div style="color:#ff8a65">${esc(s.error)}</div>`:''}</span></div>${probs}`;
   }).join('');
   const mp=t.mnd?.parts||{};const mndParts=Object.keys(mp).length?`<div class="ct-org-sub" style="margin:4px 0 0 16px">MND parts: ${Object.entries(mp).map(([k,v])=>`<span style="color:${v==='ok'?'#64f0c8':'#ff8a65'}">${esc(k)}</span>`).join(' \u00b7 ')}</div>`:'';
-  return `<div class="g-panel tw-source-panel"><div class="sec-head"><h3>${shDot(['TaiwanMND','TaiwanCGA','TaiwanNews','GCATaiwan','TaiwanMarkets'])}China / Taiwan Sources</h3>${twBadge(t,'ALL LIVE')}</div>
+  return `<div class="g-panel tw-source-panel"><div class="sec-head"><h3>${shDot(['TaiwanMND','TaiwanCGA','TaiwanNews','GCATaiwan','TaiwanMarkets','IronCommand'])}China / Taiwan Sources</h3>${twBadge(t,'ALL LIVE')}</div>
     ${rows}${mndParts}
     <div class="sh-note">LIVE = fetched and parsed this sweep; LIMITED = a part failed or the cross-check disagrees; STALE = serving a cached copy; EMPTY = the feed answered with nothing on-topic. Official Taiwan sources (MND, CGA) are polled identified, at most hourly, under the Open Government Data License. A degraded part here never changes CRUCIX\u2019s overall health.</div></div>`;
 }
