@@ -2442,7 +2442,7 @@ function plotMarkers(){
       if(!layerOn(f.type)) return;
       if(f.type === 'mnd-adiz'){
         if(!f.named) return;
-        points.push({ lat:f.lat, lng:f.lon, size:0.16, alt:0.01, color:TW_LAYERS.adiz.color, type:f.type, priority:2, popHead:`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`, popMeta:'Taiwan MND daily PLA activity', popText:`Named in the bulletin \u00b7 ${Number(f.aircraft)||0} aircraft, ${Number(f.adizEntries)||0} entered the ADIZ. Sector reference point, not a track.` });
+        points.push({ lat:f.lat, lng:f.lon, size:0.16, alt:0.01, color:TW_LAYERS.adiz.color, type:f.type, priority:2, popHead:`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`, popMeta:'Taiwan MND daily PLA activity', popText:`Named in the bulletin \u00b7 ${twN(f.aircraft)} aircraft, ${twN(f.adizEntries)} entered the ADIZ. Sector reference point, not a track.` });
       } else if(f.type === 'cga-incident'){
         if(!twInWindow(f.published)) return;
         const pop = twCgaPop(f);
@@ -2731,7 +2731,7 @@ function plotFlatMarkers(){
   if(tg){
     tg.features.forEach(f=>{
       if(!layerOn(f.type))return;
-      if(f.type==='mnd-adiz'){if(!f.named)return;addPt(f.lat,f.lon,2.2,ctRgba(TW_LAYERS.adiz.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`,`Named in the bulletin \u00b7 ${Number(f.aircraft)||0} aircraft, ${Number(f.adizEntries)||0} entered the ADIZ. Sector reference point, not a track.`,'Taiwan MND daily PLA activity'),2,f.type);}
+      if(f.type==='mnd-adiz'){if(!f.named)return;addPt(f.lat,f.lon,2.2,ctRgba(TW_LAYERS.adiz.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`,`Named in the bulletin \u00b7 ${twN(f.aircraft)} aircraft, ${twN(f.adizEntries)} entered the ADIZ. Sector reference point, not a track.`,'Taiwan MND daily PLA activity'),2,f.type);}
       else if(f.type==='cga-incident'){if(!twInWindow(f.published))return;const pop=twCgaPop(f);addPt(f.lat,f.lon,1.9,ctRgba(TW_LAYERS.cga.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,pop.head,pop.text,pop.meta),2,f.type);}
       else if(f.type==='gca-taiwan'){if(!twInWindow(f.published))return;addPt(f.lat,f.lon,1.5,ctRgba(TW_LAYERS.gca.color,0.9),'rgba(0,0,0,0.6)',ev=>showPopup(ev,`${esc(f.source||'GCA')} \u00b7 ${twWhen(f.published)}`,`${esc(f.title||'')}${f.locationName?`<br>Placed at ${esc(f.locationName)} (${esc(f.precision)})`:''}<br>${twLink(f.url,'article')}`,'GCA Taiwan feed \u00b7 observational'),2,f.type);}
     });
@@ -4552,6 +4552,8 @@ function twToggle(k){if(!TW_LAYERS[k])return;if(twActive.on.has(k))twActive.on.d
 function twSetWindow(w){if(!TW_WINDOWS[w])return;twActive.win=w;twSave();renderTwChips();twDraw()}
 function twInWindow(at){const ms=TW_WINDOWS[twActive.win].ms;if(ms===Infinity)return true;const t=Date.parse(at||'');return Number.isFinite(t)&&Date.now()-t<=ms}
 function twWhen(at){const t=Date.parse(at||'');return Number.isFinite(t)?new Date(t).toISOString().slice(5,16).replace('T',' ')+'Z':''}
+// MND publishes counts; a count MND did not state is shown as "—", never as 0.
+function twN(v){return Number.isFinite(v)?String(v):'\u2014'}
 function twAgeTxt(h){return !Number.isFinite(h)?'age unknown':h<1?'<1h old':h<48?`${Math.round(h)}h old`:`${Math.round(h/24)}d old`}
 function twLink(url,label){const u=url?safeExternalUrl(url):null;return u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)" onclick="event.stopPropagation()">${esc(label||'source')} \u2197</a>`:''}
 function twBadge(s,liveLabel){
@@ -4681,7 +4683,7 @@ function twDraw(){
     if(on('adiz'))g.features.filter(f=>f.type==='mnd-adiz').forEach(f=>{
       const xy=twProj([f.lon,f.lat]);if(!xy)return;
       const b=gAdiz.append('g').attr('class','tw-badge').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).style('cursor','pointer')
-        .on('click',e=>{e.stopPropagation();twPopup(e,`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`,`${f.named?'<b style="color:#ffd180">Named in the bulletin</b>':'<span style="color:var(--dim)">Not named in the bulletin</span>'}<br>Bulletin totals: ${Number(f.aircraft)||0} aircraft \u00b7 ${Number(f.adizEntries)||0} entered the ADIZ<br><span style="color:var(--dim)">Sector reference point only \u2014 MND publishes counts and a map image, not tracks.</span>`,'Taiwan MND daily PLA activity')});
+        .on('click',e=>{e.stopPropagation();twPopup(e,`ADIZ ${f.label||f.key} sector \u00b7 MND ${f.date||''}`,`${f.named?'<b style="color:#ffd180">Named in the bulletin</b>':'<span style="color:var(--dim)">Not named in the bulletin</span>'}<br>Bulletin totals: ${twN(f.aircraft)} aircraft \u00b7 ${twN(f.adizEntries)} entered the ADIZ<br><span style="color:var(--dim)">Sector reference point only \u2014 MND publishes counts and a map image, not tracks.</span>`,'Taiwan MND daily PLA activity')});
       const short=TW_SECTOR_SHORT[String(f.key||'').toLowerCase()]||String(f.label||f.key).toUpperCase().slice(0,4);
       const bw=short.length*6.4+10;
       b.append('rect').attr('x',-bw/2).attr('y',-7).attr('width',bw).attr('height',14).attr('rx',2).attr('fill',f.named?ctRgba(TW_LAYERS.adiz.color,0.85):'rgba(0,0,0,0.65)').attr('stroke',TW_LAYERS.adiz.color).attr('stroke-width',1).attr('stroke-dasharray',f.named?null:'2 2');
