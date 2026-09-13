@@ -49,7 +49,6 @@ import { briefing as cbpseizures } from './sources/cbpseizures.mjs';
 import { briefing as cbpforce } from './sources/cbpforce.mjs';
 import { briefing as cbpcustody } from './sources/cbpcustody.mjs';
 import { briefing as trac } from './sources/trac.mjs';
-import { briefing as plamnd } from './sources/plamnd.mjs';
 
 // === Tier 8: Market Intelligence ===
 import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
@@ -110,7 +109,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'TRAC', 'PLAMND', 'DOJ', 'OFACNarco']); // sources that need extra time (CBP multi-MB CSVs, TRAC 5 MB facilities JSON, MND paced detail fetches, DOJ paged backfill, OFAC 30 MB XML)
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'TRAC', 'DOJ', 'OFACNarco']); // sources that need extra time (CBP multi-MB CSVs, TRAC 5 MB facilities JSON, DOJ paged backfill, OFAC 30 MB XML)
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
@@ -236,8 +235,6 @@ export async function fullBriefing() {
     runSource('CBPCustody', cbpcustody),
     // ICE detention (TRAC, Syracuse University): detained population, book-ins, facilities, ATD
     runSource('TRAC', trac),
-    // Taiwan MND daily PLA air/naval activity around Taiwan (robots-gated, see plamnd.mjs)
-    runSource('PLAMND', plamnd),
 
     // Tier 17: Homeland / Narco — official records + sanctions + commercial slots
     runSource('DOJ', doj),

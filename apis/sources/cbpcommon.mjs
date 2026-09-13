@@ -202,9 +202,7 @@ export function readJson(p, fallback) { try { return JSON.parse(readFileSync(p, 
 //   HTML (kind:'html')  fixed pageUrl, validated by dataset.validate(text) → { meta, text }
 //   JSON (kind:'json')  fixed pageUrl, validated by dataset.validate(parsed) → { meta, text, json, records }
 // meta.status: ok | not_modified | stale | error
-// `ignoreRobots` is an operator opt-in for hosts whose robots.txt blanket-disallows non-search
-// crawlers; the note it leaves is surfaced on the dashboard.
-export async function loadDataset(dataset, { fetchImpl, dataDir, state, now, ignoreRobots = false }) {
+export async function loadDataset(dataset, { fetchImpl, dataDir, state, now }) {
   const cachePath = join(dataDir, dataset.cacheFile);
   const prev = state[dataset.id] || {};
   const notes = [];
@@ -221,8 +219,7 @@ export async function loadDataset(dataset, { fetchImpl, dataDir, state, now, ign
     if (!discovered.url) notes.push(`${discovered.reason}; using ${prev.url ? 'last known' : 'fallback'} URL`);
   }
 
-  const robots = ignoreRobots ? { allowed: true } : await checkRobots(url, { fetch: fetchImpl });
-  if (ignoreRobots) notes.push('robots.txt override enabled by operator');
+  const robots = await checkRobots(url, { fetch: fetchImpl });
   const meta = {
     id: dataset.id, title: dataset.title, kind: isHtml ? 'html' : isJson ? 'json' : 'csv', url, discoveryPage: dataset.discoveryPage || dataset.pageUrl, discovered: discoveredOk,
     header: prev.header || null, etag: prev.etag || null, lastModified: prev.lastModified || null, fetchedAt: prev.fetchedAt || null, bytes: prev.bytes || null,
@@ -295,10 +292,8 @@ export async function loadDatasets(datasets, opts = {}) {
   const statePath = join(dataDir, opts.stateFile || 'state.json');
   const state = readJson(statePath, {});
 
-  const ignoreRobots = opts.ignoreRobots === true;
-
   const loaded = [];
-  for (const ds of datasets) loaded.push(await loadDataset(ds, { fetchImpl, dataDir, state, now, ignoreRobots }));
+  for (const ds of datasets) loaded.push(await loadDataset(ds, { fetchImpl, dataDir, state, now }));
 
   for (const d of loaded) {
     if (d.meta.status === 'ok' || d.meta.status === 'not_modified') {

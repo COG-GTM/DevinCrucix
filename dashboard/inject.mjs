@@ -1305,30 +1305,6 @@ export async function synthesize(data) {
         } : null,
       };
     })(),
-    // Taiwan MND daily PLA activity reports (robots-gated; see apis/sources/plamnd.mjs)
-    plamnd: (() => {
-      const p = data.sources.PLAMND || {};
-      const a = p.activity;
-      const day = r => ({ date: cbpStr(r.date, 10), aircraft: cbpNullable(r.aircraft), adizSorties: cbpNullable(r.adizSorties), ships: cbpNullable(r.ships), officialShips: cbpNullable(r.officialShips), balloons: cbpNullable(r.balloons), medianLine: !!r.medianLine });
-      const win = w => (w ? { days: cbpNum(w.days), aircraft: cbpNum(w.aircraft), adizSorties: cbpNum(w.adizSorties), ships: cbpNullable(w.ships), officialShips: cbpNullable(w.officialShips), balloons: cbpNum(w.balloons), aircraftPerDay: cbpNullable(w.aircraftPerDay), medianLineDays: cbpNullable(w.medianLineDays) } : null);
-      return {
-        ...cbpSourceMeta(p, 2),
-        message: p.message ? cbpStr(p.message, 200) : null,
-        siteUrl: sanitizeExternalUrl(p.siteUrl),
-        robotsOverride: !!p.robotsOverride,
-        activity: a ? {
-          asOf: cbpStr(a.asOf, 10), reports: cbpNum(a.reports), earliest: cbpStr(a.earliest, 10),
-          latest: a.latest ? {
-            ...day(a.latest), window: cbpStr(a.latest.window, 120), windowEndUtc: a.latest.windowEndUtc ? cbpStr(a.latest.windowEndUtc, 30) : null,
-            adizSectors: cbpSeries(a.latest.adizSectors, 9).map(s => cbpStr(s, 16)), url: sanitizeExternalUrl(a.latest.url), chartUrl: sanitizeExternalUrl(a.latest.chartUrl), text: cbpStr(a.latest.text, 400),
-          } : null,
-          last7: win(a.last7), last30: win(a.last30),
-          aircraftPerDayDelta7: cbpNullable(a.aircraftPerDayDelta7),
-          peak: a.peak ? { date: cbpStr(a.peak.date, 10), aircraft: cbpNullable(a.peak.aircraft), adizSorties: cbpNullable(a.peak.adizSorties), url: sanitizeExternalUrl(a.peak.url) } : null,
-          series: cbpSeries(a.series, 30).map(day),
-        } : null,
-      };
-    })(),
     // Phase 5: Telegram OSINT Live (background scraper data)
     telegramLive: (() => {
       const tlData = data.sources.TelegramLive || {};
