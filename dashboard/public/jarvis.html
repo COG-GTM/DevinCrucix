@@ -1262,7 +1262,9 @@ const TAB_ALIASES={regional:'cartels'};
 function resolveTab(id){const v=String(id||'');return TAB_IDS.includes(v)?v:TAB_ALIASES[v]||null}
 function tabFromHash(){return resolveTab((location.hash||'').replace(/^#/,''))}
 let currentTab = tabFromHash() || resolveTab(localStorage.getItem('crucix_tab')) || 'situation';
-if(location.hash&&location.hash!=='#'+currentTab) history.replaceState(null,'',location.pathname+location.search+'#'+currentTab);
+// Single writer for the URL hash: only canonical tab ids ever land in the address bar (never a retired alias).
+function syncHash(id){if(location.hash!=='#'+id) history.replaceState(null,'',location.pathname+location.search+'#'+id)}
+if(location.hash) syncHash(currentTab);
 function tabCounts(){
   const sit=D.situation||{};const c=sit.counts||{};
   const hot=(c.critical||0)+(c.high||0);
@@ -1327,7 +1329,7 @@ function setTab(id, opts={}){
   const changed=id!==currentTab;
   currentTab=id;
   localStorage.setItem('crucix_tab',id);
-  if(location.hash!=='#'+id) history.replaceState(null,'',location.pathname+location.search+'#'+id);
+  syncHash(id);
   applyTabLayout();
   renderTabbar();renderLeftRail();renderLower();renderRight();
   if(id==='situation'){renderSituationStrip();refreshMapViewport(changed && !isFlat);}
@@ -1337,7 +1339,7 @@ function applyTabLayout(){
   const g=document.getElementById('grid');if(!g)return;
   g.classList.toggle('no-map',currentTab!=='situation');
 }
-window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h&&location.hash!=='#'+h)history.replaceState(null,'',location.pathname+location.search+'#'+h);});
+window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h)syncHash(h);});
 
 // === SITUATION STRIP (rule-based headlines from lib/situation.mjs; all text is third-party-derived → esc()) ===
 const SIT_TAB_LABEL=Object.fromEntries(TAB_DEFS.map(t=>[t.id,t.label]));
