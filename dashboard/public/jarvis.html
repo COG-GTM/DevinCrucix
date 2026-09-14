@@ -348,6 +348,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .kg-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:8px;margin-top:6px}
 @media (max-width:1100px){.kg-wrap{grid-template-columns:1fr}}
 .kg-canvas{position:relative;height:clamp(420px,56vh,640px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden}
+.kg-wrap.tall .kg-canvas,.kg-wrap.tall .kg-detail{height:clamp(560px,82vh,1100px);max-height:none}
+.kg-acts{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 2px}
 .kg-canvas svg{width:100%;height:100%;display:block;cursor:grab}
 .kg-canvas svg:active{cursor:grabbing}
 .kg-link{fill:none;stroke-opacity:0.35}
@@ -356,8 +358,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .kg-node{cursor:pointer}
 .kg-node circle{stroke:rgba(0,0,0,0.75);stroke-width:1px}
 .kg-node.dim{opacity:0.18}
-.kg-node.sel circle{stroke:#fff;stroke-width:2px}
-.kg-node text{font-family:var(--mono);font-size:8px;fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(2,4,8,0.9);stroke-width:3px}
+.kg-node.sel .kg-dot{stroke:#fff;stroke-width:2px}
+.kg-node .kg-pin{display:none;fill:none;stroke:#ffd54f;stroke-width:1px;stroke-dasharray:2 2;opacity:0.8}
+.kg-node.pin .kg-pin{display:block}
+.kg-node text{display:none;font-family:var(--mono);font-size:8px;fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(2,4,8,0.9);stroke-width:3px}
+.kg-node.lbl text,.kg-node.hover text{display:block}
+.kg-node.hover .kg-dot{stroke:#fff;stroke-width:1.5px}
 .kg-node.root text{font-size:11px;fill:#fff}
 .kg-detail{border:1px solid var(--border);padding:8px;font-size:10px;line-height:1.45;max-height:clamp(420px,56vh,640px);overflow-y:auto;scrollbar-width:thin;background:rgba(0,0,0,0.25)}
 .kg-detail h4{font-family:var(--mono);font-size:11px;letter-spacing:0.04em;margin:0 0 2px;color:#e6f2ee}
@@ -3234,7 +3240,11 @@ function renderLower(){
   grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
-  if(currentTab==='cartels')requestAnimationFrame(initCjngGraph);
+  if(currentTab==='cartels'){
+    // Keep the live graph DOM (simulation, pins, zoom) across sweep re-renders instead of rebuilding it.
+    const ph=document.getElementById('cjngGraphPanel');
+    if(kgData&&kgSim&&kgLiveEl&&ph&&ph!==kgLiveEl)ph.replaceWith(kgLiveEl);else requestAnimationFrame(initCjngGraph);
+  }
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
@@ -5050,20 +5060,80 @@ const KG_TYPE_COLOR={org:'#ff8a65',faction:'#ffb74d',person:'#64f0c8',place:'#64
 const KG_TYPE_LABEL={org:'Organizations',faction:'CJNG factions',person:'People',place:'Places (MX)',country:'Countries',topic:'Topics'};
 const KG_REL_COLOR={leader_of:'#ffd54f',member_of:'#a5d6a7',family_of:'#f48fb1',rival_of:'#ff5252',allied_with:'#4dd0e1',lineage:'#ba68c8',operates_in:'#64b5f6',linked_topic:'#9e9e9e',mentioned_with:'#546e7a'};
 const KG_REL_ORDER=['leader_of','member_of','family_of','rival_of','allied_with','lineage','operates_in','linked_topic','mentioned_with'];
+const KG_SPREADS=[[0.7,'tight'],[1,'normal'],[1.35,'wide'],[1.8,'loose']];
 let kgData=null,kgLoading=false,kgError=null,kgSel=null,kgSim=null,kgTransform=null;
+// Live handles for in-place updates (selection, pins, physics) without rebuilding the simulation.
+let kgLiveEl=null,kgView=null,kgPhysics=true,kgFocus=null,kgHeat=null,kgFitNext=false;
+// id -> {x,y,pinned}. Pinned nodes keep fx/fy across filter changes, SSE re-renders and tab switches.
 const kgPos=new Map();
 const kgPref=(()=>{try{return JSON.parse(localStorage.getItem('crucix.kg')||'{}')}catch{return{}}})();
 let kgTypes=new Set(Array.isArray(kgPref.types)?kgPref.types.filter(t=>KG_TYPE_COLOR[t]):['org','faction','person','place']);
 let kgRels=new Set(Array.isArray(kgPref.rels)?kgPref.rels.filter(r=>KG_REL_COLOR[r]):KG_REL_ORDER.filter(r=>r!=='mentioned_with'));
 let kgMin=[1,2,3,5].includes(kgPref.min)?kgPref.min:3;
-function kgSave(){try{localStorage.setItem('crucix.kg',JSON.stringify({types:[...kgTypes],rels:[...kgRels],min:kgMin}))}catch{}}
-function kgToggleType(t){if(kgTypes.has(t))kgTypes.delete(t);else kgTypes.add(t);kgSave();kgRerender()}
-function kgToggleRel(r){if(kgRels.has(r))kgRels.delete(r);else kgRels.add(r);kgSave();kgRerender()}
-function kgSetMin(m){kgMin=m;kgSave();kgRerender()}
-function kgSelect(id){kgSel=kgSel===id?null:id;kgRerender()}
-function kgRerender(){
-  const el=document.getElementById('cjngGraphPanel');
-  if(!el)return;
+let kgSpread=KG_SPREADS.some(s=>s[0]===kgPref.spread)?kgPref.spread:1;
+let kgTall=kgPref.tall===true;
+const kgSafeId=id=>typeof id==='string'&&id.length<=160&&/^[a-z0-9:_\-.\/|]+$/i.test(id)?id:'';
+function kgSave(){try{localStorage.setItem('crucix.kg',JSON.stringify({types:[...kgTypes],rels:[...kgRels],min:kgMin,spread:kgSpread,tall:kgTall}))}catch{}}
+function kgToggleType(t){if(kgTypes.has(t))kgTypes.delete(t);else kgTypes.add(t);kgSave();kgRerender(0.5)}
+function kgToggleRel(r){if(kgRels.has(r))kgRels.delete(r);else kgRels.add(r);kgSave();kgRerender(0.5)}
+function kgSetMin(m){kgMin=m;kgSave();kgRerender(0.5)}
+function kgSetSpread(s){kgSpread=KG_SPREADS.some(x=>x[0]===s)?s:1;kgSave();kgFitNext=true;kgRerender(0.9)}
+function kgToggleTall(){kgTall=!kgTall;kgSave();kgFitNext=true;kgRerender(0.3)}
+function kgIsolate(id,hops){id=kgSafeId(id);if(!id)return;kgFocus={id,hops:hops===2?2:1};kgSel=id;kgFitNext=true;kgRerender(0.9)}
+function kgShowAll(){kgFocus=null;kgFitNext=true;kgRerender(0.6)}
+function kgSelect(id){
+  id=kgSafeId(id);kgSel=kgSel===id?null:id;
+  if(kgView)kgApplySel();else kgRerender();
+  const det=document.getElementById('kgDetail');if(det)det.innerHTML=kgDetail();
+}
+function kgTogglePhysics(){
+  kgPhysics=!kgPhysics;
+  if(kgSim){if(kgPhysics)kgSim.alpha(0.3).restart();else kgSim.stop()}
+  kgSyncTools();
+}
+function kgReleasePins(){
+  for(const [id,p] of kgPos)kgPos.set(id,{x:p.x,y:p.y,pinned:false});
+  if(kgSim){for(const n of kgSim.nodes()){n.fx=null;n.fy=null}if(kgPhysics)kgSim.alpha(0.6).restart()}
+  if(kgView)kgView.node.classed('pin',false);
+  kgSyncTools();
+}
+function kgUnpin(id){
+  id=kgSafeId(id);const p=kgPos.get(id);if(p)kgPos.set(id,{x:p.x,y:p.y,pinned:false});
+  if(kgSim){const n=kgSim.nodes().find(n=>n.id===id);if(n){n.fx=null;n.fy=null;if(kgPhysics)kgSim.alpha(0.3).restart()}}
+  if(kgView)kgView.node.filter(n=>n.id===id).classed('pin',false);
+  kgSyncTools();const det=document.getElementById('kgDetail');if(det)det.innerHTML=kgDetail();
+}
+function kgFit(){
+  if(!kgSim||!kgView)return;
+  const ns=kgSim.nodes();if(!ns.length)return;
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for(const n of ns){x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x);y1=Math.max(y1,n.y)}
+  const {W,H}=kgView;
+  const k=Math.max(0.3,Math.min(2.2,0.92/Math.max((x1-x0+80)/W,(y1-y0+80)/H,0.01)));
+  kgView.svg.transition().duration(500).call(kgView.zoom.transform,d3.zoomIdentity.translate(W/2-k*(x0+x1)/2,H/2-k*(y0+y1)/2).scale(k));
+}
+function kgSnapshotPositions(){
+  if(!kgSim)return;
+  for(const n of kgSim.nodes()){const pinned=n.fx!=null&&n.fy!=null;kgPos.set(n.id,{x:pinned?n.fx:n.x,y:pinned?n.fy:n.y,pinned})}
+}
+function kgPinnedCount(){let c=0;for(const p of kgPos.values())if(p.pinned)c++;return c}
+function kgSyncTools(){
+  const ph=document.getElementById('kgPhysBtn');if(ph){ph.textContent=kgPhysics?'PHYSICS ON':'PHYSICS OFF';ph.classList.toggle('on',kgPhysics)}
+  const rp=document.getElementById('kgPinBtn');if(rp){const c=kgPinnedCount();rp.textContent=`RELEASE PINS ${c}`;rp.disabled=!c}
+}
+function kgApplySel(){
+  if(!kgView)return;
+  const {node,link,labelMin}=kgView;
+  const nb=new Set();
+  if(kgSel)for(const l of kgView.links){if(l.source.id===kgSel)nb.add(l.target.id);if(l.target.id===kgSel)nb.add(l.source.id)}
+  link.attr('class',l=>`kg-link${kgSel?(l.source.id===kgSel||l.target.id===kgSel?' hi':' dim'):''}`);
+  node.classed('sel',n=>n.id===kgSel).classed('dim',n=>!!kgSel&&n.id!==kgSel&&!nb.has(n.id))
+    .classed('lbl',n=>n.id===kgData.root||n.id===kgSel||nb.has(n.id)||n.id===kgFocus?.id||n.articles>=labelMin*3||n.degree>=labelMin*4);
+}
+function kgRerender(heat){
+  const el=document.getElementById('cjngGraphPanel')||kgLiveEl;
+  if(!el||!el.parentElement)return;
+  if(Number.isFinite(heat))kgHeat=heat;
   const tmp=document.createElement('div');tmp.innerHTML=renderCjngGraphPanel();const nw=tmp.firstElementChild;nw.classList.add('lp-wide');el.replaceWith(nw);applyCaptions(nw.parentElement||document);
   requestAnimationFrame(initCjngGraph);
 }
@@ -5078,9 +5148,18 @@ function kgLoad(){
 function kgVisible(){
   if(!kgData)return{nodes:[],edges:[]};
   const root=kgData.root;
-  const nodes=kgData.nodes.filter(n=>n.id===root||(kgTypes.has(n.type)&&n.articles>=kgMin));
-  const keep=new Set(nodes.map(n=>n.id));
-  const edges=kgData.edges.filter(e=>kgRels.has(e.type)&&keep.has(e.source)&&keep.has(e.target));
+  const focus=kgFocus&&kgData.nodes.some(n=>n.id===kgFocus.id)?kgFocus:null;
+  let nodes=kgData.nodes.filter(n=>n.id===root||n.id===focus?.id||(kgTypes.has(n.type)&&n.articles>=kgMin));
+  let keep=new Set(nodes.map(n=>n.id));
+  let edges=kgData.edges.filter(e=>kgRels.has(e.type)&&keep.has(e.source)&&keep.has(e.target));
+  if(focus){
+    const adj=new Map();
+    const add=(a,b)=>{if(!adj.has(a))adj.set(a,[]);adj.get(a).push(b)};
+    for(const e of edges){add(e.source,e.target);add(e.target,e.source)}
+    const seen=new Set([focus.id]);let frontier=[focus.id];
+    for(let h=0;h<focus.hops&&frontier.length;h++){const next=[];for(const id of frontier)for(const o of adj.get(id)||[])if(!seen.has(o)){seen.add(o);next.push(o)}frontier=next}
+    return{nodes:nodes.filter(n=>seen.has(n.id)),edges:edges.filter(e=>seen.has(e.source)&&seen.has(e.target))};
+  }
   const used=new Set([root]);for(const e of edges){used.add(e.source);used.add(e.target)}
   return{nodes:nodes.filter(n=>used.has(n.id)),edges};
 }
@@ -5098,15 +5177,18 @@ function kgDetail(){
   if(!n)return '';
   const col=KG_TYPE_COLOR[n.type]||'#ccc';
   const m=n.meta||{};
-  const head=`<div class="kg-type" style="color:${col}">${esc(n.type)}${n.family?' \u00b7 CJNG family':''}${m.groupType?' \u00b7 '+esc(m.groupType):''}${m.state?' \u00b7 '+esc(m.state):''}</div><h4>${esc(n.label)}</h4>
-    <div class="nv-sub">${n.articles} article${n.articles===1?'':'s'} \u00b7 ${n.mentions} mentions \u00b7 ${n.degree} links \u00b7 ${esc(n.first||'?')} \u2192 ${esc(n.last||'?')}${m.fullName&&m.fullName!==n.label?`<br>${esc(m.fullName)}`:''}${(m.aliases||[]).length?`<br>a.k.a. ${m.aliases.slice(0,6).map(esc).join(', ')}`:''}</div>`;
+  const sid=kgSafeId(n.id),pinned=!!kgPos.get(n.id)?.pinned,inFocus=kgFocus?.id===n.id;
+  const acts=sid?`<div class="kg-acts"><button type="button" class="nv-chip ${inFocus&&kgFocus.hops===1?'on':''}" onclick="kgIsolate('${sid}',1)" title="Show only this node and its direct relations">ISOLATE \u00b11</button><button type="button" class="nv-chip ${inFocus&&kgFocus.hops===2?'on':''}" onclick="kgIsolate('${sid}',2)" title="Show this node and everything within two hops">\u00b12</button>${kgFocus?`<button type="button" class="nv-chip" onclick="kgShowAll()">SHOW ALL</button>`:''}${pinned?`<button type="button" class="nv-chip" onclick="kgUnpin('${sid}')" title="Let the layout move this node again">UNPIN</button>`:''}</div>`:'';
+  const head=`<div class="kg-type" style="color:${col}">${esc(n.type)}${n.family?' \u00b7 CJNG family':''}${m.groupType?' \u00b7 '+esc(m.groupType):''}${m.state?' \u00b7 '+esc(m.state):''}${pinned?' \u00b7 <span style="color:#ffd54f">pinned</span>':''}</div><h4>${esc(n.label)}</h4>
+    <div class="nv-sub">${n.articles} article${n.articles===1?'':'s'} \u00b7 ${n.mentions} mentions \u00b7 ${n.degree} links \u00b7 ${esc(n.first||'?')} \u2192 ${esc(n.last||'?')}${m.fullName&&m.fullName!==n.label?`<br>${esc(m.fullName)}`:''}${(m.aliases||[]).length?`<br>a.k.a. ${m.aliases.slice(0,6).map(esc).join(', ')}`:''}</div>${acts}`;
   const events=(m.events||[]).slice(0,6).map(e=>{const a=kgArticle(e.a);return `<div class="kg-ev"><span class="ct-kind" style="color:#ffcc80;border-color:rgba(255,204,128,0.5)">${esc(e.kind).toUpperCase()}</span> ${esc(e.d||'')} \u2014 \u201c${esc(e.s)}\u201d${a?` <span class="nv-sub">${nvLink(a.link,'source \u2197')}</span>`:''}</div>`}).join('');
   const edges=kgData.edges.filter(e=>(e.source===n.id||e.target===n.id)&&kgRels.has(e.type)).sort((a,b)=>(KG_REL_ORDER.indexOf(a.type)-KG_REL_ORDER.indexOf(b.type))||b.articles-a.articles).slice(0,40);
   const leg=kgData.legend?.relations||{};
   const rows=edges.map(e=>{
     const other=nodes.get(e.source===n.id?e.target:e.source);if(!other)return '';
     const dir=e.source===n.id?'\u2192':'\u2190';
-    return `<div class="kg-edge"><div class="r" style="color:${KG_REL_COLOR[e.type]||'#ccc'}" title="${esc(leg[e.type]||e.type)}">${esc(e.type.replace('_',' '))} ${dir} <b onclick="kgSelect('${esc(other.id)}')">${esc(other.label)}</b> <span style="color:var(--dim)">\u00b7 ${e.articles} art${e.confidence==='co-mention'?' \u00b7 co-mention':''}</span></div>${(e.evidence||[]).slice(0,e.confidence==='typed'?2:1).map(kgEvidence).join('')}</div>`;
+    const oid=kgSafeId(other.id);
+    return `<div class="kg-edge"><div class="r" style="color:${KG_REL_COLOR[e.type]||'#ccc'}" title="${esc(leg[e.type]||e.type)}">${esc(e.type.replace('_',' '))} ${dir} <b ${oid?`onclick="kgSelect('${oid}')"`:''}>${esc(other.label)}</b> <span style="color:var(--dim)">\u00b7 ${e.articles} art${e.confidence==='co-mention'?' \u00b7 co-mention':''}</span></div>${(e.evidence||[]).slice(0,e.confidence==='typed'?2:1).map(kgEvidence).join('')}</div>`;
   }).join('');
   return `${head}${events?`<div class="sh-group">Reported events</div>${events}`:''}<div class="sh-group">Relations \u00b7 ${edges.length} shown</div>${rows||'<div class="g-off-why">No relations of the selected kinds. Turn on more relation chips.</div>'}`;
 }
@@ -5114,44 +5196,70 @@ function initCjngGraph(){
   const wrap=document.getElementById('kgCanvas'),svgEl=document.getElementById('kgSvg');
   if(!wrap||!svgEl||!window.d3)return;
   if(!kgData){kgLoad();return}
+  kgSnapshotPositions();
   if(kgSim){kgSim.stop();kgSim=null}
+  kgView=null;kgLiveEl=wrap.closest('#cjngGraphPanel');
   const W=wrap.clientWidth||900,H=wrap.clientHeight||520;
   const svg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`);
   svg.selectAll('*').remove();
   const {nodes,edges}=kgVisible();
   const idx=new Map(nodes.map(n=>[n.id,n]));
-  const sim_nodes=nodes.map(n=>{const p=kgPos.get(n.id);return Object.assign({},n,p?{x:p.x,y:p.y}:{x:W/2+(Math.random()-0.5)*W*0.6,y:H/2+(Math.random()-0.5)*H*0.6})});
+  const sim_nodes=nodes.map(n=>{const p=kgPos.get(n.id);return Object.assign({},n,p?{x:p.x,y:p.y,fx:p.pinned?p.x:null,fy:p.pinned?p.y:null}:{x:W/2+(Math.random()-0.5)*W*0.6,y:H/2+(Math.random()-0.5)*H*0.6})});
   const byId=new Map(sim_nodes.map(n=>[n.id,n]));
-  const root=byId.get(kgData.root);if(root){root.fx=W/2;root.fy=H/2}
+  const root=byId.get(kgData.root);
+  if(root&&!kgPos.has(root.id)){root.x=root.fx=W/2;root.y=root.fy=H/2;kgPos.set(root.id,{x:W/2,y:H/2,pinned:true})}
   const links=edges.map(e=>({source:byId.get(e.source),target:byId.get(e.target),type:e.type,articles:e.articles,confidence:e.confidence,id:e.id})).filter(l=>l.source&&l.target);
   const g=svg.append('g');
   const zoom=d3.zoom().scaleExtent([0.3,6]).on('zoom',ev=>{kgTransform=ev.transform;g.attr('transform',ev.transform)});
   svg.call(zoom).on('dblclick.zoom',null);
   if(kgTransform)svg.call(zoom.transform,kgTransform);
+  svg.on('click',()=>{if(kgSel)kgSelect(kgSel)});
   const r=n=>n.id===kgData.root?16:Math.max(3,Math.min(13,2+Math.sqrt(n.articles)*1.6));
-  const nb=new Set();if(kgSel){for(const l of links){if(l.source.id===kgSel)nb.add(l.target.id);if(l.target.id===kgSel)nb.add(l.source.id)}}
-  const link=g.append('g').selectAll('line').data(links).join('line').attr('class',l=>`kg-link${kgSel?(l.source.id===kgSel||l.target.id===kgSel?' hi':' dim'):''}`)
+  const link=g.append('g').selectAll('line').data(links).join('line').attr('class','kg-link')
     .attr('stroke',l=>KG_REL_COLOR[l.type]||'#888').attr('stroke-width',l=>l.type==='mentioned_with'?0.6:Math.min(3,0.8+Math.log2(1+l.articles)*0.5)).attr('stroke-dasharray',l=>l.confidence==='co-mention'?'2 3':null);
   const labelMin=sim_nodes.length>140?4:sim_nodes.length>70?2:1;
-  const node=g.append('g').selectAll('g').data(sim_nodes).join('g').attr('class',n=>`kg-node${n.id===kgData.root?' root':''}${n.id===kgSel?' sel':''}${kgSel&&n.id!==kgSel&&!nb.has(n.id)?' dim':''}`)
+  const tick=()=>{
+    link.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y).attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);
+    node.attr('transform',n=>`translate(${n.x},${n.y})`);
+  };
+  // Drag pins the node where it is dropped (fx/fy stay set) so the operator can pull the graph apart;
+  // double-click releases it back to the layout. With physics off, drag moves the node directly.
+  const drag=d3.drag()
+    .on('start',(ev,n)=>{if(!ev.active&&kgSim&&kgPhysics)kgSim.alphaTarget(0.25).restart();n.fx=n.x;n.fy=n.y})
+    .on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y;if(!kgPhysics){n.x=ev.x;n.y=ev.y;tick()}})
+    .on('end',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0);kgPos.set(n.id,{x:n.fx,y:n.fy,pinned:true});node.filter(d=>d===n).classed('pin',true);kgSyncTools();if(n.id===kgSel){const det=document.getElementById('kgDetail');if(det)det.innerHTML=kgDetail()}});
+  const node=g.append('g').selectAll('g').data(sim_nodes).join('g').attr('class',n=>`kg-node${n.id===kgData.root?' root':''}`).classed('pin',n=>n.fx!=null)
     .on('click',(ev,n)=>{ev.stopPropagation();kgSelect(n.id)})
-    .call(d3.drag().on('start',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0.2).restart();n.fx=n.x;n.fy=n.y}).on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y}).on('end',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0);if(n.id!==kgData.root){n.fx=null;n.fy=null}}));
-  node.append('circle').attr('r',r).attr('fill',n=>KG_TYPE_COLOR[n.type]||'#ccc').attr('fill-opacity',n=>n.family||n.type==='org'||n.type==='faction'?0.95:0.75);
+    .on('dblclick',(ev,n)=>{ev.stopPropagation();kgUnpin(n.id)})
+    .on('mouseenter',(ev,n)=>{node.filter(d=>d===n).classed('hover',true)})
+    .on('mouseleave',(ev,n)=>{node.filter(d=>d===n).classed('hover',false)})
+    .call(drag);
+  node.append('circle').attr('class','kg-pin').attr('r',n=>r(n)+3.5);
+  node.append('circle').attr('class','kg-dot').attr('r',r).attr('fill',n=>KG_TYPE_COLOR[n.type]||'#ccc').attr('fill-opacity',n=>n.family||n.type==='org'||n.type==='faction'?0.95:0.75);
   node.append('title').text(n=>`${n.label} \u00b7 ${n.type} \u00b7 ${n.articles} articles \u00b7 ${n.degree} links`);
-  node.filter(n=>n.id===kgData.root||n.id===kgSel||nb.has(n.id)||n.articles>=labelMin*3||n.degree>=labelMin*4).append('text').attr('dx',n=>r(n)+3).attr('dy','0.35em').text(n=>n.label.length>28?n.label.slice(0,26)+'\u2026':n.label);
-  const warm=sim_nodes.every(n=>kgPos.has(n.id)||n.id===kgData.root);
+  node.append('text').attr('dx',n=>r(n)+3).attr('dy','0.35em').text(n=>n.label.length>28?n.label.slice(0,26)+'\u2026':n.label);
+  kgView={svg,zoom,node,link,links,labelMin,W,H};
+  kgApplySel();
+  const warm=sim_nodes.every(n=>kgPos.has(n.id));
+  if(!warm&&!kgTransform)kgFitNext=true;
+  const k=kgSpread;
+  const rootLink=l=>l.source.id===kgData.root||l.target.id===kgData.root;
   kgSim=d3.forceSimulation(sim_nodes)
-    .force('link',d3.forceLink(links).id(n=>n.id).distance(l=>l.type==='mentioned_with'||l.type==='linked_topic'?90:l.source.id===kgData.root||l.target.id===kgData.root?150:55).strength(l=>l.source.id===kgData.root||l.target.id===kgData.root?0.08:l.confidence==='typed'?0.45:0.12))
-    .force('charge',d3.forceManyBody().strength(n=>n.id===kgData.root?-900:-140).distanceMax(500))
+    .force('link',d3.forceLink(links).id(n=>n.id).distance(l=>k*(l.type==='mentioned_with'||l.type==='linked_topic'?90:rootLink(l)?150:55)).strength(l=>rootLink(l)?0.08:l.confidence==='typed'?0.45:0.12))
+    .force('charge',d3.forceManyBody().strength(n=>k*(n.id===kgData.root?-900:-140)).distanceMax(500*k))
     .force('collide',d3.forceCollide().radius(n=>r(n)+4))
-    .force('x',d3.forceX(W/2).strength(0.03)).force('y',d3.forceY(H/2).strength(0.04))
-    .alpha(warm?0.15:1).alphaDecay(0.03)
-    .on('tick',()=>{
-      link.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y).attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);
-      node.attr('transform',n=>`translate(${n.x},${n.y})`);
-    }).on('end',()=>{for(const n of sim_nodes)kgPos.set(n.id,{x:n.x,y:n.y})});
+    .force('x',d3.forceX(W/2).strength(0.03/k)).force('y',d3.forceY(H/2).strength(0.04/k))
+    .alpha(kgHeat??(warm?0.15:1)).alphaDecay(0.03)
+    .on('tick',tick).on('end',()=>{kgSnapshotPositions();if(kgFitNext){kgFitNext=false;kgFit()}});
+  kgHeat=null;
+  if(!kgPhysics){kgSim.stop();tick();if(kgFitNext){kgFitNext=false;kgFit()}}
+  else if(kgFitNext){const sim=kgSim;setTimeout(()=>{if(kgSim===sim&&kgFitNext)kgFit()},700)}
+  kgSyncTools();
   const note=document.getElementById('kgNote');
-  if(note)note.textContent=`${nodes.length} NODES \u00b7 ${edges.length} EDGES SHOWN${idx.size!==kgData.nodes.length?` OF ${kgData.nodes.length} / ${kgData.edges.length}`:''}`;
+  if(note){
+    const f=kgFocus&&idx.get(kgFocus.id);
+    note.textContent=`${f?`FOCUS ${f.label.toUpperCase()} \u00b1${kgFocus.hops} \u00b7 `:''}${nodes.length} NODES \u00b7 ${edges.length} EDGES SHOWN${idx.size!==kgData.nodes.length?` OF ${kgData.nodes.length} / ${kgData.edges.length}`:''}`;
+  }
 }
 function renderCjngGraphPanel(){
   const sum=D.narco?.cjng||{},t=kgData?.totals||sum.totals||null,ref=kgData?.refresh||sum.refresh||{};
@@ -5174,8 +5282,12 @@ function renderCjngGraphPanel(){
   const typeChips=Object.keys(KG_TYPE_COLOR).map(ty=>`<button type="button" class="lchip ${kgTypes.has(ty)?'on':'off'} ${bt[ty]?'':'none'}" style="--lc:${KG_TYPE_COLOR[ty]}" ${bt[ty]?`onclick="kgToggleType('${ty}')"`:'disabled'}><span class="ldot"></span>${esc(KG_TYPE_LABEL[ty])} <b>${bt[ty]||0}</b></button>`).join('');
   const relChips=KG_REL_ORDER.map(rl=>`<button type="button" class="lchip ${kgRels.has(rl)?'on':'off'} ${br[rl]?'':'none'}" style="--lc:${KG_REL_COLOR[rl]}" title="${esc(kgData?.legend?.relations?.[rl]||'')}" ${br[rl]?`onclick="kgToggleRel('${rl}')"`:'disabled'}><span class="ldot"></span>${esc(rl.replace('_',' '))} <b>${br[rl]||0}</b></button>`).join('');
   const minChips=[1,2,3,5].map(m=>`<button type="button" class="nv-chip ${kgMin===m?'on':''}" onclick="kgSetMin(${m})">\u2265${m}</button>`).join('');
-  const body=kgData?`<div class="kg-wrap">
-      <div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG NODES \u00b7 CLICK A NODE</div><div class="kg-key">${Object.keys(KG_TYPE_COLOR).map(ty=>`<span><i style="background:${KG_TYPE_COLOR[ty]}"></i>${esc(KG_TYPE_LABEL[ty]).toUpperCase()}</span>`).join('')}<span id="kgNote"></span></div></div>
+  const spreadChips=KG_SPREADS.map(([s,l])=>`<button type="button" class="nv-chip ${kgSpread===s?'on':''}" onclick="kgSetSpread(${s})" title="Push nodes apart or pull them together">${l.toUpperCase()}</button>`).join('');
+  const focusNode=kgFocus&&kgData?kgData.nodes.find(n=>n.id===kgFocus.id):null;
+  const pins=kgPinnedCount();
+  const layoutRow=kgData?`<div class="ct-chiprow"><span class="lchip-head">SPREAD</span>${spreadChips}<span class="lchip-head" style="margin-left:6px">LAYOUT</span><button type="button" id="kgPhysBtn" class="nv-chip ${kgPhysics?'on':''}" onclick="kgTogglePhysics()" title="Off: nodes only move when you drag them">${kgPhysics?'PHYSICS ON':'PHYSICS OFF'}</button><button type="button" id="kgPinBtn" class="nv-chip" onclick="kgReleasePins()" ${pins?'':'disabled'} title="Dragged nodes stay where you drop them; this lets them all move again">RELEASE PINS ${pins}</button><button type="button" class="nv-chip" onclick="kgFit()">FIT VIEW</button><button type="button" class="nv-chip ${kgTall?'on':''}" onclick="kgToggleTall()">${kgTall?'COMPACT':'EXPAND'}</button>${focusNode?`<span class="lchip-head" style="margin-left:6px;color:var(--accent)">FOCUS ${esc(focusNode.label)} \u00b1${kgFocus.hops}</span><button type="button" class="nv-chip on" onclick="kgShowAll()">SHOW ALL</button>`:''}</div>`:'';
+  const body=kgData?`<div class="kg-wrap${kgTall?' tall':''}">
+      <div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG A NODE TO PIN IT THERE \u00b7 DOUBLE-CLICK TO RELEASE \u00b7 CLICK FOR EVIDENCE</div><div class="kg-key">${Object.keys(KG_TYPE_COLOR).map(ty=>`<span><i style="background:${KG_TYPE_COLOR[ty]}"></i>${esc(KG_TYPE_LABEL[ty]).toUpperCase()}</span>`).join('')}<span id="kgNote"></span></div></div>
       <div class="kg-detail" id="kgDetail">${kgDetail()}</div>
     </div>`
     :`<div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="g-off-why" style="position:absolute;left:12px;top:12px">${kgError?`Graph fetch failed (${esc(kgError)}). <a href="#" onclick="kgError=null;kgLoad();return false" style="color:var(--accent2)">retry</a>`:'Loading graph from /api/narco/graph \u2026'}</div></div>`;
@@ -5184,7 +5296,7 @@ function renderCjngGraphPanel(){
   return `<div class="g-panel" id="cjngGraphPanel">${head}
     ${kpis}
     <div class="ct-chips"><div class="ct-chiprow"><span class="lchip-head">NODES</span>${typeChips}<span class="lchip-head" style="margin-left:6px">MIN ARTICLES</span>${minChips}</div>
-    <div class="ct-chiprow"><span class="lchip-head">RELATIONS</span>${relChips}</div></div>
+    <div class="ct-chiprow"><span class="lchip-head">RELATIONS</span>${relChips}</div>${layoutRow}</div>
     ${body}
     <div class="sh-note"><b>Machine-extracted, not verified.</b> ${esc(kgData?.caveat||sum.caveat||'')} Corpus: every InSight Crime post tagged Jalisco Cartel or El Mencho plus full-text matches for \u201cCJNG\u201d, pulled from their public WordPress API (${site}${src.queries?` \u00b7 ${esc(src.queries.join(', '))}`:''}), kept only when CJNG is the focus (tag or \u22653 mentions). Node size = supporting articles; edge width = articles supporting the relation; dashed = plain co-mention. Extractor ${esc(kgData?.extractor||'')} \u00b7 corpus fetched ${src.fetchedAt?getAge(src.fetchedAt):'\u2014'}${ref.lastAttempt?` \u00b7 refresh attempted ${getAge(ref.lastAttempt)}`:''}${ref.error?` \u00b7 <span style="color:#ffd54f">${esc(ref.error)}</span>`:''}. \u00a9 InSight Crime \u2014 only bounded evidence sentences are shown; follow the links for the articles.</div></div>`;
 }
