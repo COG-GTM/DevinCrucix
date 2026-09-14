@@ -784,6 +784,203 @@ app.get('/api/threat-classify', (req, res) => {
   res.json(result);
 });
 
+// === Standing requirements (PIRs) with long-range baselines — lib/requirements/* ===
+// Imports are hoisted by the module loader; they sit here so the whole feature is one contiguous block.
+import { HistoryStore, computeBaseline, WINDOWS as RQ_WINDOWS, WINDOW_HOURS as RQ_WINDOW_HOURS } from './lib/requirements/history.mjs';
+import { catalog as rqCatalog, METRIC_KEYS as RQ_METRIC_KEYS, DIM_KEYS as RQ_DIM_KEYS } from './lib/requirements/metrics.mjs';
+import { compileRequirement, ID_RE as RQ_ID_RE, OBS_WINDOWS as RQ_OBS_WINDOWS, BASELINE_WINDOWS as RQ_BASELINE_WINDOWS, COMPARISONS as RQ_COMPARISONS, DIRECTIONS as RQ_DIRECTIONS, MAX_TEXT as RQ_MAX_TEXT, MAX_NAME as RQ_MAX_NAME, MAX_DIM_VALUES_PER_KEY as RQ_MAX_DIM_VALUES, COUNTRIES as RQ_COUNTRIES, THEATERS as RQ_THEATERS } from './lib/requirements/compile.mjs';
+import { RequirementsStore } from './lib/requirements/evaluate.mjs';
+import { SEVERITIES as RQ_SEVERITIES } from './lib/situation.mjs';
+import { ValidationError as RqValidationError } from './lib/validate.mjs';
+import { loadGazetteer as rqGazetteer } from './lib/narco/gazetteer.mjs';
+
+const rqHistory = new HistoryStore(RUNS_DIR);
+try {
+  const bf = rqHistory.backfill();
+  if (bf.runs) console.log(`[Requirements] History backfilled from ${bf.files} cold archive file(s): ${bf.runs} runs, ${bf.samples} samples`);
+} catch (err) {
+  console.error('[Requirements] History backfill failed (non-fatal):', err.message);
+}
+const rqStore = new RequirementsStore(RUNS_DIR);
+if (rqStore.seeded) console.log(`[Requirements] Seeded ${rqStore.rules.length} default standing requirements`);
+
+const rqAudit = (event, req, extra = {}) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), event, ip: req.ip, ...extra }));
+const rqDimValues = (metric, dim) => rqHistory.dimValues(metric, dim);
+
+// Called once per sweep right after buildSituation(): append this sweep's metric samples to the
+// history store, evaluate every enabled requirement, and merge fired headlines into the strip.
+async function requirementsAfterSweep(synthesized, { record = true } = {}) {
+  try {
+    if (record) rqHistory.record(synthesized);
+    const r = rqStore.evaluateAll({ history: rqHistory, sweep: synthesized, computeBaseline });
+    synthesized.requirements = { firedCount: r.firedCount, evaluated: r.results.length, asOf: new Date().toISOString() };
+    for (const f of r.newFirings) {
+      console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'requirement_fired', ruleId: f.ruleId, severity: f.severity, observed: f.observed, baselineMean: f.baselineMean, z: f.z }));
+    }
+  } catch (err) {
+    console.error('[Requirements] Post-sweep evaluation failed (non-fatal):', err.message);
+  }
+}
+
+// dims: {state?, country?, theater?} — each a bounded string or a short array of them. Membership in
+// the gazetteer / allow-lists is checked by validateRule() inside the store.
+const RQ_DIM_VALUE = (v) => str(v, { max: 60, min: 2, required: true });
+function rqDims(v) {
+  if (v === undefined || v === null) return {};
+  if (typeof v !== 'object' || Array.isArray(v)) throw new RqValidationError(undefined, 'type');
+  const out = {};
+  for (const [k, val] of Object.entries(v)) {
+    if (!RQ_DIM_KEYS.includes(k)) throw new RqValidationError(undefined, 'enum');
+    if (val === undefined || val === null || val === '') continue;
+    out[k] = Array.isArray(val) ? strArray(val, { min: 1, max: RQ_MAX_DIM_VALUES, itemMax: 60, itemMin: 2, required: true }) : RQ_DIM_VALUE(val);
+  }
+  return out;
+}
+// "state:Tamaulipas,country:Ukraine" query form → dims object
+const RQ_DIMS_QUERY_RE = /^[a-z]+:[^,:]{2,60}(,[a-z]+:[^,:]{2,60}){0,2}$/u;
+function rqParseDimsQuery(s) {
+  const out = {};
+  for (const part of String(s || '').split(',').filter(Boolean)) {
+    const [k, ...rest] = part.split(':');
+    if (!RQ_DIM_KEYS.includes(k)) return null;
+    out[k] = rest.join(':').trim();
+  }
+  return out;
+}
+
+// GET /api/requirements — rules with the latest evaluation for each
+app.get('/api/requirements', (req, res) => {
+  try {
+    res.json({ ...rqStore.snapshot(), llm: !!llmProvider?.isConfigured, asOf: currentData?.requirements?.asOf || null, sweepAt: lastSweepTime, history: rqHistory.stats() });
+  } catch (err) {
+    console.error('[Requirements] list failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// GET /api/requirements/metrics — catalog derived from lib/requirements/metrics.mjs (never hand-copied)
+app.get('/api/requirements/metrics', (req, res) => {
+  try {
+    const gz = rqGazetteer();
+    res.json({
+      metrics: rqCatalog().map(m => ({ ...m, dimValues: Object.fromEntries(m.dims.map(d => [d, rqHistory.dimValues(m.key, d)])) })),
+      dims: RQ_DIM_KEYS, windows: RQ_OBS_WINDOWS, baselines: RQ_BASELINE_WINDOWS, comparisons: RQ_COMPARISONS, directions: RQ_DIRECTIONS, severities: RQ_SEVERITIES,
+      states: gz.states.map(s => s.shortName), countries: RQ_COUNTRIES, theaters: RQ_THEATERS,
+      llm: !!llmProvider?.isConfigured,
+    });
+  } catch (err) {
+    console.error('[Requirements] metrics failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// POST /api/requirements — compile natural language into a rule for confirmation (nothing is stored)
+app.post('/api/requirements', validateBody({
+  text: (v) => str(v, { max: RQ_MAX_TEXT, min: 3, required: true }),
+  name: (v) => str(v, { max: RQ_MAX_NAME }),
+  severity: (v) => oneOf(v, RQ_SEVERITIES),
+}), async (req, res) => {
+  const { text, name, severity } = req.validated.body;
+  try {
+    const r = await compileRequirement(text, { provider: llmProvider, name, severity, dimValues: rqDimValues });
+    rqAudit('requirement_compiled', req, { ok: r.ok, compiledBy: r.compiledBy, fallbackReason: r.fallbackReason, metric: r.rule?.metric || null });
+    res.json({ ok: r.ok, rule: r.rule, compiledBy: r.compiledBy, fallbackReason: r.fallbackReason, errors: r.errors.map(e => ({ field: e.field, reason: e.reason })) });
+  } catch (err) {
+    console.error('[Requirements] compile failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// POST /api/requirements/save — store a (possibly analyst-edited) compiled rule after strict validation
+app.post('/api/requirements/save', validateBody({
+  text: (v) => str(v, { max: RQ_MAX_TEXT, min: 3, required: true }),
+  name: (v) => str(v, { max: RQ_MAX_NAME, required: true }),
+  metric: (v) => oneOf(v, RQ_METRIC_KEYS, { required: true }),
+  dims: rqDims,
+  window: (v) => oneOf(v, RQ_OBS_WINDOWS, { required: true }),
+  baseline: (v) => oneOf(v, RQ_BASELINE_WINDOWS, { required: true }),
+  comparison: (v) => oneOf(v, RQ_COMPARISONS, { required: true }),
+  threshold: (v) => num(v, { min: 0, max: 10_000_000, required: true }),
+  direction: (v) => oneOf(v, RQ_DIRECTIONS, { required: true }),
+  severity: (v) => oneOf(v, RQ_SEVERITIES, { required: true }),
+  owner: (v) => str(v, { max: 60 }),
+  compiledBy: (v) => oneOf(v, ['llm', 'rules']),
+}), (req, res) => {
+  try {
+    const r = rqStore.add(req.validated.body);
+    if (!r.ok) {
+      rqAudit('validation_failure', req, { method: req.method, path: req.path, source: 'body', field: r.errors[0]?.field, reason: r.errors[0]?.reason });
+      return res.status(400).json({ error: 'invalid request', field: r.errors[0]?.field, errors: r.errors });
+    }
+    rqAudit('requirement_created', req, { ruleId: r.rule.id, metric: r.rule.metric, window: r.rule.window, baseline: r.rule.baseline, compiledBy: r.rule.compiledBy });
+    if (currentData) requirementsAfterSweep(currentData, { record: false }).then(() => broadcast({ type: 'update', data: currentData }));
+    res.status(201).json({ ok: true, rule: r.rule });
+  } catch (err) {
+    console.error('[Requirements] save failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+const RQ_ID = (v) => str(v, { max: 24, pattern: RQ_ID_RE, required: true });
+for (const action of ['enable', 'disable']) {
+  app.post(`/api/requirements/:id/${action}`, validateParams({ id: RQ_ID }), (req, res) => {
+    try {
+      const rule = rqStore.setEnabled(req.validated.params.id, action === 'enable');
+      if (!rule) return res.status(404).json({ error: 'not found' });
+      rqAudit(`requirement_${action}d`, req, { ruleId: rule.id });
+      if (currentData) requirementsAfterSweep(currentData, { record: false }).then(() => broadcast({ type: 'update', data: currentData }));
+      res.json({ ok: true, rule });
+    } catch (err) {
+      console.error(`[Requirements] ${action} failed:`, err.message);
+      res.status(500).json({ error: 'An error occurred' });
+    }
+  });
+}
+
+app.delete('/api/requirements/:id', validateParams({ id: RQ_ID }), (req, res) => {
+  try {
+    if (!rqStore.remove(req.validated.params.id)) return res.status(404).json({ error: 'not found' });
+    rqAudit('requirement_deleted', req, { ruleId: req.validated.params.id });
+    if (currentData) requirementsAfterSweep(currentData, { record: false }).then(() => broadcast({ type: 'update', data: currentData }));
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Requirements] delete failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// GET /api/requirements/:id/findings?limit= — historical firings (newest first) plus the latest evaluation
+app.get('/api/requirements/:id/findings', validateParams({ id: RQ_ID }), validateQuery({ limit: (v) => bounded(v, 500) }), (req, res) => {
+  try {
+    const rule = rqStore.get(req.validated.params.id);
+    if (!rule) return res.status(404).json({ error: 'not found' });
+    res.json({ rule, latest: rqStore.latestFor(rule.id), findings: rqStore.findingsFor(rule.id, req.validated.query.limit ?? 20) });
+  } catch (err) {
+    console.error('[Requirements] findings failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// GET /api/history/series?metric=&dims=state:Tamaulipas&window=30d — raw samples + baseline for one slice
+app.get('/api/history/series', validateQuery({
+  metric: (v) => oneOf(v, RQ_METRIC_KEYS, { required: true }),
+  dims: (v) => str(v, { max: 200, pattern: RQ_DIMS_QUERY_RE }),
+  window: (v) => oneOf(v, RQ_WINDOWS),
+}), (req, res) => {
+  try {
+    const { metric, window = '30d' } = req.validated.query;
+    const dims = rqParseDimsQuery(req.validated.query.dims);
+    if (!dims) return res.status(400).json({ error: 'invalid request', field: 'dims' });
+    const baseline = rqHistory.baseline(metric, dims, { window });
+    const samples = rqHistory.window(metric, dims, RQ_WINDOW_HOURS[window] || 720);
+    res.json({ metric, dims, window, count: samples.length, samples: samples.slice(-2000).map(s => ({ ts: s.ts, value: s.value })), baseline });
+  } catch (err) {
+    console.error('[Requirements] series failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+// === end standing requirements ===
+
 // === CYBERFIX: KEV × inventory exposure → Devin remediation (lib/cyberfix/) ===================================
 // Runs after every completed sweep (each sweep refreshes the KEV source), attaches the summary to
 // currentData.cyberfix, rebuilds the Situation strip and pushes the update to connected browsers. All
@@ -1111,6 +1308,7 @@ async function runSweepCycle() {
     synthesized.delta = delta;
     synthesized.seismic = seismicData;
     synthesized.situation = buildSituation(synthesized);
+    await requirementsAfterSweep(synthesized);
 
     // 5. LLM-powered trade ideas (LLM-only feature) — isolated so failures don't kill sweep
     if (llmProvider?.isConfigured) {
@@ -1285,6 +1483,7 @@ async function start() {
       data.delta = memory.getLastDelta() || null;
       data.seismic = seismicData;
       data.situation = buildSituation(data);
+      await requirementsAfterSweep(data, { record: false });
       currentData = data;
       console.log('[Crucix] Loaded existing data from runs/latest.json — dashboard ready instantly');
       broadcast({ type: 'update', data: currentData });
