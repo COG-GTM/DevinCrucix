@@ -2,7 +2,10 @@
 # Deploy:  fly deploy
 # Secrets: fly secrets set CRUCIX_PASSWORD=... CRUCIX_SESSION_SECRET=$(openssl rand -hex 32)
 app = "crucix"
-primary_region = "iad"
+# OpenSky (opensky-network.org) is unreachable from Fly's iad egress (TCP connect
+# timeouts); ewr/ord/ams reach it. Keep machines out of iad or the air layer
+# silently falls back to ADS-B samples.
+primary_region = "ewr"
 
 [build]
   dockerfile = "Dockerfile"
