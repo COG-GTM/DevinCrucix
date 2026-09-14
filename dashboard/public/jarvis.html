@@ -5227,9 +5227,14 @@ function initCjngGraph(){
   // Drag pins the node where it is dropped (fx/fy stay set) so the operator can pull the graph apart;
   // double-click releases it back to the layout. With physics off, drag moves the node directly.
   const drag=d3.drag()
-    .on('start',(ev,n)=>{if(!ev.active&&kgSim&&kgPhysics)kgSim.alphaTarget(0.25).restart();n.fx=n.x;n.fy=n.y})
-    .on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y;if(!kgPhysics){n.x=ev.x;n.y=ev.y;tick()}})
-    .on('end',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0);kgPos.set(n.id,{x:n.fx,y:n.fy,pinned:true});node.filter(d=>d===n).classed('pin',true);kgSyncTools();if(n.id===kgSel){const det=document.getElementById('kgDetail');if(det)det.innerHTML=kgDetail()}});
+    .on('start',(ev,n)=>{n._wasPinned=n.fx!=null;n._moved=false;if(!ev.active&&kgSim&&kgPhysics)kgSim.alphaTarget(0.25).restart();n.fx=n.x;n.fy=n.y})
+    .on('drag',(ev,n)=>{n._moved=true;n.fx=ev.x;n.fy=ev.y;if(!kgPhysics){n.x=ev.x;n.y=ev.y;tick()}})
+    .on('end',(ev,n)=>{
+      if(!ev.active&&kgSim)kgSim.alphaTarget(0);
+      if(!n._moved&&!n._wasPinned){n.fx=null;n.fy=null;return}
+      kgPos.set(n.id,{x:n.fx,y:n.fy,pinned:true});node.filter(d=>d===n).classed('pin',true);kgSyncTools();
+      if(n.id===kgSel){const det=document.getElementById('kgDetail');if(det)det.innerHTML=kgDetail()}
+    });
   const node=g.append('g').selectAll('g').data(sim_nodes).join('g').attr('class',n=>`kg-node${n.id===kgData.root?' root':''}`).classed('pin',n=>n.fx!=null)
     .on('click',(ev,n)=>{ev.stopPropagation();kgSelect(n.id)})
     .on('dblclick',(ev,n)=>{ev.stopPropagation();kgUnpin(n.id)})
