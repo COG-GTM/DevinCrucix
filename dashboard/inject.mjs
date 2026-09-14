@@ -641,6 +641,7 @@ export async function synthesize(data) {
     totalFatalities: acledData.totalFatalities || 0,
     byRegion: acledData.byRegion || {},
     byType: acledData.byType || {},
+    topCountries: acledData.topCountries || {},
     deadliestEvents: (acledData.deadliestEvents || []).slice(0, 15).map(e => ({
       date: e.date, type: e.type, country: e.country, location: e.location,
       fatalities: e.fatalities || 0, lat: e.lat || null, lon: e.lon || null
