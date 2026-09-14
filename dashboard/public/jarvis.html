@@ -1313,7 +1313,7 @@ function tabCounts(){
   return {
     situation: hot?{n:hot,cls:'hot',title:`${hot} critical/high judgments`}:sit.quiet?{n:'QUIET',cls:'',title:'No rule fired above baseline'}:null,
     military: airTotal?{n:airTotal,cls:'',title:`${airTotal} aircraft across ${(D.air||[]).length} theaters`}:null,
-    cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
+    cyber: (kev||D.cyberfix?.counts?.confirmed)?{n:kev+(D.cyberfix?.counts?.confirmed?` · ${D.cyberfix.counts.confirmed} EXPOSED`:'')+(tsNew?` +${tsNew}`:''),cls:D.cyberfix?.counts?.confirmed?'hot':tsNew?'warn':'',title:`${kev} KEV CVEs${D.cyberfix?.counts?.confirmed?` · ${D.cyberfix.counts.confirmed} confirmed KEV exposure${D.cyberfix.counts.confirmed===1?'':'s'} in inventory`:''}${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
     ukraine: uaCount,
     cartels: spikes?{n:`${ctCount?ctCount.n+' \u00b7 ':''}${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:`${ctCount?ctCount.title+' \u00b7 ':''}${spikes} Border Watch place spike${spikes>1?'s':''} vs baseline`}:ctCount,
@@ -1365,6 +1365,158 @@ function applyTabLayout(){
   g.classList.toggle('no-map',currentTab!=='situation');
 }
 window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h)syncHash(h);});
+
+// === CYBERFIX (Cyber tab · KEV × inventory exposure → Devin remediation; data from /api/cyberfix; every third-party string → esc()) ===
+(function(){const s=document.createElement('style');s.textContent=`
+.cf-status{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.cf-chip{font-family:var(--mono);font-size:8px;padding:2px 6px;border:1px solid var(--border);color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap}
+.cf-chip.ok{color:var(--accent);border-color:rgba(100,240,200,0.35);background:rgba(100,240,200,0.06)}
+.cf-chip.warn{color:var(--warn);border-color:rgba(255,184,76,0.45);background:rgba(255,184,76,0.08)}
+.cf-chip.hot{color:var(--danger);border-color:rgba(255,95,99,0.45);background:rgba(255,95,99,0.08)}
+.cf-chip.info{color:var(--accent2);border-color:rgba(68,204,255,0.35);background:rgba(68,204,255,0.06)}
+.cf-inv{display:flex;align-items:center;gap:8px;padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.cf-inv .n{flex:1;min-width:0;color:#c8d8d2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cf-inv .k{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.cf-form{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.cf-form select,.cf-form input[type=text]{background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 7px;outline:none}
+.cf-form input[type=file]{font-family:var(--mono);font-size:9px;color:var(--dim);max-width:200px}
+.cf-table{width:100%;border-collapse:collapse;font-size:10px}
+.cf-table th{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+.cf-table td{padding:6px 6px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top}
+.cf-table tr.new td{background:rgba(255,95,99,0.04)}
+.cf-cve{font-family:var(--mono);font-size:9px;color:var(--accent2);font-weight:600;white-space:nowrap}
+.cf-comp{color:#c8d8d2;font-family:var(--mono);font-size:10px;word-break:break-all}
+.cf-fix{font-family:var(--mono);font-size:10px;color:var(--accent);white-space:nowrap}
+.cf-ev{display:flex;flex-wrap:wrap;gap:3px;align-items:center;font-family:var(--mono);font-size:8px}
+.cf-ev a{color:var(--accent2);text-decoration:none;border:1px solid rgba(68,204,255,0.25);padding:1px 4px;white-space:nowrap}
+.cf-ev a:hover{background:rgba(68,204,255,0.12)}
+.cf-ev .arr{color:var(--dim)}
+.cf-rem{display:flex;flex-direction:column;gap:4px;min-width:150px}
+.cf-rem a{color:var(--accent2);font-family:var(--mono);font-size:9px;text-decoration:none}
+.cf-rem a:hover{text-decoration:underline}
+.cf-btn{padding:4px 8px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:1px solid rgba(68,204,255,0.28);color:var(--accent2);background:rgba(68,204,255,0.07);cursor:pointer;white-space:nowrap}
+.cf-btn:hover{background:rgba(68,204,255,0.16)}
+.cf-btn:disabled{opacity:0.45;cursor:not-allowed}
+.cf-btn.warn{border-color:rgba(255,184,76,0.5);color:var(--warn);background:rgba(255,184,76,0.08)}
+.cf-btn.ghost{border-color:var(--border);color:var(--dim);background:transparent}
+.cf-msg{font-family:var(--mono);font-size:9px;padding:5px 8px;margin:6px 0;border:1px solid var(--border);color:var(--dim)}
+.cf-msg.err{color:var(--danger);border-color:rgba(255,95,99,0.45)}
+.cf-msg.ok{color:var(--accent);border-color:rgba(100,240,200,0.35)}
+.cf-scroll{max-height:420px;overflow-y:auto}
+.cf-scroll::-webkit-scrollbar{width:3px}
+.cf-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
+.cf-empty{padding:10px 6px;color:var(--dim);font-family:var(--mono);font-size:10px;line-height:1.6}
+.cf-sub{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.08em;text-transform:uppercase;margin:10px 0 4px}
+`;document.head.appendChild(s);})();
+const CF={busy:false,msg:null,showNameMatches:false,showAll:false,loading:false,formEl:null};
+const CF_KEY_RE=/^exp_[a-f0-9]{24}$/,CF_INV_RE=/^inv_[a-f0-9]{16}$/,CF_SID_RE=/^[A-Za-z0-9_-]{4,128}$/;
+const CF_KIND_LABEL={cyclonedx:'CycloneDX JSON',spdx:'SPDX JSON','npm-lock':'package-lock.json',requirements:'requirements.txt',cpe:'CPE 2.3 list',self:'self-scan'};
+const CF_STATUS={queued:['QUEUED','info'],running:['RUNNING','info'],blocked:['NEEDS INPUT','warn'],finished:['FINISHED','ok'],failed:['FAILED','hot'],expired:['EXPIRED','warn'],suspended:['SUSPENDED','warn']};
+function cfFmtTime(iso){const d=iso?new Date(iso):null;return d&&!isNaN(d)?d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):'--'}
+function cfSetMsg(text,cls){CF.msg=text?{text,cls}:null;renderLower();}
+async function cfReload(){
+  try{const r=await fetch('/api/cyberfix',{cache:'no-store'});if(!r.ok)return false;const j=await r.json();if(j&&typeof j==='object'&&j.capabilities){D.cyberfix=j;renderTabbar();renderLower();renderSituationStrip();return true;}}catch{}
+  return false;
+}
+function cfConfChip(c){const m={confirmed:['CONFIRMED','critical'],probable:['PROBABLE','high'],'name-match':['NAME MATCH','low']}[c]||['?','low'];return `<span class="kev-tag ${m[1]}" title="${esc(c==='confirmed'?'Installed version is inside an OSV affected range for this CVE':c==='probable'?'OSV flags the package for this CVE but the version could not be compared exactly':'KEV vendor/product name matches the component; no version evidence')}">${m[0]}</span>`}
+function cfEvidence(e){
+  const steps=(e.evidence||[]).filter(x=>x&&x.url).map(x=>extLink(x.url,x.step==='kev'?'KEV':x.step==='cve'?'CVE':x.step==='range'?'RANGE':x.step==='advisory'?'ADVISORY':x.step==='component'?'COMPONENT':String(x.step||'').toUpperCase(),'')).filter(Boolean);
+  const r=e.remediation;
+  if(r){if(r.sessionUrl)steps.push(extLink(r.sessionUrl,'SESSION',''));if(r.prUrl)steps.push(extLink(r.prUrl,'PR',''));}
+  return `<div class="cf-ev" title="${esc((e.evidence||[]).map(x=>x.label).join('  →  '))}">${steps.join('<span class="arr">→</span>')}</div>`;
+}
+function cfRemCell(e,cf){
+  const dev=cf.capabilities?.devin||{};const r=e.remediation;
+  if(r){
+    const st=CF_STATUS[r.status]||[String(r.status||'?').toUpperCase(),'info'];
+    const chip=r.prUrl?`<span class="cf-chip ok" title="Pull request opened by the remediation session">PR OPEN</span>`:`<span class="cf-chip ${st[1]}" title="${esc(r.detail||r.status||'')}">${esc(st[0])}</span>`;
+    const sid=CF_SID_RE.test(r.sessionId||'')?r.sessionId:null;
+    return `<div class="cf-rem">${chip}${r.sessionUrl?extLink(r.sessionUrl,'Devin session ↗',''):''}${r.prUrl?extLink(r.prUrl,'Pull request ↗',''):''}<span class="k" style="font-family:var(--mono);font-size:8px;color:var(--dim)">${esc(r.trigger||'')} · ${cfFmtTime(r.startedAt)} → ${cfFmtTime(r.updatedAt)}${r.lastError?` · <span style="color:var(--warn)">${esc(r.lastError)}</span>`:''}</span>${sid&&dev.enabled?`<button class="cf-btn ghost" ${CF.busy?'disabled':''} onclick="cfRefresh('${esc(sid)}')" title="Poll the Devin API for this session now">Refresh status</button>`:''}</div>`;
+  }
+  const key=CF_KEY_RE.test(e.exposureKey||'')?e.exposureKey:null;
+  if(!dev.enabled)return `<button class="cf-btn" disabled title="${esc(dev.reason||'remediation disabled — set DEVIN_API_KEY')}">Remediate with Devin</button>`;
+  if(!key)return '';
+  return `<button class="cf-btn ${e.confidence==='confirmed'?'warn':''}" ${CF.busy?'disabled':''} onclick="cfRemediate('${esc(key)}')" title="Start a Devin session against ${esc(dev.targetRepo||'')}: reproduce, failing test, upgrade to ${esc(e.fixedVersion||'a non-affected release')}, run tests, open PR">Remediate with Devin</button>`;
+}
+function renderCyberfixPanel(){
+  const cf=D.cyberfix;
+  if(!cf){if(!CF.loading){CF.loading=true;cfReload().finally(()=>{CF.loading=false;});}
+    return `<div class="g-panel" id="cyberfix-panel"><div class="sec-head"><h3>${shDot('CyberKEV')}Exposure &amp; remediation</h3><span class="badge off">LOADING</span></div><div class="cf-empty">Joining the CISA KEV catalog against the software inventory…</div></div>`;}
+  const c=cf.counts||{},dev=cf.capabilities?.devin||{},osv=cf.capabilities?.osv||{};
+  const confirmed=c.confirmed||0,probable=c.probable||0,nm=c['name-match']||0;
+  const badgeCls=confirmed?'err':probable?'warn':'';
+  const badge=`<span class="badge ${badgeCls}" title="${esc(`${confirmed} confirmed · ${probable} probable · ${nm} name-match · ${c.new||0} new since last run · ${c.resolved||0} resolved`)}">${cf.status==='pending'?'PENDING':cf.status==='error'?'ERROR':`${confirmed} CONFIRMED`}${c.prOpen?` · ${c.prOpen} PR`:''}</span>`;
+  const devChip=dev.enabled
+    ?`<span class="cf-chip ok" title="Devin API ${esc(dev.apiVersion||'')} · sessions run against ${esc(dev.targetRepo||'')}">Devin ready · ${esc(dev.targetRepo||'')} · auto ${dev.auto?'on':'off'}</span>`
+    :`<span class="cf-chip warn" title="Set DEVIN_API_KEY on the server to enable one-click remediation sessions. Exposure detection works without it.">${esc(dev.reason||'remediation disabled — set DEVIN_API_KEY')}</span>`;
+  const osvChip=`<span class="cf-chip ${osv.status==='ok'?'ok':osv.status==='degraded'?'warn':osv.status==='unavailable'?'hot':''}" title="${esc(`OSV.dev resolver · ${osv.requests||0} requests · ${osv.cacheHits||0} cache hits · ${osv.errors||0} errors`)}">OSV ${esc(osv.status||'pending')}</span>`;
+  const kevChip=`<span class="cf-chip" title="Full CISA KEV catalog used for the join (${esc(cf.kev?.source||'')})">KEV ${cf.kev?.count||0}</span>`;
+  const invs=(cf.inventories||[]).map(i=>{
+    const eco=Object.entries(i.byEcosystem||{}).map(([k,v])=>`${esc(k)} ${v}`).join(' · ');
+    const id=CF_INV_RE.test(i.id||'')?i.id:null;
+    return `<div class="cf-inv"><span class="k">${esc(CF_KIND_LABEL[i.kind]||i.kind||'')}</span><span class="n" title="${esc((i.files||[]).join(', ')||i.name||'')}">${esc(i.name||'')}</span><span class="k">${i.componentCount||0} comp${eco?` · ${eco}`:''}</span>${id?`<button class="cf-btn ghost" ${CF.busy?'disabled':''} onclick="cfDelete('${esc(id)}')" title="Remove this inventory and rescan">✕</button>`:''}</div>`;
+  }).join('');
+  const kinds=(cf.capabilities?.uploadKinds||[]).map(k=>`<option value="${esc(k)}">${esc(CF_KIND_LABEL[k]||k)}</option>`).join('');
+  const maxMb=Math.round((cf.capabilities?.maxUploadBytes||0)/1048576);
+  const all=cf.exposures||[];
+  const strong=all.filter(e=>e.confidence!=='name-match'),weak=all.filter(e=>e.confidence==='name-match');
+  let rows=CF.showNameMatches?all:strong;
+  const LIMIT=40;const truncated=!CF.showAll&&rows.length>LIMIT;if(truncated)rows=rows.slice(0,LIMIT);
+  const fresh=new Set(cf.newExposureKeys||[]);
+  const tr=rows.map(e=>{
+    const k=e.kev||{},comp=e.component||{};
+    const flags=[k.knownRansomwareCampaignUse==='Known'?'<span class="kev-tag ransomware">RANSOMWARE</span>':'',fresh.has(e.exposureKey)?'<span class="kev-tag high" title="Not present in the previous run">NEW</span>':''].join('');
+    return `<tr class="${fresh.has(e.exposureKey)?'new':''}">
+      <td><div class="cf-cve">${esc(e.cveId||'')}</div><div style="color:var(--dim);font-size:9px;margin-top:2px" title="${esc(k.shortDescription||'')}">${esc(k.vendorProject||'')} · ${esc(k.product||'')}</div></td>
+      <td><div class="cf-comp">${esc(comp.name||'')}${comp.version?`@${esc(comp.version)}`:''}</div><div style="color:var(--dim);font-size:9px;margin-top:2px">${esc(comp.ecosystem||'')} · ${esc(comp.inventoryName||'')}${e.affectedRange?` · affected ${esc(e.affectedRange)}`:''}</div></td>
+      <td class="cf-fix">${e.fixedVersion?`→ ${esc(e.fixedVersion)}`:'<span style="color:var(--dim)">no fix listed</span>'}</td>
+      <td style="font-family:var(--mono);font-size:9px;white-space:nowrap">${esc(k.dueDate||'--')}</td>
+      <td><div class="kev-meta" style="margin-top:0">${cfConfChip(e.confidence)}${flags}</div></td>
+      <td>${cfEvidence(e)}</td>
+      <td>${cfRemCell(e,cf)}</td>
+    </tr>`;
+  }).join('');
+  const table=rows.length?`<div class="cf-scroll"><table class="cf-table"><thead><tr><th>CVE · KEV entry</th><th>Component</th><th>Fixed</th><th>KEV due</th><th>Confidence</th><th>Evidence chain</th><th>Remediation</th></tr></thead><tbody>${tr}</tbody></table></div>`
+    :`<div class="cf-empty">${cf.status==='pending'?'First scan pending — runs after the next sweep or on rescan.':cf.status==='error'?'Last scan failed; see server log.':`No confirmed or probable exposures: none of the ${(cf.inventories||[]).reduce((s,i)=>s+(i.componentCount||0),0)} inventory components sits inside an OSV affected range for any of the ${cf.kev?.count||0} KEV CVEs.${nm?` ${nm} vendor/product name match${nm===1?'':'es'} hidden.`:''}`}</div>`;
+  const toggles=`${nm?`<button class="cf-btn ghost" onclick="CF.showNameMatches=!CF.showNameMatches;CF.showAll=false;renderLower()">${CF.showNameMatches?'Hide':'Show'} ${nm} name match${nm===1?'':'es'}</button>`:''}${truncated?`<button class="cf-btn ghost" onclick="CF.showAll=true;renderLower()">Show all ${CF.showNameMatches?all.length:strong.length}</button>`:''}`;
+  setTimeout(cfMountForm,0);
+  return `<div class="g-panel" id="cyberfix-panel">
+    <div class="sec-head"><h3>${shDot('CyberKEV')}Exposure &amp; remediation</h3><div style="display:flex;gap:6px;align-items:center">${badge}<button class="cf-btn ghost" ${CF.busy?'disabled':''} onclick="cfRescan()" title="Re-join the KEV catalog against every inventory now">${CF.busy?'Working…':'Rescan'}</button></div></div>
+    <div class="cf-status">${kevChip}${osvChip}${devChip}<span title="Last run">last run ${cfFmtTime(cf.lastRun)}${cf.trigger?` (${esc(cf.trigger)})`:''}</span>${c.new?`<span class="cf-chip hot">${c.new} new</span>`:''}${c.resolved?`<span class="cf-chip ok">${c.resolved} resolved</span>`:''}</div>
+    ${CF.msg?`<div class="cf-msg ${esc(CF.msg.cls||'')}">${esc(CF.msg.text)}</div>`:''}
+    <div class="cf-sub">Inventories</div>${invs||'<div class="cf-empty">No inventory loaded.</div>'}
+    <div id="cf-form-slot"><form class="cf-form" onsubmit="return cfUpload(this)"><select name="kind" title="Inventory format">${kinds}</select><input type="text" name="name" maxlength="80" pattern="[A-Za-z0-9][A-Za-z0-9._ -]{0,79}" placeholder="inventory name" required title="Letters, digits, space . _ -"><input type="file" name="file" required title="Max ${maxMb} MB"><button class="cf-btn" type="submit" ${CF.busy?'disabled':''}>Upload &amp; scan</button></form></div>
+    <div class="cf-sub" style="display:flex;justify-content:space-between;align-items:center"><span>Exposures · ${confirmed} confirmed · ${probable} probable · ${nm} name-match</span><span style="display:flex;gap:4px">${toggles}</span></div>
+    ${table}
+  </div>`;
+}
+// The upload form is a live DOM node kept across sweep re-renders so a half-filled form (incl. the chosen file) survives.
+function cfMountForm(){
+  const slot=document.getElementById('cf-form-slot');if(!slot)return;
+  const fresh=slot.querySelector('form');
+  if(CF.formEl&&CF.formEl!==fresh&&fresh){slot.replaceChild(CF.formEl,fresh);}else if(fresh){CF.formEl=fresh;}
+  const btn=CF.formEl&&CF.formEl.querySelector('button[type=submit]');if(btn)btn.disabled=!!CF.busy;
+}
+async function cfAction(fn,okMsg){
+  if(CF.busy)return;CF.busy=true;CF.msg=null;renderLower();
+  try{const r=await fn();if(r&&r.ok){CF.msg=okMsg?{text:okMsg,cls:'ok'}:null;}else{let t='An error occurred';try{const j=await r.json();if(j&&typeof j.error==='string')t=j.error.slice(0,160);}catch{}CF.msg={text:`${t} (HTTP ${r?r.status:'?'})`,cls:'err'};}}
+  catch{CF.msg={text:'Request failed',cls:'err'};}
+  CF.busy=false;
+  if(!(await cfReload()))renderLower();
+}
+function cfUpload(form){
+  const kind=form.kind.value,name=form.name.value.trim(),file=form.file.files[0];
+  if(!file||!name||!/^[A-Za-z0-9][A-Za-z0-9._ -]{0,79}$/.test(name)){cfSetMsg('Pick a file and a simple inventory name.','err');return false;}
+  const max=D.cyberfix?.capabilities?.maxUploadBytes||5242880;
+  if(file.size>max){cfSetMsg(`File exceeds ${Math.round(max/1048576)} MB.`,'err');return false;}
+  cfAction(()=>fetch(`/api/cyberfix/inventory?kind=${encodeURIComponent(kind)}&name=${encodeURIComponent(name)}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file}),`Inventory "${name}" uploaded — rescanning.`).then(()=>{if(CF.msg?.cls==='ok')form.reset();});
+  return false;
+}
+function cfDelete(id){if(!CF_INV_RE.test(id))return;cfAction(()=>fetch(`/api/cyberfix/inventory/${encodeURIComponent(id)}`,{method:'DELETE'}),'Inventory removed — rescanning.');}
+function cfRescan(){cfAction(()=>fetch('/api/cyberfix/rescan',{method:'POST'}),'Rescan complete.');}
+function cfRemediate(key){if(!CF_KEY_RE.test(key))return;cfAction(()=>fetch('/api/cyberfix/remediate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({exposureKey:key})}),'Devin remediation session started — status polls every few minutes.');}
+function cfRefresh(sid){if(!CF_SID_RE.test(sid))return;cfAction(()=>fetch(`/api/cyberfix/remediations/${encodeURIComponent(sid)}/refresh`,{method:'POST'}),'Session status refreshed.');}
+// === END CYBERFIX ===
 
 // === SITUATION STRIP (rule-based headlines from lib/situation.mjs; all text is third-party-derived → esc()) ===
 const SIT_TAB_LABEL=Object.fromEntries(TAB_DEFS.map(t=>[t.id,t.label]));
@@ -1431,6 +1583,7 @@ const PANEL_CAPTIONS={
   'narco & organized crime':'InSight Crime reporting with extracted people, groups and places. Journalism, not event data.',
   'focal points':'<b>Derived.</b> Areas where several feeds point at the same place this sweep. Check each contributing source before reading it as convergence.',
   'cisa kev threats':'CISA Known Exploited Vulnerabilities, newest first. Click a CVE or vendor to pivot into Investigate.',
+  'exposure & remediation':'Every CISA KEV entry joined against the software inventory (this deployment\'s own lockfile plus any uploaded SBOM, lockfile or CPE list) and confirmed through OSV affected-version ranges. Each row is an evidence chain: KEV entry → CVE → affected range → matching component → Devin remediation session → pull request. Remediation requires DEVIN_API_KEY.',
   'cross-source signals':'<b>Derived.</b> Zones where two or more independent feeds overlap. Built from the panels above; adds no new data.',
   'carrier strike groups':'Positions estimated from public reporting (USNI, GDELT). Fallback positions are last known, not tracked.',
   'ukraine theater':'D3 theater map: DeepStateMAP front polygons, attack axes and RU unit / airfield markers over the sensors CRUCIX already sweeps for this box. Map data \u00a9 DeepStateMAP \u2014 an assessment, not verified ground truth.',
@@ -3218,7 +3371,7 @@ function renderLower(){
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
-    cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
+    cyber:[wrap(renderCyberfixPanel(),'lp-wide'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),

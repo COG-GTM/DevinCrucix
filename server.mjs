@@ -55,6 +55,7 @@ import { CONFIDENCE as NARCO_GRADES } from './lib/narco/events.mjs';
 import { EVENT_TYPE_LABELS as NARCO_TYPES } from './lib/narco/extract.mjs';
 import { refreshCorpus as refreshCjngCorpus } from './lib/cjng/corpus.mjs';
 import { buildCjngGraph, loadGraph as loadCjngGraph, saveGraph as saveCjngGraph, summarizeGraph as summarizeCjngGraph, filterGraph as filterCjngGraph, NODE_TYPES as CJNG_NODE_TYPES, RELATIONS as CJNG_RELATIONS } from './lib/cjng/graph.mjs';
+import { createCyberfix, InventoryError as CyberfixInventoryError, DevinApiError as CyberfixDevinError, INVENTORY_KINDS as CYBERFIX_KINDS, MAX_INVENTORY_BYTES as CYBERFIX_MAX_BYTES } from './lib/cyberfix/index.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -782,6 +783,134 @@ app.get('/api/threat-classify', (req, res) => {
   const result = classifyAll(headlines);
   res.json(result);
 });
+
+// === CYBERFIX: KEV × inventory exposure → Devin remediation (lib/cyberfix/) ===================================
+// Runs after every completed sweep (each sweep refreshes the KEV source), attaches the summary to
+// currentData.cyberfix, rebuilds the Situation strip and pushes the update to connected browsers. All
+// mutating routes are audit-logged; clients never see raw upload bytes or upstream (OSV / Devin) bodies.
+const cyberfix = createCyberfix();
+let cyberfixSweepSeen = null;
+let cyberfixMutations = new Map();
+function cyberfixRateLimited(ip) {
+  const now = Date.now();
+  const key = String(ip || 'unknown');
+  const hits = (cyberfixMutations.get(key) || []).filter(t => now - t < 60000);
+  hits.push(now);
+  cyberfixMutations.set(key, hits);
+  if (cyberfixMutations.size > 500) cyberfixMutations = new Map([...cyberfixMutations].filter(([, v]) => v.some(t => now - t < 60000)));
+  return hits.length > 20;
+}
+function cyberfixAttach() {
+  if (!currentData) return;
+  currentData.cyberfix = cyberfix.summary();
+  try { currentData.situation = buildSituation(currentData); } catch (err) { console.error('[Cyberfix] situation rebuild failed:', err?.message || err); }
+  broadcast({ type: 'update', data: currentData });
+}
+async function cyberfixRun(trigger) {
+  try {
+    await cyberfix.run({ trigger, kevFallback: currentData?.cyberKev?.vulnerabilities || [] });
+  } catch (err) {
+    console.error('[Cyberfix] run failed:', err?.message || err);
+  }
+  cyberfixAttach();
+}
+setInterval(() => {
+  if (!currentData || sweepInProgress || !lastSweepTime || lastSweepTime === cyberfixSweepSeen) return;
+  cyberfixSweepSeen = lastSweepTime;
+  cyberfixRun('sweep');
+}, 15000).unref();
+cyberfix.resumePolling();
+const CYBERFIX_ID = (v) => str(v, { max: 24, required: true, pattern: /^inv_[a-f0-9]{16}$/ });
+const CYBERFIX_SESSION = (v) => str(v, { max: 128, required: true, pattern: /^[A-Za-z0-9_-]{4,128}$/ });
+const CYBERFIX_EXPOSURE = (v) => str(v, { max: 40, required: true, pattern: /^exp_[a-f0-9]{24}$/ });
+
+app.get('/api/cyberfix', (req, res) => {
+  res.json(cyberfix.summary());
+});
+
+app.post('/api/cyberfix/inventory',
+  validateQuery({
+    kind: (v) => oneOf(v, CYBERFIX_KINDS, { required: true }),
+    name: (v) => str(v, { max: 80, required: true, pattern: /^[A-Za-z0-9][A-Za-z0-9._ -]{0,79}$/ }),
+  }),
+  express.raw({ type: () => true, limit: CYBERFIX_MAX_BYTES }),
+  async (req, res) => {
+    if (cyberfixRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+    if (!Buffer.isBuffer(req.body) || req.body.length < 2 || req.body.length > CYBERFIX_MAX_BYTES) return res.status(400).json({ error: 'Invalid request' });
+    const { kind, name } = req.validated.query;
+    try {
+      const inv = cyberfix.addInventory({ kind, name, bytes: req.body });
+      console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'cyberfix_inventory_upload', ip: req.ip, id: inv.id, kind, bytes: req.body.length, components: inv.componentCount }));
+      cyberfixRun('upload').catch(() => {});
+      res.status(201).json({ ok: true, inventory: inv });
+    } catch (err) {
+      if (err instanceof CyberfixInventoryError) {
+        console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'cyberfix_inventory_rejected', ip: req.ip, kind, bytes: req.body.length, reason: err.reason }));
+        return res.status(400).json({ error: 'Invalid inventory' });
+      }
+      console.error('[Cyberfix] inventory upload error:', err?.stack || err?.message || err);
+      res.status(500).json({ error: 'An error occurred' });
+    }
+  });
+
+app.delete('/api/cyberfix/inventory/:id', validateParams({ id: CYBERFIX_ID }), (req, res) => {
+  if (cyberfixRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { id } = req.validated.params;
+  try {
+    const removed = cyberfix.removeInventory(id);
+    console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'cyberfix_inventory_delete', ip: req.ip, id, removed }));
+    if (!removed) return res.status(404).json({ error: 'Not found' });
+    cyberfixRun('delete').catch(() => {});
+    res.json({ ok: true, id });
+  } catch (err) {
+    console.error('[Cyberfix] inventory delete error:', err?.stack || err?.message || err);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+app.post('/api/cyberfix/rescan', async (req, res) => {
+  if (cyberfixRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'cyberfix_rescan', ip: req.ip }));
+  try {
+    await cyberfixRun('rescan');
+    res.json(cyberfix.summary());
+  } catch (err) {
+    console.error('[Cyberfix] rescan error:', err?.stack || err?.message || err);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+app.post('/api/cyberfix/remediate', validateBody({ exposureKey: CYBERFIX_EXPOSURE }), async (req, res) => {
+  if (cyberfixRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { exposureKey } = req.validated.body;
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'cyberfix_remediate_request', ip: req.ip, exposureKey }));
+  try {
+    const result = await cyberfix.remediate(exposureKey, { ip: req.ip });
+    if (!result) return res.status(404).json({ error: 'Not found' });
+    cyberfixAttach();
+    res.status(result.created ? 201 : 200).json({ ok: true, created: result.created, remediation: result.remediation });
+  } catch (err) {
+    if (err instanceof CyberfixDevinError && err.status === 0) return res.status(409).json({ error: err.message });
+    console.error('[Cyberfix] remediate error:', err?.stack || err?.message || err);
+    res.status(502).json({ error: 'An error occurred' });
+  }
+});
+
+app.post('/api/cyberfix/remediations/:id/refresh', validateParams({ id: CYBERFIX_SESSION }), async (req, res) => {
+  if (cyberfixRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { id } = req.validated.params;
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'cyberfix_remediation_refresh', ip: req.ip, sessionId: id }));
+  try {
+    const rec = await cyberfix.refreshRemediation(id);
+    if (!rec) return res.status(404).json({ error: 'Not found' });
+    cyberfixAttach();
+    res.json({ ok: true, remediation: rec });
+  } catch (err) {
+    console.error('[Cyberfix] refresh error:', err?.stack || err?.message || err);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+// === END CYBERFIX ===========================================================================================
 
 // API: health check. Always HTTP 200 (Fly health checks kill the machine on 503). The endpoint is
 // public, so unauthenticated callers only get the minimal body; configuration detail requires a session.

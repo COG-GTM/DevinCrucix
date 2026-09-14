@@ -1,0 +1,20 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": { "component": { "type": "application", "name": "mission-portal", "version": "2.4.0" } },
+  "components": [
+    { "type": "library", "name": "vite", "version": "6.2.0", "purl": "pkg:npm/vite@6.2.0" },
+    { "type": "library", "group": "@babel", "name": "core", "version": "7.24.0", "purl": "pkg:npm/%40babel/core@7.24.0" },
+    { "type": "library", "group": "org.apache.logging.log4j", "name": "log4j-core", "version": "2.14.1", "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1?type=jar" },
+    { "type": "library", "name": "langflow", "version": "1.2.0", "purl": "pkg:pypi/langflow@1.2.0" },
+    { "type": "library", "name": "serde", "version": "1.0.197", "purl": "pkg:cargo/serde@1.0.197" },
+    { "type": "library", "name": "Newtonsoft.Json", "version": "13.0.3", "purl": "pkg:nuget/Newtonsoft.Json@13.0.3" },
+    { "type": "library", "name": "golang.org/x/net", "version": "0.23.0", "purl": "pkg:golang/golang.org/x/net@0.23.0" },
+    { "type": "operating-system", "name": "ios_xe", "version": "17.9.1", "cpe": "cpe:2.3:o:cisco:ios_xe:17.9.1:*:*:*:*:*:*:*" },
+    { "type": "library", "name": "vite", "version": "6.2.0", "purl": "pkg:npm/vite@6.2.0" },
+    { "type": "library", "name": "unversioned-lib" },
+    "not-an-object",
+    null
+  ]
+}

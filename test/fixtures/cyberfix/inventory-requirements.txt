@@ -1,0 +1,11 @@
+# analyst ML service — pinned
+langflow==1.2.0
+requests==2.31.0 ; python_version >= "3.9"
+Django==4.2.7  # web
+uvicorn[standard]==0.29.0
+numpy>=1.26
+pyyaml~=6.0
+-r base.txt
+--index-url https://pypi.example.internal/simple
+git+https://github.com/example/tool.git@v1#egg=tool
+./vendor/localpkg
