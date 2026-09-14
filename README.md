@@ -210,6 +210,20 @@ Below the border-reporting group on the Cartels & Border tab sits a **CJNG-only 
 
 The panel is a D3 force layout with node-type, relation and minimum-support chips (persisted in `localStorage`); clicking a node lists its relations with the evidence sentences and links to the original article. Relations are as reported in the cited sentence, not verified ground truth, and rule-based cues miss relations phrased differently.
 
+### Target Development (public-source find / fix workbench)
+
+The **Target Development** tab turns the stores CRUCIX already holds into an analyst's targeting package (`lib/targeting/`). It is scoped to entities that public reporting already names — persons, organisations, facilities, vehicles, vessels, aircraft — and never to ordinary private individuals.
+
+- **Nominate** — every target needs a logged basis (`kg-node`, `ofac-uid`, `doj-release` or an HTTPS `source-url`), a bounded label / alias set, the requirement it must answer (8–400 chars) and a priority 1–3. Targets persist in `runs/targeting/targets.json` (`TARGETING_DATA_DIR` overrides); every nominate / develop / decision / close / delete is appended to `runs/targeting/audit.jsonl` as JSON. 60 open targets max; duplicate bases are rejected.
+- **Find** — mentions are gathered from the local CJNG graph and InSight Crime corpus, DOJ releases, the OFAC SDN index, border news, narco event clusters and the Telegram OSINT buffer; stores that are empty are reported as *not available* rather than fabricated, and nothing is fetched from the network during development. Aliases, nicknames and spelling variants are matched; selectors (OFAC uid / program, DOJ case numbers, IMO, registrations, domains, and official-text-only phone / e-mail) are extracted only when literally present in the text.
+- **Adjudicate** — linked entities are classified target / associate / background with rules; when `LLM_PROVIDER` + `LLM_API_KEY` are set (OpenAI or Anthropic) the configured model assesses each candidate, and its output is rejected unless it cites candidate / evidence indexes that exist, an allow-listed role and relation, and a confidence in `[0,1]`. Every link stays **proposed** until an analyst accepts or rejects it in the panel.
+- **Fix** — dated place mentions are snapped to the Mexico gazetteer with a precision-based uncertainty radius and drawn on a D3 map; the *last known* location is the newest sentence that states presence, labelled with age and caveats. Telegram is never used for location. Nothing here is a live position.
+- **Pattern of activity** — per-target timeline, month / weekday / source / state aggregates, reporting gaps, and deviations from the target's own baseline (tempo spikes, new geography, status words).
+- **Graph proposals** — relations the package would add to the CJNG graph, each with evidence; accepted proposals form an analyst-approved overlay at `GET /api/targeting/graph-overlay`. The verified source-attributed graph is never modified.
+- **Dossier** — `GET /api/targeting/targets/:id/dossier.md` renders a sourced Markdown package with every claim cited and its caveats.
+
+Routes live under `/api/targeting` (list, nominate, get, develop, link / proposal decisions, close, delete, dossier, overlay); ids, enums and body fields are whitelisted and unexpected fields are a 400.
+
 ### Ukraine War (Ukraine theater)
 
 The **UKRAINE WAR** tab gives the Russia–Ukraine war its own theater view. No new upstream adapters are involved: every panel is a theater slice of something CRUCIX already sweeps, assembled by `lib/ukraineview.mjs` into a bounded `ukraine` view model and rendered next to the existing **Ukraine Front** panel.

@@ -54,6 +54,10 @@ import { loadIndex as ofacNarcoIndex, matchNames as ofacMatchNames } from './api
 import { CONFIDENCE as NARCO_GRADES } from './lib/narco/events.mjs';
 import { EVENT_TYPE_LABELS as NARCO_TYPES } from './lib/narco/extract.mjs';
 import { refreshCorpus as refreshCjngCorpus } from './lib/cjng/corpus.mjs';
+import { TargetStore, validateNomination, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE } from './lib/targeting/store.mjs';
+import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
+import { buildSourceContext } from './lib/targeting/sources.mjs';
+import { renderDossier } from './lib/targeting/dossier.mjs';
 import { buildCjngGraph, loadGraph as loadCjngGraph, saveGraph as saveCjngGraph, summarizeGraph as summarizeCjngGraph, filterGraph as filterCjngGraph, NODE_TYPES as CJNG_NODE_TYPES, RELATIONS as CJNG_RELATIONS } from './lib/cjng/graph.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -625,6 +629,118 @@ app.get('/api/narco/sanctions', (req, res) => {
   const index = ofacNarcoIndex();
   if (!index) return res.status(503).json({ error: 'Sanctions index not loaded yet' });
   res.json({ query: raw, publishDate: index.publishDate || null, matches: ofacMatchNames([raw], index).slice(0, 10) });
+});
+
+// === Target Development (FIND / FIX over public reporting) ===
+// Nomination -> develop (mentions, selectors, correlation, text geolocation, pattern) -> analyst review of
+// links and graph proposals -> sourced dossier. The store is the only writer; the verified CJNG graph is never
+// mutated — accepted proposals live in an overlay returned by /api/targeting/graph-overlay.
+const targetStore = new TargetStore(process.env.TARGETING_DATA_DIR ? { dataDir: process.env.TARGETING_DATA_DIR } : {});
+const targetDevelopInFlight = new Set();
+const TGT_ID = (v) => str(v, { max: 16, pattern: TARGET_ID_RE, required: true });
+function targetAudit(event, req, details = {}) {
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event, ip: req.ip, ...details }));
+}
+function targetingCapabilities() {
+  return {
+    types: TGT_TYPES, basisKinds: TGT_BASIS, decisions: TGT_DECISIONS, tiers: EVIDENCE_TIERS, claimStates: CLAIM_STATES,
+    llm: llmProvider?.isConfigured ? { configured: true, provider: llmProvider.name, model: llmProvider.model } : { configured: false, reason: 'set LLM_PROVIDER + LLM_API_KEY (anthropic / openai) to enable model-assisted correlation' },
+  };
+}
+app.get('/api/targeting', (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const targets = targetStore.list();
+  res.json({ capabilities: targetingCapabilities(), count: targets.length, targets });
+});
+app.post('/api/targeting/targets', (req, res) => {
+  const body = req.body;
+  const allowed = ['label', 'type', 'aliases', 'basis', 'requirement', 'priority'];
+  if (!body || typeof body !== 'object' || Array.isArray(body) || !Object.keys(body).every(k => allowed.includes(k))) return res.status(400).json({ error: 'invalid request', field: 'body' });
+  const v = validateNomination(body);
+  if (!v.ok) { targetAudit('targeting_validation_failure', req, { field: v.field }); return res.status(400).json({ error: 'invalid request', field: v.field }); }
+  const r = targetStore.nominate(v.value);
+  if (r.error === 'capacity') return res.status(409).json({ error: 'Target capacity reached; close a target first' });
+  if (r.error === 'duplicate') return res.status(409).json({ error: 'Target already nominated', id: r.target.id });
+  targetAudit('targeting_nominate', req, { id: r.target.id, type: r.target.type, basis: r.target.basis.kind });
+  res.status(201).json({ target: summarizeTarget(r.target) });
+});
+app.get('/api/targeting/targets/:id', validateParams({ id: TGT_ID }), (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const t = targetStore.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  res.json({ ...summarizeTarget(t), decisions: t.decisions, graphProposals: t.graphProposals, exports: t.exports, package: compactPackage(t.package), developing: targetDevelopInFlight.has(t.id) });
+});
+app.post('/api/targeting/targets/:id/develop', validateParams({ id: TGT_ID }), async (req, res) => {
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length) return res.status(400).json({ error: 'invalid request', field: 'body' });
+  const t = targetStore.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  if (t.status === 'closed') return res.status(409).json({ error: 'Target is closed' });
+  if (targetDevelopInFlight.has(t.id)) return res.status(409).json({ error: 'Development already running' });
+  if (investigateRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  targetDevelopInFlight.add(t.id);
+  targetAudit('targeting_develop_start', req, { id: t.id, llm: Boolean(llmProvider?.isConfigured) });
+  try {
+    const ctx = buildSourceContext({ graph: cjngGraph, narcoData, telegramFeed: getTelegramFeed() });
+    const pkg = await developTarget(llmProvider, t, ctx);
+    const saved = targetStore.setPackage(t.id, pkg);
+    targetAudit('targeting_develop_done', req, { id: t.id, ms: pkg.durationMs, mentions: pkg.stats.mentions, links: pkg.links.length, proposals: saved.graphProposals.length, llm: pkg.llm.used ? pkg.llm.model : null });
+    res.json({ ...summarizeTarget(saved), decisions: saved.decisions, graphProposals: saved.graphProposals, package: compactPackage(saved.package) });
+  } catch (err) {
+    console.error('[Crucix] Target development error:', err);
+    targetAudit('targeting_develop_error', req, { id: t.id });
+    res.status(500).json({ error: 'Target development failed' });
+  } finally {
+    targetDevelopInFlight.delete(t.id);
+  }
+});
+const TGT_DECISION_BODY = validateBody({ decision: (v) => oneOf(v, TGT_DECISIONS, { required: true }) });
+app.post('/api/targeting/targets/:id/links/:linkId', validateParams({ id: TGT_ID, linkId: (v) => str(v, { max: 16, pattern: LINK_ID_RE, required: true }) }), TGT_DECISION_BODY, (req, res) => {
+  if (!Object.keys(req.body || {}).every(k => k === 'decision')) return res.status(400).json({ error: 'invalid request', field: 'body' });
+  const { id, linkId } = req.validated.params;
+  const r = targetStore.decideLink(id, linkId, req.validated.body.decision);
+  if (!r) return res.status(404).json({ error: 'Link not found' });
+  targetAudit('targeting_link_decision', req, { id, linkId, decision: req.validated.body.decision });
+  res.json({ link: r.link, target: summarizeTarget(r.target) });
+});
+app.post('/api/targeting/targets/:id/proposals/:proposalId', validateParams({ id: TGT_ID, proposalId: (v) => str(v, { max: 16, pattern: PROPOSAL_ID_RE, required: true }) }), TGT_DECISION_BODY, (req, res) => {
+  if (!Object.keys(req.body || {}).every(k => k === 'decision')) return res.status(400).json({ error: 'invalid request', field: 'body' });
+  const { id, proposalId } = req.validated.params;
+  const r = targetStore.decideProposal(id, proposalId, req.validated.body.decision);
+  if (!r) return res.status(404).json({ error: 'Proposal not found' });
+  targetAudit('targeting_proposal_decision', req, { id, proposalId, decision: req.validated.body.decision });
+  res.json({ proposal: r.proposal, target: summarizeTarget(r.target) });
+});
+app.post('/api/targeting/targets/:id/close', validateParams({ id: TGT_ID }), (req, res) => {
+  const t = targetStore.close(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  targetAudit('targeting_close', req, { id: t.id });
+  res.json({ target: summarizeTarget(t) });
+});
+app.delete('/api/targeting/targets/:id', validateParams({ id: TGT_ID }), (req, res) => {
+  if (!targetStore.remove(req.validated.params.id)) return res.status(404).json({ error: 'Target not found' });
+  targetAudit('targeting_delete', req, { id: req.validated.params.id });
+  res.json({ ok: true });
+});
+app.get('/api/targeting/targets/:id/dossier.md', validateParams({ id: TGT_ID }), (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const t = targetStore.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  if (!t.package) return res.status(409).json({ error: 'Target not developed yet' });
+  try {
+    const md = renderDossier(t);
+    targetStore.recordExport(t.id, 'markdown');
+    targetAudit('targeting_export', req, { id: t.id, format: 'markdown', bytes: md.length });
+    res.set('Content-Type', 'text/markdown; charset=utf-8');
+    res.set('Content-Disposition', `attachment; filename="crucix-target-${t.id}.md"`);
+    res.send(md);
+  } catch (err) {
+    console.error('[Crucix] Dossier render error:', err);
+    res.status(500).json({ error: 'Dossier export failed' });
+  }
+});
+app.get('/api/targeting/graph-overlay', (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  res.json(targetStore.acceptedGraphOverlay());
 });
 
 // API: Region Dossier (on-demand, not from sweep)
