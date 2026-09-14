@@ -67,6 +67,45 @@ test('MND: EN article yields counts, sectors and a 24 h window ending 06:00 UTC+
   assert.deepEqual(en.problems, []);
 });
 
+test('MND: EN "crossed the median line … and entered … ADIZ" wording yields the ADIZ count and all four sectors', () => {
+  const en = MND.parseEnArticle(fx('mnd-en-article-medianline.html'), { date: '2026-09-10' });
+  assert.equal(en.aircraft, 18);
+  assert.equal(en.adizEntries, 13);
+  assert.deepEqual(en.sectors, ['north', 'central', 'southwest', 'east']);
+  assert.equal(en.planShips, 8);
+  assert.equal(en.officialShips, 1);
+  assert.deepEqual(en.problems, []);
+});
+
+test('MND: balloon day — EN "3.PRC balloon activities" section and ZH "氣球計偵獲1顆" both parse; no aircraft count is not 0', () => {
+  const en = MND.parseEnArticle(fx('mnd-en-article-balloon.html'), { date: '2026-02-18' });
+  assert.equal(en.balloons, 1);
+  assert.equal(en.planShips, 5);
+  assert.equal(en.aircraft, null);               // MND did not state a sortie count → null, never 0
+  assert.equal(en.adizEntries, null);
+  assert.ok(/1 PRC balloon was detected/.test(en.activityText));
+  assert.ok(en.problems.includes('aircraft sortie count not parsed'));
+  const zh = MND.parseZhArticle(fx('mnd-zh-article-balloon.html'), { date: '2026-02-18' });
+  assert.equal(zh.balloons, 1);
+  assert.equal(zh.planShips, 5);
+  assert.equal(zh.aircraft, null);
+  assert.equal(zh.mapUrl, 'https://www.mnd.gov.tw/File/56038');
+  const r = MND.buildResult({ enList: [{ id: '86199', url: 'https://www.mnd.gov.tw/en/News/PLAAct/86199', date: '2026-02-18' }], en, zh, sky: null, fetchedAt: '2026-02-18T09:00:00.000Z' });
+  assert.equal(r.bulletin.balloons, 1);
+  assert.equal(r.bulletin.mapUrl, 'https://www.mnd.gov.tw/File/56038');
+  assert.ok(!r.problems.some(p => /EN\/ZH mismatch/.test(p)));
+});
+
+test('MND: ZH "進入…空域3架次" (no 共) parses the ADIZ count; EN/ZH ADIZ or balloon disagreement is flagged', () => {
+  const zh = MND.parseZhArticle('<html><body>迄0600時止，偵獲共機5架次（進入西南及東部空域3架次）、共艦5艘及公務船2艘，持續在臺海周邊活動。</body></html>', { date: '2026-09-13' });
+  assert.equal(zh.aircraft, 5);
+  assert.equal(zh.adizEntries, 3);
+  const p = mndParts();
+  const r = MND.buildResult({ ...p, zh: { ...p.zh, adizEntries: 9, balloons: 2 }, fetchedAt: AT });
+  assert.ok(r.problems.some(x => /EN\/ZH mismatch ADIZ entries: 10 vs 9/.test(x)));
+  assert.ok(!r.problems.some(x => /mismatch balloons/.test(x)));   // EN null → nothing to compare
+});
+
 test('MND: ZH article discovers the real File/… map link instead of a guessed URL', () => {
   const { zh } = mndParts();
   assert.equal(zh.mapUrl, 'https://www.mnd.gov.tw/File/59160');
@@ -369,6 +408,9 @@ test('Situation: taiwan tab is registered; MND spike → elevated headline, CGA 
   assert.equal(mnd.severity, 'elevated');
   assert.equal(mnd.tab, 'taiwan');
   assert.match(mnd.why, /Official daily count/);
+  spiked.mnd.bulletin.adizEntries = null;
+  const unstated = buildSituation({ ...base, taiwan: spiked }).headlines.find(h => h.rule === 'taiwan-mnd');
+  assert.match(unstated.why, /^— entered the ADIZ/, 'a count MND did not state is not rendered as 0');
   const cga = s.headlines.find(h => h.rule === 'taiwan-cga');
   assert.ok(cga, 'cga headline');
   assert.equal(cga.severity, 'info');
@@ -385,6 +427,9 @@ test('Layers: mnd-adiz / cga-incidents / gca-taiwan are data layers with uncerta
   assert.equal(get('mnd-adiz').state, 'data');
   assert.equal(get('mnd-adiz').count, 2);
   assert.match(get('mnd-adiz').why, /11 aircraft · 10 ADIZ entries · 8 PLAN ships/);
+  const partial = buildTaiwanView(sources(), base);
+  partial.mnd.bulletin.adizEntries = null;
+  assert.match(evaluateLayers({ ...base, taiwan: partial }).layers.find(r => r.id === 'mnd-adiz').why, /11 aircraft · — ADIZ entries/);
   assert.equal(get('cga-incidents').state, 'data');
   assert.match(get('cga-incidents').why, /CCG intrusions/);
   assert.equal(get('gca-taiwan').state, 'data');
