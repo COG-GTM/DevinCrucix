@@ -345,6 +345,31 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .nv-chip.on{border-color:var(--accent);color:var(--accent);background:rgba(100,240,200,0.1)}
 .nv-chip.none{opacity:0.4;cursor:default}
 .nv-chip b{color:#e6f2ee;font-weight:normal}
+.kg-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:8px;margin-top:6px}
+@media (max-width:1100px){.kg-wrap{grid-template-columns:1fr}}
+.kg-canvas{position:relative;height:clamp(420px,56vh,640px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden}
+.kg-canvas svg{width:100%;height:100%;display:block;cursor:grab}
+.kg-canvas svg:active{cursor:grabbing}
+.kg-link{fill:none;stroke-opacity:0.35}
+.kg-link.dim{stroke-opacity:0.06}
+.kg-link.hi{stroke-opacity:0.95}
+.kg-node{cursor:pointer}
+.kg-node circle{stroke:rgba(0,0,0,0.75);stroke-width:1px}
+.kg-node.dim{opacity:0.18}
+.kg-node.sel circle{stroke:#fff;stroke-width:2px}
+.kg-node text{font-family:var(--mono);font-size:8px;fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(2,4,8,0.9);stroke-width:3px}
+.kg-node.root text{font-size:11px;fill:#fff}
+.kg-detail{border:1px solid var(--border);padding:8px;font-size:10px;line-height:1.45;max-height:clamp(420px,56vh,640px);overflow-y:auto;scrollbar-width:thin;background:rgba(0,0,0,0.25)}
+.kg-detail h4{font-family:var(--mono);font-size:11px;letter-spacing:0.04em;margin:0 0 2px;color:#e6f2ee}
+.kg-detail .kg-type{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase}
+.kg-edge{padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.kg-edge .r{font-family:var(--mono);font-size:8px;letter-spacing:0.06em;text-transform:uppercase}
+.kg-edge .r b{color:#e6f2ee;font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;cursor:pointer}
+.kg-edge .r b:hover{color:var(--accent)}
+.kg-ev{color:#b8ccc4;font-size:9.5px;margin-top:2px;border-left:2px solid rgba(255,255,255,0.12);padding-left:6px}
+.kg-ev a{color:var(--accent2);font-family:var(--mono);font-size:8px;white-space:nowrap}
+.kg-key{position:absolute;left:8px;bottom:6px;display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.06em;pointer-events:none}
+.kg-key i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;vertical-align:middle}
 @keyframes pulse-conflict{0%,100%{opacity:0.5;stroke-width:1.5}50%{opacity:0.9;stroke-width:2.5}}
 .conflict-ring{animation:pulse-conflict 2.5s ease-in-out infinite}
 @keyframes dash-flow{to{stroke-dashoffset:-20}}
@@ -1443,6 +1468,7 @@ const PANEL_CAPTIONS={
   'not polled':'Sources that cannot be fetched server-side, listed so the gap is visible.',
   'china / taiwan sources':'How each of the five China / Taiwan parts behaved this sweep. LIVE means fetched and parsed; anything else is stated.',
   'independent reporting':'Items about the same theater from feeds CRUCIX already polls (GDELT, ACLED), last 72 h. Shows what else is reporting, not confirmation of any specific IranWarLive event.',
+  'cjng knowledge graph':'Entities and relations machine-read from every InSight Crime article that focuses on the CJNG (public API, full corpus). A typed edge needs a cue word next to both names in one sentence; everything else is a plain co-mention. Click a node for its evidence sentences and source links — relations are as reported, not verified.',
   'graded events':'One row per incident after deduplication across Border Watch feeds (Borderland Beat, El Paso Matters, Fronteras Desk, Border Report, Texas Tribune) and DOJ releases. The letter is <b>corroboration</b>, not severity \u2014 D means one citizen aggregator said it.',
   'doj prosecutions':'U.S. Attorney press releases from the five south-west border districts via DOJ\u2019s public API, keyword-classified by topic. Charges are allegations until a plea or conviction is stated.',
   'ofac sanctions':'Treasury SDN entries under the narco programs (SDNTK, SDNT, ILLICIT-DRUGS-EO14059, TCO) plus Mexico-linked FTO/SDGT, matched conservatively against names extracted from events. A match is a lead, not an identification.',
@@ -3197,7 +3223,7 @@ function renderLower(){
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
-      wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
+      wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(renderCjngGraphPanel(),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
       wrap(groupHead('US Enforcement · DOJ & OFAC',['DOJ','OFACNarco']),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
@@ -3208,6 +3234,7 @@ function renderLower(){
   grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
+  if(currentTab==='cartels')requestAnimationFrame(initCjngGraph);
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
@@ -5015,6 +5042,153 @@ function nvRow(e){
       ${sp||sg?`<div class="k" style="color:#ff8a80">OFAC SDN matches</div>${sp}${sg}<div class="nv-sub">Name matches are conservative (all name tokens must appear) but still require analyst confirmation against the Treasury record.</div>`:''}
     </div>`;
 }
+// === CJNG KNOWLEDGE GRAPH (InSight Crime corpus -> lib/cjng) ===
+// The full graph is fetched once from the same-origin /api/narco/graph route when the Cartels tab opens; the
+// sweep payload only carries the summary (D.narco.cjng). Node positions survive re-renders so SSE updates
+// do not reshuffle the layout.
+const KG_TYPE_COLOR={org:'#ff8a65',faction:'#ffb74d',person:'#64f0c8',place:'#64b5f6',country:'#90a4ae',topic:'#ce93d8'};
+const KG_TYPE_LABEL={org:'Organizations',faction:'CJNG factions',person:'People',place:'Places (MX)',country:'Countries',topic:'Topics'};
+const KG_REL_COLOR={leader_of:'#ffd54f',member_of:'#a5d6a7',family_of:'#f48fb1',rival_of:'#ff5252',allied_with:'#4dd0e1',lineage:'#ba68c8',operates_in:'#64b5f6',linked_topic:'#9e9e9e',mentioned_with:'#546e7a'};
+const KG_REL_ORDER=['leader_of','member_of','family_of','rival_of','allied_with','lineage','operates_in','linked_topic','mentioned_with'];
+let kgData=null,kgLoading=false,kgError=null,kgSel=null,kgSim=null,kgTransform=null;
+const kgPos=new Map();
+const kgPref=(()=>{try{return JSON.parse(localStorage.getItem('crucix.kg')||'{}')}catch{return{}}})();
+let kgTypes=new Set(Array.isArray(kgPref.types)?kgPref.types.filter(t=>KG_TYPE_COLOR[t]):['org','faction','person','place']);
+let kgRels=new Set(Array.isArray(kgPref.rels)?kgPref.rels.filter(r=>KG_REL_COLOR[r]):KG_REL_ORDER.filter(r=>r!=='mentioned_with'));
+let kgMin=[1,2,3,5].includes(kgPref.min)?kgPref.min:3;
+function kgSave(){try{localStorage.setItem('crucix.kg',JSON.stringify({types:[...kgTypes],rels:[...kgRels],min:kgMin}))}catch{}}
+function kgToggleType(t){if(kgTypes.has(t))kgTypes.delete(t);else kgTypes.add(t);kgSave();kgRerender()}
+function kgToggleRel(r){if(kgRels.has(r))kgRels.delete(r);else kgRels.add(r);kgSave();kgRerender()}
+function kgSetMin(m){kgMin=m;kgSave();kgRerender()}
+function kgSelect(id){kgSel=kgSel===id?null:id;kgRerender()}
+function kgRerender(){
+  const el=document.getElementById('cjngGraphPanel');
+  if(!el)return;
+  const tmp=document.createElement('div');tmp.innerHTML=renderCjngGraphPanel();const nw=tmp.firstElementChild;nw.classList.add('lp-wide');el.replaceWith(nw);applyCaptions(nw.parentElement||document);
+  requestAnimationFrame(initCjngGraph);
+}
+function kgLoad(){
+  if(kgData||kgLoading)return;
+  kgLoading=true;kgError=null;
+  fetch('/api/narco/graph').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(g=>{
+    if(!g||!Array.isArray(g.nodes)||!Array.isArray(g.edges))throw new Error('bad payload');
+    kgData=g;kgLoading=false;kgRerender();
+  }).catch(e=>{kgLoading=false;kgError=String(e.message||e).slice(0,80);kgRerender()});
+}
+function kgVisible(){
+  if(!kgData)return{nodes:[],edges:[]};
+  const root=kgData.root;
+  const nodes=kgData.nodes.filter(n=>n.id===root||(kgTypes.has(n.type)&&n.articles>=kgMin));
+  const keep=new Set(nodes.map(n=>n.id));
+  const edges=kgData.edges.filter(e=>kgRels.has(e.type)&&keep.has(e.source)&&keep.has(e.target));
+  const used=new Set([root]);for(const e of edges){used.add(e.source);used.add(e.target)}
+  return{nodes:nodes.filter(n=>used.has(n.id)),edges};
+}
+function kgNodeMap(){return new Map((kgData?.nodes||[]).map(n=>[n.id,n]))}
+function kgArticle(id){return (kgData?.articles||[]).find(a=>a.id===id)}
+function kgEvidence(ev){
+  const a=kgArticle(ev.a);
+  const link=a?nvLink(a.link,`${esc(a.title.length>60?a.title.slice(0,57)+'\u2026':a.title)} \u2197`):'';
+  return `<div class="kg-ev">\u201c${esc(ev.s)}\u201d<div class="nv-sub">${esc(ev.d||'')}${link?' \u00b7 '+link:''}</div></div>`;
+}
+function kgDetail(){
+  if(!kgData)return '';
+  const nodes=kgNodeMap();
+  const n=nodes.get(kgSel)||nodes.get(kgData.root);
+  if(!n)return '';
+  const col=KG_TYPE_COLOR[n.type]||'#ccc';
+  const m=n.meta||{};
+  const head=`<div class="kg-type" style="color:${col}">${esc(n.type)}${n.family?' \u00b7 CJNG family':''}${m.groupType?' \u00b7 '+esc(m.groupType):''}${m.state?' \u00b7 '+esc(m.state):''}</div><h4>${esc(n.label)}</h4>
+    <div class="nv-sub">${n.articles} article${n.articles===1?'':'s'} \u00b7 ${n.mentions} mentions \u00b7 ${n.degree} links \u00b7 ${esc(n.first||'?')} \u2192 ${esc(n.last||'?')}${m.fullName&&m.fullName!==n.label?`<br>${esc(m.fullName)}`:''}${(m.aliases||[]).length?`<br>a.k.a. ${m.aliases.slice(0,6).map(esc).join(', ')}`:''}</div>`;
+  const events=(m.events||[]).slice(0,6).map(e=>{const a=kgArticle(e.a);return `<div class="kg-ev"><span class="ct-kind" style="color:#ffcc80;border-color:rgba(255,204,128,0.5)">${esc(e.kind).toUpperCase()}</span> ${esc(e.d||'')} \u2014 \u201c${esc(e.s)}\u201d${a?` <span class="nv-sub">${nvLink(a.link,'source \u2197')}</span>`:''}</div>`}).join('');
+  const edges=kgData.edges.filter(e=>(e.source===n.id||e.target===n.id)&&kgRels.has(e.type)).sort((a,b)=>(KG_REL_ORDER.indexOf(a.type)-KG_REL_ORDER.indexOf(b.type))||b.articles-a.articles).slice(0,40);
+  const leg=kgData.legend?.relations||{};
+  const rows=edges.map(e=>{
+    const other=nodes.get(e.source===n.id?e.target:e.source);if(!other)return '';
+    const dir=e.source===n.id?'\u2192':'\u2190';
+    return `<div class="kg-edge"><div class="r" style="color:${KG_REL_COLOR[e.type]||'#ccc'}" title="${esc(leg[e.type]||e.type)}">${esc(e.type.replace('_',' '))} ${dir} <b onclick="kgSelect('${esc(other.id)}')">${esc(other.label)}</b> <span style="color:var(--dim)">\u00b7 ${e.articles} art${e.confidence==='co-mention'?' \u00b7 co-mention':''}</span></div>${(e.evidence||[]).slice(0,e.confidence==='typed'?2:1).map(kgEvidence).join('')}</div>`;
+  }).join('');
+  return `${head}${events?`<div class="sh-group">Reported events</div>${events}`:''}<div class="sh-group">Relations \u00b7 ${edges.length} shown</div>${rows||'<div class="g-off-why">No relations of the selected kinds. Turn on more relation chips.</div>'}`;
+}
+function initCjngGraph(){
+  const wrap=document.getElementById('kgCanvas'),svgEl=document.getElementById('kgSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  if(!kgData){kgLoad();return}
+  if(kgSim){kgSim.stop();kgSim=null}
+  const W=wrap.clientWidth||900,H=wrap.clientHeight||520;
+  const svg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const {nodes,edges}=kgVisible();
+  const idx=new Map(nodes.map(n=>[n.id,n]));
+  const sim_nodes=nodes.map(n=>{const p=kgPos.get(n.id);return Object.assign({},n,p?{x:p.x,y:p.y}:{x:W/2+(Math.random()-0.5)*W*0.6,y:H/2+(Math.random()-0.5)*H*0.6})});
+  const byId=new Map(sim_nodes.map(n=>[n.id,n]));
+  const root=byId.get(kgData.root);if(root){root.fx=W/2;root.fy=H/2}
+  const links=edges.map(e=>({source:byId.get(e.source),target:byId.get(e.target),type:e.type,articles:e.articles,confidence:e.confidence,id:e.id})).filter(l=>l.source&&l.target);
+  const g=svg.append('g');
+  const zoom=d3.zoom().scaleExtent([0.3,6]).on('zoom',ev=>{kgTransform=ev.transform;g.attr('transform',ev.transform)});
+  svg.call(zoom).on('dblclick.zoom',null);
+  if(kgTransform)svg.call(zoom.transform,kgTransform);
+  const r=n=>n.id===kgData.root?16:Math.max(3,Math.min(13,2+Math.sqrt(n.articles)*1.6));
+  const nb=new Set();if(kgSel){for(const l of links){if(l.source.id===kgSel)nb.add(l.target.id);if(l.target.id===kgSel)nb.add(l.source.id)}}
+  const link=g.append('g').selectAll('line').data(links).join('line').attr('class',l=>`kg-link${kgSel?(l.source.id===kgSel||l.target.id===kgSel?' hi':' dim'):''}`)
+    .attr('stroke',l=>KG_REL_COLOR[l.type]||'#888').attr('stroke-width',l=>l.type==='mentioned_with'?0.6:Math.min(3,0.8+Math.log2(1+l.articles)*0.5)).attr('stroke-dasharray',l=>l.confidence==='co-mention'?'2 3':null);
+  const labelMin=sim_nodes.length>140?4:sim_nodes.length>70?2:1;
+  const node=g.append('g').selectAll('g').data(sim_nodes).join('g').attr('class',n=>`kg-node${n.id===kgData.root?' root':''}${n.id===kgSel?' sel':''}${kgSel&&n.id!==kgSel&&!nb.has(n.id)?' dim':''}`)
+    .on('click',(ev,n)=>{ev.stopPropagation();kgSelect(n.id)})
+    .call(d3.drag().on('start',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0.2).restart();n.fx=n.x;n.fy=n.y}).on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y}).on('end',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0);if(n.id!==kgData.root){n.fx=null;n.fy=null}}));
+  node.append('circle').attr('r',r).attr('fill',n=>KG_TYPE_COLOR[n.type]||'#ccc').attr('fill-opacity',n=>n.family||n.type==='org'||n.type==='faction'?0.95:0.75);
+  node.append('title').text(n=>`${n.label} \u00b7 ${n.type} \u00b7 ${n.articles} articles \u00b7 ${n.degree} links`);
+  node.filter(n=>n.id===kgData.root||n.id===kgSel||nb.has(n.id)||n.articles>=labelMin*3||n.degree>=labelMin*4).append('text').attr('dx',n=>r(n)+3).attr('dy','0.35em').text(n=>n.label.length>28?n.label.slice(0,26)+'\u2026':n.label);
+  const warm=sim_nodes.every(n=>kgPos.has(n.id)||n.id===kgData.root);
+  kgSim=d3.forceSimulation(sim_nodes)
+    .force('link',d3.forceLink(links).id(n=>n.id).distance(l=>l.type==='mentioned_with'||l.type==='linked_topic'?90:l.source.id===kgData.root||l.target.id===kgData.root?150:55).strength(l=>l.source.id===kgData.root||l.target.id===kgData.root?0.08:l.confidence==='typed'?0.45:0.12))
+    .force('charge',d3.forceManyBody().strength(n=>n.id===kgData.root?-900:-140).distanceMax(500))
+    .force('collide',d3.forceCollide().radius(n=>r(n)+4))
+    .force('x',d3.forceX(W/2).strength(0.03)).force('y',d3.forceY(H/2).strength(0.04))
+    .alpha(warm?0.15:1).alphaDecay(0.03)
+    .on('tick',()=>{
+      link.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y).attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);
+      node.attr('transform',n=>`translate(${n.x},${n.y})`);
+    }).on('end',()=>{for(const n of sim_nodes)kgPos.set(n.id,{x:n.x,y:n.y})});
+  const note=document.getElementById('kgNote');
+  if(note)note.textContent=`${nodes.length} NODES \u00b7 ${edges.length} EDGES SHOWN${idx.size!==kgData.nodes.length?` OF ${kgData.nodes.length} / ${kgData.edges.length}`:''}`;
+}
+function renderCjngGraphPanel(){
+  const sum=D.narco?.cjng||{},t=kgData?.totals||sum.totals||null,ref=kgData?.refresh||sum.refresh||{};
+  const status=kgData?kgData.status:sum.status||'pending';
+  const badge=status==='live'?`<span class="badge">${t?`${esc(String(t.articles))} ARTICLES \u00b7 ${esc(String(t.typedEdges))} TYPED RELATIONS`:'LIVE'}</span>`
+    :status==='snapshot'?`<span class="badge warn" title="Built from the committed snapshot; refreshed from insightcrime.org on the server's schedule">SNAPSHOT${t?` \u00b7 ${esc(String(t.articles))} ARTICLES`:''}</span>`
+    :ref.status==='error'?`<span class="badge err">REFRESH FAILED</span>`:`<span class="badge off">PENDING</span>`;
+  const head=`<div class="sec-head"><h3>${shDot('InSightCrime')}CJNG Knowledge Graph — InSight Crime corpus</h3>${badge}</div>`;
+  if(!t){
+    const why=ref.status==='error'?'The InSight Crime corpus could not be fetched; nothing is drawn until it is.':'The graph is built from InSight Crime\u2019s public API after the server starts (~1 minute); the panel fills in when it is ready.';
+    return `<div class="g-panel g-off" id="cjngGraphPanel">${head}<div class="g-off-why">${esc(why)}</div></div>`;
+  }
+  const bt=t.byNodeType||{},br=t.byRelation||{};
+  const kpis=`<div class="nv-kpis">
+      <div class="nv-kpi"><div class="k">CJNG-focused articles</div><div class="v">${t.articles}</div><div class="s">${esc(sum.span?.from||kgData?.span?.from||'?')} \u2192 ${esc(sum.span?.to||kgData?.span?.to||'?')} \u00b7 of ${esc(String(kgData?.source?.corpusArticles||sum.corpusArticles||t.articles))} fetched</div></div>
+      <div class="nv-kpi"><div class="k">Nodes</div><div class="v">${t.nodes}</div><div class="s">${bt.person||0} people \u00b7 ${(bt.org||0)+(bt.faction||0)} groups \u00b7 ${bt.place||0} places \u00b7 ${bt.topic||0} topics</div></div>
+      <div class="nv-kpi"><div class="k">Typed relations</div><div class="v" style="color:${KG_TYPE_COLOR.person}">${t.typedEdges}</div><div class="s">${br.leader_of||0} leader \u00b7 ${br.member_of||0} member \u00b7 ${br.rival_of||0} rival \u00b7 ${br.allied_with||0} allied \u00b7 ${br.lineage||0} lineage</div></div>
+      <div class="nv-kpi"><div class="k">Co-mentions only</div><div class="v" style="color:var(--dim)">${br.mentioned_with||0}</div><div class="s">same sentence, no cue \u00b7 dashed on the graph</div></div>
+    </div>`;
+  const typeChips=Object.keys(KG_TYPE_COLOR).map(ty=>`<button type="button" class="lchip ${kgTypes.has(ty)?'on':'off'} ${bt[ty]?'':'none'}" style="--lc:${KG_TYPE_COLOR[ty]}" ${bt[ty]?`onclick="kgToggleType('${ty}')"`:'disabled'}><span class="ldot"></span>${esc(KG_TYPE_LABEL[ty])} <b>${bt[ty]||0}</b></button>`).join('');
+  const relChips=KG_REL_ORDER.map(rl=>`<button type="button" class="lchip ${kgRels.has(rl)?'on':'off'} ${br[rl]?'':'none'}" style="--lc:${KG_REL_COLOR[rl]}" title="${esc(kgData?.legend?.relations?.[rl]||'')}" ${br[rl]?`onclick="kgToggleRel('${rl}')"`:'disabled'}><span class="ldot"></span>${esc(rl.replace('_',' '))} <b>${br[rl]||0}</b></button>`).join('');
+  const minChips=[1,2,3,5].map(m=>`<button type="button" class="nv-chip ${kgMin===m?'on':''}" onclick="kgSetMin(${m})">\u2265${m}</button>`).join('');
+  const body=kgData?`<div class="kg-wrap">
+      <div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG NODES \u00b7 CLICK A NODE</div><div class="kg-key">${Object.keys(KG_TYPE_COLOR).map(ty=>`<span><i style="background:${KG_TYPE_COLOR[ty]}"></i>${esc(KG_TYPE_LABEL[ty]).toUpperCase()}</span>`).join('')}<span id="kgNote"></span></div></div>
+      <div class="kg-detail" id="kgDetail">${kgDetail()}</div>
+    </div>`
+    :`<div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="g-off-why" style="position:absolute;left:12px;top:12px">${kgError?`Graph fetch failed (${esc(kgError)}). <a href="#" onclick="kgError=null;kgLoad();return false" style="color:var(--accent2)">retry</a>`:'Loading graph from /api/narco/graph \u2026'}</div></div>`;
+  const src=kgData?.source||{};
+  const site=src.site?nvLink(src.site,'insightcrime.org \u2197'):'insightcrime.org';
+  return `<div class="g-panel" id="cjngGraphPanel">${head}
+    ${kpis}
+    <div class="ct-chips"><div class="ct-chiprow"><span class="lchip-head">NODES</span>${typeChips}<span class="lchip-head" style="margin-left:6px">MIN ARTICLES</span>${minChips}</div>
+    <div class="ct-chiprow"><span class="lchip-head">RELATIONS</span>${relChips}</div></div>
+    ${body}
+    <div class="sh-note"><b>Machine-extracted, not verified.</b> ${esc(kgData?.caveat||sum.caveat||'')} Corpus: every InSight Crime post tagged Jalisco Cartel or El Mencho plus full-text matches for \u201cCJNG\u201d, pulled from their public WordPress API (${site}${src.queries?` \u00b7 ${esc(src.queries.join(', '))}`:''}), kept only when CJNG is the focus (tag or \u22653 mentions). Node size = supporting articles; edge width = articles supporting the relation; dashed = plain co-mention. Extractor ${esc(kgData?.extractor||'')} \u00b7 corpus fetched ${src.fetchedAt?getAge(src.fetchedAt):'\u2014'}${ref.lastAttempt?` \u00b7 refresh attempted ${getAge(ref.lastAttempt)}`:''}${ref.error?` \u00b7 <span style="color:#ffd54f">${esc(ref.error)}</span>`:''}. \u00a9 InSight Crime \u2014 only bounded evidence sentences are shown; follow the links for the articles.</div></div>`;
+}
+
 function renderNarcoEventsPanel(){
   const n=D.narco||{};
   if(n.status!=='live'){
