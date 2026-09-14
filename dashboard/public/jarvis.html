@@ -1475,7 +1475,7 @@ function rqFiredCount(){return rqRules().filter(r=>r.enabled&&r.latest?.fired).l
 // the current bucket shaded. No chart library — one inline SVG.
 function rqSparkSvg(l,fired){
   const s=(l?.series||[]).filter(p=>Number.isFinite(p?.value));
-  if(s.length<2)return '<div class="rq-note">Not enough history yet for a sparkline \u2014 samples accrue every sweep (45 min).</div>';
+  if(s.length<2)return '<div class="rq-note">Not enough history yet for a sparkline \u2014 one sample is recorded per sweep.</div>';
   const w=320,h=56,pad=4;
   const vals=s.map(p=>p.value);const mean=Number(l.baselineMean)||0,std=Number(l.baselineStd)||0;
   const lo=Math.min(...vals,mean-std,0),hi=Math.max(...vals,mean+std,1);const rng=(hi-lo)||1;
@@ -1627,7 +1627,7 @@ function rqCard(r){
     ${rqSparkSvg(l,!!l?.fired)}
     <div class="rq-sec"><span>Evidence \u00b7 current sweep</span><span>${ev.length} row${ev.length===1?'':'s'}</span></div>${evHtml}
     <div class="rq-sec"><span>Historical hits</span><span>${hits.length}</span></div>${hitsHtml}
-    <div class="rq-foot"><span class="rq-meta"><span class="rq-sev ${esc(r.severity)}">${esc(r.severity)}</span> <span class="rq-chip ${esc(r.compiledBy==='llm'?'llm':'rules')}">${esc(r.compiledBy||'rules')}</span> ${esc(m?.label||r.metric)}${r.dims&&Object.keys(r.dims).length?' \u00b7 '+esc(rqDimsText(r.dims)):''} \u00b7 ${esc(r.window)} vs ${esc(r.baseline)} \u00b7 ${esc(r.comparison)} ${esc(rqThresholdText(r))} \u00b7 ${esc(r.direction)} \u00b7 owner ${esc(r.owner||'')}${firedAt}${l?.evaluatedAt?' \u00b7 evaluated '+esc(rqAgo(l.evaluatedAt)):''}</span>
+    <div class="rq-foot"><span class="rq-meta"><span class="rq-sev ${esc(r.severity)}">${esc(r.severity)}</span> <span class="rq-chip ${esc(r.compiledBy==='llm'?'llm':'rules')}">${esc(r.compiledBy||'rules')}</span> ${esc(m?.label||r.metric)}${r.dims&&Object.keys(r.dims).length?' \u00b7 '+esc(rqDimsText(r.dims)):''} \u00b7 ${esc(r.window)} vs ${esc(r.baseline)} \u00b7 ${esc(rqThresholdText(r))} \u00b7 ${esc(r.direction)} \u00b7 owner ${esc(r.owner||'')}${firedAt}${l?.evaluatedAt?' \u00b7 evaluated '+esc(rqAgo(l.evaluatedAt)):''}</span>
       <span class="rq-actions"><button class="inv-btn ghost" onclick="rqAction('${esc(key)}','${r.enabled?'disable':'enable'}')">${r.enabled?'Disable':'Enable'}</button><button class="inv-btn ghost" onclick="rqAction('${esc(key)}','delete')">Delete</button></span></div>
   </div>`;
 }

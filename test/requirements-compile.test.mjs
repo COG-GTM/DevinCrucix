@@ -59,18 +59,16 @@ test('fallback parser: windows, baselines, comparisons, directions, metrics', ()
   }
 });
 
-test('fallback parser: nonsense text still yields a validator-accepted rule or clear errors, never a throw', () => {
-  for (const text of ['', '   ', 'zzz qqq', '<script>alert(1)</script>', 'x'.repeat(2000)]) {
+test('fallback parser: text without a recognisable metric is refused (no silent default), never a throw', () => {
+  for (const text of ['', '   ', 'zzz qqq', 'flibbertigibbet purple waffles', '<script>alert(1)</script>', 'x'.repeat(2000)]) {
     let out;
     assert.doesNotThrow(() => { out = compileWithRules(text); });
-    const v = validateRule(out.candidate);
-    if (v.ok) {
-      assert.ok(METRIC_KEYS.includes(v.rule.metric));
-      assert.ok(v.rule.text.length <= 500);
-    } else {
-      assert.ok(v.errors.length > 0);
-    }
+    assert.equal(out.candidate, null, text.slice(0, 30));
+    assert.deepEqual(out.errors, [{ field: 'metric', reason: 'unrecognized' }]);
   }
+  const ok = compileWithRules('violence in Tamaulipas');
+  assert.ok(ok.candidate && METRIC_KEYS.includes(ok.candidate.metric));
+  assert.deepEqual(ok.errors, []);
   assert.equal(validateRule(compileWithRules('').candidate).ok, false);
 });
 
