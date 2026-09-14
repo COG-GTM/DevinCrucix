@@ -5096,6 +5096,8 @@ function kgReleasePins(){
   if(kgSim){for(const n of kgSim.nodes()){n.fx=null;n.fy=null}if(kgPhysics)kgSim.alpha(0.6).restart()}
   if(kgView)kgView.node.classed('pin',false);
   kgSyncTools();
+  const det=document.getElementById('kgDetail');
+  if(det)det.innerHTML=kgDetail();
 }
 function kgUnpin(id){
   id=kgSafeId(id);const p=kgPos.get(id);if(p)kgPos.set(id,{x:p.x,y:p.y,pinned:false});
