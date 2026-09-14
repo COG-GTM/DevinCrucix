@@ -1483,6 +1483,7 @@ const PANEL_CAPTIONS={
   'cbp seizures: amo · currency · weapons':'Nationwide CBP seizure CSVs: Air and Marine Operations drug interdictions, currency / monetary-instrument seizures and weapons + ammunition seizures. SW = Southwest border AORs. Outbound weapons events are the southbound-smuggling signal.',
   'cbp officer safety & use of force':'Assaults on CBP officers / agents and CBP use-of-force incidents from the official CSVs. One incident may involve several officers; Southern Border is CBP\u2019s own region label. Sector rows are USBP Southwest sectors.',
   'cbp custody & enforcement':'Parsed from CBP\u2019s Custody and Transfer and Enforcement Statistics pages (no CSV exists). In-custody counts are month-end snapshots; TSDS, criminal-noncitizen, gang and rescue figures are fiscal-year totals with the current year partial.',
+  'ice detention & atd (trac)':'ICE detention tables republished by TRAC (Syracuse University) from ICE\u2019s own releases: who is held, by arresting agency and criminal history, monthly book-ins, facilities and Alternatives to Detention. Snapshots land weeks after the fact and are revised; \u201cno conviction\u201d includes people with pending charges.',
   'us–mexico border reporting':'Journalism about the border corridor: Border Watch feeds with place / topic spike detection, InSight Crime\u2019s organized-crime reporting and the Python ingestion service behind them. Reporting volume, not event data.',
   'us enforcement · doj & ofac':'What the U.S. government has put on the record: U.S. Attorney press releases from the south-west border districts and Treasury SDN entries under the narco programs. Charges are allegations until a plea or conviction is stated.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
@@ -1578,6 +1579,7 @@ function renderLeftRail(){
     {name:'Narco Intel',count:D.insightCrime?.totalArticles||0,dot:'narco',sub:`${(D.insightCrime?.extractedEntities||[]).length} entities`,src:'InSightCrime'},
     {name:'Border Watch',count:D.borderNews?.totalArticles||0,dot:'news',sub:`${(D.borderNews?.feeds||[]).filter(f=>f.status==='ok'||f.status==='not_modified').length}/${(D.borderNews?.feeds||[]).length} feeds · ${(D.borderNews?.spikes||[]).length} spikes`,src:'BorderNews'},
     {name:'Border / CBP',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${esc(D.cbpStats.encounters.latest?.label)} · ${cbpLiveCount()}/4 sources live`:'CBP Public Data Portal',src:['CBPStats','CBPSeizures','CBPForce','CBPCustody']},
+    {name:'ICE Detention',count:D.trac?.population?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.trac?.population?`detained · TRAC thru ${esc(D.trac.population.asOf)} · ${cbpNum(D.trac.facilities?.facilities)} facilities`:'TRAC detention quick facts',src:'TRAC'},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`,src:'UnusualWhales'},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
@@ -2356,6 +2358,18 @@ function plotMarkers(){
     labels.push({type:'carrier', lat:c.lat, lng:c.lng+2, text:c.hull||c.name.split('(')[0].trim(), size:0.35, color:'rgba(79,195,247,0.8)'});
   });
 
+  // === ICE detention by state (TRAC) — one marker per state centroid, sized by detainees ===
+  (D.trac?.facilities?.byState||[]).forEach(s=>{
+    if(!Number.isFinite(s.lat)||!Number.isFinite(s.lon)||!(s.detainees>0)) return;
+    points.push({
+      lat:s.lat, lng:s.lon, size:Math.min(0.9, 0.15+Math.sqrt(s.detainees)/120), alt:0.012,
+      color:'rgba(2,148,222,0.8)', type:'ice-detention', priority:s.detainees>=3000?1:2,
+      popHead:'ICE DETENTION — '+esc(s.state), popMeta:`TRAC · ${esc(D.trac.facilities.asOf||'')} · ${cbpNum(s.sharePct,1)}% of detained population`,
+      popText:`Detained: ${cbpNum(s.detainees)}<br>Facilities: ${cbpNum(s.facilities)}<br>Guaranteed-minimum beds: ${cbpNum(s.guaranteedMin)}<br>State-level aggregate of TRAC facility rows, not a facility position`
+    });
+    if(s.detainees>=3000) labels.push({type:'ice-detention', lat:s.lat, lng:s.lon+1.2, text:`${esc(s.state)} ${(s.detainees/1000).toFixed(1)}k`, size:0.3, color:'rgba(127,196,234,0.85)'});
+  });
+
   // === GPS Jamming Zones (red polygons rendered as large points) ===
   (D.gpsJamming?.zones||[]).forEach(z=>{
     if(!z.lat||!z.lng) return;
@@ -2812,6 +2826,13 @@ function plotFlatMarkers(){
     g.append('rect').attr('x',-4).attr('y',-4).attr('width',8).attr('height',8).attr('fill','rgba(179,136,255,0.7)').attr('stroke','rgba(179,136,255,0.3)').attr('stroke-width',0.5).attr('transform','rotate(45)');
     g.append('text').attr('class','marker-label').attr('x',8).attr('y',3).attr('fill','var(--dim)').attr('font-size','8px').attr('font-family','var(--mono)').text(cp.label);
   });
+  // ICE detention by state (TRAC) — state centroids, not facility positions
+  (D.trac?.facilities?.byState||[]).forEach(s=>{
+    if(!Number.isFinite(s.lat)||!Number.isFinite(s.lon)||!(s.detainees>0)) return;
+    const g=addPt(s.lat,s.lon,2+Math.min(Math.sqrt(s.detainees)/14,8),'rgba(2,148,222,0.55)','rgba(127,196,234,0.5)',
+      ev=>showPopup(ev,'ICE DETENTION — '+esc(s.state),`Detained: ${cbpNum(s.detainees)}<br>Facilities: ${cbpNum(s.facilities)}<br>Guaranteed-minimum beds: ${cbpNum(s.guaranteedMin)}<br>State-level aggregate of TRAC facility rows, not a facility position`,`TRAC · ${esc(D.trac.facilities.asOf||'')} · ${cbpNum(s.sharePct,1)}% of detained population`),s.detainees>=3000?1:2,'ice-detention');
+    if(g&&s.detainees>=3000) g.append('text').attr('class','marker-label').attr('x',10).attr('y',3).attr('fill','var(--dim)').attr('font-size','8px').attr('font-family','var(--mono)').text(`${s.state} ${(s.detainees/1000).toFixed(1)}k`);
+  });
   // Nuclear
   const nukeCoords=[{lat:47.5,lon:34.6},{lat:51.4,lon:30.1},{lat:28.8,lon:50.9},{lat:39.8,lon:125.8},{lat:37.4,lon:141},{lat:31.0,lon:35.1}];
   D.nuke.forEach((n,i)=>{const c=nukeCoords[i];if(!c)return;addPt(c.lat,c.lon,4,'rgba(255,224,130,0.7)','rgba(255,224,130,0.3)',ev=>showPopup(ev,n.site,`CPM: ${n.cpm?.toFixed(1)||'--'}`,'Radiation'),2,'nuke')});
@@ -3222,7 +3243,7 @@ function renderLower(){
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
-      wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
+      wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),wrap(renderTracPanel(),'lp-half'),
       wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(renderCjngGraphPanel(),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
       wrap(groupHead('US Enforcement · DOJ & OFAC',['DOJ','OFACNarco']),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
@@ -5529,7 +5550,7 @@ function cbpSpark(series, key, title, cls=''){
   const bars=series.map((s,i)=>`<div class="b${i===series.length-1?' last':''}" style="height:${Math.max(3,Math.round(vals[i]/max*100))}%${cls?`;background:${cls}`:''}" title="${esc(s.label||s.period)}: ${cbpNum(vals[i],1)}"></div>`).join('');
   return `<div class="cbp-spark">${bars}</div><div class="cbp-spark-lbl"><span>${esc(series[0].label||series[0].period||'')}</span><span>${title}</span><span>${esc(series[series.length-1].label||series[series.length-1].period||'')}</span></div>`;
 }
-function cbpDatasetsHtml(src, names){
+function cbpDatasetsHtml(src, names, publisher='CBP'){
   return (src.datasets||[]).map(d => {
     const st = CBP_DS_LABEL[d.status] ? d.status : 'error';
     const why = [d.reason, ...(d.notes||[])].filter(Boolean).join(' · ');
@@ -5537,7 +5558,7 @@ function cbpDatasetsHtml(src, names){
     const name = names[d.id] || d.title;
     const label = href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none">${esc(name)}</a>` : esc(name);
     const rows = d.rows ? esc(cbpNum(d.rows))+(d.kind==='html'?' cells':' rows') : '';
-    return `<span class="bw-feed"${why?` title="${esc(why)}"`:''}><span class="bw-outlet">${label}</span><span class="bw-st ${st}">${CBP_DS_LABEL[st]}</span><span>${rows}</span>${d.lastModified?`<span>CBP ${esc(String(d.lastModified).slice(5,16))}</span>`:''}</span>`;
+    return `<span class="bw-feed"${why?` title="${esc(why)}"`:''}><span class="bw-outlet">${label}</span><span class="bw-st ${st}">${CBP_DS_LABEL[st]}</span><span>${rows}</span>${d.lastModified?`<span>${esc(publisher)} ${esc(String(d.lastModified).slice(5,16))}</span>`:''}</span>`;
   }).join('');
 }
 function cbpBadge(src, srcName, thruLabel){
@@ -5722,6 +5743,69 @@ function renderCbpCustodyPanel(){
       <div class="bw-feeds">${dsHtml}</div>
       <div class="cbp-scroll">${kpis?`<div class="cbp-kpis">${kpis}</div>`:''}${cusHtml}${enfHtml}</div>
       ${cbpFoot(cc,'HTML TABLES · PARSED ONLY WHEN CBP\u2019S PAGE LAYOUT MATCHES')}
+    </div>`;
+}
+
+// === ICE DETENTION (TRAC, Syracuse University) ===
+// Sits under the Border / CBP group: the detained population is where CBP book-ins go next. Facility
+// rows never reach the browser individually — the source aggregates them to state centroids and a
+// top-N table. All TRAC strings are third-party -> esc().
+function tracDateLabel(iso){
+  if(!iso||!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return esc(iso||'');
+  const d=new Date(iso+'T00:00:00Z');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+}
+function renderTracPanel(){
+  const t = D.trac || {};
+  const pop = t.population, bk = t.bookIns, fac = t.facilities, atd = t.atd;
+  if(!pop && !bk && !fac && !atd){
+    return offPanel('ICE Detention &amp; ATD (TRAC)','TRAC',t.error||'TRAC detention tables have not been downloaded yet','cbp-panel');
+  }
+  const dsHtml = cbpDatasetsHtml(t,{population:'Detained population',bookins:'Book-ins by agency',facilities:'Facilities',atd:'Alternatives to Detention'},'TRAC');
+  const kpis = [
+    pop ? `<div class="cbp-kpi"><div class="k">DETAINED · ${tracDateLabel(pop.asOf)}</div><div class="v">${cbpNum(pop.latest.total)}</div><div class="d">ICE ${cbpNum(pop.latest.ice)} · CBP ${cbpNum(pop.latest.cbp)} · ${cbpDelta(pop.previous?.changePct,' vs prior')} · ${cbpDelta(pop.yearAgo?.changePct,' YoY')}</div></div>` : '',
+    pop ? `<div class="cbp-kpi"><div class="k">NO CRIMINAL CONVICTION</div><div class="v">${cbpNum(pop.latest.noConvictionPct,1)}%</div><div class="d">${cbpNum(pop.latest.pending)} pending charges · ${cbpNum(pop.latest.noRecord)} no record · ${cbpNum(pop.latest.convicted)} convicted</div></div>` : '',
+    bk ? `<div class="cbp-kpi"><div class="k">BOOK-INS · ${esc(bk.latest.label)}</div><div class="v">${cbpNum(bk.latest.total)}</div><div class="d">ICE ${cbpNum(bk.latest.ice)} (${cbpNum(bk.latest.icePct,0)}%) · CBP ${cbpNum(bk.latest.cbp)} · ${cbpDelta(bk.momPct,' MoM')} · ${cbpDelta(bk.yoyPct,' YoY')}</div></div>` : '',
+    atd ? `<div class="cbp-kpi"><div class="k">ALTERNATIVES TO DETENTION</div><div class="v">${cbpNum(atd.total)}</div><div class="d">${(atd.byTech||[]).slice(0,2).map(x=>`${esc(x.technology)} ${cbpNum(x.sharePct,0)}%`).join(' · ')} · ${cbpDelta(atd.yearAgo?.changePct,' YoY')}</div></div>` : '',
+  ].join('');
+  let popHtml='';
+  if(pop){
+    const series=(pop.series||[]).map(s=>({label:tracDateLabel(s.date),total:s.total,convicted:s.convicted}));
+    const mix=[['CONVICTED',pop.latest.convictedPct,'#ff8a80'],['PENDING CHARGES',pop.latest.pendingPct,'#ffd180'],['NO RECORD',pop.latest.noRecordPct,'#7fc4ea']]
+      .filter(m=>Number.isFinite(m[1]))
+      .map(m=>`<span class="bw-chip" style="border-color:${m[2]}55;color:${m[2]}">${m[0]} ${cbpNum(m[1],1)}%</span>`).join('');
+    popHtml=`${cbpSpark(series,'total','DETAINED POPULATION · SNAPSHOTS')}
+      <div class="bw-sub">CRIMINAL HISTORY OF THOSE HELD · ${tracDateLabel(pop.asOf)}</div><div class="bw-chips">${mix}</div>`;
+  }
+  let bkHtml='';
+  if(bk){
+    const series=(bk.series||[]).map(m=>({label:m.label,total:m.total}));
+    bkHtml=cbpSpark(series,'total','BOOK-INS / MONTH · COMPLETE MONTHS ONLY','rgba(128,203,196,0.45)');
+    if((bk.partial||[]).length) bkHtml+=`<div class="bw-chips">${bk.partial.map(m=>`<span class="bw-chip zero" title="TRAC marks this month incomplete">${esc(m.label)} ${cbpNum(m.total)} · partial</span>`).join('')}</div>`;
+  }
+  let facHtml='';
+  if(fac){
+    const fmax=Math.max(1,...(fac.top||[]).map(f=>f.count));
+    const rows=(fac.top||[]).slice(0,10).map(f=>`<tr title="${esc(f.type)}"><td>${esc(f.name)}</td><td>${esc(f.city)}, ${esc(f.state)}</td><td class="n"><span class="cbp-bar cus" style="width:${Math.round(f.count/fmax*40)}px"></span>${cbpNum(f.count)}</td><td class="n">${f.guaranteedMin!=null?cbpNum(f.guaranteedMin):'—'}</td></tr>`).join('');
+    const types=(fac.byType||[]).slice(0,7).map(g=>`<span class="bw-chip place" title="${cbpNum(g.facilities)} facilities">${esc(g.type)} ${cbpNum(g.detainees)}</span>`).join('');
+    const states=(fac.byState||[]).slice(0,8).map(g=>`<span class="bw-chip" title="${cbpNum(g.facilities)} facilities · ${cbpNum(g.sharePct,1)}%">${esc(g.state)} ${cbpNum(g.detainees)}</span>`).join('');
+    facHtml=`<div class="bw-sub">TOP FACILITIES BY AVERAGE DAILY POPULATION · ${tracDateLabel(fac.asOf)} · ${cbpNum(fac.facilities)} FACILITIES · ${cbpNum(fac.guaranteedMin)} GUARANTEED-MIN BEDS</div>
+      <table class="cbp-table"><thead><tr><th>FACILITY</th><th>LOCATION</th><th class="n">ADP</th><th class="n">GTD MIN</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="bw-sub">BY FACILITY TYPE · BY STATE (ALSO ON THE MAP: ICE DETENTION LAYER)</div><div class="bw-chips">${types}${states}</div>`;
+  }
+  let atdHtml='';
+  if(atd){
+    const tech=(atd.byTech||[]).map(x=>`<span class="bw-chip" title="${cbpNum(x.sharePct,1)}%">${esc(x.technology)} ${cbpNum(x.count)}</span>`).join('');
+    const aors=(atd.topAors||[]).slice(0,6).map(a=>`<span class="bw-chip place" title="${a.avgDays!=null?'avg '+cbpNum(a.avgDays)+' days in program':''}">${esc(a.aor)} ${cbpNum(a.count)}</span>`).join('');
+    atdHtml=`<div class="bw-sub">ATD ENROLLED BY TECHNOLOGY · TOP AORs · ${tracDateLabel(atd.asOf)}${atd.avgDays!=null?` · AVG ${cbpNum(atd.avgDays)} DAYS`:''}</div><div class="bw-chips">${tech}${aors}</div>`;
+  }
+  const thru = pop?.asOf ? tracDateLabel(pop.asOf) : bk?.latest?.label;
+  const site = safeExternalUrl(t.siteUrl);
+  return `<div class="g-panel cbp-panel">
+      <div class="sec-head"><h3>${shDot('TRAC')}ICE Detention &amp; ATD (TRAC)</h3>${cbpBadge(t,'TRAC',thru)}</div>
+      <div class="bw-feeds">${dsHtml}${site?`<a class="cbp-link" href="${esc(site)}" target="_blank" rel="noopener noreferrer">TRAC Quick Facts ↗</a>`:''}</div>
+      <div class="cbp-scroll">${kpis?`<div class="cbp-kpis">${kpis}</div>`:''}${popHtml}${bkHtml}${facHtml}${atdHtml}</div>
+      ${cbpFoot(t,'ADP = AVERAGE DAILY POPULATION · DATA LAG ICE RELEASES BY WEEKS AND ARE REVISED')}
     </div>`;
 }
 

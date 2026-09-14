@@ -306,6 +306,19 @@ The Cartels & Border tab's **US Border · Official CBP Data** band is a consolid
 
 Tableau-only views on `publicstats.cbp.gov` (dosage-unit / street-value estimates, UFLPA) are linked out from the group header rather than scraped. Tests: `node --test test/cbpstats.test.mjs test/cbpportal.test.mjs` (recorded fixtures under `test/fixtures/cbp/`).
 
+### ICE Detention (TRAC, Syracuse University)
+
+The **ICE Detention & ATD (TRAC)** panel sits under the Border / CBP group and reads the four JSON tables behind TRAC's [Immigration Detention Quick Facts](https://tracreports.org/immigration/quickfacts/) (`apis/sources/trac.mjs`, source id `TRAC`). TRAC republishes ICE's own detention statistics releases, so figures lag ICE by weeks and are revised; TRAC updates roughly biweekly. The tables are fetched through the same `cbpcommon.mjs` loader as the CBP adapters (robots.txt, ETag / Last-Modified conditional download, cache under `runs/trac/`, `STALE` on outage, refused on layout change), and each payload is validated against the field names observed in the live feed before it is summarised.
+
+| Table | URL (under `tracreports.org/immigration/detentionstats/`) | Used for |
+|---|---|---|
+| Detained population | `pop_agen_table.json` | Total held, ICE vs CBP arrests, criminal-conviction status (convicted / pending / no record — TRAC's "no conviction" = pending + no record), change vs prior release and year ago, ~1-year sparkline |
+| Book-ins | `book_in_agen_program_table.json` | Monthly book-ins by arresting agency; TRAC's `f_latest_period` flag picks the headline month and later, incomplete months are shown as partial rather than charted |
+| Facilities | `facilities.json` (~18k rows, every release since 2019) | Newest release only: national ADP and guaranteed-minimum beds, facility count, split by facility type, **state-level aggregates** (the `ICE Detention (TRAC)` map layer plots one marker per state centroid — never a facility position), top 15 facilities by ADP |
+| Alternatives to Detention | `atd_pop_table.json` (~14k rows) | Nationwide ATD enrolment, average days in program, split by technology (SmartLINK, ankle monitor, wristworn), top AORs |
+
+Attribution is TRAC's: *Source: TRAC (Transactional Records Access Clearinghouse), Syracuse University. © TRAC Reports, Inc.; not endorsed by TRAC.* TRAC publishes no reuse licence, so the dashboard shows summaries with a link-out and never redistributes the raw tables. Tests: `node --test test/trac.test.mjs` (fixtures under `test/fixtures/trac/`; facilities and ATD trimmed to the two newest releases).
+
 ---
 
 ## What You Get
@@ -313,7 +326,7 @@ Tableau-only views on `publicstats.cbp.gov` (dosage-unit / street-value estimate
 ### Live Dashboard
 A self-contained Jarvis-style HUD with:
 - **3D WebGL globe** (Globe.gl) with atmosphere glow, star field, and smooth rotation — plus a classic flat map toggle
-- **Map layers** shared by both views (registry in `lib/maplayers.mjs`): air traffic, fire detections, radiation sites, maritime chokepoints, SDR receivers, OSINT events, health alerts, geolocated news, conflict events, carrier groups, GDELT clusters, narco reporting, space stations, PRC activity, GPS jamming, military ADS-B, market intel
+- **Map layers** shared by both views (registry in `lib/maplayers.mjs`): air traffic, fire detections, radiation sites, maritime chokepoints, SDR receivers, OSINT events, health alerts, geolocated news, conflict events, carrier groups, GDELT clusters, narco reporting, space stations, PRC activity, GPS jamming, military ADS-B, market intel, ICE detention (TRAC state aggregates)
 - **Signal-first defaults** — each sweep the server marks every layer `signal` (something notable this sweep), `data` (has points, nothing notable) or `none` (nothing to plot, with the reason: needs key, source failed, quiet). The map starts with only the `signal` layers on (max 5, padded to 3 with `data` layers); the chip row under the map toggles any layer, remembers a manual selection in local storage, and `RESET TO AUTO` returns to the sweep's defaults. Globe and flat map always show the same selection
 - **Panel captions** — every panel opens with one line saying what it shows, which source or computation feeds it, and what it does not establish (`Derived.` marks composites that add no independent data)
 - **Animated 3D flight corridor arcs** between air traffic hotspots and global hubs
