@@ -971,6 +971,51 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .cf-x{color:var(--dim);cursor:pointer;font-size:12px;line-height:1;padding:0 2px}.cf-x:hover{color:var(--danger)}
 .cf-notes{width:100%;box-sizing:border-box;resize:vertical;font-size:10px;margin-bottom:6px;line-height:1.4}
 .cf-actions{display:flex;gap:4px}.cf-actions .inv-btn{flex:1;padding:6px 4px;font-size:9px}
+/* Target Development */
+.tgt-form .inv-input{width:100%;box-sizing:border-box;margin-bottom:6px}
+.tgt-form textarea.inv-input{resize:vertical;font-family:var(--sans);font-size:11px;line-height:1.45}
+.tgt-form-row{display:flex;gap:6px;margin-bottom:6px}.tgt-form-row .inv-input{margin-bottom:0}.tgt-form-row select.inv-btn{padding:6px 4px;flex:0 0 auto}
+.tgt-deck{max-height:36vh;overflow-y:auto}.tgt-deck::-webkit-scrollbar{width:3px}.tgt-deck::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3)}
+.tgt-deck-row{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02);margin-bottom:3px;cursor:pointer;font-size:11px}
+.tgt-deck-row:hover{border-color:var(--border-bright)}.tgt-deck-row.active{border-color:rgba(68,204,255,0.5);background:rgba(68,204,255,0.06)}.tgt-deck-row.closed{opacity:.55}
+.tgt-deck-pri{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 0;text-align:center;border:1px solid;display:inline-block;min-width:24px}
+.tgt-deck-pri.p1{color:#ff8a80;border-color:rgba(255,138,128,.5)}.tgt-deck-pri.p2{color:#ffd54f;border-color:rgba(255,213,79,.5)}.tgt-deck-pri.p3{color:var(--dim);border-color:var(--border)}
+.tgt-deck-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}.tgt-deck-sub{display:block;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgt-deck-st{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;border:1px solid var(--border);color:var(--dim);white-space:nowrap}
+.tgt-deck-st.developed{color:var(--accent);border-color:rgba(100,240,200,.4)}.tgt-deck-st.nominated{color:var(--accent2);border-color:rgba(68,204,255,.4)}.tgt-deck-st em{font-style:normal;color:#ffd54f;margin-left:4px}
+.tgt-legend-row{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:start;font-size:9px;color:var(--dim);padding:2px 0;line-height:1.4}
+.tgt-state{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:1px 5px;border:1px solid var(--border);color:var(--dim)}
+.tgt-state.accept{color:var(--accent);border-color:rgba(100,240,200,.5);background:rgba(100,240,200,.06)}.tgt-state.reject{color:#ff8a80;border-color:rgba(255,138,128,.5);background:rgba(255,138,128,.06)}
+.tgt-pkg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.tgt-pkg-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.tgt-pkg-label{font-family:var(--sans);font-size:17px;color:var(--text);letter-spacing:.01em}
+.tgt-pkg-actions{display:flex;gap:4px;flex-wrap:wrap}.tgt-pkg-actions .inv-btn{text-decoration:none}
+.tgt-pkg-meta{font-family:var(--mono);font-size:9px;color:var(--dim);margin:6px 0;line-height:1.7}.tgt-pkg-meta code{color:var(--accent2);font-size:9px}
+.tgt-req{font-size:11px;color:#c8d8d2;padding:6px 8px;border-left:2px solid var(--accent2);background:rgba(68,204,255,.04);margin-bottom:8px;line-height:1.5}
+.tgt-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px;margin:6px 0}
+.tgt-kpi{border:1px solid var(--border);padding:6px 8px;background:rgba(255,255,255,.015)}.tgt-kpi .k{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.tgt-kpi .v{display:block;font-family:var(--mono);font-size:14px;color:var(--accent);margin-top:2px}.tgt-kpi .v small{font-size:9px;color:var(--dim)}
+.tgt-llm{font-size:10px;color:var(--dim);padding:5px 8px;border:1px dashed var(--border);margin:6px 0}.tgt-llm.on{color:#c8d8d2;border-style:solid;border-color:rgba(100,240,200,.3)}.tgt-llm b{color:var(--accent)}
+.tgt-flags{margin-top:6px}.tgt-flag.warn{border-left-color:#ffd54f;background:rgba(255,213,79,.05)}.tgt-flag.warn b{color:#ffd54f}.tgt-flag.new{border-left-color:#4dd0e1;background:rgba(77,208,225,.05)}.tgt-flag.new b{color:#4dd0e1}
+.tgt-lk{margin-top:8px;padding:6px 8px;border:1px solid rgba(255,138,128,.3);background:rgba(255,138,128,.04);font-size:10px;color:#c8d8d2;line-height:1.6}.tgt-lk b{color:#ff8a80}
+.tgt-scroll{max-height:440px}
+.tgt-link{padding:6px 8px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.015);margin-bottom:4px;font-size:10px}
+.tgt-link.accept{border-color:rgba(100,240,200,.35)}.tgt-link.reject{opacity:.6;border-color:rgba(255,138,128,.3)}
+.tgt-link-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.tgt-link-label{color:var(--text);font-size:12px;font-family:var(--sans)}
+.tgt-link-why{font-family:var(--mono);font-size:8px;color:var(--dim);margin:3px 0;line-height:1.6}.tgt-link-why code{color:var(--accent2)}
+.tgt-conf{display:inline-block;width:46px;height:5px;background:rgba(255,255,255,.07);vertical-align:middle;margin-left:auto}.tgt-conf span{display:block;height:100%;background:var(--accent2)}.tgt-conf-n{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.tgt-ev{font-size:10px;color:#b8c8c2;line-height:1.5;padding:3px 0 3px 8px;border-left:2px solid rgba(255,255,255,.08);margin:3px 0}.tgt-ev.dim{color:var(--dim);font-style:italic}.tgt-ev-meta{font-family:var(--mono);font-size:8px;color:var(--dim);white-space:nowrap}
+.tgt-actions{display:flex;gap:4px;align-items:center;margin-top:4px}.tgt-actions .inv-btn{padding:3px 8px;font-size:8px}.tgt-actions .inv-btn.active{background:rgba(68,204,255,.2)}
+.tgt-sel{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.tgt-sel-val{color:var(--text);font-size:11px}.tgt-sel-meta{font-family:var(--mono);font-size:8px;color:var(--dim);margin-left:auto}.tgt-sel .tgt-ev{flex:1 1 100%;margin:0}
+.tgt-bars{display:flex;align-items:flex-end;gap:2px;height:64px;padding:4px 0;border-bottom:1px solid var(--border)}.tgt-bar{flex:1;background:var(--accent2);min-width:2px;opacity:.85}.tgt-bar:hover{opacity:1}
+.tgt-bar-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--dim);margin:2px 0 8px}
+.tgt-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:700px){.tgt-two{grid-template-columns:1fr}}
+.tgt-map{height:clamp(320px,42vh,460px)}
+#tgtMapSvg .tgt-country{fill:rgba(20,40,52,.9);stroke:none}#tgtMapSvg .tgt-border{fill:none;stroke:rgba(100,240,200,.25);stroke-width:.6;vector-effect:non-scaling-stroke}
+#tgtMapSvg .tgt-ring{fill:rgba(68,204,255,.06);stroke:var(--accent2);stroke-width:1.2;stroke-dasharray:3 2}#tgtMapSvg .tgt-ring.stated{fill:rgba(100,240,200,.1);stroke:var(--accent);stroke-dasharray:none}
+#tgtMapSvg .tgt-dot{fill:var(--accent2);stroke:#02060a;stroke-width:.6}#tgtMapSvg .tgt-dot.stated{fill:var(--accent)}
+#tgtMapSvg .tgt-lbl{font-family:var(--mono);font-size:10px;fill:#c8d8d2;paint-order:stroke;stroke:#02060a;stroke-width:2px}#tgtMapSvg .tgt-lbl.lk{fill:#ff8a80;font-weight:700}
+#tgtMapSvg .tgt-lk{fill:rgba(255,138,128,.12);stroke:#ff8a80;stroke-width:2}#tgtMapSvg .tgt-lk-pulse{fill:none;stroke:#ff8a80;stroke-width:1.5;animation:tgtPulse 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes tgtPulse{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(2.2)}}
+.tgt-footprint{font-size:10px;margin-top:6px;line-height:2}.tgt-footprint .inv-chip{margin-right:3px}
 .ts-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
 .ts-domain{font-family:var(--mono);font-size:10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ts-base{color:var(--dim);font-size:9px;white-space:nowrap}
@@ -1279,6 +1324,7 @@ const TAB_DEFS=[
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
   {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
+  {id:'targeting',label:'Target Development',hint:'Public-source find / fix workbench · nominate → develop → review links & graph proposals → pattern of activity → sourced dossier'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
 const TAB_IDS=TAB_DEFS.map(t=>t.id);
@@ -1320,6 +1366,7 @@ function tabCounts(){
     iranwar: iwCount,
     taiwan: twCount,
     investigations: (()=>{const n=Object.keys(INV.case.entities).length;const hi=Object.values(INV.case.dossiers).some(d=>d.risk&&(d.risk.level==='high'||d.risk.level==='critical'));return n?{n:String(n),cls:hi?'hot':'',title:`${n} entities in case · ${Object.keys(INV.case.dossiers).length} dossiers${hi?' · high-risk selector present':''}`}:null})(),
+    targeting: (()=>{const open=TGT.list.filter(x=>x.status!=='closed');if(!open.length)return null;const pend=open.reduce((s,x)=>s+(x.stats?.pendingLinks||0),0);return {n:`${open.length} TGT${pend?` · ${pend} PENDING`:''}`,cls:pend?'warn':'',title:`${open.length} open target${open.length===1?'':'s'} · ${pend} link${pend===1?'':'s'} awaiting analyst review`}})(),
     sources: h?{n:`${h.live}/${h.total}`,cls:h.error?'hot':dark?'warn':'',title:`${h.live} live · ${h.degraded} degraded · ${dark} not reporting`}:null
   };
 }
@@ -1412,6 +1459,16 @@ document.addEventListener('keydown',e=>{
 // One line under each panel title: what it shows, where it comes from, what it does not establish.
 // Keyed by the panel title text (i18n-independent English fallback titles).
 const PANEL_CAPTIONS={
+  'target nomination':'Nominate a public-source target with a logged basis (knowledge-graph node, OFAC SDN id, DOJ release or a source URL) and the requirement it must answer. Persons, organizations, facilities, vehicles, vessels, aircraft already named in public reporting only.',
+  'target deck':'Every nominated target with status and pending review count. Select one to open its package; closed targets stay for the record.',
+  'source coverage':'Which local stores the package was built from, how many hit, and whether an OpenAI / Anthropic model adjudicated. <b>Not available</b> means the store was empty this sweep, not that the target is absent from it.',
+  'target package':'Find / fix summary for the selected target: counts, model status, deviation flags and the dated <b>public-record</b> last known location. Every figure is a count of published mentions, not verified activity.',
+  'identity & association review':'Personas, entities and places linked to the target with a proposed role (target / associate / background), confidence, provenance and one verbatim evidence sentence. Nothing is accepted until an analyst decides.',
+  'graph proposals':'Relations the package would add to the CJNG graph, each with evidence. Accepted proposals form an analyst-approved overlay; the verified source-attributed graph is never modified.',
+  'published selectors':'Identifiers literally present in official or published text (OFAC ids and programs, DOJ case numbers, IMO, registrations, domains). Nothing is inferred or looked up.',
+  'public-record locations':'Dated place mentions snapped to the gazetteer, drawn at the radius their precision supports. Last known is the newest sentence that <i>states</i> presence — not a live position. Telegram is never used for location.',
+  'pattern of activity':'Reporting tempo against the target\u2019s own history, weekday / source / state mix, gaps and status words. Tempo tracks press attention as much as activity.',
+  'target timeline':'Every dated public mention, newest first, with source tier, named place and any status word. Red rows carry a status change.',
   'what changed':'Moves since the previous sweep: escalations, new alerts, quiet-downs. A move is a prompt to open the source panel, not an event in itself.',
   'signal core':'<b>Derived.</b> DEFCON and PRC gauges are composites of other panels; they move with their inputs and add no independent data.',
   'sensor grid':'Every feed on this tab with its count this sweep. The dot is the source state — a 0 beside a grey or amber dot means <b>no data</b>, not quiet.',
@@ -1646,6 +1703,7 @@ function renderLeftRail(){
     ukraine:['Ukraine Front','RU Units / Airfields','GPS Jamming','Thermal Spikes','Air Activity','Nuclear Sites','Telegram Live'],
     cartels:['Border Watch','Border / CBP','Narco Intel'],
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
+    targeting:['Border Watch','Narco Intel','Telegram Live'],
   };
   const layerNames=TAB_LAYERS[currentTab];
   const shownLayers=layerNames?layers.filter(l=>layerNames.includes(l.name)):layers;
@@ -1703,6 +1761,7 @@ function renderLeftRail(){
     iranwar:[renderIwSourcePanel(),renderIwActorsPanel(),renderIwCorroborationPanel()],
     taiwan:[renderTwSourcePanel(),renderTwMarketsPanel(),renderPrcPanel()],
     investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
+    targeting:[renderTgtNominatePanel(),renderTgtDeckPanel(),renderTgtCoveragePanel()],
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
   const rail=document.getElementById('leftRail');
@@ -3228,6 +3287,7 @@ function renderLower(){
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
+    targeting:[wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')],
     sources:[renderSourceHealthFullPanel()],
   };
   const grid=document.getElementById('lowerGrid');
@@ -3238,6 +3298,7 @@ function renderLower(){
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
+  if(currentTab==='targeting')requestAnimationFrame(initTgtMap);
 }
 
 // === MILITARY TAB PANELS ===
@@ -6559,6 +6620,407 @@ function renderSignalCorePanel(){
     </div>`;
 }
 
+// === TARGET DEVELOPMENT (lib/targeting via /api/targeting) ===
+// Public-source find / fix workbench. Every value below comes from published sources or the
+// server package and is third-party-derived → esc() on insertion. Analyst decisions are the only
+// writes; they never mutate the verified graph (accepted proposals live in a separate overlay).
+const TGT={list:[],caps:null,sel:localStorage.getItem('crucix_tgt')||null,target:null,loaded:false,loading:false,busy:null,error:null,formError:null,view:'all',showDecided:true,
+  form:{label:'',entityType:'person',aliases:'',basisKind:'kg-node',basisRef:'',requirement:'',priority:'2'}};
+const TGT_TYPE_LABEL={person:'PERSON',org:'ORG',facility:'FACILITY',vehicle:'VEHICLE',vessel:'VESSEL',aircraft:'AIRCRAFT'};
+const TGT_BASIS_META={
+  'kg-node':{label:'KG node',ph:'person:nemesio-oseguera-cervantes',hint:'Node id from the CJNG knowledge graph (org: / faction: / person: / place:)'},
+  'ofac-uid':{label:'OFAC SDN',ph:'17674',hint:'OFAC SDN unique id (3–8 digits) — an already-designated entity'},
+  'doj-release':{label:'DOJ release',ph:'16-char release id',hint:'Stored DOJ press-release id naming the target (indicted / charged)'},
+  'source-url':{label:'Source URL',ph:'https://…',hint:'Public HTTPS article that names the target'},
+};
+const TGT_SOURCE_META={
+  kg:{label:'CJNG knowledge graph',tier:'reported'},insightcrime:{label:'InSight Crime corpus',tier:'reported'},bordernews:{label:'Border news',tier:'reported'},
+  doj:{label:'DOJ releases',tier:'official'},ofac:{label:'OFAC SDN list',tier:'official'},telegram:{label:'Telegram OSINT',tier:'unverified'},narco:{label:'Narco events',tier:'reported'},
+};
+const TGT_TIER_COLOR={official:'var(--accent)',reported:'var(--accent2)',unverified:'#ffab40'};
+const TGT_ROLE_COLOR={target:'#ff8a80',associate:'#ffd54f',background:'#8fa3ad',place:'#4dd0e1'};
+function tgtTier(source){return (TGT_SOURCE_META[source]||{}).tier||'reported'}
+function tgtSrcTag(source){const m=TGT_SOURCE_META[source]||{label:source,tier:'reported'};return `<span class="inv-chip" style="color:${TGT_TIER_COLOR[m.tier]};border-color:currentColor" title="${esc(m.tier)}">${esc(m.label)}</span>`}
+function tgtRoleTag(role){const c=TGT_ROLE_COLOR[role]||'#c8d8d2';return `<span class="inv-ttag" style="color:${c};border-color:${c}55">${esc(role)}</span>`}
+function tgtStateTag(state){const cls=state==='accepted'?'accept':state==='rejected'?'reject':'';return `<span class="tgt-state ${cls}">${esc(state)}</span>`}
+function tgtConf(c){const p=Math.round(Math.max(0,Math.min(1,Number(c)||0))*100);return `<span class="tgt-conf" title="confidence ${p}%"><span style="width:${p}%"></span></span><span class="tgt-conf-n">${p}%</span>`}
+function tgtEvidence(ev,max=1){
+  if(!ev||!ev.length)return '<div class="tgt-ev dim">no evidence sentence</div>';
+  return ev.slice(0,max).map(e=>`<div class="tgt-ev">&ldquo;${esc(e.sentence)}&rdquo; <span class="tgt-ev-meta">${tgtSrcTag(e.source)} ${esc(e.date||'undated')}${e.url?' \u00b7 '+invExt(e.url,'source'):''}</span></div>`).join('');
+}
+function tgtDecisionBtns(kind,id,decision){
+  const st=decision==='accept'?'accepted':decision==='reject'?'rejected':null;
+  return `<span class="tgt-actions">${st?tgtStateTag(st):''}
+    <button class="inv-btn ${decision==='accept'?'active':''}" data-tgt-act="decide" data-kind="${kind}" data-id="${esc(id)}" data-decision="accept" ${TGT.busy||decision==='accept'?'disabled':''}>Accept</button>
+    <button class="inv-btn warn ${decision==='reject'?'active':''}" data-tgt-act="decide" data-kind="${kind}" data-id="${esc(id)}" data-decision="reject" ${TGT.busy||decision==='reject'?'disabled':''}>Reject</button>
+    ${decision?`<button class="inv-btn ghost" data-tgt-act="decide" data-kind="${kind}" data-id="${esc(id)}" data-decision="reset" ${TGT.busy?'disabled':''}>Reset</button>`:''}</span>`;
+}
+async function tgtApi(method,path,body){
+  const init={method,headers:{}};
+  if(body!==undefined){init.headers['content-type']='application/json';init.body=JSON.stringify(body)}
+  try{const r=await fetch(path,init);let j=null;try{j=await r.json()}catch{}return {ok:r.ok,status:r.status,body:j}}
+  catch{return {ok:false,status:0,body:null}}
+}
+function tgtRerender(){if(currentTab!=='targeting'||!D)return;renderTabbar();renderLeftRail();renderLower()}
+async function tgtLoad(){
+  const r=await tgtApi('GET','/api/targeting');
+  TGT.loaded=true;
+  if(!r.ok||!r.body){TGT.error='Target service unavailable';return tgtRerender()}
+  TGT.list=r.body.targets||[];TGT.caps=r.body.capabilities||null;TGT.error=null;
+  if(TGT.sel&&!TGT.list.some(x=>x.id===TGT.sel))TGT.sel=null;
+  if(!TGT.sel){const first=TGT.list.find(x=>x.status!=='closed')||TGT.list[0];TGT.sel=first?first.id:null}
+  if(TGT.sel){localStorage.setItem('crucix_tgt',TGT.sel);await tgtFetchTarget(TGT.sel)}else{localStorage.removeItem('crucix_tgt');TGT.target=null}
+  tgtRerender();
+}
+async function tgtFetchTarget(id){
+  TGT.loading=true;
+  const r=await tgtApi('GET',`/api/targeting/targets/${encodeURIComponent(id)}`);
+  TGT.loading=false;
+  if(r.ok&&r.body&&r.body.id===id){TGT.target=r.body;const i=TGT.list.findIndex(x=>x.id===id);if(i>=0)TGT.list[i]={...TGT.list[i],status:r.body.status,stats:r.body.stats,updatedAt:r.body.updatedAt}}
+  else if(r.status===404){TGT.target=null;TGT.list=TGT.list.filter(x=>x.id!==id);if(TGT.sel===id)TGT.sel=null}
+  else TGT.error='Could not load target';
+}
+function tgtSelect(id){if(!id||id===TGT.sel&&TGT.target)return;TGT.sel=id;localStorage.setItem('crucix_tgt',id);TGT.target=null;TGT.error=null;TGT.view='all';tgtRerender();tgtFetchTarget(id).then(tgtRerender)}
+function tgtFormSet(k,v){TGT.form[k]=v;if(k==='basisKind'){TGT.form.basisRef='';renderLeftRail()}}
+async function tgtNominate(){
+  const f=TGT.form;
+  const aliases=f.aliases.split(',').map(s=>s.trim()).filter(Boolean);
+  const body={label:f.label.trim(),type:f.entityType,basis:{kind:f.basisKind,ref:f.basisRef.trim()},requirement:f.requirement.trim(),priority:Number(f.priority)};
+  if(aliases.length)body.aliases=aliases;
+  if(body.label.length<2){TGT.formError='Enter a label (2–80 characters)';return renderLeftRail()}
+  if(!body.basis.ref){TGT.formError='A nomination basis is required';return renderLeftRail()}
+  if(body.requirement.length<8){TGT.formError='State the intelligence requirement (8–400 characters)';return renderLeftRail()}
+  TGT.busy='nominate';TGT.formError=null;renderLeftRail();
+  const r=await tgtApi('POST','/api/targeting/targets',body);
+  TGT.busy=null;
+  if(r.status===201&&r.body?.target){TGT.form={...TGT.form,label:'',aliases:'',basisRef:'',requirement:''};invToast('Target nominated');await tgtLoad();tgtSelect(r.body.target.id);return}
+  if(r.status===409&&r.body?.id){TGT.formError='Already nominated — opening the existing target';await tgtLoad();tgtSelect(r.body.id);return}
+  if(r.status===409){TGT.formError='Target capacity reached; close a target first'}
+  else if(r.status===400){const field=String(r.body?.field||'input').replace(/[^a-zA-Z.]/g,'');TGT.formError=`Rejected: check ${field}`}
+  else if(r.status===429){TGT.formError='Too many requests; wait a minute'}
+  else TGT.formError='Nomination failed';
+  renderLeftRail();
+}
+async function tgtDevelop(){
+  if(!TGT.sel||TGT.busy)return;
+  TGT.busy='develop';TGT.error=null;tgtRerender();
+  const r=await tgtApi('POST',`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/develop`);
+  TGT.busy=null;
+  if(r.ok&&r.body?.id){TGT.target=r.body;invToast(`Package built \u00b7 ${r.body.stats?.mentions||0} mentions \u00b7 ${r.body.stats?.links||0} links`);await tgtLoad();return}
+  TGT.error=r.status===409?'Target is closed or already developing':r.status===429?'Too many requests; wait a minute':'Development failed';
+  tgtRerender();
+}
+async function tgtDecide(kind,id,decision){
+  if(!TGT.sel||TGT.busy)return;
+  TGT.busy='decide';renderLower();
+  const path=`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/${kind==='link'?'links':'proposals'}/${encodeURIComponent(id)}`;
+  const r=await tgtApi('POST',path,{decision});
+  TGT.busy=null;
+  if(!r.ok)TGT.error='Decision not recorded';
+  await tgtFetchTarget(TGT.sel);tgtRerender();
+}
+async function tgtClose(){
+  if(!TGT.sel||TGT.busy)return;
+  TGT.busy='close';const r=await tgtApi('POST',`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/close`);TGT.busy=null;
+  if(!r.ok)TGT.error='Close failed';
+  await tgtLoad();
+}
+async function tgtDelete(){
+  if(!TGT.sel||TGT.busy)return;
+  const t=TGT.target;if(!confirm(`Delete target ${t?t.label:TGT.sel} and its analyst decisions?`))return;
+  TGT.busy='delete';const r=await tgtApi('DELETE',`/api/targeting/targets/${encodeURIComponent(TGT.sel)}`);TGT.busy=null;
+  if(!r.ok)TGT.error='Delete failed';
+  TGT.sel=null;TGT.target=null;await tgtLoad();
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-tgt-act]');if(!b||b.disabled)return;
+  const a=b.dataset.tgtAct;
+  if(a==='select')tgtSelect(b.dataset.id);
+  else if(a==='develop')tgtDevelop();
+  else if(a==='close')tgtClose();
+  else if(a==='delete')tgtDelete();
+  else if(a==='decide')tgtDecide(b.dataset.kind,b.dataset.id,b.dataset.decision);
+  else if(a==='view'){TGT.view=b.dataset.view;renderLower()}
+  else if(a==='toggle-decided'){TGT.showDecided=!TGT.showDecided;renderLower()}
+});
+
+// ─── Left rail ───────────────────────────────────────────────────────────────
+function renderTgtNominatePanel(){
+  const f=TGT.form,caps=TGT.caps;
+  const types=caps?.types||Object.keys(TGT_TYPE_LABEL);
+  const kinds=caps?.basisKinds||Object.keys(TGT_BASIS_META);
+  const bm=TGT_BASIS_META[f.basisKind]||TGT_BASIS_META['kg-node'];
+  const cap=TGT.list.filter(x=>x.status!=='closed').length;
+  return `<div class="g-panel tgt-nominate"><div class="sec-head"><h3>Target Nomination</h3><span class="badge">${cap} OPEN</span></div>
+    <form class="tgt-form" onsubmit="event.preventDefault();tgtNominate()">
+      <input class="inv-input" name="tgt-label" maxlength="80" autocomplete="off" spellcheck="false" placeholder="Label — as published (e.g. Nemesio Oseguera Cervantes)" value="${esc(f.label)}" oninput="tgtFormSet('label',this.value)">
+      <div class="tgt-form-row">
+        <select class="inv-btn" name="tgt-type" onchange="tgtFormSet('entityType',this.value)">${types.map(v=>`<option value="${esc(v)}" ${f.entityType===v?'selected':''}>${esc(TGT_TYPE_LABEL[v]||v.toUpperCase())}</option>`).join('')}</select>
+        <select class="inv-btn" name="tgt-priority" onchange="tgtFormSet('priority',this.value)" title="Priority 1 = highest">${['1','2','3'].map(p=>`<option value="${p}" ${f.priority===p?'selected':''}>PRI ${p}</option>`).join('')}</select>
+      </div>
+      <input class="inv-input" name="tgt-aliases" maxlength="400" autocomplete="off" spellcheck="false" placeholder="Aliases, comma-separated (published a.k.a. only)" value="${esc(f.aliases)}" oninput="tgtFormSet('aliases',this.value)">
+      <div class="tgt-form-row">
+        <select class="inv-btn" name="tgt-basis" onchange="tgtFormSet('basisKind',this.value)">${kinds.map(k=>`<option value="${esc(k)}" ${f.basisKind===k?'selected':''}>${esc((TGT_BASIS_META[k]||{label:k}).label)}</option>`).join('')}</select>
+        <input class="inv-input" name="tgt-basis-ref" maxlength="512" autocomplete="off" spellcheck="false" placeholder="${esc(bm.ph)}" value="${esc(f.basisRef)}" oninput="tgtFormSet('basisRef',this.value)">
+      </div>
+      <div class="sh-note" style="margin:0 0 6px">${esc(bm.hint)}. Nomination requires a public basis; it is logged with the target.</div>
+      <textarea class="inv-input" name="tgt-req" rows="3" maxlength="400" placeholder="Intelligence requirement — what the analyst needs answered (e.g. current whereabouts, succession, publicly named associates)" oninput="tgtFormSet('requirement',this.value)">${esc(f.requirement)}</textarea>
+      ${TGT.formError?`<div class="inv-err" style="margin:6px 0 0">${esc(TGT.formError)}</div>`:''}
+      <button class="inv-btn" type="submit" style="width:100%;margin-top:6px" ${TGT.busy==='nominate'?'disabled':''}>${TGT.busy==='nominate'?'Nominating…':'Nominate target'}</button>
+    </form>
+    <div class="sh-note">Scope: persons, organizations, facilities, vehicles, vessels and aircraft already named in public reporting, sanctions or indictments. Not for locating private individuals.</div></div>`;
+}
+function renderTgtDeckPanel(){
+  const rows=TGT.list.slice().sort((a,b)=>(a.status==='closed')-(b.status==='closed')||(a.priority||3)-(b.priority||3)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))).map(x=>{
+    const st=x.stats||{};const pend=st.pendingLinks||0;
+    return `<div class="tgt-deck-row ${x.id===TGT.sel?'active':''} ${x.status}" role="button" tabindex="0" data-tgt-act="select" data-id="${esc(x.id)}" title="${esc(x.requirement||'')}">
+      <span class="tgt-deck-pri p${x.priority||3}">P${x.priority||3}</span>
+      <span class="tgt-deck-label">${esc(x.label)}<span class="tgt-deck-sub">${esc(TGT_TYPE_LABEL[x.type]||x.type)} \u00b7 ${esc((TGT_BASIS_META[x.basis?.kind]||{label:x.basis?.kind||''}).label)}${x.aliases?.length?` \u00b7 a.k.a. ${esc(x.aliases.slice(0,2).join(', '))}`:''}</span></span>
+      <span class="tgt-deck-st ${x.status}">${esc(x.status)}${x.status==='developed'&&pend?`<em>${pend} pending</em>`:''}</span></div>`;
+  }).join('');
+  return `<div class="g-panel"><div class="sec-head"><h3>Target Deck</h3><span class="badge">${TGT.list.length}/60</span></div>
+    ${TGT.error?`<div class="inv-err">${esc(TGT.error)}</div>`:''}
+    <div class="tgt-deck">${rows||`<div class="inv-hint">${TGT.loaded?'No targets nominated. Nominate one above — try the CJNG leadership nodes from the Cartels &amp; Border knowledge graph.':'Loading targets…'}</div>`}</div>
+    <div class="sh-note">Targets, packages and analyst decisions persist server-side (runs/targeting) with a JSON audit trail; closed targets stay for the record until deleted.</div></div>`;
+}
+function renderTgtCoveragePanel(){
+  const p=TGT.target?.package;const caps=TGT.caps;
+  const cov=p?.coverage||{};
+  const rows=Object.keys(TGT_SOURCE_META).map(k=>{
+    const c=cov[k];const m=TGT_SOURCE_META[k];
+    const hits=c?(c.hits??c.matched??c.articles??0):0;
+    const state=!p?'off':!c||!c.available?'off':hits?'live':'degraded';
+    const why=!p?'—':!c||!c.available?'NOT AVAILABLE':`${hits} HIT${hits===1?'':'S'}${c.scanned?` / ${c.scanned}`:''}`;
+    return `<div class="sh-row ${state}"><span class="hdot ${state}"></span><span class="sh-name" title="${esc(m.tier)} tier">${esc(m.label)}</span><span class="sh-why">${esc(why)}</span></div>`;
+  }).join('');
+  const llm=p?.llm;const cfg=caps?.llm;
+  const llmState=llm?.used?'live':cfg?.configured?'degraded':'no_key';
+  const llmWhy=llm?.used?`${llm.model||'model'} \u00b7 ${llm.assessed||0} ASSESSED`:cfg?.configured?'CONFIGURED \u00b7 NOT YET RUN':'NO KEY';
+  const tiers=p?.legend?.tiers||caps?.tiers||{};const claims=p?.legend?.claims||caps?.claimStates||{};
+  return `<div class="g-panel"><div class="sec-head"><h3>Source Coverage</h3><span class="badge">${p?`${p.stats?.documents||0} DOCS`:'NO PACKAGE'}</span></div>
+    ${rows}
+    <div class="sh-row ${llmState}"><span class="hdot ${llmState}"></span><span class="sh-name">Model analyst (OpenAI / Anthropic)</span><span class="sh-why" style="white-space:normal;text-align:right">${esc(llmWhy)}</span></div>
+    <div class="sh-ms" style="text-align:left;margin:-2px 0 6px 14px">${llm?.used?esc(`${llm.version||''} · geolocation refinements ${llm.fix?.applied||0}`):esc(cfg?.reason||llm?.reason||'set LLM_PROVIDER + LLM_API_KEY')}</div>
+    <div class="inv-sec-title" style="margin-top:6px"><span>Evidence tiers</span></div>
+    ${Object.entries(tiers).map(([k,v])=>`<div class="tgt-legend-row"><span class="inv-chip" style="color:${TGT_TIER_COLOR[k]||'#c8d8d2'};border-color:currentColor">${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}
+    <div class="inv-sec-title" style="margin-top:6px"><span>Claim states</span></div>
+    ${Object.entries(claims).map(([k,v])=>`<div class="tgt-legend-row">${tgtStateTag(k)}<span>${esc(v)}</span></div>`).join('')}
+    <div class="sh-note">Development reads only stores already collected by the sweep; no live fetches. Unavailable sources are shown as unavailable, never filled in.</div></div>`;
+}
+
+// ─── Lower grid ──────────────────────────────────────────────────────────────
+function renderTgtEmpty(){
+  return `<div class="inv-empty"><div class="inv-empty-title">Nominate a public-source target → CRUCIX reads everything it holds on them → analyst reviews every link before the graph changes.</div>
+    <div class="inv-empty-grid">
+      <div><div class="inv-sec-title"><span>1 · Nominate</span></div><div class="inv-hint">Label, type and a public basis (knowledge-graph node, OFAC SDN id, DOJ release, or a source URL) plus the intelligence requirement. Logged.</div></div>
+      <div><div class="inv-sec-title"><span>2 · Find</span></div><div class="inv-hint">Mentions across the CJNG graph, InSight Crime, border news, DOJ, OFAC, Telegram and graded narco events. Personas, aliases and transliterations are correlated with verbatim evidence.</div></div>
+      <div><div class="inv-sec-title"><span>3 · Classify</span></div><div class="inv-hint">Each linked entity is proposed as <b>target</b>, <b>associate</b> or <b>background</b> against the requirement — by rules, or by the configured OpenAI / Anthropic model, validated against source spans.</div></div>
+      <div><div class="inv-sec-title"><span>4 · Fix</span></div><div class="inv-hint">Text geolocation over dated sentences → gazetteer place, precision and uncertainty radius. Last known <i>public-record</i> location, footprint and dispersion. Telegram is never used for location.</div></div>
+      <div><div class="inv-sec-title"><span>5 · Pattern &amp; report</span></div><div class="inv-hint">Per-target timeline, month / weekday / source / state aggregates, tempo spikes, gaps, new geography and status changes. Export a fully cited Markdown dossier.</div></div>
+    </div></div>`;
+}
+function renderTgtPackagePanel(){
+  const t=TGT.target;
+  const head=(body,badge)=>`<div class="g-panel tgt-package"><div class="sec-head"><h3>Target Package</h3><div style="display:flex;gap:6px;align-items:center">${badge||''}<span class="badge">PUBLIC SOURCES \u00b7 ANALYST-REVIEWED</span></div></div>${body}</div>`;
+  if(!TGT.sel||!t){
+    if(TGT.sel&&TGT.loading)return head('<div class="inv-hint">Loading target…</div>');
+    return head(renderTgtEmpty());
+  }
+  const st=t.stats||{};const p=t.package;const dev=TGT.busy==='develop'||t.developing;
+  const flags=p?.pattern?.deviations?.flags||[];
+  const flagCls={'tempo-spike':'hot','gap':'warn','new-geography':'new','status-change':'hot'};
+  const kpi=(k,v,title)=>`<div class="tgt-kpi" title="${esc(title||'')}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const actions=`<div class="tgt-pkg-actions">
+      <button class="inv-btn" data-tgt-act="develop" ${dev||t.status==='closed'||TGT.busy?'disabled':''}>${dev?'Developing…':p?'Re-develop':'Develop target'}</button>
+      ${p?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
+      <button class="inv-btn ghost" data-tgt-act="close" ${t.status==='closed'||TGT.busy?'disabled':''}>Close</button>
+      <button class="inv-btn ghost" data-tgt-act="delete" ${TGT.busy?'disabled':''}>Delete</button></div>`;
+  const developing=dev?`<div class="inv-loading"><div class="inv-loading-head">DEVELOPING TARGET \u00b7 FIND \u2192 CLASSIFY \u2192 FIX \u2192 PATTERN</div><div class="inv-chips">${Object.values(TGT_SOURCE_META).map((m,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(m.label)}</span>`).join('')}<span class="inv-chip pulse" style="animation-delay:900ms">${TGT.caps?.llm?.configured?'model adjudication':'rules (no model key)'}</span></div></div>`:'';
+  const llmLine=p?`<div class="tgt-llm ${p.llm?.used?'on':''}">${p.llm?.used?`Model analyst: <b>${esc(p.llm.model)}</b> assessed ${p.llm.assessed||0} candidates; every output was validated against candidate / evidence indexes and source spans.`:`Deterministic rules only \u2014 ${esc(p.llm?.reason||'no model configured')}. Same package shape; the model adds role / relation judgments with cited evidence.`}</div>`:'';
+  return head(`
+    <div class="tgt-pkg-head">
+      <div class="tgt-pkg-title"><span class="tgt-pkg-label">${esc(t.label)}</span>${invTypeTag(t.type)}<span class="tgt-deck-st ${esc(t.status)}">${esc(t.status)}</span><span class="tgt-deck-pri p${t.priority||3}">P${t.priority||3}</span></div>
+      ${actions}
+    </div>
+    <div class="tgt-pkg-meta">${t.aliases?.length?`a.k.a. ${t.aliases.map(a=>`<span class="inv-chip">${esc(a)}</span>`).join(' ')} \u00b7 `:''}basis <b>${esc((TGT_BASIS_META[t.basis?.kind]||{label:t.basis?.kind}).label)}</b> <code>${t.basis?.kind==='source-url'?invExt(t.basis.ref,t.basis.ref):esc(t.basis?.ref||'')}</code> \u00b7 nominated ${esc(invDate(t.createdAt))}${t.developedAt?` \u00b7 developed ${esc(getAge(t.developedAt))}`:''}</div>
+    <div class="tgt-req"><span class="inv-sec-title" style="display:inline;margin-right:6px">Requirement</span>${esc(t.requirement)}</div>
+    ${TGT.error?`<div class="inv-err">${esc(TGT.error)}</div>`:''}
+    ${developing}
+    ${p?`<div class="tgt-kpis">
+      ${kpi('Mentions',st.mentions||0,'dated sentences naming the target or a published alias')}
+      ${kpi('Documents',st.documents||0)}
+      ${kpi('Selectors',st.selectors||0,'identifiers literally present in official / published sources')}
+      ${kpi('Links',`${st.links||0}<small> \u00b7 ${st.pendingLinks||0} pending</small>`,'linked personas, entities and places awaiting review')}
+      ${kpi('Accepted / rejected',`${st.accepted||0} / ${st.rejected||0}`)}
+      ${kpi('Graph proposals',`${st.proposals||0}<small> \u00b7 ${st.acceptedProposals||0} accepted</small>`)}
+      ${kpi('Located',st.observations||0,'gazetteer-resolved place mentions')}
+      ${kpi('Span',st.span?.first?`${esc(st.span.first)} \u2192 ${esc(st.span.last)}`:'—')}
+    </div>
+    ${llmLine}
+    ${flags.length?`<div class="tgt-flags">${flags.map(f=>`<div class="bw-spike tgt-flag ${flagCls[f.kind]||''}"><b>${esc(f.kind.replace('-',' '))}</b> \u00b7 ${esc(f.text)}${f.url?' \u00b7 '+invExt(f.url,'source'):''}</div>`).join('')}</div>`:`<div class="sh-note" style="margin-top:6px">No deviation from this target's own reporting baseline in the current window.</div>`}
+    ${p.fix?.lastKnown?`<div class="tgt-lk"><span class="inv-sec-title" style="display:inline;margin-right:6px">Last known public-record location</span><b>${esc(p.fix.lastKnown.place)}</b> \u00b7 ${esc(p.fix.lastKnown.date)} (${esc(String(p.fix.lastKnown.ageDays))} d ago) \u00b7 \u00b1${esc(String(p.fix.lastKnown.radiusKm))} km ${esc(p.fix.lastKnown.precision)} \u00b7 ${esc(p.fix.lastKnown.basis)} \u00b7 ${esc(p.fix.lastKnown.confidence)} confidence \u00b7 ${tgtSrcTag(p.fix.lastKnown.source)}${p.fix.lastKnown.url?' '+invExt(p.fix.lastKnown.url,'source'):''}<div class="tgt-ev">&ldquo;${esc(p.fix.lastKnown.sentence)}&rdquo;</div>${p.fix.lastKnown.caveat?`<div class="sh-note" style="margin:2px 0 0">${esc(p.fix.lastKnown.caveat)}</div>`:''}</div>`:''}`
+    :(dev?'':`<div class="inv-hint">Nominated, not yet developed. <b>Develop target</b> reads every local store for the label and aliases, correlates personas and associates, geolocates dated sentences and builds the pattern of activity. Nothing is written to the graph.</div>`)}`,
+    p?`<span class="badge ${p.llm?.used?'':'warn'}" title="${esc(p.llm?.used?'model-assisted':'rules only')}">${p.llm?.used?esc(String(p.llm.model).toUpperCase()):'RULES ONLY'}</span>`:'');
+}
+function renderTgtLinksPanel(){
+  const t=TGT.target;const p=t?.package;
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-links"><div class="sec-head"><h3>Identity &amp; Association Review</h3>${badge||'<span class="badge">FIND</span>'}</div>${body}</div>`;
+  if(!p)return wrapP(`<div class="inv-hint">${t?'Develop the target to correlate personas, associates and places.':'Select or nominate a target.'}</div>`);
+  const links=p.links||[];
+  const roleOf=l=>l.kind==='place'?'place':(l.assessment?.role||l.rules?.role||'background');
+  const counts={all:links.length,target:0,associate:0,background:0,place:0};for(const l of links)counts[roleOf(l)]=(counts[roleOf(l)]||0)+1;
+  const pending=links.filter(l=>!l.decision).length;
+  const views=[['all','All'],['target','Target personas'],['associate','Associates'],['background','Background'],['place','Places']];
+  let shown=links.filter(l=>TGT.view==='all'||roleOf(l)===TGT.view);
+  if(!TGT.showDecided)shown=shown.filter(l=>!l.decision);
+  shown=shown.slice().sort((a,b)=>(a.decision?1:0)-(b.decision?1:0)||({target:0,associate:1,place:2,background:3}[roleOf(a)]-{target:0,associate:1,place:2,background:3}[roleOf(b)])||(b.assessment?.confidence||0)-(a.assessment?.confidence||0)).slice(0,80);
+  const rows=shown.map(l=>{
+    const a=l.assessment||l.rules||{};const role=roleOf(l);
+    return `<div class="tgt-link ${l.decision||''}">
+      <div class="tgt-link-head">${tgtRoleTag(role)}<span class="tgt-link-label">${esc(l.label)}</span>${l.type?`<span class="inv-chip">${esc(l.type)}</span>`:''}${a.relation?`<span class="inv-chip" title="proposed relation">${esc(a.relation)}</span>`:''}${l.relConfidence==='typed'?'<span class="inv-chip" title="typed edge already in the verified graph">in graph</span>':''}${tgtConf(a.confidence)}<span class="inv-chip" title="who proposed this">${esc(a.by==='llm'?(a.model||'model'):'rules')}</span></div>
+      <div class="tgt-link-why">${esc(a.reason||'')}${l.coMentions?` \u00b7 ${esc(String(l.coMentions))} co-mentions in ${esc(String(l.articles||0))} articles`:''}${l.docs?` \u00b7 ${esc(String(l.docs))} doc${l.docs===1?'':'s'}`:''} \u00b7 ${(l.sources||[]).map(tgtSrcTag).join(' ')}</div>
+      ${tgtEvidence(l.evidence,1)}
+      ${tgtDecisionBtns('link',l.id,l.decision)}</div>`;
+  }).join('');
+  return wrapP(`<div class="inv-views">${views.map(([v,l])=>`<button class="inv-view ${TGT.view===v?'active':''}" data-tgt-act="view" data-view="${v}">${l}<span class="tab-n">${counts[v]||0}</span></button>`).join('')}<span class="inv-views-right"><a class="inv-link" data-tgt-act="toggle-decided">${TGT.showDecided?'hide decided':'show decided'}</a></span></div>
+    <div class="inv-scroll tgt-scroll">${rows||'<div class="inv-hint">Nothing in this view.</div>'}</div>
+    <div class="sh-note">Roles are proposed against the requirement. <b>Accept</b> records an analyst decision; <b>Reject</b> withdraws any graph proposal derived from the link. Decisions survive re-development.</div>`,
+    `<span class="badge ${pending?'warn':''}">${pending} PENDING \u00b7 ${links.length} LINKS</span>`);
+}
+function renderTgtProposalsPanel(){
+  const t=TGT.target;
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-proposals"><div class="sec-head"><h3>Graph Proposals</h3>${badge||'<span class="badge">OVERLAY</span>'}</div>${body}</div>`;
+  if(!t?.package)return wrapP('<div class="inv-hint">Graph proposals appear after development. Accepted proposals are served as an analyst-approved overlay on the CJNG graph; the verified graph itself is never modified.</div>');
+  const gps=(t.graphProposals||[]).slice().sort((a,b)=>({proposed:0,accepted:1,rejected:2}[a.status]-{proposed:0,accepted:1,rejected:2}[b.status])||(b.confidence||0)-(a.confidence||0)).slice(0,80);
+  const acc=gps.filter(g=>g.status==='accepted').length,pend=gps.filter(g=>g.status==='proposed').length;
+  const rows=gps.map(g=>`<div class="tgt-link ${g.status==='accepted'?'accept':g.status==='rejected'?'reject':''}">
+      <div class="tgt-link-head"><span class="inv-chip" style="color:#b39ddb;border-color:#b39ddb55">${esc(g.kind)}</span><span class="tgt-link-label">${esc(g.label||`${g.source} \u2192 ${g.rel} \u2192 ${g.target}`)}</span>${g.existing?'<span class="inv-chip" title="an equivalent typed edge already exists in the verified graph">already in graph</span>':''}${tgtConf(g.confidence)}<span class="inv-chip">${esc(g.by==='llm'?(g.model||'model'):'rules')}</span></div>
+      <div class="tgt-link-why"><code>${esc(g.source)}</code> <b>${esc(g.rel)}</b> <code>${esc(g.targetNode||g.target)}</code>${g.decidedAt?` \u00b7 decided ${esc(invDate(g.decidedAt))}`:''}</div>
+      ${tgtEvidence(g.evidence,1)}
+      ${tgtDecisionBtns('proposal',g.id,g.status==='accepted'?'accept':g.status==='rejected'?'reject':null)}</div>`).join('');
+  return wrapP(`<div class="inv-scroll tgt-scroll">${rows||'<div class="inv-hint">No new relations to propose — every correlated link already has a typed edge in the verified graph.</div>'}</div>
+    <div class="sh-note">Proposal ids are stable across re-development. Accepted edges are exposed at <code>/api/targeting/graph-overlay</code> with the target id, evidence sentence and decision time; nothing writes to the source-attributed CJNG graph.</div>`,
+    `<span class="badge ${pend?'warn':''}">${acc} ACCEPTED \u00b7 ${pend} PENDING</span>`);
+}
+function renderTgtSelectorsPanel(){
+  const p=TGT.target?.package;
+  const wrapP=(body,badge)=>`<div class="g-panel"><div class="sec-head"><h3>Published Selectors</h3>${badge||'<span class="badge">LITERAL ONLY</span>'}</div>${body}</div>`;
+  if(!p)return wrapP('<div class="inv-hint">Identifiers appear here only when literally present in a source: OFAC SDN ids and programs, DOJ case numbers, IMO numbers, aircraft registrations, domains. Phone numbers and e-mail addresses are taken from official DOJ / OFAC text only.</div>');
+  const sel=p.selectors||[];
+  const kindColor={'ofac-uid':'var(--accent)','ofac-program':'var(--accent)','doj-case':'var(--accent)',imo:'#4dd0e1','aircraft-reg':'#4dd0e1',domain:'#b39ddb',email:'#ffab40',phone:'#ffab40'};
+  const rows=sel.slice(0,60).map(s=>`<div class="tgt-sel"><span class="inv-chip" style="color:${kindColor[s.kind]||'#c8d8d2'};border-color:currentColor">${esc(s.kind)}</span><code class="tgt-sel-val">${esc(s.value)}</code><span class="tgt-sel-meta">${tgtSrcTag(s.source)} ${esc(s.date||'')}${s.url?' \u00b7 '+invExt(s.url,'source'):''}</span><div class="tgt-ev">&ldquo;${esc(s.evidence)}&rdquo;</div></div>`).join('');
+  return wrapP(`<div class="inv-scroll tgt-scroll">${rows||'<div class="inv-hint">No selectors literally present in the collected sources.</div>'}</div><div class="sh-note">Each selector carries the sentence it was read from. Nothing is inferred, enumerated or looked up from a third-party service.</div>`,`<span class="badge">${sel.length} SELECTORS</span>`);
+}
+function renderTgtPatternPanel(){
+  const p=TGT.target?.package;
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-pattern"><div class="sec-head"><h3>Pattern Of Activity</h3>${badge||'<span class="badge">BASELINE</span>'}</div>${body}</div>`;
+  if(!p)return wrapP('<div class="inv-hint">Reporting tempo per month against the target\u2019s own history, weekday and source mix, state footprint, reporting gaps and deviation flags.</div>');
+  const ag=p.pattern?.aggregates||{};const dv=p.pattern?.deviations||{};
+  const months=(ag.byMonth||[]).slice(-36);const mMax=Math.max(1,...months.map(m=>m.n));
+  const wd=ag.byWeekday||[];const wMax=Math.max(1,...wd.map(w=>w.n));
+  const bars=months.map(m=>`<div class="tgt-bar" style="height:${Math.max(2,Math.round(m.n/mMax*100))}%;${dv.window&&m.month>=String(dv.window.from).slice(0,7)?'background:#ff8a80':''}" title="${esc(m.month)}: ${m.n}"></div>`).join('');
+  const labels=months.length?`<div class="tgt-bar-labels"><span>${esc(months[0].month)}</span><span>${esc(months[Math.floor(months.length/2)].month)}</span><span>${esc(months[months.length-1].month)}</span></div>`:'';
+  const line=(label,n,max,color)=>`<div class="cii-row" style="cursor:default"><span class="cii-name" style="flex:0 0 96px">${esc(label)}</span><div class="cii-bar" style="width:100px"><div class="cii-bar-fill" style="width:${Math.round(n/max*100)}%;background:${color}"></div></div><span class="cii-score" style="color:${color}">${n}</span></div>`;
+  const src=(ag.bySource||[]);const sMax=Math.max(1,...src.map(s=>s.n));
+  const states=(ag.byState||[]).slice(0,6);const stMax=Math.max(1,...states.map(s=>s.n));
+  const gaps=ag.gaps||[];
+  return wrapP(`
+    <div class="inv-sec-title"><span>Mentions per month \u00b7 last ${months.length} months</span><span class="nokey">${dv.window?`window ${esc(dv.window.from)} +${dv.window.days}d \u00b7 observed ${dv.observed} vs ${dv.baselineMean}/mo (sd ${dv.baselineSd}) \u00b7 z ${dv.z}`:''}</span></div>
+    <div class="tgt-bars">${bars||'<div class="inv-hint">No dated mentions.</div>'}</div>${labels}
+    <div class="tgt-two">
+      <div><div class="inv-sec-title"><span>Weekday</span></div>${wd.map(w=>line(w.day,w.n,wMax,'var(--accent2)')).join('')}</div>
+      <div><div class="inv-sec-title"><span>Source mix</span></div>${src.map(s=>line((TGT_SOURCE_META[s.source]||{label:s.source}).label,s.n,sMax,TGT_TIER_COLOR[tgtTier(s.source)])).join('')}
+        ${states.length?`<div class="inv-sec-title" style="margin-top:6px"><span>States named</span></div>${states.map(s=>line(s.state,s.n,stMax,'#4dd0e1')).join('')}`:''}</div>
+    </div>
+    ${gaps.length?`<div class="inv-sec-title" style="margin-top:6px"><span>Reporting gaps (\u22653 months)</span></div><div class="inv-chips">${gaps.map(g=>`<span class="inv-chip">${esc(g.from)} \u2192 ${esc(g.to)} \u00b7 ${g.months} mo</span>`).join('')}</div>`:''}
+    ${(ag.statuses||[]).length?`<div class="inv-sec-title" style="margin-top:6px"><span>Status words in reporting</span></div><div class="inv-chips">${ag.statuses.slice(0,8).map(s=>`<span class="inv-chip" style="color:#ff8a80;border-color:currentColor">${esc(s.status||s.kind||'')}${s.n?` ${s.n}`:''}${s.date?` \u00b7 ${esc(s.date)}`:''}</span>`).join('')}</div>`:''}
+    <div class="sh-note">Tempo is the count of dated public mentions, so it tracks press attention as much as activity. The baseline is this target\u2019s own history, not a cross-target norm.</div>`,
+    `<span class="badge ${(dv.flags||[]).length?'warn':''}">${(dv.flags||[]).length} FLAG${(dv.flags||[]).length===1?'':'S'}</span>`);
+}
+function renderTgtTimelinePanel(){
+  const p=TGT.target?.package;
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-timeline"><div class="sec-head"><h3>Target Timeline</h3>${badge||'<span class="badge">SOURCED</span>'}</div>${body}</div>`;
+  if(!p)return wrapP('<div class="inv-hint">Every dated mention, newest first, with its source tier and the place it names.</div>');
+  const tl=(p.pattern?.timeline||[]).slice(0,120);
+  let year=null;const rows=[];
+  for(const e of tl){
+    const y=String(e.date||'').slice(0,4);
+    if(y!==year){year=y;rows.push(`<div class="inv-tl-year">${esc(y||'undated')}</div>`)}
+    const cls=e.status?'threat':tgtTier(e.source)==='official'?'me':'';
+    rows.push(`<div class="inv-tl-row ${cls}"><span class="inv-tl-date">${esc(e.date||'')}</span><span class="inv-tl-dot" style="${tgtTier(e.source)==='unverified'?'background:#ffab40;box-shadow:none':''}"></span><span class="inv-tl-text" title="${esc(e.title||'')}">${e.status?`<b style="color:#ff8a80">${esc(e.status)}</b> \u00b7 `:''}${esc(String(e.sentence||e.title||'').slice(0,220))}${e.place?` <span class="inv-chip" style="color:#4dd0e1;border-color:currentColor">${esc(e.place)}${e.presence?` \u00b7 ${esc(e.presence)}`:''}</span>`:''}${e.weak?'<span class="inv-chip" title="weak alias match (nickname only)">weak</span>':''}</span><span class="inv-tl-who">${tgtSrcTag(e.source)}${e.url?' '+invExt(e.url,'\u2197'):''}</span></div>`);
+  }
+  return wrapP(`<div class="inv-scroll tgt-scroll inv-tl">${rows.join('')||'<div class="inv-hint">No dated mentions.</div>'}</div><div class="sh-note">Red = a status word (killed, captured, sanctioned, indicted\u2026) in the sentence. Green dot = official record. Amber = public Telegram (unverified).</div>`,`<span class="badge">${(p.pattern?.timeline||[]).length} ENTRIES</span>`);
+}
+
+// ─── Fix map: gazetteer places with precision-based uncertainty radii ───────
+let tgtTransform=null,tgtTransformFor=null;
+function renderTgtMapPanel(){
+  const p=TGT.target?.package;
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-mappanel"><div class="sec-head"><h3>Public-Record Locations</h3>${badge||'<span class="badge">FIX</span>'}</div>${body}</div>`;
+  if(!p)return wrapP('<div class="inv-hint">Dated place mentions snapped to the Mexico gazetteer, drawn with the radius their precision supports (city \u00b1 15 km, municipality \u00b1 30 km, state \u00b1 120 km). Not a live position.</div>');
+  const obs=(p.fix?.observations||[]).filter(o=>Number.isFinite(o.lat)&&Number.isFinite(o.lon));
+  const lk=p.fix?.lastKnown;const fp=(p.fix?.footprint||[]).slice(0,8);const disp=p.fix?.dispersion;
+  const fpRows=fp.map(f=>`<span class="inv-chip" title="${esc(f.first)} \u2192 ${esc(f.last)} \u00b7 ${esc((f.sources||[]).join(', '))}" style="color:#4dd0e1;border-color:currentColor">${esc(f.place)} ${f.count}${f.stated?`<em style="color:var(--accent)"> \u00b7 ${f.stated} stated</em>`:''}</span>`).join('');
+  return wrapP(`<div class="ct-map tgt-map" id="tgtMapWrap"><svg id="tgtMapSvg" width="100%" height="100%"></svg>
+      ${obs.length?'':'<div class="map-loading-text" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">No place mention resolved against the gazetteer</div>'}
+      <div class="map-legend"><span style="color:var(--accent)">&#9679; stated presence</span><span style="color:var(--accent2)">&#9675; operation / contextual</span><span style="color:#ff8a80">&#9673; last known (dated)</span><span style="color:var(--dim)">ring = uncertainty radius \u00b7 drag / wheel to pan &amp; zoom</span></div></div>
+    <div class="tgt-footprint"><span class="inv-sec-title" style="display:inline;margin-right:6px">Footprint</span>${fpRows||'<span class="inv-hint" style="padding:0">none</span>'}${disp?` <span class="sh-ms" style="margin-left:6px">dispersion median ${disp.medianKm} km \u00b7 max ${disp.maxKm} km over ${disp.n} places</span>`:''}</div>
+    <div class="sh-note">${esc(p.fix?.caveat||'')}</div>`,
+    `<span class="badge">${obs.length} PLACED${lk?` \u00b7 LAST ${esc(lk.date)}`:''}</span>`);
+}
+function initTgtMap(){
+  const wrap=document.getElementById('tgtMapWrap'),svgEl=document.getElementById('tgtMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  const p=TGT.target?.package;if(!p)return;
+  const obs=(p.fix?.observations||[]).filter(o=>Number.isFinite(o.lat)&&Number.isFinite(o.lon));
+  const lk=p.fix?.lastKnown;
+  const W=wrap.clientWidth||600,H=wrap.clientHeight||420;
+  const svg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
+  svg.selectAll('*').remove();
+  let extent=CT_MX_BBOX;
+  if(obs.length){
+    const lats=obs.map(o=>o.lat),lons=obs.map(o=>o.lon);
+    const pad=Math.max(1.5,(Math.max(...lats)-Math.min(...lats))*0.35,(Math.max(...lons)-Math.min(...lons))*0.35);
+    const s=Math.min(...lats)-pad,n=Math.max(...lats)+pad,w=Math.min(...lons)-pad,e=Math.max(...lons)+pad;
+    extent={type:'Polygon',coordinates:[[[w,s],[w,n],[e,n],[e,s],[w,s]]]};
+  }
+  const proj=d3.geoMercator().fitExtent([[12,12],[W-12,H-12]],extent);
+  const path=d3.geoPath(proj);
+  const root=svg.append('g');
+  const base=root.append('g').attr('class','ct-base');
+  const layer=root.append('g');
+  base.append('path').datum(d3.geoGraticule().step([2,2])()).attr('class','graticule').attr('d',path);
+  const scaleStrokes=k=>{layer.selectAll('.tgt-ring').attr('stroke-width',1.2/k);layer.selectAll('.tgt-lbl').attr('font-size',10/k);layer.selectAll('.tgt-dot').attr('r',3.2/k);layer.selectAll('.tgt-lk').attr('stroke-width',2/k)};
+  const zoom=d3.zoom().scaleExtent([0.7,14]).on('zoom',ev=>{tgtTransform=ev.transform;tgtTransformFor=TGT.sel;root.attr('transform',ev.transform);scaleStrokes(ev.transform.k)});
+  svg.call(zoom);
+  if(tgtTransform&&tgtTransformFor===TGT.sel)svg.call(zoom.transform,tgtTransform);
+  ctWorld().then(world=>{
+    if(!world||!window.topojson)return;
+    base.insert('path',':first-child').datum(topojson.feature(world,world.objects.countries)).attr('class','tgt-country').attr('d',path);
+    base.insert('path','.graticule').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','tgt-border').attr('d',path);
+  });
+  // Rings: one per observation, radius = uncertainty (km → degrees of arc) so state-level mentions read as wide, cities as tight.
+  const circle=d3.geoCircle();
+  const sorted=obs.slice().sort((a,b)=>(b.radiusKm||0)-(a.radiusKm||0));
+  layer.selectAll('.tgt-ring').data(sorted).join('path').attr('class',o=>`tgt-ring ${o.presence||'contextual'}`)
+    .attr('d',o=>path(circle.center([o.lon,o.lat]).radius(Math.max(0.05,(o.radiusKm||15)/111.2))()))
+    .append('title').text(o=>`${o.place}${o.state&&o.state!==o.place?', '+o.state:''} · ${o.date} · ${o.presence} · ±${o.radiusKm} km (${o.precision}) · ${o.source}\n“${String(o.sentence||'').slice(0,160)}”`);
+  const seen=new Set();
+  const places=sorted.filter(o=>{const k=o.place+'|'+o.state;if(seen.has(k))return false;seen.add(k);return true});
+  layer.selectAll('.tgt-dot').data(places).join('circle').attr('class',o=>`tgt-dot ${o.presence||'contextual'}`).attr('cx',o=>proj([o.lon,o.lat])[0]).attr('cy',o=>proj([o.lon,o.lat])[1]).attr('r',3.2);
+  layer.selectAll('.tgt-lbl').data(places.slice(0,14)).join('text').attr('class','tgt-lbl').attr('x',o=>proj([o.lon,o.lat])[0]+5).attr('y',o=>proj([o.lon,o.lat])[1]-4).text(o=>o.place);
+  if(lk&&Number.isFinite(lk.lat)&&Number.isFinite(lk.lon)){
+    const [x,y]=proj([lk.lon,lk.lat]);
+    const g=layer.append('g').attr('class','tgt-lk-g');
+    g.append('path').attr('class','tgt-lk').attr('d',path(circle.center([lk.lon,lk.lat]).radius(Math.max(0.05,(lk.radiusKm||15)/111.2))()));
+    g.append('circle').attr('class','tgt-lk-pulse').attr('cx',x).attr('cy',y).attr('r',6);
+    g.append('text').attr('class','tgt-lbl lk').attr('x',x+8).attr('y',y+12).text(`LAST KNOWN · ${lk.date}`);
+    g.append('title').text(`${lk.place} · ${lk.date} · ${lk.basis} · ±${lk.radiusKm} km · ${lk.confidence} confidence\n“${String(lk.sentence||'').slice(0,200)}”`);
+  }
+  if(tgtTransform&&tgtTransformFor===TGT.sel)scaleStrokes(tgtTransform.k);
+}
+tgtLoad();
+
 // === RIGHT RAIL (Situation tab only; other tabs collapse it via .grid.no-map) ===
 function renderRight(){
   const rail=document.getElementById('rightRail');
@@ -6743,7 +7205,9 @@ function renderAll(){
   renderMapLegend();
 }
 function reinit(){
-  const typing = document.activeElement && document.activeElement.classList.contains('inv-input');
+  const active = document.activeElement;
+  const typing = active && active.classList.contains('inv-input');
+  const typingName = typing ? active.getAttribute('name') : null;
   try {
     renderAll();
     replotMap();
@@ -6751,7 +7215,7 @@ function reinit(){
     console.error('[Crucix] render failed', err);
     setLiveStatus('render-error');
   }
-  if (typing) { const el = document.querySelector('.inv-input'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+  if (typing) { const el = document.querySelector(typingName ? `.inv-input[name="${typingName}"]` : '.inv-input'); if (el) { el.focus(); if (el.setSelectionRange) el.setSelectionRange(el.value.length, el.value.length); } }
 }
 
 // === LIVE DATA STATE ===
