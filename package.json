@@ -11,6 +11,7 @@
     "brief": "node apis/briefing.mjs",
     "brief:save": "node apis/save-briefing.mjs",
     "diag": "node diag.mjs",
+    "cjng:graph": "node scripts/cjng-graph.mjs",
     "clean": "node scripts/clean.mjs",
     "ingest": "python -m crucix_ingest serve",
     "ingest:poll": "python -m crucix_ingest poll",

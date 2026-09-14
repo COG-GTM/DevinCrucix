@@ -53,6 +53,8 @@ import { queryReleases as dojReleases, DISTRICTS as DOJ_DISTRICTS, CATEGORY_IDS 
 import { loadIndex as ofacNarcoIndex, matchNames as ofacMatchNames } from './apis/sources/ofacnarco.mjs';
 import { CONFIDENCE as NARCO_GRADES } from './lib/narco/events.mjs';
 import { EVENT_TYPE_LABELS as NARCO_TYPES } from './lib/narco/extract.mjs';
+import { refreshCorpus as refreshCjngCorpus } from './lib/cjng/corpus.mjs';
+import { buildCjngGraph, loadGraph as loadCjngGraph, saveGraph as saveCjngGraph, summarizeGraph as summarizeCjngGraph, filterGraph as filterCjngGraph, NODE_TYPES as CJNG_NODE_TYPES, RELATIONS as CJNG_RELATIONS } from './lib/cjng/graph.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -76,6 +78,15 @@ let sweepInProgress = false;
 let marketRefreshInProgress = false;
 let seismicData = null;      // Seismic Event Monitor state (refreshed independently)
 let narcoData = loadNarcoEvents(); // Full narco event clusters from the last post-sweep computation (runs/narco/events.json)
+let cjngGraph = loadCjngGraph();   // CJNG knowledge graph built from InSight Crime's public API (runs/insightcrime/cjng/graph.json, else committed snapshot)
+let cjngRefresh = { status: cjngGraph ? (cjngGraph.snapshot ? 'snapshot' : 'cached') : 'pending', lastAttempt: null, lastSuccess: cjngGraph?.computedAt || null, error: null, inProgress: false };
+const CJNG_REFRESH_HOURS = Math.min(168, Math.max(1, Number(process.env.CJNG_GRAPH_REFRESH_HOURS) || 12));
+const CJNG_REFRESH_ENABLED = process.env.CJNG_GRAPH_REFRESH !== 'false';
+function narcoView(result, sources, opts) {
+  const v = buildNarcoView(result, sources, opts);
+  v.cjng = summarizeCjngGraph(cjngGraph, cjngRefresh);
+  return v;
+}
 const startTime = Date.now();
 const sseClients = new Set();
 const MARKET_REFRESH_SECONDS = parseInt(process.env.MARKET_REFRESH_SECONDS) || 60;
@@ -576,6 +587,19 @@ app.get('/api/narco/events/:id', (req, res) => {
   if (!c) return res.status(404).json({ error: 'Event not found' });
   res.json(c);
 });
+// CJNG knowledge graph (InSight Crime public API -> lib/cjng). Filters are allowlisted; the full graph is bounded at build time.
+const CJNG_LIST_RE = /^[a-z_]{1,20}(?:,[a-z_]{1,20}){0,9}$/;
+app.get('/api/narco/graph', (req, res) => {
+  if (!onlyQueryKeys(req, ['type', 'rel', 'min'])) return res.status(400).json({ error: 'Invalid request' });
+  const type = narcoPick(req, 'type', v => CJNG_LIST_RE.test(v) && v.split(',').every(t => CJNG_NODE_TYPES.includes(t)));
+  const rel = narcoPick(req, 'rel', v => CJNG_LIST_RE.test(v) && v.split(',').every(t => Object.hasOwn(CJNG_RELATIONS, t)));
+  const min = narcoInt(req, 'min', 1, 1, 999, 3);
+  if (type === undefined || rel === undefined || Number.isNaN(min)) return res.status(400).json({ error: 'Invalid request' });
+  if (!cjngGraph) return res.json({ status: cjngRefresh.status, refresh: cjngRefresh, nodes: [], edges: [], articles: [] });
+  const g = filterCjngGraph(cjngGraph, { types: type ? type.split(',') : null, rels: rel ? rel.split(',') : null, minArticles: min });
+  res.json({ status: cjngGraph.snapshot ? 'snapshot' : 'live', refresh: cjngRefresh, ...g });
+});
+
 app.get('/api/narco/doj', (req, res) => {
   if (!onlyQueryKeys(req, ['district', 'category', 'days', 'limit'])) return res.status(400).json({ error: 'Invalid request' });
   const district = narcoPick(req, 'district', v => DOJ_DISTRICTS.some(d => d.code === v));
@@ -946,11 +970,11 @@ async function runSweepCycle() {
     try {
       const narcoResult = await computeNarcoEvents({ llmProvider });
       narcoData = narcoResult;
-      synthesized.narco = buildNarcoView(narcoResult, rawData.sources || {});
+      synthesized.narco = narcoView(narcoResult, rawData.sources || {});
       console.log(`[Crucix] Narco: ${narcoResult.totals.clusters} events (${narcoResult.totals.current} current) from ${narcoResult.records} records | ${narcoResult.totals.sanctionsMatches} sanctions matches | ${narcoResult.durationMs}ms`);
     } catch (narcoErr) {
       console.error('[Crucix] Narco event pipeline failed (non-fatal):', narcoErr.message);
-      synthesized.narco = buildNarcoView(narcoData, rawData.sources || {}, { error: 'event pipeline failed this sweep' });
+      synthesized.narco = narcoView(narcoData, rawData.sources || {}, { error: 'event pipeline failed this sweep' });
     }
 
     // 4. Delta computation + memory
@@ -1128,7 +1152,7 @@ async function start() {
       if (existing.sources?.IranWarLive?.geo) iranGeo = existing.sources.IranWarLive.geo;
       taiwanGeo = buildTaiwanGeo(existing.sources || {});
       const data = await synthesize(existing);
-      data.narco = buildNarcoView(narcoData, existing.sources || {});
+      data.narco = narcoView(narcoData, existing.sources || {});
       data.delta = memory.getLastDelta() || null;
       data.seismic = seismicData;
       data.situation = buildSituation(data);
@@ -1174,6 +1198,35 @@ async function start() {
     };
     refreshSeismic();
     setInterval(refreshSeismic, 5 * 60 * 1000);
+
+    // CJNG knowledge graph — incremental InSight Crime corpus refresh + graph rebuild, independent of the
+    // sweep (a dozen polite API requests). First run is delayed so it does not compete with the initial sweep.
+    const refreshCjng = async () => {
+      if (cjngRefresh.inProgress) return;
+      cjngRefresh = { ...cjngRefresh, inProgress: true, lastAttempt: new Date().toISOString() };
+      try {
+        const corpus = await refreshCjngCorpus({ delayMs: 2500, log: m => console.log(`[CJNG] ${m}`) });
+        const graph = buildCjngGraph(corpus);
+        saveCjngGraph(graph);
+        cjngGraph = graph;
+        cjngRefresh = { status: 'live', lastAttempt: cjngRefresh.lastAttempt, lastSuccess: graph.computedAt, error: corpus.stats?.errors?.length ? `partial: ${corpus.stats.errors.length} query error(s)` : null, inProgress: false };
+        console.log(`[CJNG] graph: ${graph.totals.nodes} nodes · ${graph.totals.edges} edges from ${graph.totals.articles} articles (${corpus.stats?.added || 0} new, ${corpus.stats?.updated || 0} updated)`);
+      } catch (err) {
+        console.error('[CJNG] refresh failed (non-fatal):', err.message);
+        cjngRefresh = { ...cjngRefresh, status: cjngGraph ? cjngRefresh.status : 'error', error: 'refresh failed', inProgress: false };
+      }
+      if (currentData?.narco) {
+        currentData.narco.cjng = summarizeCjngGraph(cjngGraph, cjngRefresh);
+        broadcast({ type: 'update', data: currentData });
+      }
+    };
+    if (CJNG_REFRESH_ENABLED) {
+      console.log(`[CJNG] graph refresh: every ${CJNG_REFRESH_HOURS}h (${cjngGraph ? `${cjngGraph.totals.nodes} nodes loaded${cjngGraph.snapshot ? ' from snapshot' : ''}` : 'no graph yet'})`);
+      setTimeout(refreshCjng, 90 * 1000).unref();
+      setInterval(refreshCjng, CJNG_REFRESH_HOURS * 3600 * 1000).unref();
+    } else {
+      console.log('[CJNG] graph refresh disabled (CJNG_GRAPH_REFRESH=false)');
+    }
   });
 }
 

@@ -345,6 +345,31 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .nv-chip.on{border-color:var(--accent);color:var(--accent);background:rgba(100,240,200,0.1)}
 .nv-chip.none{opacity:0.4;cursor:default}
 .nv-chip b{color:#e6f2ee;font-weight:normal}
+.kg-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:8px;margin-top:6px}
+@media (max-width:1100px){.kg-wrap{grid-template-columns:1fr}}
+.kg-canvas{position:relative;height:clamp(420px,56vh,640px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden}
+.kg-canvas svg{width:100%;height:100%;display:block;cursor:grab}
+.kg-canvas svg:active{cursor:grabbing}
+.kg-link{fill:none;stroke-opacity:0.35}
+.kg-link.dim{stroke-opacity:0.06}
+.kg-link.hi{stroke-opacity:0.95}
+.kg-node{cursor:pointer}
+.kg-node circle{stroke:rgba(0,0,0,0.75);stroke-width:1px}
+.kg-node.dim{opacity:0.18}
+.kg-node.sel circle{stroke:#fff;stroke-width:2px}
+.kg-node text{font-family:var(--mono);font-size:8px;fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(2,4,8,0.9);stroke-width:3px}
+.kg-node.root text{font-size:11px;fill:#fff}
+.kg-detail{border:1px solid var(--border);padding:8px;font-size:10px;line-height:1.45;max-height:clamp(420px,56vh,640px);overflow-y:auto;scrollbar-width:thin;background:rgba(0,0,0,0.25)}
+.kg-detail h4{font-family:var(--mono);font-size:11px;letter-spacing:0.04em;margin:0 0 2px;color:#e6f2ee}
+.kg-detail .kg-type{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase}
+.kg-edge{padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.kg-edge .r{font-family:var(--mono);font-size:8px;letter-spacing:0.06em;text-transform:uppercase}
+.kg-edge .r b{color:#e6f2ee;font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;cursor:pointer}
+.kg-edge .r b:hover{color:var(--accent)}
+.kg-ev{color:#b8ccc4;font-size:9.5px;margin-top:2px;border-left:2px solid rgba(255,255,255,0.12);padding-left:6px}
+.kg-ev a{color:var(--accent2);font-family:var(--mono);font-size:8px;white-space:nowrap}
+.kg-key{position:absolute;left:8px;bottom:6px;display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.06em;pointer-events:none}
+.kg-key i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;vertical-align:middle}
 @keyframes pulse-conflict{0%,100%{opacity:0.5;stroke-width:1.5}50%{opacity:0.9;stroke-width:2.5}}
 .conflict-ring{animation:pulse-conflict 2.5s ease-in-out infinite}
 @keyframes dash-flow{to{stroke-dashoffset:-20}}
@@ -1249,7 +1274,7 @@ const TAB_DEFS=[
   {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
-  {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
+  {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal + strike candidates, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
   {id:'cartels',label:'Cartels & Border',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 official CBP data (encounters, seizures, use of force, custody) \u00b7 US\u2013Mexico border reporting \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
   {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
@@ -1411,6 +1436,7 @@ const PANEL_CAPTIONS={
   'ukraine theater':'D3 theater map: DeepStateMAP front polygons, attack axes and RU unit / airfield markers over the sensors CRUCIX already sweeps for this box. Map data \u00a9 DeepStateMAP \u2014 an assessment, not verified ground truth.',
   'front change log':'Per-day DeepStateMAP advances and regains (7 d / 30 d) with the latest update rows. Occupied km\u00b2 delta is against the previous sweep of this dashboard, not a daily official figure.',
   'theater air & gps jamming':'OpenSky / ADS-B counts inside the Ukraine and Black Sea boxes plus the Eastern Ukraine GPS-jamming zone. Counts track receiver coverage as much as activity; RU callsigns are pattern matches.',
+  'strike candidates':'NASA FIRMS night or \u226520 MW detections within 30 km of the DeepStateMAP contact line (attack axes, update places, grey-zone edges), clustered per fire and tiered by proximity, night pass and intensity. Candidate indicators only \u2014 FIRMS does not attribute cause; shelling fires, crop burning and industry look the same from orbit.',
   'thermal detections':'NASA FIRMS thermal anomalies in the Ukraine bbox: detections, night detections and >10 MW FRP. Fires, flares and industry all show up \u2014 not strike confirmation.',
   'znpp & nuclear sites':'Status of Zaporizhzhia and other UA / RU nuclear facilities from the sites registry, with Safecast citizen readings near ZNPP. A reading is not a release; status is public reporting.',
   'theater wires, channels & odds':'GDELT Ukraine / Russia headlines and tone, public Telegram posts from the conflict channels, and Polymarket Russia / Ukraine odds. Unverified reporting and crowd estimates, not intelligence.',
@@ -1442,6 +1468,7 @@ const PANEL_CAPTIONS={
   'not polled':'Sources that cannot be fetched server-side, listed so the gap is visible.',
   'china / taiwan sources':'How each of the five China / Taiwan parts behaved this sweep. LIVE means fetched and parsed; anything else is stated.',
   'independent reporting':'Items about the same theater from feeds CRUCIX already polls (GDELT, ACLED), last 72 h. Shows what else is reporting, not confirmation of any specific IranWarLive event.',
+  'cjng knowledge graph':'Entities and relations machine-read from every InSight Crime article that focuses on the CJNG (public API, full corpus). A typed edge needs a cue word next to both names in one sentence; everything else is a plain co-mention. Click a node for its evidence sentences and source links — relations are as reported, not verified.',
   'graded events':'One row per incident after deduplication across Border Watch feeds (Borderland Beat, El Paso Matters, Fronteras Desk, Border Report, Texas Tribune) and DOJ releases. The letter is <b>corroboration</b>, not severity \u2014 D means one citizen aggregator said it.',
   'doj prosecutions':'U.S. Attorney press releases from the five south-west border districts via DOJ\u2019s public API, keyword-classified by topic. Charges are allegations until a plea or conviction is stated.',
   'ofac sanctions':'Treasury SDN entries under the narco programs (SDNTK, SDNT, ILLICIT-DRUGS-EO14059, TCO) plus Mexico-linked FTO/SDGT, matched conservatively against names extracted from events. A match is a lead, not an identification.',
@@ -3214,10 +3241,10 @@ function renderLower(){
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
+    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),wrap(renderTracPanel(),'lp-half'),
-      wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
+      wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(renderCjngGraphPanel(),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
       wrap(groupHead('US Enforcement · DOJ & OFAC',['DOJ','OFACNarco']),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
@@ -3228,6 +3255,7 @@ function renderLower(){
   grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
+  if(currentTab==='cartels')requestAnimationFrame(initCjngGraph);
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
@@ -4076,6 +4104,7 @@ const UA_LAYERS=[
   {id:'changes',label:'Updates \u00b7 7 d',color:'#64b5f6',src:'Frontlines'},
   {id:'gps',label:'GPS jamming',color:'#ef5350',src:'GPSJamming'},
   {id:'thermal',label:'FIRMS thermal',color:'#ff5f63',src:'FIRMS'},
+  {id:'strikes',label:'Strike candidates',color:'#ffd740',src:['FIRMS','Frontlines']},
   {id:'nuclear',label:'Nuclear sites',color:'#ffe082',src:'Nuclear'},
   {id:'air',label:'Theater air',color:'#64f0c8',src:['OpenSky','ADS-B']},
   {id:'sdr',label:'KiwiSDR receivers',color:'#44ccff',src:'KiwiSDR'},
@@ -4209,6 +4238,7 @@ function uaLayerCounts(){
     changes:(g?.changes||[]).length,
     gps:(u.air?.gps?.zones||[]).length,
     thermal:(u.thermal?.rows||[]).length,
+    strikes:(u.strikes?.clusters||[]).length,
     nuclear:(u.nuclear?.facilities||[]).length,
     air,
     sdr:(u.sdr?.receivers||[]).length,
@@ -4217,6 +4247,7 @@ function uaLayerCounts(){
 function uaLayerWhy(id){
   const u=uaView(),g=uaGeoNow();
   if(['front','attack','orbat','changes'].includes(id))return !uaFrontLive()?'DeepStateMAP not live this sweep':uaGeoFailed?'geometry unavailable':!g?'geometry loading':'nothing in the current map';
+  if(id==='strikes')return uaStrikesWhy(u.strikes);
   const h=id==='gps'?u.air?.gps?.health:id==='thermal'?u.thermal?.health:id==='nuclear'?u.nuclear?.health:id==='sdr'?u.sdr?.health:null;
   if(id==='air'){const o=u.air?.opensky,a=u.air?.adsb;return o?.total>0&&!(o.tracks||[]).length?`${o.total} aircraft counted, no positions in payload`:`OpenSky ${SH_LABEL[uaState(o?.health)]}, ADS-B ${SH_LABEL[uaState(a?.health)]} \u2014 no theater positions`}
   if(h&&uaState(h)!=='live')return `${SH_LABEL[uaState(h)]}${h.reason?' \u2014 '+h.reason:''}`;
@@ -4305,6 +4336,20 @@ function uaDraw(){
         e=>uaPopup(e,`Thermal anomaly \u00b7 ${Number.isFinite(r.frp)?r.frp.toFixed(1)+' MW':'FRP n/a'}`,`${esc(r.date)} ${esc(r.time)}Z \u00b7 ${r.night?'night':'day'} pass${r.confidence?` \u00b7 confidence ${esc(r.confidence)}`:''}${Number.isFinite(r.brightness)?`<br>Brightness ${r.brightness.toFixed(0)} K`:''}<br><span style="color:var(--dim)">NASA FIRMS satellite fire detection. A hot pixel, not an attributed strike \u2014 agriculture and industry also burn.</span>`,'FIRMS \u00b7 VIIRS/MODIS')))drawn++;
     });
   }
+  // 6b. FIRMS strike candidates: night / ≥HOT_FRP clusters within the strike radius of DeepState front anchors.
+  //     Tier A pulses. Every value is a validated number from lib/firmsstrikes.mjs; strings are esc()'d.
+  if(on('strikes')){
+    const gr=uaLayersG.append('g'),s=u.strikes||{};
+    (s.clusters||[]).forEach(c=>{
+      const a=c.tier==='A',r=a?5.5:4,col=a?'#ffd740':'#ffb300';
+      const when=c.latestAt?uaWhen(c.latestAt):'time n/a';
+      const text=`${c.n} pixel${c.n===1?'':'s'} · ${c.night} night · max ${Number.isFinite(c.maxFrp)?c.maxFrp.toFixed(1):'—'} MW${Number.isFinite(c.maxBright)?` · ${c.maxBright.toFixed(0)} K`:''}${c.conf?` · conf ${esc(c.conf.toUpperCase())}`:''}`
+        +`<br>${Number.isFinite(c.distKm)?`${c.distKm.toFixed(1)} km from ${esc(c.near||'front anchor')}`:'distance n/a'}${c.place?` · ${c.place.km.toFixed(0)} km from ${esc(c.place.name)}`:''}`
+        +`<br>Latest pass ${esc(when)}${c.firstAt&&c.firstAt!==c.latestAt?` · first ${esc(uaWhen(c.firstAt))}`:''}`
+        +`<br><span style="color:var(--dim)">Tier ${esc(c.tier)} — candidate indicator, not a confirmed strike. FIRMS does not attribute cause.</span>`+uaDsLink(c.lat,c.lon);
+      if(pin(gr,c.lon,c.lat,r,ctRgba(col,0.9),'rgba(0,0,0,0.85)',1.2,e=>uaPopup(e,`Strike candidate · tier ${c.tier}`,text,'NASA FIRMS × DeepStateMAP · candidate'))){drawn++;if(a)halo(gr,c.lon,c.lat,11,col);}
+    });
+  }
   // 7. Nuclear sites: ZNPP red with a pulse, other plants amber.
   if(on('nuclear')){
     const gr=uaLayersG.append('g'),n=u.nuclear||{},sc=n.safecast||{};
@@ -4361,7 +4406,7 @@ function renderUaMapPanel(){
     </div>`
     :`<div class="g-off-why" style="margin:6px 0">DeepStateMAP is ${SH_LABEL[uaState(f.health)]||'not live'}${f.health?.reason?' \u2014 '+esc(f.health.reason):''}. The theater basemap and the other sensors are still drawn; no front polygons are shown because none were received \u2014 nothing here is synthesized.</div>`;
   const legend=Object.keys(FRONT_STYLE).map(k=>`<span><i style="background:${FRONT_STYLE[k].fill};border:1px solid ${FRONT_STYLE[k].stroke}"></i>${esc(FRONT_STYLE[k].label)}</span>`).join('')
-    +`<span><i style="background:${FRONT_CHANGE_COLOR.advance};border-radius:50%"></i>advance</span><span><i style="background:${FRONT_CHANGE_COLOR.regain};border-radius:50%"></i>regain</span><span style="color:#ff8a65">\u2192 attack axis</span><span><i style="background:rgba(255,171,145,0.8)"></i>RU unit</span><span><i style="background:rgba(255,204,128,0.8);transform:rotate(45deg)"></i>airfield</span><span><i style="background:#ff5252;border-radius:50%"></i>ZNPP</span><span><i style="background:rgba(239,83,80,0.5);border:1px dashed #ef5350"></i>GPS jamming</span><span><i style="background:rgba(255,95,99,0.9);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>FIRMS</span>`;
+    +`<span><i style="background:${FRONT_CHANGE_COLOR.advance};border-radius:50%"></i>advance</span><span><i style="background:${FRONT_CHANGE_COLOR.regain};border-radius:50%"></i>regain</span><span style="color:#ff8a65">\u2192 attack axis</span><span><i style="background:rgba(255,171,145,0.8)"></i>RU unit</span><span><i style="background:rgba(255,204,128,0.8);transform:rotate(45deg)"></i>airfield</span><span><i style="background:#ff5252;border-radius:50%"></i>ZNPP</span><span><i style="background:rgba(239,83,80,0.5);border:1px dashed #ef5350"></i>GPS jamming</span><span><i style="background:rgba(255,95,99,0.9);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>FIRMS</span><span><i style="background:#ffd740;border-radius:50%;box-shadow:0 0 0 2px rgba(255,215,64,0.35)"></i>strike candidate</span>`;
   const site=f.siteUrl?safeExternalUrl(f.siteUrl):null;
   return `<div class="g-panel ua-map-panel">
       <div class="sec-head"><h3>${shDot('Frontlines')}Ukraine Theater — DeepStateMAP Front & Sensors</h3>${uaBadge(f.health,`${f.mapId?'MAP '+esc(String(f.mapId)):'LIVE'} \u00b7 ${uaAgeTxt(f.mapAgeH)}`,stale?'warn':'')}</div>
@@ -4447,6 +4492,32 @@ function renderUaThermalPanel(){
     ${uaSection('Highest-FRP detections',`${(t.rows||[]).length} rows \u00b7 click to centre map`)}
     ${rows?`<div class="ct-scroll" style="max-height:30vh"><table class="ua-tbl"><thead><tr><th>Pass</th><th>Position</th><th class="n">FRP MW</th><th class="n">Bright K</th><th>Conf</th><th class="n">Acquired</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="g-off-why">No high-intensity detections inside the box this sweep.</div>'}
     <div class="sh-note">NASA FIRMS (VIIRS / MODIS) active-fire detections clipped to the 44\u201353N 22\u201341E box. A hot pixel is not an attributed strike \u2014 crop burning, industry and wildfire also register. Confidence is FIRMS\u2019 own.</div></div>`;
+}
+// Why the strike-candidate layer / panel is empty, from the status lib/firmsstrikes.mjs reports.
+function uaStrikesWhy(s){
+  const st=s?.status;
+  if(!s||st==='no_firms')return `FIRMS ${SH_LABEL[uaState(s?.firmsHealth)]||'OFF'}${s?.reason?' \u2014 '+s.reason:''}`;
+  if(st==='no_detections')return 'FIRMS Ukraine box carried no per-pixel rows this sweep';
+  if(st==='no_front')return s.reason||'DeepStateMAP contact-line geometry unavailable';
+  if(st==='empty')return s.reason||'no night / high-FRP detections near the front';
+  return 'nothing to plot';
+}
+function renderUaStrikesPanel(){
+  const s=uaView().strikes||{},t=s.totals||{},k=s.anchorKinds||{};
+  if(!s.status||s.status==='no_firms')return offPanel('Strike Candidates — Frontlines',['FIRMS','Frontlines'],uaStrikesWhy(s),'ua-strikes');
+  const live=s.status==='live',rows=(s.clusters||[]).map(c=>`<tr class="go" onclick="uaFocusAt(${c.lat},${c.lon},8)"><td style="color:${c.tier==='A'?'#ffd740':'#ffb300'};font-weight:600">${esc(c.tier)}</td><td>${c.lat.toFixed(2)}N ${c.lon.toFixed(2)}E</td><td>${c.place?esc(c.place.name):'<span style="color:var(--dim)">\u2014</span>'}</td><td class="n">${Number.isFinite(c.distKm)?c.distKm.toFixed(1):'\u2014'}</td><td class="n">${c.n}<span style="color:var(--dim)"> / ${c.night}</span></td><td class="n" style="color:${c.maxFrp>=50?'#ff5252':'#c8d8d2'}">${Number.isFinite(c.maxFrp)?c.maxFrp.toFixed(1):'\u2014'}</td><td class="n">${c.latestAt?esc(uaWhen(c.latestAt)):'\u2014'}</td></tr>`).join('');
+  const badge=live?uaBadge(s.firmsHealth,`${uaN(t.clusters)} CANDIDATES \u00b7 ${uaN(t.tierA)} TIER A`,t.tierA?'warn':''):`<span class="badge off">${esc(s.status==='empty'?'NONE THIS WINDOW':s.status==='no_front'?'NO FRONT GEOMETRY':'NO PIXEL ROWS')}</span>`;
+  const frontTxt=s.anchors?`${uaN(s.anchors)} anchors \u00b7 ${k.attack|0} attack axes \u00b7 ${k.update|0} update places \u00b7 ${uaN(k.grey)} grey-zone vertices${s.mapId?` \u00b7 map ${esc(String(s.mapId))}`:''}`:'no contact-line anchors';
+  return `<div class="g-panel ua-strikes"><div class="sec-head"><h3>${shDot('FIRMS')}Strike Candidates — Frontlines</h3>${badge}</div>
+    <div class="ua-grid four">
+      <div class="front-kpi"><div class="k">Candidates</div><div class="v" style="color:#ffd740">${uaN(t.clusters)}</div><div class="s">${uaN(t.candidates)} pixels in ${uaN(t.clusters)} clusters \u00b7 ${s.windowH|0} h window</div></div>
+      <div class="front-kpi"><div class="k">Tier A</div><div class="v" style="color:${t.tierA?'var(--warn)':'#c8d8d2'}">${uaN(t.tierA)}</div><div class="s">night pass \u2264 ${s.tierAKm|0} km, \u2265 ${s.tierAFrpMw|0} MW or 3+ pixels</div></div>
+      <div class="front-kpi"><div class="k">Near front</div><div class="v">${uaN(t.nearFront)}<span style="font-size:9px;color:var(--dim)"> / ${uaN(t.detections)}</span></div><div class="s">pixels \u2264 ${s.radiusKm|0} km of the line \u00b7 ${uaN(t.nearFrontNight)} at night</div></div>
+      <div class="front-kpi"><div class="k">Night rear</div><div class="v">${uaN(t.nightRear)}</div><div class="s">night pixels &gt; ${s.radiusKm|0} km out \u2014 excluded (industry, harvest)</div></div>
+    </div>
+    ${uaSection('Ranked candidates',`${uaSrc('FIRMS',s.firmsHealth)} ${uaSrc('DeepStateMAP',s.frontHealth)}`)}
+    ${rows?`<div class="ct-scroll" style="max-height:30vh"><table class="ua-tbl"><thead><tr><th>Tier</th><th>Position</th><th>Near</th><th class="n">km</th><th class="n">Px / night</th><th class="n">Max MW</th><th class="n">Latest</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="g-off-why">${esc(uaStrikesWhy(s))}</div>`}
+    <div class="sh-note">${esc(s.caveat||'Candidate indicators, not confirmed strikes.')} Criteria: night pass or \u2265 ${s.hotFrpMw|0} MW, within ${s.radiusKm|0} km of a DeepStateMAP attack axis, update place or grey-zone edge; pixels within ${Number.isFinite(s.clusterKm)?s.clusterKm:2.5} km merged. Front context: ${frontTxt}. ${esc(s.attribution||'')}</div></div>`;
 }
 function renderUaNuclearPanel(){
   const n=uaView().nuclear||{},sc=n.safecast||{},z=n.znpp;
@@ -4992,6 +5063,153 @@ function nvRow(e){
       ${sp||sg?`<div class="k" style="color:#ff8a80">OFAC SDN matches</div>${sp}${sg}<div class="nv-sub">Name matches are conservative (all name tokens must appear) but still require analyst confirmation against the Treasury record.</div>`:''}
     </div>`;
 }
+// === CJNG KNOWLEDGE GRAPH (InSight Crime corpus -> lib/cjng) ===
+// The full graph is fetched once from the same-origin /api/narco/graph route when the Cartels tab opens; the
+// sweep payload only carries the summary (D.narco.cjng). Node positions survive re-renders so SSE updates
+// do not reshuffle the layout.
+const KG_TYPE_COLOR={org:'#ff8a65',faction:'#ffb74d',person:'#64f0c8',place:'#64b5f6',country:'#90a4ae',topic:'#ce93d8'};
+const KG_TYPE_LABEL={org:'Organizations',faction:'CJNG factions',person:'People',place:'Places (MX)',country:'Countries',topic:'Topics'};
+const KG_REL_COLOR={leader_of:'#ffd54f',member_of:'#a5d6a7',family_of:'#f48fb1',rival_of:'#ff5252',allied_with:'#4dd0e1',lineage:'#ba68c8',operates_in:'#64b5f6',linked_topic:'#9e9e9e',mentioned_with:'#546e7a'};
+const KG_REL_ORDER=['leader_of','member_of','family_of','rival_of','allied_with','lineage','operates_in','linked_topic','mentioned_with'];
+let kgData=null,kgLoading=false,kgError=null,kgSel=null,kgSim=null,kgTransform=null;
+const kgPos=new Map();
+const kgPref=(()=>{try{return JSON.parse(localStorage.getItem('crucix.kg')||'{}')}catch{return{}}})();
+let kgTypes=new Set(Array.isArray(kgPref.types)?kgPref.types.filter(t=>KG_TYPE_COLOR[t]):['org','faction','person','place']);
+let kgRels=new Set(Array.isArray(kgPref.rels)?kgPref.rels.filter(r=>KG_REL_COLOR[r]):KG_REL_ORDER.filter(r=>r!=='mentioned_with'));
+let kgMin=[1,2,3,5].includes(kgPref.min)?kgPref.min:3;
+function kgSave(){try{localStorage.setItem('crucix.kg',JSON.stringify({types:[...kgTypes],rels:[...kgRels],min:kgMin}))}catch{}}
+function kgToggleType(t){if(kgTypes.has(t))kgTypes.delete(t);else kgTypes.add(t);kgSave();kgRerender()}
+function kgToggleRel(r){if(kgRels.has(r))kgRels.delete(r);else kgRels.add(r);kgSave();kgRerender()}
+function kgSetMin(m){kgMin=m;kgSave();kgRerender()}
+function kgSelect(id){kgSel=kgSel===id?null:id;kgRerender()}
+function kgRerender(){
+  const el=document.getElementById('cjngGraphPanel');
+  if(!el)return;
+  const tmp=document.createElement('div');tmp.innerHTML=renderCjngGraphPanel();const nw=tmp.firstElementChild;nw.classList.add('lp-wide');el.replaceWith(nw);applyCaptions(nw.parentElement||document);
+  requestAnimationFrame(initCjngGraph);
+}
+function kgLoad(){
+  if(kgData||kgLoading)return;
+  kgLoading=true;kgError=null;
+  fetch('/api/narco/graph').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(g=>{
+    if(!g||!Array.isArray(g.nodes)||!Array.isArray(g.edges))throw new Error('bad payload');
+    kgData=g;kgLoading=false;kgRerender();
+  }).catch(e=>{kgLoading=false;kgError=String(e.message||e).slice(0,80);kgRerender()});
+}
+function kgVisible(){
+  if(!kgData)return{nodes:[],edges:[]};
+  const root=kgData.root;
+  const nodes=kgData.nodes.filter(n=>n.id===root||(kgTypes.has(n.type)&&n.articles>=kgMin));
+  const keep=new Set(nodes.map(n=>n.id));
+  const edges=kgData.edges.filter(e=>kgRels.has(e.type)&&keep.has(e.source)&&keep.has(e.target));
+  const used=new Set([root]);for(const e of edges){used.add(e.source);used.add(e.target)}
+  return{nodes:nodes.filter(n=>used.has(n.id)),edges};
+}
+function kgNodeMap(){return new Map((kgData?.nodes||[]).map(n=>[n.id,n]))}
+function kgArticle(id){return (kgData?.articles||[]).find(a=>a.id===id)}
+function kgEvidence(ev){
+  const a=kgArticle(ev.a);
+  const link=a?nvLink(a.link,`${esc(a.title.length>60?a.title.slice(0,57)+'\u2026':a.title)} \u2197`):'';
+  return `<div class="kg-ev">\u201c${esc(ev.s)}\u201d<div class="nv-sub">${esc(ev.d||'')}${link?' \u00b7 '+link:''}</div></div>`;
+}
+function kgDetail(){
+  if(!kgData)return '';
+  const nodes=kgNodeMap();
+  const n=nodes.get(kgSel)||nodes.get(kgData.root);
+  if(!n)return '';
+  const col=KG_TYPE_COLOR[n.type]||'#ccc';
+  const m=n.meta||{};
+  const head=`<div class="kg-type" style="color:${col}">${esc(n.type)}${n.family?' \u00b7 CJNG family':''}${m.groupType?' \u00b7 '+esc(m.groupType):''}${m.state?' \u00b7 '+esc(m.state):''}</div><h4>${esc(n.label)}</h4>
+    <div class="nv-sub">${n.articles} article${n.articles===1?'':'s'} \u00b7 ${n.mentions} mentions \u00b7 ${n.degree} links \u00b7 ${esc(n.first||'?')} \u2192 ${esc(n.last||'?')}${m.fullName&&m.fullName!==n.label?`<br>${esc(m.fullName)}`:''}${(m.aliases||[]).length?`<br>a.k.a. ${m.aliases.slice(0,6).map(esc).join(', ')}`:''}</div>`;
+  const events=(m.events||[]).slice(0,6).map(e=>{const a=kgArticle(e.a);return `<div class="kg-ev"><span class="ct-kind" style="color:#ffcc80;border-color:rgba(255,204,128,0.5)">${esc(e.kind).toUpperCase()}</span> ${esc(e.d||'')} \u2014 \u201c${esc(e.s)}\u201d${a?` <span class="nv-sub">${nvLink(a.link,'source \u2197')}</span>`:''}</div>`}).join('');
+  const edges=kgData.edges.filter(e=>(e.source===n.id||e.target===n.id)&&kgRels.has(e.type)).sort((a,b)=>(KG_REL_ORDER.indexOf(a.type)-KG_REL_ORDER.indexOf(b.type))||b.articles-a.articles).slice(0,40);
+  const leg=kgData.legend?.relations||{};
+  const rows=edges.map(e=>{
+    const other=nodes.get(e.source===n.id?e.target:e.source);if(!other)return '';
+    const dir=e.source===n.id?'\u2192':'\u2190';
+    return `<div class="kg-edge"><div class="r" style="color:${KG_REL_COLOR[e.type]||'#ccc'}" title="${esc(leg[e.type]||e.type)}">${esc(e.type.replace('_',' '))} ${dir} <b onclick="kgSelect('${esc(other.id)}')">${esc(other.label)}</b> <span style="color:var(--dim)">\u00b7 ${e.articles} art${e.confidence==='co-mention'?' \u00b7 co-mention':''}</span></div>${(e.evidence||[]).slice(0,e.confidence==='typed'?2:1).map(kgEvidence).join('')}</div>`;
+  }).join('');
+  return `${head}${events?`<div class="sh-group">Reported events</div>${events}`:''}<div class="sh-group">Relations \u00b7 ${edges.length} shown</div>${rows||'<div class="g-off-why">No relations of the selected kinds. Turn on more relation chips.</div>'}`;
+}
+function initCjngGraph(){
+  const wrap=document.getElementById('kgCanvas'),svgEl=document.getElementById('kgSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  if(!kgData){kgLoad();return}
+  if(kgSim){kgSim.stop();kgSim=null}
+  const W=wrap.clientWidth||900,H=wrap.clientHeight||520;
+  const svg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const {nodes,edges}=kgVisible();
+  const idx=new Map(nodes.map(n=>[n.id,n]));
+  const sim_nodes=nodes.map(n=>{const p=kgPos.get(n.id);return Object.assign({},n,p?{x:p.x,y:p.y}:{x:W/2+(Math.random()-0.5)*W*0.6,y:H/2+(Math.random()-0.5)*H*0.6})});
+  const byId=new Map(sim_nodes.map(n=>[n.id,n]));
+  const root=byId.get(kgData.root);if(root){root.fx=W/2;root.fy=H/2}
+  const links=edges.map(e=>({source:byId.get(e.source),target:byId.get(e.target),type:e.type,articles:e.articles,confidence:e.confidence,id:e.id})).filter(l=>l.source&&l.target);
+  const g=svg.append('g');
+  const zoom=d3.zoom().scaleExtent([0.3,6]).on('zoom',ev=>{kgTransform=ev.transform;g.attr('transform',ev.transform)});
+  svg.call(zoom).on('dblclick.zoom',null);
+  if(kgTransform)svg.call(zoom.transform,kgTransform);
+  const r=n=>n.id===kgData.root?16:Math.max(3,Math.min(13,2+Math.sqrt(n.articles)*1.6));
+  const nb=new Set();if(kgSel){for(const l of links){if(l.source.id===kgSel)nb.add(l.target.id);if(l.target.id===kgSel)nb.add(l.source.id)}}
+  const link=g.append('g').selectAll('line').data(links).join('line').attr('class',l=>`kg-link${kgSel?(l.source.id===kgSel||l.target.id===kgSel?' hi':' dim'):''}`)
+    .attr('stroke',l=>KG_REL_COLOR[l.type]||'#888').attr('stroke-width',l=>l.type==='mentioned_with'?0.6:Math.min(3,0.8+Math.log2(1+l.articles)*0.5)).attr('stroke-dasharray',l=>l.confidence==='co-mention'?'2 3':null);
+  const labelMin=sim_nodes.length>140?4:sim_nodes.length>70?2:1;
+  const node=g.append('g').selectAll('g').data(sim_nodes).join('g').attr('class',n=>`kg-node${n.id===kgData.root?' root':''}${n.id===kgSel?' sel':''}${kgSel&&n.id!==kgSel&&!nb.has(n.id)?' dim':''}`)
+    .on('click',(ev,n)=>{ev.stopPropagation();kgSelect(n.id)})
+    .call(d3.drag().on('start',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0.2).restart();n.fx=n.x;n.fy=n.y}).on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y}).on('end',(ev,n)=>{if(!ev.active&&kgSim)kgSim.alphaTarget(0);if(n.id!==kgData.root){n.fx=null;n.fy=null}}));
+  node.append('circle').attr('r',r).attr('fill',n=>KG_TYPE_COLOR[n.type]||'#ccc').attr('fill-opacity',n=>n.family||n.type==='org'||n.type==='faction'?0.95:0.75);
+  node.append('title').text(n=>`${n.label} \u00b7 ${n.type} \u00b7 ${n.articles} articles \u00b7 ${n.degree} links`);
+  node.filter(n=>n.id===kgData.root||n.id===kgSel||nb.has(n.id)||n.articles>=labelMin*3||n.degree>=labelMin*4).append('text').attr('dx',n=>r(n)+3).attr('dy','0.35em').text(n=>n.label.length>28?n.label.slice(0,26)+'\u2026':n.label);
+  const warm=sim_nodes.every(n=>kgPos.has(n.id)||n.id===kgData.root);
+  kgSim=d3.forceSimulation(sim_nodes)
+    .force('link',d3.forceLink(links).id(n=>n.id).distance(l=>l.type==='mentioned_with'||l.type==='linked_topic'?90:l.source.id===kgData.root||l.target.id===kgData.root?150:55).strength(l=>l.source.id===kgData.root||l.target.id===kgData.root?0.08:l.confidence==='typed'?0.45:0.12))
+    .force('charge',d3.forceManyBody().strength(n=>n.id===kgData.root?-900:-140).distanceMax(500))
+    .force('collide',d3.forceCollide().radius(n=>r(n)+4))
+    .force('x',d3.forceX(W/2).strength(0.03)).force('y',d3.forceY(H/2).strength(0.04))
+    .alpha(warm?0.15:1).alphaDecay(0.03)
+    .on('tick',()=>{
+      link.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y).attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);
+      node.attr('transform',n=>`translate(${n.x},${n.y})`);
+    }).on('end',()=>{for(const n of sim_nodes)kgPos.set(n.id,{x:n.x,y:n.y})});
+  const note=document.getElementById('kgNote');
+  if(note)note.textContent=`${nodes.length} NODES \u00b7 ${edges.length} EDGES SHOWN${idx.size!==kgData.nodes.length?` OF ${kgData.nodes.length} / ${kgData.edges.length}`:''}`;
+}
+function renderCjngGraphPanel(){
+  const sum=D.narco?.cjng||{},t=kgData?.totals||sum.totals||null,ref=kgData?.refresh||sum.refresh||{};
+  const status=kgData?kgData.status:sum.status||'pending';
+  const badge=status==='live'?`<span class="badge">${t?`${esc(String(t.articles))} ARTICLES \u00b7 ${esc(String(t.typedEdges))} TYPED RELATIONS`:'LIVE'}</span>`
+    :status==='snapshot'?`<span class="badge warn" title="Built from the committed snapshot; refreshed from insightcrime.org on the server's schedule">SNAPSHOT${t?` \u00b7 ${esc(String(t.articles))} ARTICLES`:''}</span>`
+    :ref.status==='error'?`<span class="badge err">REFRESH FAILED</span>`:`<span class="badge off">PENDING</span>`;
+  const head=`<div class="sec-head"><h3>${shDot('InSightCrime')}CJNG Knowledge Graph — InSight Crime corpus</h3>${badge}</div>`;
+  if(!t){
+    const why=ref.status==='error'?'The InSight Crime corpus could not be fetched; nothing is drawn until it is.':'The graph is built from InSight Crime\u2019s public API after the server starts (~1 minute); the panel fills in when it is ready.';
+    return `<div class="g-panel g-off" id="cjngGraphPanel">${head}<div class="g-off-why">${esc(why)}</div></div>`;
+  }
+  const bt=t.byNodeType||{},br=t.byRelation||{};
+  const kpis=`<div class="nv-kpis">
+      <div class="nv-kpi"><div class="k">CJNG-focused articles</div><div class="v">${t.articles}</div><div class="s">${esc(sum.span?.from||kgData?.span?.from||'?')} \u2192 ${esc(sum.span?.to||kgData?.span?.to||'?')} \u00b7 of ${esc(String(kgData?.source?.corpusArticles||sum.corpusArticles||t.articles))} fetched</div></div>
+      <div class="nv-kpi"><div class="k">Nodes</div><div class="v">${t.nodes}</div><div class="s">${bt.person||0} people \u00b7 ${(bt.org||0)+(bt.faction||0)} groups \u00b7 ${bt.place||0} places \u00b7 ${bt.topic||0} topics</div></div>
+      <div class="nv-kpi"><div class="k">Typed relations</div><div class="v" style="color:${KG_TYPE_COLOR.person}">${t.typedEdges}</div><div class="s">${br.leader_of||0} leader \u00b7 ${br.member_of||0} member \u00b7 ${br.rival_of||0} rival \u00b7 ${br.allied_with||0} allied \u00b7 ${br.lineage||0} lineage</div></div>
+      <div class="nv-kpi"><div class="k">Co-mentions only</div><div class="v" style="color:var(--dim)">${br.mentioned_with||0}</div><div class="s">same sentence, no cue \u00b7 dashed on the graph</div></div>
+    </div>`;
+  const typeChips=Object.keys(KG_TYPE_COLOR).map(ty=>`<button type="button" class="lchip ${kgTypes.has(ty)?'on':'off'} ${bt[ty]?'':'none'}" style="--lc:${KG_TYPE_COLOR[ty]}" ${bt[ty]?`onclick="kgToggleType('${ty}')"`:'disabled'}><span class="ldot"></span>${esc(KG_TYPE_LABEL[ty])} <b>${bt[ty]||0}</b></button>`).join('');
+  const relChips=KG_REL_ORDER.map(rl=>`<button type="button" class="lchip ${kgRels.has(rl)?'on':'off'} ${br[rl]?'':'none'}" style="--lc:${KG_REL_COLOR[rl]}" title="${esc(kgData?.legend?.relations?.[rl]||'')}" ${br[rl]?`onclick="kgToggleRel('${rl}')"`:'disabled'}><span class="ldot"></span>${esc(rl.replace('_',' '))} <b>${br[rl]||0}</b></button>`).join('');
+  const minChips=[1,2,3,5].map(m=>`<button type="button" class="nv-chip ${kgMin===m?'on':''}" onclick="kgSetMin(${m})">\u2265${m}</button>`).join('');
+  const body=kgData?`<div class="kg-wrap">
+      <div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG NODES \u00b7 CLICK A NODE</div><div class="kg-key">${Object.keys(KG_TYPE_COLOR).map(ty=>`<span><i style="background:${KG_TYPE_COLOR[ty]}"></i>${esc(KG_TYPE_LABEL[ty]).toUpperCase()}</span>`).join('')}<span id="kgNote"></span></div></div>
+      <div class="kg-detail" id="kgDetail">${kgDetail()}</div>
+    </div>`
+    :`<div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="g-off-why" style="position:absolute;left:12px;top:12px">${kgError?`Graph fetch failed (${esc(kgError)}). <a href="#" onclick="kgError=null;kgLoad();return false" style="color:var(--accent2)">retry</a>`:'Loading graph from /api/narco/graph \u2026'}</div></div>`;
+  const src=kgData?.source||{};
+  const site=src.site?nvLink(src.site,'insightcrime.org \u2197'):'insightcrime.org';
+  return `<div class="g-panel" id="cjngGraphPanel">${head}
+    ${kpis}
+    <div class="ct-chips"><div class="ct-chiprow"><span class="lchip-head">NODES</span>${typeChips}<span class="lchip-head" style="margin-left:6px">MIN ARTICLES</span>${minChips}</div>
+    <div class="ct-chiprow"><span class="lchip-head">RELATIONS</span>${relChips}</div></div>
+    ${body}
+    <div class="sh-note"><b>Machine-extracted, not verified.</b> ${esc(kgData?.caveat||sum.caveat||'')} Corpus: every InSight Crime post tagged Jalisco Cartel or El Mencho plus full-text matches for \u201cCJNG\u201d, pulled from their public WordPress API (${site}${src.queries?` \u00b7 ${esc(src.queries.join(', '))}`:''}), kept only when CJNG is the focus (tag or \u22653 mentions). Node size = supporting articles; edge width = articles supporting the relation; dashed = plain co-mention. Extractor ${esc(kgData?.extractor||'')} \u00b7 corpus fetched ${src.fetchedAt?getAge(src.fetchedAt):'\u2014'}${ref.lastAttempt?` \u00b7 refresh attempted ${getAge(ref.lastAttempt)}`:''}${ref.error?` \u00b7 <span style="color:#ffd54f">${esc(ref.error)}</span>`:''}. \u00a9 InSight Crime \u2014 only bounded evidence sentences are shown; follow the links for the articles.</div></div>`;
+}
+
 function renderNarcoEventsPanel(){
   const n=D.narco||{};
   if(n.status!=='live'){
