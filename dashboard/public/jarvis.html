@@ -6953,7 +6953,8 @@ function renderTgtTimelinePanel(){
 }
 
 // ─── Fix map: gazetteer places with precision-based uncertainty radii ───────
-let tgtTransform=null,tgtTransformFor=null;
+let tgtTransform=null,tgtTransformFor=null,tgtZoom=null;
+function tgtMapReset(){tgtTransform=null;tgtTransformFor=null;const svgEl=document.getElementById('tgtMapSvg');if(svgEl&&tgtZoom&&window.d3)d3.select(svgEl).call(tgtZoom.transform,d3.zoomIdentity)}
 function renderTgtMapPanel(){
   const p=TGT.target?.package;
   const wrapP=(body,badge)=>`<div class="g-panel tgt-mappanel"><div class="sec-head"><h3>Public-Record Locations</h3>${badge||'<span class="badge">FIX</span>'}</div>${body}</div>`;
@@ -6963,7 +6964,7 @@ function renderTgtMapPanel(){
   const fpRows=fp.map(f=>`<span class="inv-chip" title="${esc(f.first)} \u2192 ${esc(f.last)} \u00b7 ${esc((f.sources||[]).join(', '))}" style="color:#4dd0e1;border-color:currentColor">${esc(f.place)} ${f.count}${f.stated?`<em style="color:var(--accent)"> \u00b7 ${f.stated} stated</em>`:''}</span>`).join('');
   return wrapP(`<div class="ct-map tgt-map" id="tgtMapWrap"><svg id="tgtMapSvg" width="100%" height="100%"></svg>
       ${obs.length?'':'<div class="map-loading-text" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">No place mention resolved against the gazetteer</div>'}
-      <div class="map-legend"><span style="color:var(--accent)">&#9679; stated presence</span><span style="color:var(--accent2)">&#9675; operation / contextual</span><span style="color:#ff8a80">&#9673; last known (dated)</span><span style="color:var(--dim)">ring = uncertainty radius \u00b7 drag / wheel to pan &amp; zoom</span></div></div>
+      <div class="map-legend"><span style="color:var(--accent)">&#9679; stated presence</span><span style="color:var(--accent2)">&#9675; operation / contextual</span><span style="color:#ff8a80">&#9673; last known (dated)</span><span style="color:var(--dim)">ring = uncertainty radius \u00b7 drag / wheel to pan &amp; zoom</span><button type="button" class="inv-chip" style="cursor:pointer;color:var(--accent2);border-color:currentColor;background:transparent;padding:1px 6px" onclick="tgtMapReset()" title="Reset pan and zoom to the fitted extent">reset view</button></div></div>
     <div class="tgt-footprint"><span class="inv-sec-title" style="display:inline;margin-right:6px">Footprint</span>${fpRows||'<span class="inv-hint" style="padding:0">none</span>'}${disp?` <span class="sh-ms" style="margin-left:6px">dispersion median ${disp.medianKm} km \u00b7 max ${disp.maxKm} km over ${disp.n} places</span>`:''}</div>
     <div class="sh-note">${esc(p.fix?.caveat||'')}</div>`,
     `<span class="badge">${obs.length} PLACED${lk?` \u00b7 LAST ${esc(lk.date)}`:''}</span>`);
@@ -6990,9 +6991,9 @@ function initTgtMap(){
   const base=root.append('g').attr('class','ct-base');
   const layer=root.append('g');
   base.append('path').datum(d3.geoGraticule().step([2,2])()).attr('class','graticule').attr('d',path);
-  const scaleStrokes=k=>{layer.selectAll('.tgt-ring').attr('stroke-width',1.2/k);layer.selectAll('.tgt-lbl').attr('font-size',10/k);layer.selectAll('.tgt-dot').attr('r',3.2/k);layer.selectAll('.tgt-lk').attr('stroke-width',2/k)};
-  const zoom=d3.zoom().scaleExtent([0.7,14]).on('zoom',ev=>{tgtTransform=ev.transform;tgtTransformFor=TGT.sel;root.attr('transform',ev.transform);scaleStrokes(ev.transform.k)});
-  svg.call(zoom);
+  const scaleStrokes=k=>{layer.selectAll('.tgt-ring').style('stroke-width',1.2/k+'px');layer.selectAll('.tgt-lbl').style('font-size',10/k+'px').style('stroke-width',2/k+'px');layer.selectAll('.tgt-dot').attr('r',3.2/k);layer.selectAll('.tgt-lk').style('stroke-width',2/k+'px');layer.selectAll('.tgt-lk-pulse').style('stroke-width',1.5/k+'px').attr('r',6/k)};
+  const zoom=d3.zoom().scaleExtent([0.7,8]).translateExtent([[0,0],[W,H]]).on('zoom',ev=>{tgtTransform=ev.transform;tgtTransformFor=TGT.sel;root.attr('transform',ev.transform);scaleStrokes(ev.transform.k)});
+  tgtZoom=zoom;svg.call(zoom);
   if(tgtTransform&&tgtTransformFor===TGT.sel)svg.call(zoom.transform,tgtTransform);
   ctWorld().then(world=>{
     if(!world||!window.topojson)return;
