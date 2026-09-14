@@ -1325,6 +1325,7 @@ const TAB_DEFS=[
   {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'targeting',label:'Target Development',hint:'Public-source find / fix workbench · nominate → develop → review links & graph proposals → pattern of activity → sourced dossier'},
+  {id:'requirements',label:'Requirements',hint:'Standing requirements · what to watch, vs 24h / 7d / 30d / 90d'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
 const TAB_IDS=TAB_DEFS.map(t=>t.id);
@@ -1412,6 +1413,310 @@ function applyTabLayout(){
   g.classList.toggle('no-map',currentTab!=='situation');
 }
 window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h)syncHash(h);});
+
+// === REQUIREMENTS TAB (standing intelligence requirements vs 24h / 7d / 30d / 90d baselines; served by /api/requirements/*) ===
+// Everything shown here is analyst- or model-authored text or third-party evidence → esc() on every string.
+// This section is self-contained: it owns its CSS, its state, and it hooks the shared renderers by
+// wrapping tabCounts / renderLeftRail / renderLower (function bindings are reassignable) so the shared
+// dispatch tables above and below stay untouched.
+(function(){
+  const css=document.createElement('style');
+  css.textContent=`
+.rq-list{display:flex;flex-direction:column}
+.rq-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;border-left:2px solid transparent}
+.rq-row:hover{background:rgba(100,240,200,0.04)}
+.rq-row.fired{border-left-color:var(--danger);background:rgba(255,95,99,0.05)}
+.rq-row.off{opacity:0.5}
+.rq-row .rq-name{flex:1;min-width:0;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rq-row .rq-sub{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.rq-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px;background:rgba(255,255,255,0.15)}
+.rq-dot.fired{background:var(--danger);box-shadow:0 0 8px var(--danger);animation:pulse-blink 1.5s ease-in-out infinite}
+.rq-dot.quiet{background:var(--accent);box-shadow:0 0 4px rgba(100,240,200,0.4)}
+.rq-dot.sparse{background:var(--warn)}
+.rq-sev{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;padding:1px 5px;border:1px solid var(--border);color:var(--dim);flex:0 0 auto}
+.rq-sev.critical{color:var(--danger);border-color:rgba(255,95,99,0.4)}
+.rq-sev.high{color:#ff9800;border-color:rgba(255,152,0,0.4)}
+.rq-sev.elevated{color:#ffd54f;border-color:rgba(255,213,79,0.35)}
+.rq-card{border-left:3px solid rgba(255,255,255,0.08)}
+.rq-card.fired{border-left-color:var(--danger);box-shadow:inset 0 0 40px rgba(255,95,99,0.05)}
+.rq-card.quiet{border-left-color:rgba(100,240,200,0.45)}
+.rq-card.off{opacity:0.6}
+.rq-state{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:2px 8px;border:1px solid}
+.rq-state.fired{color:#fff;background:linear-gradient(135deg,rgba(255,95,99,0.35),rgba(255,95,99,0.12));border-color:rgba(255,95,99,0.6)}
+.rq-state.quiet{color:var(--accent);border-color:rgba(100,240,200,0.35);background:rgba(100,240,200,0.05)}
+.rq-state.sparse{color:var(--warn);border-color:rgba(255,184,76,0.4)}
+.rq-state.off{color:var(--dim);border-color:var(--border)}
+.rq-text{font-size:11px;color:#c8d8d2;line-height:1.5;margin:2px 0 8px;font-style:italic}
+.rq-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.rq-kpi{padding:6px 8px;border:1px solid var(--border);background:rgba(0,0,0,0.25)}
+.rq-kpi .k{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim)}
+.rq-kpi .v{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text);margin-top:2px}
+.rq-kpi .v.hot{color:var(--danger)}.rq-kpi .v.ok{color:var(--accent)}
+.rq-kpi .s{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.rq-spark{display:block;width:100%;height:56px;margin:4px 0 8px}
+.rq-spark .base{stroke:rgba(100,240,200,0.45);stroke-dasharray:3 3;stroke-width:1}
+.rq-spark .band{fill:rgba(100,240,200,0.07)}
+.rq-spark .obs{fill:rgba(255,95,99,0.08)}
+.rq-spark .line{fill:none;stroke:var(--accent2);stroke-width:1.4}
+.rq-spark .line.fired{stroke:var(--danger)}
+.rq-spark .pt{fill:var(--accent2)}.rq-spark .pt.fired{fill:var(--danger)}
+.rq-sec{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);margin:8px 0 4px;display:flex;justify-content:space-between}
+.rq-ev{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;line-height:1.45}
+.rq-ev .t{color:var(--text)}.rq-ev a{color:var(--accent2);text-decoration:none}.rq-ev a:hover{text-decoration:underline}
+.rq-ev .m{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:1px}
+.rq-hit{display:flex;justify-content:space-between;gap:8px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-family:var(--mono);font-size:9px;color:#c8d8d2}
+.rq-hit .z{color:#ff9800}
+.rq-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
+.rq-meta{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.04em;line-height:1.6}
+.rq-actions{display:flex;gap:6px}
+.rq-compose{display:flex;gap:8px;align-items:stretch}
+.rq-compose textarea{flex:1;min-height:52px;resize:vertical;background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:8px;outline:none;line-height:1.5}
+.rq-compose textarea:focus{border-color:var(--accent2)}
+.rq-preview{margin-top:10px;padding:10px;border:1px solid rgba(68,204,255,0.28);background:rgba(68,204,255,0.04)}
+.rq-preview .rq-pv-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent2)}
+.rq-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rq-form label{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
+.rq-form label.wide{grid-column:span 2}
+.rq-form input,.rq-form select{background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 6px;outline:none;min-width:0}
+.rq-form input:focus,.rq-form select:focus{border-color:var(--accent2)}
+.rq-err{font-family:var(--mono);font-size:9px;color:var(--danger);margin-top:6px;line-height:1.5}
+.rq-note{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:6px}
+.rq-chip{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:0.06em;padding:1px 5px;border:1px solid var(--border);color:var(--dim);margin-right:4px;text-transform:uppercase}
+.rq-chip.llm{color:var(--accent2);border-color:rgba(68,204,255,0.35)}
+.rq-chip.rules{color:var(--accent);border-color:rgba(100,240,200,0.35)}
+@media (max-width:900px){.rq-kpis,.rq-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+`;
+  document.head.appendChild(css);
+})();
+
+const RQ={data:null,catalog:null,loading:false,error:null,loadedAt:0,compiled:null,compiling:false,saving:false,composeErr:null,text:'',selected:null};
+const RQ_ID_OK=/^req_[0-9a-f]{12}$/;
+const RQ_SEV_ORDER={critical:0,high:1,elevated:2,info:3};
+function rqFmt(v,p=1){if(v===null||v===undefined||!Number.isFinite(Number(v)))return '\u2014';const n=Number(v);return Math.abs(n)>=1000?Math.round(n).toLocaleString('en-US'):Math.abs(n)>=100?String(Math.round(n)):Number.isInteger(n)?String(n):n.toFixed(p)}
+function rqSigned(v,p=1,suffix=''){if(v===null||v===undefined||!Number.isFinite(Number(v)))return '\u2014';const n=Number(v);return (n>0?'+':'')+rqFmt(n,p)+suffix}
+function rqAgo(ts){const t=Date.parse(ts||'');if(!Number.isFinite(t))return '';const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<60?`${m}m ago`:m<1440?`${Math.round(m/60)}h ago`:`${Math.round(m/1440)}d ago`}
+function rqDimsText(dims){return Object.entries(dims||{}).map(([k,v])=>`${k}: ${[].concat(v).join(' / ')}`).join(' \u00b7 ')}
+function rqMetric(key){return (RQ.catalog?.metrics||[]).find(m=>m.key===key)||null}
+function rqState(r){if(!r.enabled)return 'off';const l=r.latest;if(!l)return 'pending';if(l.fired)return 'fired';if(l.sparse||l.observed===null)return 'sparse';return 'quiet'}
+function rqStateLabel(s){return s==='fired'?'FIRED':s==='quiet'?'QUIET':s==='sparse'?'SPARSE':s==='off'?'DISABLED':'PENDING'}
+function rqDevText(rule,l){if(!l)return '\u2014';if(rule.comparison==='pct')return rqSigned(l.pctChange,0,'%');if(rule.comparison==='abs')return rqFmt(l.observed);return 'z '+rqSigned(l.z,2)}
+function rqThresholdText(rule){const d=rule.direction==='up'?'\u2265 ':rule.direction==='down'?'\u2264 \u2212':'|\u00b7| \u2265 ';return rule.comparison==='pct'?`${d}${rule.threshold}%`:rule.comparison==='abs'?`${rule.direction==='down'?'\u2264 ':'\u2265 '}${rule.threshold}`:`z ${d}${rule.threshold}`}
+
+async function rqLoad(force=false){
+  if(RQ.loading)return;
+  if(!force&&RQ.data&&Date.now()-RQ.loadedAt<15000)return;
+  RQ.loading=true;RQ.error=null;
+  try{
+    const [a,b]=await Promise.all([
+      fetch('/api/requirements').then(r=>{if(r.status===401){redirectToLogin();return null}return r.ok?r.json():Promise.reject(new Error('http '+r.status))}),
+      RQ.catalog?Promise.resolve(RQ.catalog):fetch('/api/requirements/metrics').then(r=>r.ok?r.json():Promise.reject(new Error('http '+r.status)))
+    ]);
+    if(a){RQ.data=a;RQ.catalog=b;RQ.loadedAt=Date.now();}
+  }catch(err){RQ.error='Requirements service unavailable';console.error('[Crucix] requirements load failed',err);}
+  finally{RQ.loading=false;if(D){if(currentTab==='requirements'){renderLeftRail();renderLower();}renderTabbar();}}
+}
+function rqRules(){return (RQ.data?.rules||[]).slice().sort((a,b)=>{const fa=a.latest?.fired&&a.enabled?0:1,fb=b.latest?.fired&&b.enabled?0:1;if(fa!==fb)return fa-fb;const sa=RQ_SEV_ORDER[a.severity]??3,sb=RQ_SEV_ORDER[b.severity]??3;if(sa!==sb)return sa-sb;return String(a.name).localeCompare(String(b.name))})}
+function rqFiredCount(){return rqRules().filter(r=>r.enabled&&r.latest?.fired).length}
+
+// Sparkline: full observed series (baseline buckets + current), a dashed mean line, a ±1σ band and
+// the current bucket shaded. No chart library — one inline SVG.
+function rqSparkSvg(l,fired){
+  const s=(l?.series||[]).filter(p=>Number.isFinite(p?.value));
+  if(s.length<2)return '<div class="rq-note">Not enough history yet for a sparkline \u2014 one sample is recorded per sweep.</div>';
+  const w=320,h=56,pad=4;
+  const vals=s.map(p=>p.value);const mean=Number(l.baselineMean)||0,std=Number(l.baselineStd)||0;
+  const lo=Math.min(...vals,mean-std,0),hi=Math.max(...vals,mean+std,1);const rng=(hi-lo)||1;
+  const X=i=>pad+(i/(s.length-1))*(w-pad*2),Y=v=>pad+((hi-v)/rng)*(h-pad*2);
+  const pts=s.map((p,i)=>`${X(i).toFixed(1)},${Y(p.value).toFixed(1)}`).join(' ');
+  const lastIdx=s.length-1,obsX=X(Math.max(0,lastIdx-0.5));
+  const bandY=Y(mean+std),bandH=Math.max(0,Y(mean-std)-bandY);
+  return `<svg class="rq-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="observed series vs baseline">
+    <rect class="band" x="${pad}" y="${bandY.toFixed(1)}" width="${w-pad*2}" height="${bandH.toFixed(1)}"/>
+    <rect class="obs" x="${obsX.toFixed(1)}" y="${pad}" width="${(w-pad-obsX).toFixed(1)}" height="${h-pad*2}"/>
+    <line class="base" x1="${pad}" x2="${w-pad}" y1="${Y(mean).toFixed(1)}" y2="${Y(mean).toFixed(1)}"/>
+    <polyline class="line ${fired?'fired':''}" points="${pts}"/>
+    <circle class="pt ${fired?'fired':''}" cx="${X(lastIdx).toFixed(1)}" cy="${Y(s[lastIdx].value).toFixed(1)}" r="2.5"/>
+  </svg>`;
+}
+
+function rqRailPanel(){
+  const rules=rqRules();
+  const fired=rqFiredCount();
+  const body=RQ.error&&!RQ.data?`<div class="g-off-why">${esc(RQ.error.toUpperCase())}</div>`
+    :!RQ.data?'<div class="inv-hint">Loading standing requirements\u2026</div>'
+    :!rules.length?'<div class="inv-hint">No standing requirements yet. Describe one in the compose box.</div>'
+    :`<div class="rq-list">${rules.map(r=>{const st=rqState(r);const l=r.latest;const key=String(r.id).replace(/[^a-zA-Z0-9_-]/g,'');
+      return `<div class="rq-row ${st}" role="button" tabindex="0" onclick="rqSelect('${esc(key)}')" title="${esc(r.text)}"><span class="rq-dot ${st}"></span><span class="rq-name">${esc(r.name)}<div class="rq-sub">${esc(r.window)} vs ${esc(r.baseline)} \u00b7 ${l?esc(rqFmt(l.observed))+' vs '+esc(rqFmt(l.baselineMean)):'no sweep yet'}${l&&!l.sparse?' \u00b7 '+esc(rqDevText(r,l)):''}</div></span><span class="rq-sev ${esc(r.severity)}">${esc(r.severity)}</span></div>`}).join('')}</div>`;
+  return `<div class="g-panel rq-rail"><div class="sec-head"><h3>Standing Requirements</h3><span class="badge ${fired?'err':''}">${fired?fired+' FIRED':rules.length+' WATCHING'}</span></div>${body}
+    <div class="sh-note">${RQ.data?`${rules.filter(r=>r.enabled).length} enabled \u00b7 ${RQ.data.llm?'LLM compiler on':'rule-based compiler (no LLM key)'} \u00b7 history ${esc(String(Object.keys(RQ.data.history||{}).length))} metrics${RQ.data.asOf?' \u00b7 evaluated '+esc(rqAgo(RQ.data.asOf)):''}`:''}</div></div>`;
+}
+function rqHelpPanel(){
+  return `<div class="g-panel"><div class="sec-head"><h3>How To Read</h3><span class="badge">PIR</span></div>
+    <div class="inv-hint">Each requirement is a <b>metric</b> (from the catalog, extracted every sweep), an optional <b>slice</b> (Mexican state, country, theater), an <b>observation window</b> (overnight = last 12 h, or 24 h / 7 d / 30 d) and a <b>baseline</b> (the trailing 7 / 30 / 90 d, cut into buckets of the same size).<br><br>
+    <b>z</b> is (observed \u2212 baseline mean) / max(\u03c3, \u221amean) \u2014 the Poisson floor keeps a single event over a near-zero baseline from looking like a 10\u03c3 anomaly. <b>% change</b> is vs the baseline mean. <b>n</b> is the number of baseline buckets; fewer than 3 is <span class="rq-sev">sparse</span> and never fires.<br><br>
+    A firing raises a Situation headline and is logged once per observation window; the same episode does not re-alert every sweep. <b>Evidence</b> rows are the underlying items (events, articles, CVEs) in the current sweep for that slice \u2014 they support the count, they are not verified ground truth.</div></div>`;
+}
+
+function rqComposePanel(){
+  const cat=RQ.catalog;const c=RQ.compiled;
+  const llmOn=!!(RQ.data?.llm);
+  const examples=['Flag overnight spikes in violence in Tamaulipas / Nuevo Le\u00f3n vs the trailing month','Alert if ACLED fatalities in Ukraine over the last 24 hours exceed 2 sigma vs the last week','Watch for a 50% drop in urgent Telegram posts this week compared to the trailing quarter'];
+  const form=c?.rule?rqPreviewForm(c):'';
+  return `<div class="g-panel rq-compose-panel" id="rq-compose"><div class="sec-head"><h3>Describe a Standing Requirement</h3><span class="badge ${llmOn?'':'warn'}" title="${llmOn?'Natural language is compiled by the configured LLM, then strictly validated':'No LLM key configured \u2014 the deterministic keyword compiler is used'}">${llmOn?'LLM + VALIDATOR':'RULE-BASED COMPILER'}</span></div>
+    <div class="rq-compose"><textarea id="rqText" class="rq-ta" placeholder="Describe what to watch\u2026" maxlength="500" ${RQ.compiling?'disabled':''}>${esc(RQ.text)}</textarea>
+      <div style="display:flex;flex-direction:column;gap:6px"><button class="inv-btn" onclick="rqCompile()" ${RQ.compiling?'disabled':''}>${RQ.compiling?'Compiling\u2026':'Compile'}</button><button class="inv-btn ghost" onclick="rqExample()" ${RQ.compiling?'disabled':''}>Example</button></div></div>
+    <div class="rq-note">Try: ${examples.map(e=>`\u201c${esc(e)}\u201d`).join(' \u00b7 ')}</div>
+    ${RQ.composeErr?`<div class="rq-err">${esc(RQ.composeErr)}</div>`:''}
+    ${form}
+    ${cat?`<div class="rq-note">${cat.metrics.length} metrics in the catalog: ${cat.metrics.map(m=>esc(m.key)).join(', ')}.</div>`:''}
+  </div>`;
+}
+function rqOpt(list,cur,labelOf){return list.map(v=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(labelOf?labelOf(v):v)}</option>`).join('')}
+function rqPreviewForm(c){
+  const r=c.rule;const cat=RQ.catalog||{};const m=rqMetric(r.metric);
+  const dimsFor=(m?.dims||[]);
+  const dimField=d=>{const cur=[].concat(r.dims?.[d]||[]).join(' / ');const list=d==='state'?(cat.states||[]):d==='country'?(cat.countries||[]):(cat.theaters||[]);
+    return `<label class="wide">${esc(d)} <span style="text-transform:none;letter-spacing:0">(optional \u00b7 \u201cA / B\u201d for several)</span><input id="rq-f-dim-${esc(d)}" list="rq-dl-${esc(d)}" value="${esc(cur)}" placeholder="any"><datalist id="rq-dl-${esc(d)}">${list.slice(0,80).map(v=>`<option value="${esc(v)}">`).join('')}</datalist></label>`};
+  const errs=(c.errors||[]).map(e=>`${e.field}: ${e.reason}`);
+  return `<div class="rq-preview"><div class="rq-pv-head"><span>Compiled rule \u2014 review, edit, then save</span><span><span class="rq-chip ${esc(c.compiledBy)}">${c.compiledBy==='llm'?'compiled by LLM':'compiled by rules'}</span>${c.fallbackReason&&c.fallbackReason!=='llm_not_configured'?`<span class="rq-chip">${esc(c.fallbackReason.replace(/_/g,' '))}</span>`:''}</span></div>
+    <div class="rq-form">
+      <label class="wide">name<input id="rq-f-name" maxlength="120" value="${esc(r.name)}"></label>
+      <label class="wide">metric<select id="rq-f-metric" onchange="rqMetricChanged()">${rqOpt((cat.metrics||[]).map(x=>x.key),r.metric,k=>{const mm=rqMetric(k);return mm?`${mm.label} (${mm.source})`:k})}</select></label>
+      ${dimsFor.map(dimField).join('')}
+      <label>window<select id="rq-f-window">${rqOpt(cat.windows||['overnight','24h','7d','30d'],r.window,w=>w==='overnight'?'overnight (12h)':w)}</select></label>
+      <label>baseline<select id="rq-f-baseline">${rqOpt(cat.baselines||['24h','7d','30d','90d'],r.baseline)}</select></label>
+      <label>comparison<select id="rq-f-comparison">${rqOpt(cat.comparisons||['z','pct','abs'],r.comparison,v=>v==='z'?'z-score':v==='pct'?'% change':'absolute')}</select></label>
+      <label>threshold<input id="rq-f-threshold" type="number" step="0.1" min="0" value="${esc(r.threshold)}"></label>
+      <label>direction<select id="rq-f-direction">${rqOpt(cat.directions||['up','down','either'],r.direction)}</select></label>
+      <label>severity<select id="rq-f-severity">${rqOpt(cat.severities||['critical','high','elevated','info'],r.severity)}</select></label>
+      <label>owner<input id="rq-f-owner" maxlength="60" value="${esc(r.owner||'analyst')}"></label>
+    </div>
+    ${m?`<div class="rq-note">${esc(m.label)} \u00b7 ${esc(m.describe||'')} \u00b7 unit: ${esc(m.unit||'')} \u00b7 source: ${esc(m.source||'')}</div>`:''}
+    ${errs.length?`<div class="rq-err">Validator rejected: ${esc(errs.join('; '))}</div>`:''}
+    <div class="rq-foot"><span class="rq-meta">Requirement text: \u201c${esc(r.text)}\u201d</span><span class="rq-actions"><button class="inv-btn ghost" onclick="rqDiscard()">Discard</button><button class="inv-btn" onclick="rqSave()" ${RQ.saving?'disabled':''}>${RQ.saving?'Saving\u2026':'Save requirement'}</button></span></div>
+  </div>`;
+}
+function rqReadForm(){
+  const g=id=>document.getElementById(id);
+  const base=RQ.compiled?.rule||{};
+  const metric=g('rq-f-metric')?.value||base.metric;
+  const m=rqMetric(metric);
+  const dims={};
+  for(const d of (m?.dims||[])){const raw=(g('rq-f-dim-'+d)?.value||'').trim();if(!raw)continue;const parts=raw.split(/\s*[\/,;]\s*/).map(s=>s.trim()).filter(Boolean).slice(0,6);dims[d]=parts.length===1?parts[0]:parts}
+  return {text:base.text,name:(g('rq-f-name')?.value||base.name||'').trim(),metric,dims,window:g('rq-f-window')?.value||base.window,baseline:g('rq-f-baseline')?.value||base.baseline,comparison:g('rq-f-comparison')?.value||base.comparison,threshold:Number(g('rq-f-threshold')?.value??base.threshold),direction:g('rq-f-direction')?.value||base.direction,severity:g('rq-f-severity')?.value||base.severity,owner:(g('rq-f-owner')?.value||'analyst').trim(),compiledBy:RQ.compiled?.compiledBy==='llm'?'llm':'rules'};
+}
+function rqMetricChanged(){if(!RQ.compiled?.rule)return;const edited=rqReadForm();RQ.compiled={...RQ.compiled,rule:{...RQ.compiled.rule,...edited,dims:{}},errors:[]};renderLower();}
+function rqExample(){const ex=['Flag overnight spikes in violence in Tamaulipas / Nuevo Le\u00f3n vs the trailing month','Alert if ACLED fatalities in Ukraine over the last 24 hours exceed 2 sigma vs the last week','Watch for a 50% drop in urgent Telegram posts this week compared to the trailing quarter','Flag a spike in CISA KEV additions in the last 24h vs the trailing 30 days','Alert on thermal detections in the Ukraine Region rising 40% this week against the trailing quarter'];RQ.text=ex[Math.floor(Math.random()*ex.length)];RQ.compiled=null;RQ.composeErr=null;renderLower();}
+function rqDiscard(){RQ.compiled=null;RQ.composeErr=null;renderLower();}
+async function rqCompile(){
+  const ta=document.getElementById('rqText');const text=(ta?.value||'').trim();RQ.text=text;
+  if(text.length<3){RQ.composeErr='Describe what to watch in a sentence.';renderLower();return}
+  RQ.compiling=true;RQ.composeErr=null;RQ.compiled=null;renderLower();
+  try{
+    const r=await fetch('/api/requirements',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text})});
+    if(r.status===401){redirectToLogin();return}
+    const j=await r.json().catch(()=>null);
+    if(!r.ok||!j){RQ.composeErr=j?.error==='invalid request'?'The requirement text was rejected (3\u2013500 characters).':'Compile failed \u2014 the requirements service returned an error.';}
+    else if(!j.ok||!j.rule){RQ.composeErr='Could not compile that into a valid rule'+(j.errors?.length?': '+j.errors.map(e=>`${e.field} ${e.reason}`).join(', '):'')+'. Try naming the metric (violence, fatalities, KEV, thermal, aircraft\u2026) and a place.';}
+    else RQ.compiled=j;
+  }catch(err){RQ.composeErr='Compile failed \u2014 network error.';}
+  finally{RQ.compiling=false;renderLower();}
+}
+async function rqSave(){
+  if(!RQ.compiled?.rule||RQ.saving)return;
+  const body=rqReadForm();
+  if(!body.name){RQ.composeErr='Give the requirement a name.';renderLower();return}
+  if(!Number.isFinite(body.threshold)){RQ.composeErr='Threshold must be a number.';renderLower();return}
+  RQ.saving=true;RQ.composeErr=null;renderLower();
+  try{
+    const r=await fetch('/api/requirements/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    if(r.status===401){redirectToLogin();return}
+    const j=await r.json().catch(()=>null);
+    if(r.ok&&j?.ok){RQ.compiled=null;RQ.text='';RQ.selected=j.rule?.id||null;await rqLoad(true);}
+    else{const errs=(j?.errors||[]).map(e=>`${e.field} ${e.reason}`).join(', ');RQ.composeErr='Not saved \u2014 the validator rejected the rule'+(errs?` (${errs})`:'')+'. Check the slice value against the gazetteer and the threshold bounds.';RQ.compiled={...RQ.compiled,rule:{...RQ.compiled.rule,...body},errors:j?.errors||[]};}
+  }catch(err){RQ.composeErr='Not saved \u2014 network error.';}
+  finally{RQ.saving=false;renderLower();}
+}
+async function rqAction(id,action){
+  if(!RQ_ID_OK.test(id))return;
+  if(action==='delete'&&!confirm('Delete this standing requirement? Its findings history is kept on disk but no longer shown.'))return;
+  try{
+    const r=await fetch(action==='delete'?`/api/requirements/${id}`:`/api/requirements/${id}/${action}`,{method:action==='delete'?'DELETE':'POST'});
+    if(r.status===401){redirectToLogin();return}
+    if(!r.ok)console.warn('[Crucix] requirement action failed',action,r.status);
+  }catch(err){console.warn('[Crucix] requirement action failed',action,err);}
+  await rqLoad(true);
+}
+function rqSelect(id){if(!RQ_ID_OK.test(id))return;RQ.selected=id;jumpToPanel('requirements',id);}
+
+function rqCard(r){
+  const l=r.latest;const st=rqState(r);const m=rqMetric(r.metric);
+  const key=String(r.id).replace(/[^a-zA-Z0-9_-]/g,'');
+  const unit=m?.unit||l?.unit||'';
+  const pctCls=l&&Number.isFinite(l.pctChange)?(l.pctChange>0?(l.fired?'hot':''):(l.fired?'hot':'ok')):'';
+  const kpis=`<div class="rq-kpis">
+    <div class="rq-kpi"><div class="k">observed \u00b7 ${esc(r.window==='overnight'?'last 12h':'last '+r.window)}</div><div class="v ${l?.fired?'hot':''}">${esc(rqFmt(l?.observed))}</div><div class="s">${esc(unit)}${l?.bucketHours?` \u00b7 ${esc(String(l.bucketHours))}h buckets`:''}</div></div>
+    <div class="rq-kpi"><div class="k">baseline \u00b7 ${esc(r.baseline)}</div><div class="v">${esc(rqFmt(l?.baselineMean))}</div><div class="s">\u03c3 ${esc(rqFmt(l?.baselineStd))} \u00b7 n=${esc(String(l?.n??0))}${l?.sparse?' \u00b7 sparse':''}</div></div>
+    <div class="rq-kpi"><div class="k">z-score</div><div class="v ${l?.fired&&r.comparison==='z'?'hot':''}">${esc(rqSigned(l?.z,2))}</div><div class="s">Poisson floor \u221amean</div></div>
+    <div class="rq-kpi"><div class="k">% change</div><div class="v ${pctCls}">${esc(rqSigned(l?.pctChange,0,'%'))}</div><div class="s">fires when ${esc(rqThresholdText(r))}</div></div>
+  </div>`;
+  const ev=(l?.evidence||[]);
+  const evHtml=ev.length?ev.slice(0,12).map(e=>{const u=e.url?safeExternalUrl(e.url):null;const title=esc(e.title||'(untitled)');
+    return `<div class="rq-ev"><div class="t">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${title} \u2197</a>`:title}</div><div class="m">${[e.source,e.ts?rqAgo(e.ts):'',e.detail].filter(Boolean).map(esc).join(' \u00b7 ')}</div></div>`}).join('')
+    :`<div class="rq-note">${l?(l.observed?'No linkable rows for this slice in the current sweep \u2014 the count came from aggregated feed totals.':'Nothing in the observation window this sweep.'):'Awaiting the first evaluation.'}</div>`;
+  const hits=(l?.historicalHits||[]);
+  const hitsHtml=hits.length?hits.slice(0,8).map(h=>`<div class="rq-hit"><span>${esc(new Date(h.firedAt).toISOString().slice(0,16).replace('T',' '))}Z</span><span>${esc(rqFmt(h.observed))} vs ${esc(rqFmt(h.baselineMean))}</span><span class="z">z ${esc(rqSigned(h.z,2))}</span><span class="rq-sev ${esc(h.severity)}">${esc(h.severity)}</span></div>`).join('')
+    :'<div class="rq-note">No prior firings on record.</div>';
+  const firedAt=l?.firedAt?` \u00b7 fired ${esc(rqAgo(l.firedAt))}`:'';
+  return `<div class="g-panel rq-card ${st}" id="${esc(key)}"><div class="sec-head"><h3><span class="rq-dot ${st}" style="display:inline-block;margin-right:6px;vertical-align:middle"></span>${esc(r.name)}</h3><span class="rq-state ${st}">${rqStateLabel(st)}</span></div>
+    <div class="rq-text">\u201c${esc(r.text)}\u201d</div>
+    ${kpis}
+    ${rqSparkSvg(l,!!l?.fired)}
+    <div class="rq-sec"><span>Evidence \u00b7 current sweep</span><span>${ev.length} row${ev.length===1?'':'s'}</span></div>${evHtml}
+    <div class="rq-sec"><span>Historical hits</span><span>${hits.length}</span></div>${hitsHtml}
+    <div class="rq-foot"><span class="rq-meta"><span class="rq-sev ${esc(r.severity)}">${esc(r.severity)}</span> <span class="rq-chip ${esc(r.compiledBy==='llm'?'llm':'rules')}">${esc(r.compiledBy||'rules')}</span> ${esc(m?.label||r.metric)}${r.dims&&Object.keys(r.dims).length?' \u00b7 '+esc(rqDimsText(r.dims)):''} \u00b7 ${esc(r.window)} vs ${esc(r.baseline)} \u00b7 ${esc(rqThresholdText(r))} \u00b7 ${esc(r.direction)} \u00b7 owner ${esc(r.owner||'')}${firedAt}${l?.evaluatedAt?' \u00b7 evaluated '+esc(rqAgo(l.evaluatedAt)):''}</span>
+      <span class="rq-actions"><button class="inv-btn ghost" onclick="rqAction('${esc(key)}','${r.enabled?'disable':'enable'}')">${r.enabled?'Disable':'Enable'}</button><button class="inv-btn ghost" onclick="rqAction('${esc(key)}','delete')">Delete</button></span></div>
+  </div>`;
+}
+function rqLowerPanels(){
+  const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
+  const rules=rqRules();
+  const cards=RQ.error&&!RQ.data?[wrap(`<div class="g-panel g-off"><div class="sec-head"><h3>Standing Requirements</h3><span class="badge err">OFFLINE</span></div><div class="g-off-why">${esc(RQ.error.toUpperCase())}</div></div>`,'lp-wide')]
+    :!RQ.data?[wrap('<div class="g-panel"><div class="sec-head"><h3>Standing Requirements</h3><span class="badge">LOADING</span></div><div class="inv-hint">Loading\u2026</div></div>','lp-wide')]
+    :rules.map(r=>wrap(rqCard(r),'lp-half'));
+  return [wrap(rqComposePanel(),'lp-wide'),...cards];
+}
+
+// Hook the shared renderers without editing their dispatch tables.
+const _rqTabCounts=tabCounts;
+tabCounts=function(){
+  const c=_rqTabCounts();
+  const fired=rqFiredCount();const n=(RQ.data?.rules||[]).length;
+  c.requirements=fired?{n:String(fired),cls:'hot',title:`${fired} standing requirement${fired===1?'':'s'} fired this sweep`}:n?{n:'QUIET',cls:'',title:`${n} standing requirements watching, none fired`}:null;
+  return c;
+};
+const _rqRenderLeftRail=renderLeftRail;
+renderLeftRail=function(){
+  if(currentTab!=='requirements')return _rqRenderLeftRail();
+  const rail=document.getElementById('leftRail');
+  rail.innerHTML=[rqRailPanel(),rqHelpPanel()].join('');
+  applyCaptions(rail);
+  rqLoad();
+};
+const _rqRenderLower=renderLower;
+renderLower=function(){
+  if(currentTab!=='requirements')return _rqRenderLower();
+  const grid=document.getElementById('lowerGrid');
+  const ta=document.getElementById('rqText');if(ta)RQ.text=ta.value;
+  grid.innerHTML=rqLowerPanels().join('');
+  applyCaptions(grid);
+  if(RQ.selected){const el=document.getElementById(RQ.selected);if(el){el.style.outline='1px solid var(--accent)';setTimeout(()=>{el.style.outline='';},1600);}RQ.selected=null;}
+  rqLoad();
+};
+// A new sweep re-evaluates every requirement server-side; refresh the tab state when the payload says so.
+const _rqApplyPayloadHook=()=>{const as=D?.requirements?.asOf;if(as&&RQ.data&&as!==RQ.data.asOf){RQ.loadedAt=0;rqLoad(true);}};
+setInterval(_rqApplyPayloadHook,5000);
+rqLoad();
 
 // === SITUATION STRIP (rule-based headlines from lib/situation.mjs; all text is third-party-derived → esc()) ===
 const SIT_TAB_LABEL=Object.fromEntries(TAB_DEFS.map(t=>[t.id,t.label]));
@@ -1549,6 +1854,9 @@ const PANEL_CAPTIONS={
   'pivot providers':'Which enrichment providers answer today and which need a key.',
   'source health':'State of every feed this sweep. LIVE returned data; DEGRADED is partial or stale; NO KEY, OFF and FAILED returned nothing.',
   'leverageable ideas':'LLM framing of the sweep as market ideas (needs an LLM key). Ideas, not advice.',
+  'standing requirements':'Analyst-defined watch rules evaluated every sweep against persistent history (24h / 7d / 30d / 90d baselines). FIRED means the observed window deviates from its own baseline by the rule\u2019s threshold; QUIET means it does not.',
+  'how to read':'z is the observed value minus the baseline mean in floor-corrected standard deviations (Poisson floor: std &ge; &radic;mean). SPARSE means too few baseline buckets to judge, so the rule never fires on thin history.',
+  'describe a standing requirement':'Plain-language requirement &rarr; compiled rule (metric, dims, window, threshold) shown for confirmation before anything is saved. Compiled by the configured LLM when a key exists, else by the deterministic keyword compiler; either way every field is validated against the metric catalog and gazetteer.',
 };
 function captionKey(h3){
   return (h3.textContent||'').replace(/\s+/g,' ').trim().toLowerCase().replace(/\s+\u2014.*$/,'');

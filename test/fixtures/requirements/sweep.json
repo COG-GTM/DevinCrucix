@@ -1,0 +1,44 @@
+{
+  "meta": { "timestamp": "2026-09-14T06:00:00.000Z", "sourcesQueried": 3, "sourcesOk": 3 },
+  "acled": {
+    "totalEvents": 120,
+    "totalFatalities": 44,
+    "byRegion": { "Europe": { "count": 70, "fatalities": 30 }, "Middle East": { "count": 50, "fatalities": 14 } },
+    "topCountries": { "Ukraine": { "count": 65, "fatalities": 28 }, "Yemen": { "count": 20, "fatalities": 6 } },
+    "deadliestEvents": [
+      { "type": "Shelling/artillery/missile attack", "location": "Kherson", "country": "Ukraine", "date": "2026-09-13", "fatalities": 9 },
+      { "type": "Air/drone strike", "location": "Kharkiv", "country": "Ukraine", "date": "2026-09-13", "fatalities": 6 }
+    ]
+  },
+  "narco": {
+    "events": [
+      { "title": "Armed clash in Reynosa leaves four dead", "date": "2026-09-14", "typeLabel": "Armed clash", "counts": { "killed": 4 }, "confidence": { "grade": "B" }, "location": { "country": "MX", "state": "Tamaulipas" }, "sources": [{ "url": "https://example.com/reynosa", "outlet": "El Mañana" }] },
+      { "title": "Shooting in Monterrey suburb", "date": "2026-09-14", "typeLabel": "Shooting", "counts": { "killed": 1 }, "confidence": { "grade": "C" }, "location": { "country": "MX", "state": "Nuevo León" }, "sources": [{ "url": "javascript:alert(1)", "outlet": "Milenio" }] },
+      { "title": "Old event outside the window", "date": "2026-08-01", "typeLabel": "Shooting", "counts": {}, "confidence": { "grade": "C" }, "location": { "country": "MX", "state": "Tamaulipas" }, "sources": [] }
+    ]
+  },
+  "borderIngest": {
+    "articles": [
+      { "title": "Gunfire reported near Nuevo Laredo checkpoint", "url": "https://example.com/laredo", "publishedAt": "2026-09-14T03:30:00.000Z", "isViolence": true, "outlet": "Border Report", "regions": [{ "country": "MX", "name": "Tamaulipas" }], "violenceTerms": ["gunfire"] },
+      { "title": "Trade update", "url": "https://example.com/trade", "publishedAt": "2026-09-14T03:30:00.000Z", "isViolence": false, "outlet": "Border Report", "regions": [{ "country": "MX", "name": "Tamaulipas" }] }
+    ]
+  },
+  "tg": { "urgent": [{ "text": "URGENT: explosions reported", "date": "2026-09-14T05:00:00.000Z", "channel": "osint_chan" }] },
+  "thermal": [{ "region": "Ukraine Region", "det": 40, "night": 10, "hc": 5 }, { "region": "Middle East", "det": 12, "night": 2, "hc": 1 }],
+  "air": [{ "region": "Baltic Region", "total": 30, "top": [["Military", 4]] }, { "region": "Taiwan Strait", "total": 12, "top": [] }],
+  "cyberKev": {
+    "totalVulnerabilities": 1450,
+    "vulnerabilities": [
+      { "cveID": "CVE-2026-0001", "vendor": "Acme", "product": "Router", "dateAdded": "2026-09-14", "name": "Acme Router RCE", "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2026-0001", "ransomware": true },
+      { "cveID": "CVE-2026-0002", "vendor": "Acme", "product": "Switch", "dateAdded": "2026-09-13", "name": "Acme Switch auth bypass", "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2026-0002" },
+      { "cveID": "CVE-2025-9999", "vendor": "Old", "product": "Thing", "dateAdded": "2025-01-01", "name": "Old", "nvdUrl": "https://nvd.nist.gov/vuln/detail/CVE-2025-9999" }
+    ]
+  },
+  "gdelt": { "toneScores": [{ "region": "Ukraine Region", "currentTone": -4.2 }, { "region": "Middle East", "currentTone": -3.0 }], "priorityAlerts": [] },
+  "borderNews": { "newThisSweep": 7, "spikes": [], "articles": [] },
+  "who": [],
+  "seismic": { "totalEvents": 3, "events": [] },
+  "iranwar": { "counts": { "events48h": 5 }, "events": [] },
+  "news": [],
+  "situation": { "headlines": [], "counts": { "critical": 0, "high": 0, "elevated": 0, "info": 0 }, "rulesFired": 0, "asOf": "2026-09-14T06:00:00.000Z" }
+}
