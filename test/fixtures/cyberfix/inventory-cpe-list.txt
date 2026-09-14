@@ -1,0 +1,6 @@
+# perimeter appliances
+cpe:2.3:o:cisco:ios_xe:17.9.1:*:*:*:*:*:*:*
+cpe:2.3:o:paloaltonetworks:pan-os:10.2.7:*:*:*:*:*:*:*
+cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*
+cpe:2.3:a:jquery:jquery:3.4.1:*:*:*:*:*:*:*
+cpe:2.3:o:cisco:ios_xe:*:*:*:*:*:*:*:*

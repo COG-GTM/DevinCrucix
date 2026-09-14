@@ -1,0 +1,16 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "edge-gateway-sbom",
+  "packages": [
+    { "SPDXID": "SPDXRef-Package-jquery", "name": "jquery", "versionInfo": "3.4.1",
+      "externalRefs": [ { "referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:npm/jquery@3.4.1" } ] },
+    { "SPDXID": "SPDXRef-Package-requests", "name": "requests", "versionInfo": "2.31.0",
+      "externalRefs": [ { "referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:pypi/requests@2.31.0" } ] },
+    { "SPDXID": "SPDXRef-Package-panos", "name": "PAN-OS", "versionInfo": "10.2.7",
+      "externalRefs": [ { "referenceCategory": "SECURITY", "referenceType": "cpe23Type", "referenceLocator": "cpe:2.3:o:paloaltonetworks:pan-os:10.2.7:*:*:*:*:*:*:*" } ] },
+    { "SPDXID": "SPDXRef-Package-plain", "name": "custom-agent", "versionInfo": "0.9.0" },
+    { "SPDXID": "SPDXRef-Package-noname" }
+  ]
+}
