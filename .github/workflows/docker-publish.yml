@@ -66,3 +66,34 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy-fly:
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: fly-deploy-crucix
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: https://crucix.fly.dev
+    permissions:
+      contents: read
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require FLY_API_TOKEN
+        if: env.FLY_API_TOKEN == ''
+        run: |
+          echo "::error::FLY_API_TOKEN secret is not set. Create a deploy token with 'fly tokens create deploy -a crucix' and add it under Settings → Secrets and variables → Actions."
+          exit 1
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only --config fly.toml
