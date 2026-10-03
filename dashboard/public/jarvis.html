@@ -5798,19 +5798,26 @@ function kgTypeLabel(ty){const pr=kgProfile();if(ty==='faction')return KG.rootKi
 const KG_REL_COLOR={leader_of:'#ffd54f',member_of:'#a5d6a7',family_of:'#f48fb1',rival_of:'#ff5252',allied_with:'#4dd0e1',lineage:'#ba68c8',operates_in:'#64b5f6',linked_topic:'#9e9e9e',mentioned_with:'#546e7a'};
 const KG_REL_ORDER=['leader_of','member_of','family_of','rival_of','allied_with','lineage','operates_in','linked_topic','mentioned_with'];
 const KG_SPREADS=[[0.7,'tight'],[1,'normal'],[1.35,'wide'],[1.8,'loose']];
-const kgPref=(()=>{try{return JSON.parse(localStorage.getItem('crucix.kg')||'{}')}catch{return{}}})();
-let kgTypes=new Set(Array.isArray(kgPref.types)?kgPref.types.filter(t=>KG_TYPE_COLOR[t]):['org','faction','person','place']);
-let kgRels=new Set(Array.isArray(kgPref.rels)?kgPref.rels.filter(r=>KG_REL_COLOR[r]):KG_REL_ORDER.filter(r=>r!=='mentioned_with'));
-let kgMin=[1,2,3,5].includes(kgPref.min)?kgPref.min:3;
-let kgSpread=KG_SPREADS.some(s=>s[0]===kgPref.spread)?kgPref.spread:1;
-let kgTall=kgPref.tall===true;
+// Filter / layout prefs are per graph profile (the CJNG key stays 'crucix.kg' for existing browsers).
+const kgPrefKey=key=>key==='cjng'?'crucix.kg':'crucix.kg.'+key;
+function kgLoadPrefs(key){
+  let pref={};try{pref=JSON.parse(localStorage.getItem(kgPrefKey(key))||'{}')||{}}catch{}
+  return{
+    types:new Set(Array.isArray(pref.types)?pref.types.filter(t=>KG_TYPE_COLOR[t]):['org','faction','person','place']),
+    rels:new Set(Array.isArray(pref.rels)?pref.rels.filter(r=>KG_REL_COLOR[r]):KG_REL_ORDER.filter(r=>r!=='mentioned_with')),
+    min:[1,2,3,5].includes(pref.min)?pref.min:3,
+    spread:KG_SPREADS.some(s=>s[0]===pref.spread)?pref.spread:1,
+    tall:pref.tall===true
+  };
+}
+function kgF(){if(!KG.filt)KG.filt=kgLoadPrefs(KG.key);return KG.filt}
 const kgSafeId=id=>typeof id==='string'&&id.length<=160&&/^[a-z0-9:_\-.\/|]+$/i.test(id)?id:'';
-function kgSave(){try{localStorage.setItem('crucix.kg',JSON.stringify({types:[...kgTypes],rels:[...kgRels],min:kgMin,spread:kgSpread,tall:kgTall}))}catch{}}
-function kgToggleType(t){if(kgTypes.has(t))kgTypes.delete(t);else kgTypes.add(t);kgSave();kgRerender(0.5)}
-function kgToggleRel(r){if(kgRels.has(r))kgRels.delete(r);else kgRels.add(r);kgSave();kgRerender(0.5)}
-function kgSetMin(m){kgMin=m;kgSave();kgRerender(0.5)}
-function kgSetSpread(s){kgSpread=KG_SPREADS.some(x=>x[0]===s)?s:1;kgSave();KG.fitNext=true;kgRerender(0.9)}
-function kgToggleTall(){kgTall=!kgTall;kgSave();KG.fitNext=true;kgRerender(0.3)}
+function kgSave(){const f=kgF();try{localStorage.setItem(kgPrefKey(KG.key),JSON.stringify({types:[...f.types],rels:[...f.rels],min:f.min,spread:f.spread,tall:f.tall}))}catch{}}
+function kgToggleType(t){if(kgF().types.has(t))kgF().types.delete(t);else kgF().types.add(t);kgSave();kgRerender(0.5)}
+function kgToggleRel(r){if(kgF().rels.has(r))kgF().rels.delete(r);else kgF().rels.add(r);kgSave();kgRerender(0.5)}
+function kgSetMin(m){kgF().min=m;kgSave();kgRerender(0.5)}
+function kgSetSpread(s){kgF().spread=KG_SPREADS.some(x=>x[0]===s)?s:1;kgSave();KG.fitNext=true;kgRerender(0.9)}
+function kgToggleTall(){kgF().tall=!kgF().tall;kgSave();KG.fitNext=true;kgRerender(0.3)}
 function kgIsolate(id,hops){id=kgSafeId(id);if(!id)return;KG.focus={id,hops:hops===2?2:1};KG.sel=id;KG.fitNext=true;kgRerender(0.9)}
 function kgShowAll(){KG.focus=null;KG.fitNext=true;kgRerender(0.6)}
 function kgSelect(id){
@@ -5891,9 +5898,9 @@ function kgVisible(){
   if(!KG.data)return{nodes:[],edges:[]};
   const root=KG.data.root;
   const focus=KG.focus&&KG.data.nodes.some(n=>n.id===KG.focus.id)?KG.focus:null;
-  let nodes=KG.data.nodes.filter(n=>n.id===root||n.id===focus?.id||(kgTypes.has(n.type)&&n.articles>=kgMin));
+  let nodes=KG.data.nodes.filter(n=>n.id===root||n.id===focus?.id||(kgF().types.has(n.type)&&n.articles>=kgF().min));
   let keep=new Set(nodes.map(n=>n.id));
-  let edges=KG.data.edges.filter(e=>kgRels.has(e.type)&&keep.has(e.source)&&keep.has(e.target));
+  let edges=KG.data.edges.filter(e=>kgF().rels.has(e.type)&&keep.has(e.source)&&keep.has(e.target));
   if(focus){
     const adj=new Map();
     const add=(a,b)=>{if(!adj.has(a))adj.set(a,[]);adj.get(a).push(b)};
@@ -5924,7 +5931,7 @@ function kgDetail(){
   const head=`<div class="kg-type" style="color:${col}">${esc(n.type)}${n.family?(KG.rootKind==='org'?` \u00b7 ${esc(KG.subject)} family`:n.id===KG.data.root?'':` \u00b7 ${esc(KG.subject)} actor`):''}${m.groupType?' \u00b7 '+esc(m.groupType):''}${m.state?' \u00b7 '+esc(m.state):''}${pinned?' \u00b7 <span style="color:#ffd54f">pinned</span>':''}</div><h4>${esc(n.label)}</h4>
     <div class="nv-sub">${n.articles} article${n.articles===1?'':'s'} \u00b7 ${n.mentions} mentions \u00b7 ${n.degree} links \u00b7 ${esc(n.first||'?')} \u2192 ${esc(n.last||'?')}${m.fullName&&m.fullName!==n.label?`<br>${esc(m.fullName)}`:''}${(m.aliases||[]).length?`<br>a.k.a. ${m.aliases.slice(0,6).map(esc).join(', ')}`:''}</div>${acts}`;
   const events=(m.events||[]).slice(0,6).map(e=>{const a=kgArticle(e.a);return `<div class="kg-ev"><span class="ct-kind" style="color:#ffcc80;border-color:rgba(255,204,128,0.5)">${esc(e.kind).toUpperCase()}</span> ${esc(e.d||'')} \u2014 \u201c${esc(e.s)}\u201d${a?` <span class="nv-sub">${nvLink(a.link,'source \u2197')}</span>`:''}</div>`}).join('');
-  const edges=KG.data.edges.filter(e=>(e.source===n.id||e.target===n.id)&&kgRels.has(e.type)).sort((a,b)=>(KG_REL_ORDER.indexOf(a.type)-KG_REL_ORDER.indexOf(b.type))||b.articles-a.articles).slice(0,40);
+  const edges=KG.data.edges.filter(e=>(e.source===n.id||e.target===n.id)&&kgF().rels.has(e.type)).sort((a,b)=>(KG_REL_ORDER.indexOf(a.type)-KG_REL_ORDER.indexOf(b.type))||b.articles-a.articles).slice(0,40);
   const leg=KG.data.legend?.relations||{};
   const rows=edges.map(e=>{
     const other=nodes.get(e.source===n.id?e.target:e.source);if(!other)return '';
@@ -5989,7 +5996,7 @@ function initKgGraph(){
   kgApplySel();
   const warm=sim_nodes.every(n=>KG.pos.has(n.id));
   if(!warm&&!KG.transform)KG.fitNext=true;
-  const k=kgSpread;
+  const k=kgF().spread;
   const rootLink=l=>l.source.id===KG.data.root||l.target.id===KG.data.root;
   KG.sim=d3.forceSimulation(sim_nodes)
     .force('link',d3.forceLink(links).id(n=>n.id).distance(l=>k*(l.type==='mentioned_with'||l.type==='linked_topic'?90:rootLink(l)?150:55)).strength(l=>rootLink(l)?0.08:l.confidence==='typed'?0.45:0.12))
@@ -6029,14 +6036,14 @@ function kgPanelHtml(){
       <div class="nv-kpi"><div class="k">Typed relations</div><div class="v" style="color:${KG_TYPE_COLOR.person}">${t.typedEdges}</div><div class="s">${br.leader_of||0} leader \u00b7 ${br.member_of||0} member \u00b7 ${br.rival_of||0} rival \u00b7 ${br.allied_with||0} allied \u00b7 ${br.lineage||0} lineage</div></div>
       <div class="nv-kpi"><div class="k">Co-mentions only</div><div class="v" style="color:var(--dim)">${br.mentioned_with||0}</div><div class="s">same sentence, no cue \u00b7 dashed on the graph</div></div>
     </div>`;
-  const typeChips=Object.keys(KG_TYPE_COLOR).map(ty=>`<button type="button" class="lchip ${kgTypes.has(ty)?'on':'off'} ${bt[ty]?'':'none'}" style="--lc:${KG_TYPE_COLOR[ty]}" ${bt[ty]?`onclick="kgToggleType('${ty}')"`:'disabled'}><span class="ldot"></span>${esc(kgTypeLabel(ty))} <b>${bt[ty]||0}</b></button>`).join('');
-  const relChips=KG_REL_ORDER.map(rl=>`<button type="button" class="lchip ${kgRels.has(rl)?'on':'off'} ${br[rl]?'':'none'}" style="--lc:${KG_REL_COLOR[rl]}" title="${esc(KG.data?.legend?.relations?.[rl]||'')}" ${br[rl]?`onclick="kgToggleRel('${rl}')"`:'disabled'}><span class="ldot"></span>${esc(rl.replace('_',' '))} <b>${br[rl]||0}</b></button>`).join('');
-  const minChips=[1,2,3,5].map(m=>`<button type="button" class="nv-chip ${kgMin===m?'on':''}" onclick="kgSetMin(${m})">\u2265${m}</button>`).join('');
-  const spreadChips=KG_SPREADS.map(([s,l])=>`<button type="button" class="nv-chip ${kgSpread===s?'on':''}" onclick="kgSetSpread(${s})" title="Push nodes apart or pull them together">${l.toUpperCase()}</button>`).join('');
+  const typeChips=Object.keys(KG_TYPE_COLOR).map(ty=>`<button type="button" class="lchip ${kgF().types.has(ty)?'on':'off'} ${bt[ty]?'':'none'}" style="--lc:${KG_TYPE_COLOR[ty]}" ${bt[ty]?`onclick="kgToggleType('${ty}')"`:'disabled'}><span class="ldot"></span>${esc(kgTypeLabel(ty))} <b>${bt[ty]||0}</b></button>`).join('');
+  const relChips=KG_REL_ORDER.map(rl=>`<button type="button" class="lchip ${kgF().rels.has(rl)?'on':'off'} ${br[rl]?'':'none'}" style="--lc:${KG_REL_COLOR[rl]}" title="${esc(KG.data?.legend?.relations?.[rl]||'')}" ${br[rl]?`onclick="kgToggleRel('${rl}')"`:'disabled'}><span class="ldot"></span>${esc(rl.replace('_',' '))} <b>${br[rl]||0}</b></button>`).join('');
+  const minChips=[1,2,3,5].map(m=>`<button type="button" class="nv-chip ${kgF().min===m?'on':''}" onclick="kgSetMin(${m})">\u2265${m}</button>`).join('');
+  const spreadChips=KG_SPREADS.map(([s,l])=>`<button type="button" class="nv-chip ${kgF().spread===s?'on':''}" onclick="kgSetSpread(${s})" title="Push nodes apart or pull them together">${l.toUpperCase()}</button>`).join('');
   const focusNode=KG.focus&&KG.data?KG.data.nodes.find(n=>n.id===KG.focus.id):null;
   const pins=kgPinnedCount();
-  const layoutRow=KG.data?`<div class="ct-chiprow"><span class="lchip-head">SPREAD</span>${spreadChips}<span class="lchip-head" style="margin-left:6px">LAYOUT</span><button type="button" id="kgPhysBtn" class="nv-chip ${KG.physics?'on':''}" onclick="kgTogglePhysics()" title="Off: nodes only move when you drag them">${KG.physics?'PHYSICS ON':'PHYSICS OFF'}</button><button type="button" id="kgPinBtn" class="nv-chip" onclick="kgReleasePins()" ${pins?'':'disabled'} title="Dragged nodes stay where you drop them; this lets them all move again">RELEASE PINS ${pins}</button><button type="button" class="nv-chip" onclick="kgFit()">FIT VIEW</button><button type="button" class="nv-chip ${kgTall?'on':''}" onclick="kgToggleTall()">${kgTall?'COMPACT':'EXPAND'}</button>${focusNode?`<span class="lchip-head" style="margin-left:6px;color:var(--accent)">FOCUS ${esc(focusNode.label)} \u00b1${KG.focus.hops}</span><button type="button" class="nv-chip on" onclick="kgShowAll()">SHOW ALL</button>`:''}</div>`:'';
-  const body=KG.data?`<div class="kg-wrap${kgTall?' tall':''}">
+  const layoutRow=KG.data?`<div class="ct-chiprow"><span class="lchip-head">SPREAD</span>${spreadChips}<span class="lchip-head" style="margin-left:6px">LAYOUT</span><button type="button" id="kgPhysBtn" class="nv-chip ${KG.physics?'on':''}" onclick="kgTogglePhysics()" title="Off: nodes only move when you drag them">${KG.physics?'PHYSICS ON':'PHYSICS OFF'}</button><button type="button" id="kgPinBtn" class="nv-chip" onclick="kgReleasePins()" ${pins?'':'disabled'} title="Dragged nodes stay where you drop them; this lets them all move again">RELEASE PINS ${pins}</button><button type="button" class="nv-chip" onclick="kgFit()">FIT VIEW</button><button type="button" class="nv-chip ${kgF().tall?'on':''}" onclick="kgToggleTall()">${kgF().tall?'COMPACT':'EXPAND'}</button>${focusNode?`<span class="lchip-head" style="margin-left:6px;color:var(--accent)">FOCUS ${esc(focusNode.label)} \u00b1${KG.focus.hops}</span><button type="button" class="nv-chip on" onclick="kgShowAll()">SHOW ALL</button>`:''}</div>`:'';
+  const body=KG.data?`<div class="kg-wrap${kgF().tall?' tall':''}">
       <div class="kg-canvas" id="kgCanvas"><svg id="kgSvg"></svg><div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG A NODE TO PIN IT THERE \u00b7 DOUBLE-CLICK TO RELEASE \u00b7 CLICK FOR EVIDENCE</div><div class="kg-key">${Object.keys(KG_TYPE_COLOR).map(ty=>`<span><i style="background:${KG_TYPE_COLOR[ty]}"></i>${esc(kgTypeLabel(ty)).toUpperCase()}</span>`).join('')}<span id="kgNote"></span></div></div>
       <div class="kg-detail" id="kgDetail">${kgDetail()}</div>
     </div>`
