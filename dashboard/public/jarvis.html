@@ -5566,7 +5566,7 @@ function cyDraw(){
     (A.points||[]).forEach(p=>{
       const xy=cyProj([p.lon,p.lat]);if(!xy||!Number.isFinite(xy[0]))return;
       const imm=p.alertType==='imminence',col=imm?CY_LAYERS.sat.color:'#ffb74d',r=imm?3.4:2.8;
-      gSat.append('rect').attr('class','cy-pin cy-sat').attr('x',xy[0]-r).attr('y',xy[1]-r).attr('width',r*2).attr('height',r*2).attr('transform',`rotate(45 ${xy[0]} ${xy[1]})`).attr('data-r',r)
+      gSat.append('rect').attr('class','cy-pin cy-sat').attr('x',xy[0]-r).attr('y',xy[1]-r).attr('width',r*2).attr('height',r*2).attr('transform',`rotate(45 ${xy[0]} ${xy[1]}) translate(${xy[0]} ${xy[1]}) scale(${1/Math.sqrt(k)}) translate(${-xy[0]} ${-xy[1]})`).attr('data-r',r)
         .attr('fill',ctRgba(col,p.precision==='municipality'?0.6:0.25)).attr('stroke',ctRgba(col,0.95)).attr('stroke-width',0.8).attr('stroke-dasharray',p.precision==='municipality'?null:'2 1.5')
         .on('click',e=>{e.stopPropagation();cyPopup(e,`SAT ${esc(p.id||'')} \u00b7 ${esc(String(p.alertType||'').toUpperCase())}`,`${esc(p.name||'')}${p.department?`, ${esc(p.department)}`:''} \u00b7 issued ${esc(p.date||'')}${(p.groups||[]).length?`<br>Named groups: <span style="color:#ff8a65">${p.groups.map(esc).join(', ')}</span>`:''}<br><span style="color:var(--dim)">OFFICIAL \u00b7 ${esc(A.note||'')}${p.precision==='department'?' Department centroid \u2014 municipio not in gazetteer.':''}</span>${p.fichaUrl?'<br>'+twLink(p.fichaUrl,'Ficha'):''}${p.pdfUrl?' \u00b7 '+twLink(p.pdfUrl,'Alert PDF'):''}`,`${esc(A.source||'')} \u00b7 index rows only; the alert is the PDF`)});
       counts.sat++;
