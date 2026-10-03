@@ -7585,6 +7585,11 @@ function askLinkify(text,cites,ext){
   if(ext)h=h.replace(/\[([^\]]{1,120})\]\((https?:\/\/[^)\s]+)\)/g,(m,label,url)=>`<a href="${url.replace(/[?&]utm_[^&)]+/g,'')}" target="_blank" rel="noopener noreferrer nofollow">${label}</a>`);
   return h.replace(/\[([a-z]+)\]/g,(m,id)=>{const c=byId.get(id);return c?`<button class="ask-cite" onclick="askJump('${esc(c.tab)}')" title="${esc(c.label)} · open ${esc(c.tab)} tab">${esc(id)}</button>`:m});
 }
+document.addEventListener('click',e=>{
+  const a=e.target.closest('#askOverlay .ask-text a[href],#askOverlay .ask-sources a[href]');if(!a)return;
+  const url=safeExternalUrl(a.getAttribute('href'));e.preventDefault();
+  if(url)window.open(url,'_blank','noopener');
+});
 function askMsgHtml(m,i){
   if(m.role==='user')return `<div class="ask-msg user">${esc(m.content)}</div>`;
   if(m.role==='pending')return `<div class="ask-msg assistant"><span class="ask-thinking"></span><span style="color:var(--dim)">${m.mode==='external'?'searching outside CRUCIX…':'reading CRUCIX data…'}</span></div>`;
