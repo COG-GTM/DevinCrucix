@@ -7575,7 +7575,7 @@ function askRenderStatus(){
 function askKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askSubmit()}}
 function askClear(){ASK.msgs=[];ASK.pendingExternal=null;askSave();askRender()}
 function askJump(tab){closeAsk();setTab(tab);}
-function askStarter(q){const i=document.getElementById('askInput');if(i)i.value=q;askSubmit()}
+function askStarter(q,send){const i=document.getElementById('askInput');if(!i)return;i.value=q;if(send){askSubmit();return}i.focus();i.setSelectionRange(i.value.length,i.value.length)}
 function askHistory(){
   return ASK.msgs.filter(m=>m.role==='user'||(m.role==='assistant'&&m.answer)).slice(-6).map(m=>({role:m.role,content:m.role==='user'?m.content:m.answer}));
 }
@@ -7607,7 +7607,7 @@ function askMsgHtml(m,i){
 function askRender(){
   const body=document.getElementById('askBody');if(!body)return;
   if(!ASK.msgs.length){
-    body.innerHTML=`<div class="ask-empty">Ask about anything on the dashboard — the answer is drawn from the current sweep (situation, DEFCON, signals, cartel events, Border Watch, CJNG graph, KEV, requirements, target packages) and cites the tab it came from. If CRUCIX has no data, you can choose to search outside.${ASK_STARTERS.map(q=>`<button class="ask-chip" onclick="askStarter(${JSON.stringify(q).replace(/"/g,'&quot;')})">${esc(q)}</button>`).join('')}</div>`;
+    body.innerHTML=`<div class="ask-empty">Ask about anything on the dashboard — the answer is drawn from the current sweep (situation, DEFCON, signals, cartel events, Border Watch, CJNG graph, KEV, requirements, target packages) and cites the tab it came from. If CRUCIX has no data, you can choose to search outside.${ASK_STARTERS.map(q=>`<button class="ask-chip" onclick="askStarter(${JSON.stringify(q).replace(/"/g,'&quot;')},true)">${esc(q)}</button>`).join('')}</div>`;
   } else body.innerHTML=ASK.msgs.map(askMsgHtml).join('');
   body.scrollTop=body.scrollHeight;
   const send=document.getElementById('askSend');if(send)send.disabled=ASK.busy;
