@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<style type='text/css'>
+    .appIco {
+        float: left;
+        position: relative;
+        height: 50px;
+        width: 50px;
+        background: none;
+        display: inline-block;
+        background-size: 50px;
+        background-repeat: no-repeat;
+        background-image: url('../../Content/Icons/DPCLogoResOk.png');
+    }
+        .appIco:hover {
+            cursor: pointer;
+        }
+</style>
+
+
+
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas Tempranas - Inicio</title>
+    <link href="/Content/css?v=GXdwzxqO1j-cI7amFgsynzu7OIFh5uGTgdLLEQPRcR81" rel="stylesheet"/>
+
+    <script src="/bundles/modernizr?v=inCVuEFe6J4Q07A0AcRsbJic_UE5MwpRMNGcOtk94TE1"></script>
+
+</head>
+
+<body style="overflow-y:scroll; padding: 0px">
+    <script type="text/javascript">
+        var application = { viewbag: {
+  "currentSort": null,
+  "currentYear": null,
+  "alertaNKSortParm": "alerta",
+  "fechaSortParm": "fecha_emision",
+  "tipoAlertaSortParm": "tipo_alerta",
+  "temaPrincipalSortParm": "tema_principal",
+  "municipioAfectadoSortParm": "mun_afectados",
+  "informesSeguimientoSortParam": "inf_seg_desc",
+  "listaAnios": [
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2017",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2018",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2019",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2020",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2021",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2022",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2023",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2024",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2025",
+      "value": null
+    },
+    {
+      "disabled": false,
+      "group": null,
+      "selected": false,
+      "text": "2026",
+      "value": null
+    }
+  ],
+  "currentFilter": null,
+  "numAlertas": 369,
+  "title": "Inicio"
+} };
+        function moduloAlertas() {
+            var url = '/';
+            if (window.event.ctrlKey) {
+                window.open(url);
+            } else {
+                var element = document.getElementById("moduloAlertas");
+                if (element.classList.contains("moduloPaginaInactivo")) {
+                    window.location.href = url;
+                }
+            }
+        }
+        function moduloLideres() {
+            var url = '/Lideres';
+            if (window.event.ctrlKey) {
+                window.open(url);
+            } else {
+                var element = document.getElementById("moduloLideres");
+                if (element.classList.contains("moduloPaginaInactivo")) {
+                    window.location.href = url;
+                }
+            }
+        }
+        function irToVisor() {
+            window.open("./../Content/Mapa.html");
+        }
+        function irToLogout() {
+            resp = confirm("¿Deseas cerrar sesión?")
+            if (resp) {
+                window.location.href = "/Home/Logout";
+            }
+        }
+        function irToMenu(menu, action, controller) {
+            var url = '/controller/action';
+            url = url.replace("action", action);
+            url = url.replace("controller", controller);
+            if (window.event.ctrlKey) {
+                window.open(url);
+            } else {
+                var element = document.getElementById(menu);
+                if (element.classList.contains("menuItem")) {
+                    window.location.href = url;
+                }
+            }
+        }
+    </script>
+
+    <div id="avisoProcesandoGlobal" class="centroPantalla" style="display:none">
+        <h5 id="mensajeAvisoProcesandoGlobal" class="blink_me" style="width:100%; text-align: center; margin:0px; padding:0px 0px 5px 0px; color:#95adc7">Procesando... </h5>
+        <div class="progress-line" style="width:160px"></div>
+    </div>
+
+    <div id="bodyLayout">
+
+        <div id="dummyMenor700" class="detectorMenor700"></div>
+
+        <div class="container opacarGenerandoExcel">
+            <div style="width:100%; text-align:center" class="tituloApp">
+                <label class="setSmallerFont" style="margin:0">Delegada para Prevención de riesgos y Sistema de Alertas Tempranas</label>
+            </div>
+            <div style="width: 100%; display:table; border:1px solid #004a99">
+                <div style="display:table-row">
+
+                    <div id="moduloAlertas" class="moduloPaginaActivo" style="width: 50%; display: table-cell; text-align:center; vertical-align:middle" onclick="moduloAlertas()" title="Oprime Ctrl + Click para abrir en una nueva pestaña">
+                        <label class="setSmallerFont">Alertas Tempranas</label>
+                    </div>
+                </div>
+            </div>
+            <div style="display:table; width:100%; padding-top:10px">
+
+
+
+                    <div style="display:table-row; float:right">
+                        <div id="menuInicio" class="menuItemActivo" style="display: table-cell" onclick="irToMenu('menuInicio', 'Index', 'Alerta')" title="Oprime Ctrl + Click para abrir en una nueva pestaña">
+                            <label class="setSmallerFont" style="margin:0; cursor:inherit; font-weight: inherit">Inicio</label>
+                        </div>
+                        <div class="menuItem" style="display:table-cell" onclick="irToVisor()">
+                            <label class="setSmallerFont" style="margin:0; cursor:inherit; font-weight: inherit">Mapa</label>
+                        </div>
+                        <div id="menuReportes" class="menuItem" style="display: table-cell" onclick="irToMenu('menuReportes', 'Reporte', 'Alerta')" title="Oprime Ctrl + Click para abrir en una nueva pestaña">
+                            <label class="setSmallerFont" style="margin:0; cursor:inherit; font-weight: inherit">Reportes</label>
+                        </div>
+                        <div id="menuTablero" class="menuItem" style="display: table-cell" onclick="irToMenu('menuTablero', 'Tablero', 'Alerta')" title="Oprime Ctrl + Click para abrir en una nueva pestaña">
+                            <label class="setSmallerFont" style="margin:0; cursor:inherit; font-weight: inherit">Tablero</label>
+                        </div>
+                        <div id="menuInformes" class="menuItem" style="display: table-cell" onclick="irToMenu('menuInformes', 'Index', 'Informe')" title="Oprime Ctrl + Click para abrir en una nueva pestaña">
+                            <label class="setSmallerFont" style="margin:0; cursor:inherit; font-weight: inherit">Informes Seguimiento</label>
+                        </div>
+                    </div>
+                <div style="display:table-row; float:left">
+                    <div id="menuAdmin" class="menuItem menuItemIzq" style="display: table-cell" onclick="irToMenu('menuAdmin', 'Index', 'Home')" title="Oprime Ctrl + Click para abrir en una nueva pestaña">
+                        <label class="setSmallerFont" style="margin:0; cursor:inherit; font-weight: inherit">Sesión</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="containerLayout" class="container body-content" style="padding:15px 10px 10px 10px">
+            <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300&display=swap" rel="stylesheet" type="text/css">
+            
+<link href="/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300&display=swap" rel="stylesheet" type="text/css">
+
+<style type='text/css'>
+    a.link-icon-ficha {
+        display: block;
+        height: 32px;
+        width: 22px;
+        background-size: 22px;
+        background-repeat: no-repeat;
+        background-image: url('../../Content/Icons/Ficha2x.png');
+    }
+
+    a.link-icon-impresion {
+        display: block;
+        height: 22px;
+        width: 22px;
+        background-size: 22px;
+        background-repeat: no-repeat;
+        background-image: url('../../Content/Icons/PrintIcon2x.png');
+    }
+
+    a.link-icon-lupa {
+        display: block;
+        height: 25px;
+        width: 25px;
+        background-size: 25px;
+        background-repeat: no-repeat;
+        background-image: url('../../Content/Icons/lupa.png');
+        filter: invert(100%);
+    }
+
+    .imgIconInf {
+        display: block;
+        height: 25px;
+        background-size: 25px;
+        background-repeat: no-repeat;
+    }
+
+    .seccionFiltro {
+        margin: auto;
+        width: 80%;
+        padding: 2px;
+        text-align: center;
+    }
+
+    .seccionFiltroCenter {
+        margin: auto;
+        width: auto;
+        display: inline-block;
+    }
+
+    .filtroElemento {
+        float: left;
+        display: inline-block;
+        position: relative;
+        padding-right: 1em;
+    }
+
+    #criterioBusqueda {
+        width:300px;
+        max-width:45vw;
+        padding-left: 40px;
+        background-size: 20px;
+        background-position: 10px 10px;
+        background-repeat: no-repeat;
+        background-image: url('Content/Icons/lupa.png');
+    }
+</style>
+
+<body id="bodyTodo">
+<form action="/" method="get" onkeydown="return event.keyCode!=13">        <div style="display:table; padding-top:10px; padding-bottom:15px; margin:0 auto">
+            <div style="display:table-row">
+                <div style="display: table-cell; padding-left:10px; font-size:medium">
+                    <label style="margin: 0px" class="setSmallerFont">Filtros:</label>
+                </div>
+                <div style="display: table-cell; padding-left:10px">
+                    <select class="estiloInputs estiloInputsSmaller" id="anioBusqueda" name="anioBusqueda" onchange="enviar(&#39;&#39;);" style="padding-left:3px"><option value="">Todos los a&#241;os</option>
+<option>2017</option>
+<option>2018</option>
+<option>2019</option>
+<option>2020</option>
+<option>2021</option>
+<option>2022</option>
+<option>2023</option>
+<option>2024</option>
+<option>2025</option>
+<option>2026</option>
+</select>
+                </div>
+                <div style="display: table-cell; padding-left:10px">
+                    <input class="estiloInputs estiloInputsSmaller criterioBusquedaSmaller" id="criterioBusqueda" name="criterioBusqueda" onchange="enviar(&#39;&#39;);" onkeydown="teclaEnBusqueda(this, event);" placeholder="Palabra o código de la alerta" type="text" value="" />
+                </div>
+            </div>
+        </div>
+        <div style="width:100%; text-align:center; font-size:large">
+<label class="setSmallerFont" for="">369 alertas</label>        </div>
+        <div class="table-wrapper">
+            <table class="setSmallerFont">
+                <colgroup>
+                    <col style="width:5%"/>
+                    <col style="width:10%"/>
+                    <col style="width:15%" class="colOcutlarMenor700"/>
+                    <col style="width:40%" class="colOcutlarMenor700"/>
+                    <col style="width:10%" class="colOcutlarMenor700"/>
+                    <col style="width:0%"/>
+                    <col style="width:0%"/>
+                    <col style="width:0%"/>
+                    <col style="width:20%"/>
+                </colgroup>
+                <tr>
+                    <th class="thOrdenar" title="Ordenar" onclick="enviar('alerta')">
+                        Alerta
+                    </th>
+                    <th class="thOrdenar" title="Ordenar" onclick="enviar('tipo_alerta')">
+                        Tipo
+                    </th>
+                    <th class="thOrdenar colOcutlarMenor700" title="Ordenar" onclick="enviar('mun_afectados')">
+                        Lugares
+                    </th>
+                    <th class="thOrdenar colOcutlarMenor700" title="Ordenar" onclick="enviar('tema_principal')">
+                        Tema clave
+                    </th>
+                    <th class="thOrdenar colOcutlarMenor700" title="Ordenar" onclick="enviar('fecha_emision')">
+                        Fecha
+                    </th>
+                    <th style="text-align:center; vertical-align:middle; cursor:pointer">
+                        Ficha
+                    </th>
+                    <th style="text-align:center; vertical-align:middle; cursor:pointer">
+                        Infografía
+                    </th>
+                    <th style="text-align:center; vertical-align:middle; cursor:pointer">
+                        PDF
+                    </th>
+                    <th style="text-align:center" class="thOrdenar" title="Ordenar" onclick="enviar('inf_seg_desc')">
+                        Informes Seguimiento
+                    </th>
+                </tr>
+
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            021-26
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            La Pedrera, La Victoria (Amazonas); Taraira (Vaup&#233;s)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Alta posibilidad de efectos humanitarios significativos y violencia selectiva contra la poblaci&#243;n civil, con ocasi&#243;n de la expansi&#243;n de la disputa entre el Estado Mayor Central (EMC), a trav&#233;s del Frente Carolina Ram&#237;rezy el Frente Jhonier Arenas, y el Bloque Comandante Jorge Su&#225;rez Brice&#241;o del Estado Mayor del Bloque y el Frente (EMBF).
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            02/09/2026
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91968" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\021-26.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            022-26
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Mercaderes (Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Graves riesgos de violaciones a los derechos humanos (DD.HH.) e infracciones al Derecho Internacional Humanitario (DIH), derivados de la posible ruptura del escenario de coexistencia armada entre el Frente Manuel V&#225;squez Casta&#241;o del Ej&#233;rcito de Liberaci&#243;n Nacional (ELN) y el grupo de crimen organizado autodenominado “La Mafia”.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            02/09/2026
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91969" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\022-26.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            023-26
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Jamund&#237; (Valle del Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            M&#250;ltiples violaciones de derechos humanos ante el control hegem&#243;nico del Estado Mayor Central – EMC, y amenazas ante la pretensi&#243;n de incursi&#243;n por parte del ELN y el frente 57 Yair Berm&#250;dez.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            29/09/2026
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91970" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\023-26.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            001-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Mirit&#237; - Paran&#225;, Puerto Alegr&#237;a, Puerto Santander (Amazonas); Cartagena del Chair&#225;, Curillo, San Jos&#233; del Fragua, San Vicente del Cagu&#225;n, Solano (Caquet&#225;); Piamonte (Cauca); Calamar, El Retorno, San Jos&#233; del Guaviare (Guaviare); Acevedo, Agrado, Aipe (Huila)... y Otros
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            El escenario de riesgo se encuentra caracterizado por el comienzo y la expansi&#243;n de la disputa armada entre las facciones disidentes del antes Estado Mayor Central, ahora divido en las unidades bajo el mando de alias Calarc&#225; y la leales a alias Iv&#225;n Mordisco. Lo anterior en 46 municipios y tres (3) &#225;reas municipalizadas correspondientes a siete (7) departamentos pertenecientes a la regi&#243;n Amaz&#243;nica y a la Orinoqu&#237;a. Se advierte riesgos de car&#225;cter extremos y altos para la poblaci&#243;n civil.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            21/01/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91926" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\001-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            002-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Florida, Pradera (Valle del Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            El escenario de riesgo actual est&#225; determinado por el accionar de dos grupos armados ilegales que operan en la zona focalizada, configur&#225;ndose un escenario mixto entre la consolidaci&#243;n y la disputa territorial.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            28/01/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91927" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\002-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\297.pdf target="_blank" title="Descargar informe de 24/06/2026"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91927" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            003-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Roncesvalles (Tolima)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Debido a la cr&#237;tica situaci&#243;n de seguridad causada por la presencia activa y en expansi&#243;n de tres grupos armados organizados (GAO) el municipio enfrenta una crisis de derechos humanos derivada de amenazas, homicidios selectivos, desplazamientos forzados, extorsiones, reclutamiento de menores y otras infracciones graves al Derecho Internacional Humanitario (DIH).
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            04/02/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91928" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\003-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\296.pdf target="_blank" title="Descargar informe de 11/06/2026"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91928" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            004-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Popay&#225;n (Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Situaci&#243;n de riesgo en zona rural de Popay&#225;n (Cauca), Lo anterior ante la eventual expansi&#243;n territorial del Bloque Occidental Comandante Jacobo Arenas (BOCJA), disidencia adscrita al mando de ‘Iv&#225;n Mordisco’, a trav&#233;s del Frente Jaime Mart&#237;nez, hacia la zona rural del noroccidente del municipio. En esos sectores, de materializarse la expansi&#243;n, podr&#237;a favorecerse un control territorial que podr&#237;a afectar negativamente a la poblaci&#243;n civil que all&#237; reside.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            17/02/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91929" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\004-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\294.pdf target="_blank" title="Descargar informe de 19/05/2026"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91929" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            005-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            La Paz, Manaure Balc&#243;n del Cesar, San Diego (Cesar)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Se emite en respuesta al riesgo inminente que enfrenta la poblaci&#243;n civil, en particular la poblaci&#243;n de firmantes de paz y el campesinado, de los municipios La Paz, Manaure Balc&#243;n del Cesar y San Diego, en el departamento Cesar. La alerta surge a ra&#237;z de la confrontaci&#243;n entre el Ej&#233;rcito de Liberaci&#243;n Nacional (ELN) y el Estado Mayor de Bloques y Frentes (EMBF), lo que ha generado un riesgo de desplazamiento del conflicto, desde el Catatumbo hacia la Serran&#237;a del Perij&#225;.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            10/03/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91930" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\005-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\313.pdf target="_blank" title="Descargar informe de 14/09/2026"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91930" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            006-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Andaluc&#237;a, Bugalagrande (Valle del Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Detrimento en las condiciones de seguridad que est&#225; afectando a la poblaci&#243;n residente en las cabeceras municipales producto de la disputa entre grupos de crimen organizado, dedicados al tr&#225;fico y venta de estupefacientes. Pese a que hay en curso entre ellos conversaciones sobre posibles acuerdos de no agresi&#243;n, estos recientes acuerdos podr&#237;an ser fr&#225;giles o de muy poca duraci&#243;n.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            07/05/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91931" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\006-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            007-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            San Jos&#233; del Palmar (Choc&#243;)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            La profundizaci&#243;n de las din&#225;micas de control impuestas en esta zona del Choc&#243; por parte del Frente Ernesto Che Guevara perteneciente al Frente de Guerra Occidental (FGOcc) del Ej&#233;rcito de Liberaci&#243;n Nacional -ELN- y del inter&#233;s del denominado Ej&#233;rcito Gaitanista de Colombia -antes Autodefensas Gaitanistas de Colombia, AGC- (en adelante EGC) de expandir su influencia en el municipio.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            23/05/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91932" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\007-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            008-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            El Tambo, Pat&#237;a (Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Se motiva en el incremento de amenazas, desplazamientos individuales, instrumentalizaci&#243;n y otras medidas de control territorial y social, implementadas por parte del Frente Carlos Pati&#241;o, vinculado al Bloque Occidental Jacobo Arenas (BOCJA), bajo el direccionamiento de alias “Iv&#225;n Mordisco”. Asimismo, el ingreso de la Coordinadora Nacional Ej&#233;rcito Bolivariano y las c&#233;lulas urbanas (milicias) del Ej&#233;rcito de Liberaci&#243;n Nacional (ELN), avizoran un escenario de posible disputa armada.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            17/06/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91933" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\008-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\311.pdf target="_blank" title="Descargar informe de 10/09/2026"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91933" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            009-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Chiriguan&#225; (Cesar)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Amenaza para el ejercicio de los DDHH de las comunidades, en raz&#243;n a las estrategias de control social y dominio territorial que el Ej&#233;rcito Gaitanista de Colombia, el Ej&#233;rcito de Liberaci&#243;n Nacional, una facci&#243;n disidente de las extintas FARC y grupos de delincuencia organizada; han puesto en marcha para posicionarse con preponderancia en este municipio, que se considera estrat&#233;gico para el sostenimiento militar y econ&#243;mico de sus estructuras.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            24/07/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91934" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\009-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            010-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Dibulla, Riohacha, San Juan del Cesar (La Guajira)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            En este territorio la amenaza sobre la poblaci&#243;n civil se deriva de dos din&#225;micas: La primera es la disputa abierta entre estos dos grupos armados ilegales. La segunda din&#225;mica es el intento de consolidaci&#243;n de ambos grupos, expresada: por un lado, en la expansi&#243;n territorial, militar y pol&#237;tica del EGC; y por otro, en el recrudecimiento del control hegem&#243;nico de las ACSN en determinados territorios.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            30/07/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91935" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\010-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\269.pdf target="_blank" title="Descargar informe de 17/12/2025"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91935" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            011-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Bol&#237;var, Riofr&#237;o, Trujillo (Valle del Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Graves riesgos de violaciones a los derechos humanos derivados de la confluencia y posible confrontaci&#243;n armada, entre los Grupos Armados Organizados (GAO): Ej&#233;rcito Gaitanista de Colombia (EGC), Ej&#233;rcito de Liberaci&#243;n Nacional (ELN), Nuevo Estado Mayor Central (EMC) a trav&#233;s del Frente Jaime Mart&#237;nez; y el grupo criminal ‘Rastrojos Nueva Generaci&#243;n’.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            25/08/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91936" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\011-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            012-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Cali (Valle del Cauca)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Se emite por riesgos para la poblaci&#243;n civil que provienen del entrelazamiento del conflicto armado y la criminalidad organizada en sectores urbanos y rurales, dando lugar a un conflicto de car&#225;cter h&#237;brido. Este se manifiesta en un escenario de coexistencia y competencia entre grupos armados organizados (GAO) y de criminalidad organizada.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            26/08/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91937" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\012-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            013-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            El Encanto, La Chorrera, La Pedrera, La Victoria, Leticia, Mirit&#237; - Paran&#225;, Puerto Alegr&#237;a, Puerto Arica, Puerto Nari&#241;o, Puerto Santander, Tarapac&#225; (Amazonas); Abejorral, Abriaqu&#237;, Alejandr&#237;a, Amag&#225;, Amalfi, Andes, Angel&#243;polis, Angostura, Anor&#237;, Anz&#225; (Antioquia)... y Otros
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Se prev&#233; que los procesos electorales podr&#225;n desarrollarse con normalidad en la mayor parte del territorio nacional. Sin embargo, resulta factible que, en algunos municipios del Catatumbo, el pac&#237;fico nari&#241;ense, el pac&#237;fico caucano, norte, nordeste y bajo cauca antioque&#241;os, Caquet&#225;, Bajo Putumayo y Arauca contin&#250;en present&#225;ndose hechos violentos
+capaces de afectar de manera directa a candidaturas, liderazgos e infraestructura electoral.
+
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            07/10/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91938" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\013-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" title="1 informes de seguimiento asociados" class="setSmallerFont">
+                                    <div style="display: inline-block; width:1px" class="colOcutlarMenor700"></div>
+                                    <div style="display: inline-block" class="colOcutlarMenor700">
+                                            <a href=https://alertasstg.blob.core.windows.net/informes\279.pdf target="_blank" title="Descargar informe de 23/02/2026"><img class="imgIconInf" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                                    </div>
+                                                                    <div style="display: inline-block; width:10px"></div>
+                                    <div style="display: inline-block">
+                                        <a class="link-icon-lupa" href="/Informe?filtroIdAlerta=91938" title="Ir a detalle de informe(s)"> </a>
+                                    </div>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            014-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Arauca, Arauquita, Cravo Norte, Fortul, Puerto Rond&#243;n, Saravena, Tame (Arauca); Cubar&#225; (Boyac&#225;)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            La Alerta se emite ante los graves riesgos identificados para la poblaci&#243;n civil, derivados de la confrontaci&#243;n armada entre el Ej&#233;rcito de Liberaci&#243;n Nacional (ELN) y el Nuevo Estado Mayor Central (EMC), disidencias de las extintas Fuerzas Armadas Revolucionarias de Colombia (FARC). Estos grupos armados organizados disputan el poder hegem&#243;nico, caracterizado por el control territorial, econ&#243;mico y sociopol&#237;tico, en los siete municipios del departamento Arauca y Cubar&#225;, Boyac&#225;.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            08/10/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91939" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\014-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            015-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Cumaribo, La Primavera, Puerto Carre&#241;o, Santa Rosal&#237;a (Vichada)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            Esta Alerta Temprana de Inminencia (ATI) se emite por los graves riesgos de violaciones a los derechos humanos y al Derecho Internacional Humanitario (DIH) derivados de la confrontaci&#243;n armada entre los grupos armados ilegales Segunda Marquetalia y el Ej&#233;rcito de Liberaci&#243;n Nacional (ELN) en territorio transfronterizo del departamento de Vichada.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            28/10/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91941" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\015-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            016-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT Estructurales son documentos de advertencia en los que se hace referencia al contexto de amenaza, las vulnerabilidades y las capacidades sociales e institucionales del territorio. Las recomendaciones están enfocadas a promover acciones disuasivas, prevención temprana, protección, política pública social y fortalecimiento organizativo e institucional.">
+                                Estructural
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Rionegro (Santander)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            La amenaza a la poblaci&#243;n civil se configura en dos escenarios de riesgo. El primero est&#225; determinado por el inter&#233;s del autodenominado Ej&#233;rcito Gaitanista de Colombia, de extender su influencia desde el sur de Bol&#237;var y Puerto Wilches hacia la subregi&#243;n del Bajo Rionegro, con el fin de consolidar el control de econom&#237;as il&#237;citas. El segundo, la expansi&#243;n de las Autodefensas Conquistadoras de la Sierra Nevada, hacia corredores estrat&#233;gicos que enlazan el Catatumbo y el sur de Cesar.
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            28/10/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91942" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\016-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            017-25
+                        </td>
+                            <td class="boldOnFocus setSmallerFont" align="center" style="vertical-align:middle" title="Las AT de Inminencia son documentos de advertencia en los que se hace referencia al contexto de amenaza. A diferencia de las AT estructurales, en estos documentos las recomendaciones están enfocadas, principalmente, a promover acciones disuasivas, de prevención urgente y atención humanitaria.">
+                                Inminencia
+                            </td>
+                        <td style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            Tib&#250; (Norte de Santander)
+                        </td>
+                        <td class="setSmallerFont colOcutlarMenor700">
+                            El riesgo identificado se configura a partir de dos escenarios principales: i) la intensificaci&#243;n de la confrontaci&#243;n armada entre el Ej&#233;rcito de Liberaci&#243;n Nacional (ELN) y las disidencias de las FARC-EP - Frente 33 “Mariscal Antonio Jos&#233; de Sucre”, Bloque Magdalena Medio “Comandante Gentil Duarte”; y ii) la consolidaci&#243;n del control territorial ejercido por el Ej&#233;rcito de Liberaci&#243;n Nacional
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont colOcutlarMenor700">
+                            29/10/2025
+                        </td>
+                        <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                            <a class="link-icon-ficha" href="/Alerta/Details/91943" title="Ir a la ficha interactiva.."> </a>
+                        </td>
+
+                            <td align="center" style="vertical-align:middle;" class="setSmallerFont">
+                                <a href="javascript:void(0);" onclick="alert('Esta alerta no cuenta con infografía')" title="Esta alerta no cuenta con infografía" style="cursor:not-allowed"><img class="imgIcon" alt="Sin infografía" src="../../Content/Icons/PrintIcon2xGris.png" /></a>
+                            </td>
+
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <a href=https://alertasstg.blob.core.windows.net/alertas\017-25.pdf target="_blank" title="Ver documento PDF de emisión de la alerta"><img class="imgIcon" alt="Descargar" src="../../Content/Icons/Descarga.png" /></a>
+                            </td>
+
+                            <td align="center" style="vertical-align:middle" class="setSmallerFont">
+                                <span>En construcción</span>
+                            </td>
+                    </tr>
+            </table>
+        </div>
+</form>    <br /> Página 2 de 19
+    <div class="pagination-container"><ul class="pagination"><li class="PagedList-skipToPrevious"><a href="/?page=1" rel="prev">«</a></li><li><a href="/?page=1">1</a></li><li class="active"><a>2</a></li><li><a href="/?page=3">3</a></li><li><a href="/?page=4">4</a></li><li><a href="/?page=5">5</a></li><li><a href="/?page=6">6</a></li><li><a href="/?page=7">7</a></li><li><a href="/?page=8">8</a></li><li><a href="/?page=9">9</a></li><li><a href="/?page=10">10</a></li><li class="disabled PagedList-ellipses"><a>&#8230;</a></li><li class="PagedList-skipToNext"><a href="/?page=3" rel="next">»</a></li><li class="PagedList-skipToLast"><a href="/?page=19">»»</a></li></ul></div>
+</body>
+
+
+            <hr />
+            <footer class="opacarGenerandoExcel">
+                <h4 style="width:100%; text-align:center">2026, Programa de Fortalecimiento de la Capacidad Institucional de la Defensoría del Pueblo-Banco Interamericano de Desarrollo (<span style="color:#004a99;font-weight:bolder">BID</span>)</h4>
+            </footer>
+        </div>
+    </div>
+
+    <script src="/bundles/jquery?v=YclUD73eWQEwvbZHNtxm2qPpamofi1PxF-X6-1KSjiE1"></script>
+
+    <script src="/bundles/bootstrap?v=M4Nk6kIOwMFflsEKET0iPL9i5YBqbzMzvUOrd8gyCnw1"></script>
+
+    <script src="/bundles/chosen?v=4H6Nop7_cJ_ZZLB6zxjxe6tltq0e3MZZxlO5CgfSqEw1"></script>
+
+    <link href="/Content/chosen?v=InWGfcm-d-oOC9QOpm9jWaaU_m_9eWacwIy2abwxEwE1" rel="stylesheet"/>
+
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if ($("#dummyMenor700").css("--esMenor700") == 1) {
+                $(".colOcutlarMenor700").hide();
+            }
+        });
+        function enviar(orden) {
+            if (orden == "") {
+                orden = '';
+            }
+            criterioBusquedaAux = $("#criterioBusqueda").val();
+            anioBusquedaAux = $("#anioBusqueda").val();
+            $("#bodyTodo").css("pointer-events", "none");
+            $("#avisoProcesandoGlobal").show();
+            var url = '/?orden=-1&criterioBusqueda=-2&anioBusqueda=-3';
+            url = url.replace("-1", orden);
+            url = url.replace("-2", criterioBusquedaAux);
+            url = url.replace("-3", anioBusquedaAux);
+            window.location = url;
+        }
+        function teclaEnBusqueda(textBox, e) {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                textBox.blur();
+            }
+        }
+    </script>
+
+</body>
+</html>

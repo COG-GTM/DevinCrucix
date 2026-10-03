@@ -57,6 +57,8 @@ import { CONFIDENCE as NARCO_GRADES } from './lib/narco/events.mjs';
 import { EVENT_TYPE_LABELS as NARCO_TYPES } from './lib/narco/extract.mjs';
 import { refreshCorpus as refreshInsightCorpus } from './lib/cjng/corpus.mjs';
 import { PROFILES as KG_PROFILES, COUNTRY_PROFILES as KG_COUNTRY_PROFILES } from './lib/cjng/profiles.mjs';
+import { buildActorCards } from './lib/cjng/actors.mjs';
+import { loadGroups } from './lib/narco/groups.mjs';
 import { TargetStore, validateNomination, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE } from './lib/targeting/store.mjs';
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
 import { buildSourceContext } from './lib/targeting/sources.mjs';
@@ -94,8 +96,13 @@ const kgState = Object.fromEntries(Object.values(KG_PROFILES).map(p => {
 }));
 const kgSummary = key => summarizeInsightGraph(kgState[key].graph, kgState[key].refresh);
 // Compact per-country graph summary on the country payload; the full graph is served by /api/country/:cc/graph.
-function attachCountryGraphs(country) {
-  for (const [cc, key] of Object.entries(KG_COUNTRY_PROFILES)) if (country?.[cc] && kgState[key]) country[cc].graph = kgSummary(key);
+let lastSweepSources = {};
+function attachCountryGraphs(country, sources = lastSweepSources) {
+  for (const [cc, key] of Object.entries(KG_COUNTRY_PROFILES)) {
+    if (!country?.[cc] || !kgState[key]) continue;
+    country[cc].graph = kgSummary(key);
+    country[cc].actors = buildActorCards(kgState[key].graph, loadGroups(KG_PROFILES[key].groupsFile), sources.InSightCrime?.profiles?.[cc]?.cards);
+  }
   return country;
 }
 const CJNG_REFRESH_HOURS = Math.min(168, Math.max(1, Number(process.env.CJNG_GRAPH_REFRESH_HOURS) || 12));
@@ -1290,6 +1297,7 @@ async function runSweepCycle() {
         synthesized.ukraine.cii = trimCii({ CII: synthesized.cii }, [{ name: 'CII', state: prior.state, reason: prior.reason }]);
       }
       // Same for the country pages' CII tile / health row.
+      lastSweepSources = rawData.sources || {};
       synthesized.country = attachCountryGraphs(buildAllCountryViews({ ...(rawData.sources || {}), CII: synthesized.cii }, rawData.errors));
 
       // Step 5: Signals (uses raw sources + convergence + CII)

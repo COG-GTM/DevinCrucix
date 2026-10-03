@@ -286,7 +286,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 #cyMapSvg .cy-unit.focus{stroke:#64f0c8;stroke-width:1.1}
 #cyMapSvg .cy-pin{cursor:pointer;vector-effect:non-scaling-stroke}
 #cyMapSvg .cy-lbl{font-family:var(--mono);fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.06em}
-.cy-kpis{grid-template-columns:repeat(6,1fr)}
+.cy-kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+#cyMapSvg .cy-unit.cy-loc{stroke:rgba(206,147,216,0.85);stroke-width:0.5}
+.cy-actor .k a{color:#e6f2ee}
+.cy-rel{font-family:var(--mono);font-size:8px;color:#c8d8d2;display:flex;gap:6px;align-items:baseline}
+.cy-rel i{font-style:normal;color:var(--dim);min-width:68px}
 .cy-kind{display:inline-block;font-family:var(--mono);font-size:7px;padding:0 4px;border:1px solid rgba(255,255,255,0.2);border-radius:2px;margin-left:4px;letter-spacing:0.08em;vertical-align:middle;color:var(--dim)}
 .cy-kind.official{color:#ffb74d;border-color:rgba(255,183,77,0.5)}
 .cy-kind.observational{color:#90caf9;border-color:rgba(144,202,249,0.5)}
@@ -1858,9 +1862,12 @@ const PANEL_CAPTIONS={
   'theater signals already in crucix':'OpenSky hotspot counts, military ADS-B and carrier estimates cut to the Taiwan theater \u2014 the same feeds the Military tab shows.',
   'not polled':'Sources that cannot be fetched server-side, listed so the gap is visible.',
   'china / taiwan sources':'How each of the five China / Taiwan parts behaved this sweep. LIVE means fetched and parsed; anything else is stated.',
-  'country picture':'Country Home Page template. Hero tiles are each tagged <b>OFFICIAL</b> (government open data), <b>OBSERVATIONAL</b> (press / NGO), <b>DERIVED</b> (a CRUCIX score) or <b>NO KEY</b>. Map: ADM1 outlines (geoBoundaries, simplified), shaded by the latest official per-unit value where one exists; place anchors sized by wire mentions; grey points are historical. Nothing here is a live position.',
+  'country picture':'Country Home Page template. Hero tiles are each tagged <b>OFFICIAL</b> (government open data), <b>OBSERVATIONAL</b> (press / NGO), <b>DERIVED</b> (a CRUCIX score) or <b>NO KEY</b>. Map: ADM1 outlines (geoBoundaries, simplified), shaded by the latest official per-unit value where one exists (Venezuela: the states OVCS names, partial); Bogot\u00e1 localidades are official Datos Abiertos polygons shaded by wire mentions only; SAT diamonds mark alert municipio seats; red circles are Indepaz massacre rows; place anchors sized by wire mentions; grey points are historical. Nothing here is a live position.',
+  'early warnings':'<b>Official.</b> Defensor\u00eda del Pueblo Sistema de Alertas Tempranas index rows \u2014 alert number, type (imminence / structural), municipios, the Defensor\u00eda\u2019s one-line threat summary, issue date and the ficha / PDF links. Two newest index pages per sweep; the alert itself is the linked PDF. Group tags are name matches in the Defensor\u00eda\u2019s own text.',
+  'massacres and social leaders':'<b>Observational.</b> Indepaz\u2019s running tallies re-counted from the tables in its posts: massacres (date, municipio, victims; Indepaz\u2019s definition of three or more) and killed social leaders / peace-accord signatories by year, month, departamento and sector. Counts only \u2014 Indepaz publishes names; CRUCIX does not store or show them.',
+  'armed actors':'<b>Observational.</b> One card per group in the country index (public-record names, aliases, parent structure, U.S. designations, leaders named in official releases) joined to that group\u2019s node in the InSight Crime knowledge graph \u2014 article count, graph degree, strongest typed relations \u2014 and to InSight Crime\u2019s own profile page when the name matches. A bounded summary of what is already on the tab, not an assessment.',
   'official crime counts':'<b>Official.</b> Polic\u00eda Nacional (SIEDCO) incident reports from datos.gov.co, aggregated server-side per month and municipio. Bogot\u00e1 figures are the Distrito Capital municipio, not localidades. About one month of publication lag; counts are reports (denuncias), not incidents.',
-  'protest monitor':'<b>Observational.</b> Monthly protest tallies parsed from the Observatorio Venezolano de Conflictividad Social report text \u2014 OVCS\u2019s own counts, categories and comparisons. The 2017 deaths layer is historical and anonymised (date, age and location only).',
+  'protest monitor':'<b>Observational.</b> Monthly protest tallies parsed from the Observatorio Venezolano de Conflictividad Social report text \u2014 OVCS\u2019s own counts, categories, comparisons, the states it names as most / least active (a partial ranking, not a table), protest modalities and repression counts. The 2017 deaths layer is historical and anonymised (date, age and location only).',
   'country wires':'Country-configured RSS / WordPress feeds: headline, time, outlet and link only. Topic, place and group tags are keyword matches against the country config \u2014 not analysis, not geocoding. Blocked endpoints are listed as such and not bypassed.',
   'insight crime country feed':'InSight Crime\u2019s country tag feed: investigative reporting and analysis on organised crime, title / excerpt / link only. Observational, attributed.',
   'criminal groups':'InSight Crime\u2019s country \u201cGroups\u201d tag: PROFILE cards are group profile pages, ANALYSIS cards are tagged articles. Excerpts as published; served from the last good copy if the API rate-limits.',
@@ -3635,8 +3642,8 @@ function renderLower(){
       wrap(groupHead('US Enforcement · DOJ & OFAC',['DOJ','OFACNarco']),'lp-wide'),wrap(renderDojPanel(),'lp-half'),wrap(renderSanctionsPanel(),'lp-half')],
     iranwar:[wrap(renderIwMapPanel(),'lp-wide'),wrap(renderIwEventsPanel(),'lp-half'),wrap(renderIwGroundPanel(),'lp-half'),wrap(renderIwAirspacePanel(),'lp-half'),wrap(renderIwPosturingPanel(),'lp-half')],
     taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
-    colombia:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCyOfficialPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderKgPanel('co'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
-    venezuela:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCyProtestPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderKgPanel('ve'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
+    colombia:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCySatPanel(),'lp-half'),wrap(renderCyIndepazPanel(),'lp-half'),wrap(renderCyOfficialPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderCyActorsPanel(),'lp-wide'),wrap(renderKgPanel('co'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
+    venezuela:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCyProtestPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderCyActorsPanel(),'lp-wide'),wrap(renderKgPanel('ve'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     targeting:[wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')],
     sources:[renderSourceHealthFullPanel()],
@@ -5405,14 +5412,17 @@ function renderTwSourcePanel(){
 const CY_TAB={colombia:'co',venezuela:'ve'};
 const CY_WORLD_ID={co:'170',ve:'862'};
 const CY_LAYERS={
-  adm1:{label:'ADM1 outlines \u00b7 official choropleth',color:'#ffb74d'},
+  adm1:{label:'ADM1 outlines \u00b7 choropleth',color:'#ffb74d'},
+  loc:{label:'Bogot\u00e1 localidades (official polygons)',color:'#ce93d8'},
+  sat:{label:'Defensor\u00eda SAT alerts',color:'#ff8a65'},
+  mass:{label:'Massacres (Indepaz)',color:'#ef5350'},
   places:{label:'Configured places \u00b7 wire mentions',color:'#64f0c8'},
   hist:{label:'Historical points (OVCS SIGCO 2017)',color:'#9e9e9e'},
 };
 const CY_KIND={official:'OFFICIAL',observational:'OBSERVATIONAL',derived:'DERIVED',historical:'HISTORICAL','no-key':'NO KEY',licensed:'LICENSED'};
-const CY_STORE='crucix_cy_layers';
+const CY_STORE='crucix_cy_layers_v2';
 let cyActive=(()=>{try{const v=JSON.parse(localStorage.getItem(CY_STORE));if(v&&Array.isArray(v.on))return {on:new Set(v.on.filter(k=>CY_LAYERS[k]))}}catch{}return {on:new Set(Object.keys(CY_LAYERS))}})();
-const cyGeo={};let cyGeoBusy=false,cyTopic=null,cyLastCounts={adm1:0,places:0,hist:0};
+const cyGeo={};let cyGeoBusy=false,cyTopic=null,cyLastCounts={adm1:0,loc:0,sat:0,mass:0,places:0,hist:0};
 let cySvg=null,cyBase=null,cyLayersG=null,cyProj=null,cyPath=null,cyZoom=null,cyW=0,cyH=0,cyMapCc=null;const cyTransform={};
 function cyCc(){return CY_TAB[currentTab]||cyMapCc||'co'}
 function cyD(cc){return (D.country||{})[cc||cyCc()]||{}}
@@ -5423,7 +5433,7 @@ function cySave(){try{localStorage.setItem(CY_STORE,JSON.stringify({on:[...cyAct
 function cyToggle(k){if(!CY_LAYERS[k])return;if(cyActive.on.has(k))cyActive.on.delete(k);else cyActive.on.add(k);cySave();renderCyChips();cyDraw()}
 function cyGeoNow(cc){
   const c=cyD(cc);if(!c.id)return null;
-  const key=[c.openData?.fetchedAt,c.news?.fetchedAt,c.ovcs?.fetchedAt].join('|');
+  const key=[c.openData?.fetchedAt,c.news?.fetchedAt,c.ovcs?.fetchedAt,c.sat?.fetchedAt,c.indepaz?.fetchedAt].join('|');
   const g=cyGeo[cc];
   if(g&&g.key===key)return g.data;
   if(!cyGeoBusy)loadCyGeo(cc,key);
@@ -5456,7 +5466,8 @@ function cyFocusAt(lat,lon,k){
 function cyResetView(){if(cySvg)cySvg.transition().duration(400).call(cyZoom.transform,d3.zoomIdentity)}
 function cyScale(k){
   if(!cyLayersG)return;
-  cyLayersG.selectAll('.cy-pin').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  cyLayersG.selectAll('circle.cy-pin').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
+  cyLayersG.selectAll('rect.cy-pin').attr('transform',function(){const r=+this.dataset.r,x=+this.getAttribute('x')+r,y=+this.getAttribute('y')+r;return `rotate(45 ${x} ${y}) translate(${x} ${y}) scale(${1/Math.sqrt(k)}) translate(${-x} ${-y})`});
   cyLayersG.selectAll('.cy-lbl').style('font-size',function(){return (+this.dataset.fs||7)/k+'px'});
 }
 function initCyMap(){
@@ -5507,8 +5518,8 @@ function cyDraw(){
   cyLayersG.selectAll('*').remove();
   const cc=cyMapCc||cyCc(),c=cyD(cc),g=cyGeoNow(cc),k=cyTransform[cc]?cyTransform[cc].k:1;
   const on=x=>cyActive.on.has(x);
-  const gUnits=cyLayersG.append('g'),gHist=cyLayersG.append('g'),gPl=cyLayersG.append('g');
-  const counts={adm1:0,places:0,hist:0};
+  const gUnits=cyLayersG.append('g'),gLoc=cyLayersG.append('g'),gHist=cyLayersG.append('g'),gMas=cyLayersG.append('g'),gSat=cyLayersG.append('g'),gPl=cyLayersG.append('g');
+  const counts={adm1:0,loc:0,sat:0,mass:0,places:0,hist:0};
   if(g&&g.adm1&&on('adm1')){
     const vals=g.values?.byIso||{};
     const nums=Object.values(vals).filter(Number.isFinite);
@@ -5518,12 +5529,47 @@ function cyDraw(){
       const geom=cyUnitGeom(u);if(!geom)return;
       const v=vals[u.iso];const focus=u.iso&&u.iso===c.focusCity?.adm1Iso;
       const body=g.values
-        ?`<b style="color:#ffb74d">${cyN(v)}</b> ${esc(g.values.label||'')} \u00b7 ${esc(g.values.month||'')}<br><span style="color:var(--dim)">OFFICIAL \u00b7 ${esc(g.values.attribution||'')} \u00b7 municipio-level reports summed to the ${esc(g.adm1.unit||'unit')}.</span>`
+        ?(g.values.kind==='official'
+          ?`<b style="color:#ffb74d">${cyN(v)}</b> ${esc(g.values.label||'')} \u00b7 ${esc(g.values.month||'')}<br><span style="color:var(--dim)">OFFICIAL \u00b7 ${esc(g.values.attribution||'')} \u00b7 municipio-level reports summed to the ${esc(g.adm1.unit||'unit')}.</span>`
+          :`<b style="color:#90caf9">${Number.isFinite(v)?cyN(v):'not named'}</b> ${esc(g.values.label||'')} \u00b7 ${esc(g.values.month||'')}<br><span style="color:var(--dim)">OBSERVATIONAL \u00b7 ${esc(g.values.attribution||'')}. ${esc(g.values.note||'')}</span>`)
         :`<span style="color:var(--dim)">No official per-${esc(g.adm1.unit||'unit')} dataset is polled for ${esc(c.name||'this country')}; outline only.</span>`;
       gUnits.append('path').attr('class','cy-unit'+(focus?' focus':'')).attr('d',cyPath(geom)).attr('fill',fill(v))
         .on('click',e=>{e.stopPropagation();cyPopup(e,`${esc(u.name)} \u00b7 ${esc(u.iso||'')}`,body,`${esc(g.adm1.level||'ADM1')} \u00b7 ${esc(g.adm1.source||'')} ${esc(g.adm1.vintage||'')} \u00b7 ${esc(g.adm1.license||'')}`)})
         .append('title').text(`${u.name}${Number.isFinite(v)?`: ${v.toLocaleString('en-US')}`:''}`);
       counts.adm1++;
+    });
+  }
+  if(g&&g.localidades&&on('loc')){
+    const L=g.localidades,units=L.units||[];
+    const max=Math.max(1,...units.map(u=>u.mentions||0));
+    units.forEach(u=>{
+      const geom=cyUnitGeom(u);if(!geom)return;const m=u.mentions||0;
+      gLoc.append('path').attr('class','cy-unit cy-loc').attr('d',cyPath(geom)).attr('fill',ctRgba(CY_LAYERS.loc.color,0.08+0.6*Math.sqrt(m/max)))
+        .on('click',e=>{e.stopPropagation();cyPopup(e,`${esc(u.name)} \u00b7 LOCALIDAD ${esc(u.code||'')}`,`<b>${m}</b> wire mention${m===1?'':'s'} this sweep (configured alias match, not geocoding)${Number.isFinite(u.areaKm2)?` \u00b7 ${u.areaKm2.toFixed(1)} km\u00b2`:''}<br><span style="color:var(--dim)">OFFICIAL POLYGON \u00b7 ${esc(L.values?.note||'')}</span>`,`${esc(L.source||'')} \u00b7 ${esc(L.license||'')} \u00b7 ${esc(L.crs||'')} \u00b7 simplified for display`)})
+        .append('title').text(`${u.name}: ${m} wire mention${m===1?'':'s'}`);
+      counts.loc++;
+    });
+  }
+  if(g&&g.massacres&&on('mass')){
+    const M=g.massacres;
+    (M.points||[]).forEach(p=>{
+      const xy=cyProj([p.lon,p.lat]);if(!xy||!Number.isFinite(xy[0]))return;
+      const r=Math.min(7,2.4+Math.sqrt(Math.max(0,(p.victims||3)-2))*1.3);
+      gMas.append('circle').attr('class','cy-pin cy-mass').attr('cx',xy[0]).attr('cy',xy[1]).attr('data-r',r).attr('r',r/Math.sqrt(k))
+        .attr('fill',ctRgba(CY_LAYERS.mass.color,p.precision==='municipality'?0.55:0.25)).attr('stroke',ctRgba(CY_LAYERS.mass.color,0.9)).attr('stroke-width',0.8).attr('stroke-dasharray',p.precision==='municipality'?null:'2 1.5')
+        .on('click',e=>{e.stopPropagation();cyPopup(e,`MASSACRE \u00b7 ${esc(p.date||'')}`,`${esc(p.municipality||'')}${p.department?`, ${esc(p.department)}`:''} \u00b7 <b>${cyN(p.victims)}</b> victims (Indepaz count)<br><span style="color:var(--dim)">OBSERVATIONAL \u00b7 ${esc(M.note||'')}${p.precision==='department'?' Department centroid \u2014 municipio not in gazetteer.':''}</span>${M.url?'<br>'+twLink(M.url,'Indepaz running list'):''}`,`Indepaz \u00b7 ${esc(M.asOf?'as of '+M.asOf:'')} \u00b7 NGO tally, no names`)});
+      counts.mass++;
+    });
+  }
+  if(g&&g.alerts&&on('sat')){
+    const A=g.alerts;
+    (A.points||[]).forEach(p=>{
+      const xy=cyProj([p.lon,p.lat]);if(!xy||!Number.isFinite(xy[0]))return;
+      const imm=p.alertType==='imminence',col=imm?CY_LAYERS.sat.color:'#ffb74d',r=imm?3.4:2.8;
+      gSat.append('rect').attr('class','cy-pin cy-sat').attr('x',xy[0]-r).attr('y',xy[1]-r).attr('width',r*2).attr('height',r*2).attr('transform',`rotate(45 ${xy[0]} ${xy[1]})`).attr('data-r',r)
+        .attr('fill',ctRgba(col,p.precision==='municipality'?0.6:0.25)).attr('stroke',ctRgba(col,0.95)).attr('stroke-width',0.8).attr('stroke-dasharray',p.precision==='municipality'?null:'2 1.5')
+        .on('click',e=>{e.stopPropagation();cyPopup(e,`SAT ${esc(p.id||'')} \u00b7 ${esc(String(p.alertType||'').toUpperCase())}`,`${esc(p.name||'')}${p.department?`, ${esc(p.department)}`:''} \u00b7 issued ${esc(p.date||'')}${(p.groups||[]).length?`<br>Named groups: <span style="color:#ff8a65">${p.groups.map(esc).join(', ')}</span>`:''}<br><span style="color:var(--dim)">OFFICIAL \u00b7 ${esc(A.note||'')}${p.precision==='department'?' Department centroid \u2014 municipio not in gazetteer.':''}</span>${p.fichaUrl?'<br>'+twLink(p.fichaUrl,'Ficha'):''}${p.pdfUrl?' \u00b7 '+twLink(p.pdfUrl,'Alert PDF'):''}`,`${esc(A.source||'')} \u00b7 index rows only; the alert is the PDF`)});
+      counts.sat++;
     });
   }
   if(g&&g.historical&&on('hist')){
@@ -5556,15 +5602,16 @@ function cyDraw(){
   const note=document.getElementById('cyMapNote');
   if(note){
     const gi=cyGeo[cc];
-    note.textContent=g?`${counts.adm1} ${g.adm1.unit||'unit'}s drawn${g.values?` \u00b7 shaded by ${g.values.label} \u00b7 ${g.values.month} (official)`:' \u00b7 outlines only (no official per-unit dataset polled)'} \u00b7 ${counts.places} places \u00b7 ${counts.hist} historical points`:gi?.failed?'GEOMETRY UNAVAILABLE \u2014 place anchors still drawn':'LOADING GEOMETRY\u2026';
+    note.textContent=g?`${counts.adm1} ${g.adm1.unit||'unit'}s drawn${g.values?` \u00b7 shaded by ${g.values.label} \u00b7 ${g.values.month} (${g.values.kind==='official'?'official':'observational'}${g.values.partial?', partial':''})`:' \u00b7 outlines only (no official per-unit dataset polled)'}${g.localidades?` \u00b7 ${counts.loc} localidades (official polygons, shaded by wire mentions)`:''}${g.alerts?` \u00b7 ${counts.sat} SAT alert points`:''}${g.massacres?` \u00b7 ${counts.mass} massacres`:''} \u00b7 ${counts.places} places${g.historical?` \u00b7 ${counts.hist} historical points`:''}`:gi?.failed?'GEOMETRY UNAVAILABLE \u2014 place anchors still drawn':'LOADING GEOMETRY\u2026';
   }
 }
 function renderCyChips(){
   const el=document.getElementById('cyChips');if(!el)return;
   const cc=cyMapCc||cyCc(),c=cyD(cc),g=cyGeoNow(cc);
-  const n={adm1:g?.adm1?.units?.length||0,places:(g?.places||c.places||[]).length,hist:g?.historical?.count||0};
-  const why={adm1:g?'no units':cyGeo[cc]?.failed?'geometry unavailable':'geometry loading',places:'no places configured',hist:cc==='ve'?(g?'no historical points':'geometry loading'):'no historical layer for this country'};
-  const keys=['adm1','places'].concat(cc==='ve'?['hist']:[]);
+  const n={adm1:g?.adm1?.units?.length||0,loc:g?.localidades?.count||0,sat:g?.alerts?.count||0,mass:g?.massacres?.count||0,places:(g?.places||c.places||[]).length,hist:g?.historical?.count||0};
+  const loading=cyGeo[cc]?.failed?'geometry unavailable':'geometry loading';
+  const why={adm1:g?'no units':loading,loc:g?(c.geo?.localidades?.unavailable||'no localidad polygons \u2014 official figures via the SCJ link-out'):loading,sat:g?(c.sat?.error||'no SAT alerts geocoded this sweep'):loading,mass:g?(c.indepaz?.error||'no massacre rows geocoded this sweep'):loading,places:'no places configured',hist:cc==='ve'?(g?'no historical points':loading):'no historical layer for this country'};
+  const keys=cc==='co'?['adm1','loc','sat','mass','places']:['adm1','places','hist'];
   const chip=(k)=>{const v=CY_LAYERS[k],cnt=n[k],none=!cnt,on=cyActive.on.has(k);return `<button type="button" class="lchip ${none?'none':on?'on':'off'}" style="--lc:${v.color}" title="${esc(none?`${v.label}: ${why[k]}`:`${v.label}: ${cnt}. Click to ${on?'hide':'show'}.`)}" ${none?'disabled':`onclick="cyToggle('${k}')"`}><span class="ldot"></span>${esc(v.label)}${none?'':` <b>${cnt}</b>`}</button>`};
   const f=c.focusCity||{};
   el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">VIEW</span><button type="button" class="lchip preset off" onclick="cyResetView()">COUNTRY</button>${Number.isFinite(f.lat)?`<button type="button" class="lchip preset off" onclick="cyFocusAt(${Number(f.lat)},${Number(f.lon)},6)">FOCUS \u00b7 ${esc(String(f.name||'').toUpperCase())}</button>`:''}</div>`
@@ -5577,7 +5624,7 @@ function cyHeroTiles(c){
 function renderCyMapPanel(){
   const cc=cyCc(),c=cyD(cc);
   if(!c.id)return `<div class="g-panel cy-map-panel"><div class="sec-head"><h3>Country Picture</h3><span class="badge off">NOT IN PAYLOAD</span></div><div class="g-off-why">No country payload this sweep \u2014 the server has not completed a sweep with the country adapters yet.</div></div>`;
-  const names=cc==='co'?['ColombiaOpenData','ColombiaNews','InSightCrime']:['VenezuelaNews','OVCS','InSightCrime'];
+  const names=cc==='co'?['ColombiaOpenData','DefensoriaSAT','Indepaz','ColombiaNews','InSightCrime']:['VenezuelaNews','OVCS','InSightCrime'];
   const geo=c.geo;
   return `<div class="g-panel cy-map-panel">
       <div class="sec-head"><h3>${shDot(names)}Country Picture</h3><span class="badge" style="color:#e6f2ee">${esc(c.title||'')}</span>${twBadge(c,'LIVE')}</div>
@@ -5587,11 +5634,11 @@ function renderCyMapPanel(){
       <div class="ct-map" id="cyMapWrap">
         <svg id="cyMapSvg"></svg>
         <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A UNIT OR PLACE</div>
-        <div class="ct-key"><span><i style="width:14px;height:8px;border:1px solid #ffb74d;background:rgba(255,183,77,0.5);border-radius:2px"></i>${cc==='co'?'DEPARTAMENTO \u00b7 SHADE = OFFICIAL THEFT REPORTS':'ESTADO OUTLINE (NO OFFICIAL VALUES)'}</span><span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(100,240,200,0.75);height:8px;width:8px"></i>PLACE \u00b7 SIZE = WIRE MENTIONS</span>${cc==='ve'?'<span><i style="border-radius:50%;border:1px solid rgba(158,158,158,0.8);background:rgba(158,158,158,0.25);height:7px;width:7px"></i>HISTORICAL 2017 (OVCS SIGCO)</span>':''}</div>
+        <div class="ct-key"><span><i style="width:14px;height:8px;border:1px solid #ffb74d;background:rgba(255,183,77,0.5);border-radius:2px"></i>${cc==='co'?'DEPARTAMENTO \u00b7 SHADE = OFFICIAL THEFT REPORTS':'ESTADO \u00b7 SHADE = OVCS PROTESTS (STATES NAMED ONLY)'}</span>${cc==='co'?'<span><i style="width:14px;height:8px;border:1px solid #ce93d8;background:rgba(206,147,216,0.35);border-radius:2px"></i>LOCALIDAD (OFFICIAL POLYGON) \u00b7 SHADE = WIRE MENTIONS</span><span><i style="width:8px;height:8px;border:1px solid #ff8a65;background:rgba(255,138,101,0.6);transform:rotate(45deg)"></i>SAT ALERT (IMMINENCE RED \u00b7 STRUCTURAL AMBER)</span><span><i style="border-radius:50%;border-color:#ef5350;background:rgba(239,83,80,0.55);height:8px;width:8px"></i>MASSACRE \u00b7 SIZE = VICTIMS</span>':''}<span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(100,240,200,0.75);height:8px;width:8px"></i>PLACE \u00b7 SIZE = WIRE MENTIONS</span>${cc==='ve'?'<span><i style="border-radius:50%;border:1px solid rgba(158,158,158,0.8);background:rgba(158,158,158,0.25);height:7px;width:7px"></i>HISTORICAL 2017 (OVCS SIGCO)</span>':''}</div>
         <div class="map-popup" id="cyPopup"><div class="pp-close" onclick="cyClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
       </div>
       <div class="sh-note" id="cyMapNote"></div>
-      <div class="ct-disc"><b>Read before use:</b> ${(c.notes||[]).map(esc).join(' ')}${geo?` Polygons: ${esc(geo.source||'')} ${esc(geo.vintage||'')} via geoBoundaries, ${esc(geo.license||'')}, simplified for display \u2014 not authoritative boundaries.`:''}</div>
+      <div class="ct-disc"><b>Read before use:</b> ${(c.notes||[]).map(esc).join(' ')}${geo?` Polygons: ${esc(geo.source||'')} ${esc(geo.vintage||'')} via geoBoundaries, ${esc(geo.license||'')}, simplified for display \u2014 not authoritative boundaries.`:''}${geo?.localidades?.units?` Localidades: ${esc(geo.localidades.source||'')}, ${esc(geo.localidades.license||'')}, simplified.`:geo?.localidades?.unavailable?` Localidad polygons unavailable (${esc(geo.localidades.unavailable)}).`:''}</div>
     </div>`;
 }
 // Tiny SVG bars: one bar per month, value in the tooltip; first / last month and max labelled.
@@ -5633,8 +5680,12 @@ function renderCyProtestPanel(){
     <div class="front-kpis" style="grid-template-columns:repeat(3,1fr)">
       <div class="front-kpi"><div class="k">Protests \u00b7 ${esc(l?.month||'\u2014')}</div><div class="v" style="color:#90caf9">${cyN(l?.protests)}</div><div class="s">${l?`${cyN(l.perDay)}/day \u00b7 ${cyPct(l.yoyPct)} vs same month ${Number.isFinite(l.yoyBase)?`(${cyN(l.yoyBase)})`:''}`:esc(o.error||'no report parsed')}</div></div>
       <div class="front-kpi"><div class="k">Economic / social rights (DESCA)</div><div class="v">${cyN(l?.desca)}</div><div class="s">${Number.isFinite(l?.descaPct)?`${l.descaPct}% \u00b7 civil / political (DCP) ${cyN(l?.dcp)} (${cyN(l?.dcpPct)}%)`:'share not stated'}</div></div>
-      <div class="front-kpi"><div class="k">Repressed protests</div><div class="v" style="color:#ff8a65">${cyN(l?.repressed)}</div><div class="s">${Number.isFinite(o.latestAgeD)?`report ${Math.round(o.latestAgeD)} d old`:'as stated by OVCS'}</div></div>
+      <div class="front-kpi"><div class="k">Repressed protests</div><div class="v" style="color:#ff8a65">${cyN(l?.repressed)}</div><div class="s">${[Number.isFinite(l?.repressedStates)?`in ${l.repressedStates} states`:null,Number.isFinite(l?.abuseComplaints)?`${l.abuseComplaints} protests against abuse of power`:null,Number.isFinite(o.latestAgeD)?`report ${Math.round(o.latestAgeD)} d old`:null].filter(Boolean).join(' \u00b7 ')||'as stated by OVCS'}</div></div>
     </div>
+    ${(l?.byState||[]).length||(l?.modalities||[]).length?`<div class="front-kpis" style="grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="sh-group">By state \u00b7 ${esc(l.month||'')} \u00b7 as named in the report (partial ranking)</div>${(l.byState||[]).map(b=>`<div class="econ-row"><span class="elabel" style="text-transform:none"><span class="ct-kind" style="color:${b.rank==='top'?'#90caf9':'#9e9e9e'};border-color:${b.rank==='top'?'rgba(144,202,249,0.5)':'rgba(158,158,158,0.5)'};margin-right:4px">${b.rank==='top'?'MOST':'LEAST'}</span>${esc(b.state)}</span><span class="eval">${cyN(b.n)}</span></div>`).join('')||'<div class="g-off-why">States not named in this report.</div>'}</div>
+      <div><div class="sh-group">Modalities \u00b7 ${esc(l.month||'')}</div>${(l.modalities||[]).map(d=>`<div class="econ-row"><span class="elabel" style="text-transform:none">${esc(d.kind)}</span><span class="eval">${cyN(d.n)}${Number.isFinite(d.pct)?` <span style="color:var(--dim);font-size:9px">${d.pct}%</span>`:''}</span></div>`).join('')||'<div class="g-off-why">Modalities not stated in this report.</div>'}<div class="ct-org-sub" style="margin-top:4px">OVCS names only the most and least active states and the leading modalities; unlisted states are not zero. The named states shade the map.</div></div>
+    </div>`:''}
     <div class="sh-group">Monthly protests \u00b7 OVCS situation reports</div>${cyBars((o.monthly||[]).slice().reverse().map(m=>({month:m.month,n:m.protests})),'#90caf9','protests')}
     <div class="ct-scroll" style="max-height:30vh">${rows||'<div class="g-off-why">No OVCS reports parsed this sweep.</div>'}</div>
     ${h?`<div class="front-row" style="cursor:default;margin-top:4px"><span class="ct-kind" style="color:#9e9e9e;border-color:rgba(158,158,158,0.5)">HISTORICAL</span><span style="flex:1;min-width:0">${esc(h.title||'')} \u00b7 <b>${cyN(h.count)}</b> placemarks<div class="ct-org-sub">${esc(h.note||'')} Drawn on the map as grey points; ${twLink(h.url,'OVCS SIGCO')}</div></span></div>`:''}
@@ -5673,6 +5724,74 @@ function renderCyProfilesPanel(){
   return `<div class="g-panel cy-profiles-panel"><div class="sec-head"><h3>${shDot(['InSightCrime'])}Criminal Groups — InSight Crime profiles</h3>${cyKind('observational')}${twBadge(st,`${(p?.cards||[]).length} CARDS`)}</div>
     <div class="ct-scroll" style="max-height:52vh"><div class="front-kpis" style="grid-template-columns:repeat(2,1fr)">${cards}</div>${cards?'':`<div class="g-off-why">${esc(p?.error||'Group profiles not available this sweep.')}${p?.tagUrl?' \u00b7 '+twLink(p.tagUrl,'InSight Crime country index'):''}</div>`}</div>
     <div class="sh-note">InSight Crime\u2019s \u201c${esc(p?.label||(c.name||'')+' Groups')}\u201d tag: PROFILE = a group profile page, ANALYSIS = a tagged article. Excerpts as published${p?.status==='stale'?' \u00b7 serving the last good copy ('+esc(p.error||'')+')':''}; configured group names in ${esc(c.name||'')} wires: ${(c.groups||[]).slice(0,12).map(esc).join(', ')}.</div></div>`;
+}
+let cySatType=null;
+function cySatSet(t){cySatType=cySatType===t?null:t;const el=document.getElementById('cySatBody');if(el)el.innerHTML=cySatBody(cyD('co').sat)}
+function cySatBody(s){
+  const alerts=(s.alerts||[]).filter(a=>!cySatType||a.type===cySatType);
+  const col=t=>t==='imminence'?'#ff8a65':'#ffb74d';
+  return alerts.map(a=>`<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:${col(a.type)};border-color:${ctRgba(col(a.type),0.5)}" title="${esc(a.type)}">${esc(String(a.type||'').toUpperCase().slice(0,9))}</span><span style="flex:1;min-width:0"><b>AT ${esc(a.id)}</b> \u00b7 ${esc(a.date||'')} \u00b7 ${esc(a.placesText||'')}${a.followUp?` \u00b7 <span style="color:var(--dim)">${esc(a.followUp)}</span>`:''}<div class="ct-org-sub" style="color:#c8d8d2">${esc(a.theme||'')}</div><div class="ct-org-sub">${(a.groups||[]).length?'<span style="color:#ff8a65">'+a.groups.map(g=>esc(g.short)).join(', ')+'</span> \u00b7 ':''}${a.fichaUrl?twLink(a.fichaUrl,'Ficha'):''}${a.pdfUrl?' \u00b7 '+twLink(a.pdfUrl,'Alert PDF'):''}${(a.points||[]).length?` \u00b7 ${a.points.length} point${a.points.length===1?'':'s'}${a.points.some(p=>p.precision==='department')?' (some department-level)':''}`:' \u00b7 not geocoded'}${(a.points||[]).length?` \u00b7 <a href="#" onclick="cyFocusAt(${Number(a.points[0].lat)},${Number(a.points[0].lon)},5);return false" style="color:#64f0c8">map</a>`:''}</div></span></div>`).join('')||`<div class="g-off-why">${cySatType?'No alerts of this type in the polled pages.':'No alerts parsed this sweep.'}</div>`;
+}
+function renderCySatPanel(){
+  const c=cyD('co'),s=c.sat;
+  if(!s){const r=(c.sourceRows||[]).find(r=>r.name==='DefensoriaSAT')||{};const why=r.status==='error'?`alertastempranas.defensoria.gov.co did not answer this sweep${r.error?': '+r.error:''}. The index stays reachable via the link-out.`:'Alert rows are parsed after the first sweep completes.';
+    return `<div class="g-panel g-off cy-sat-panel"><div class="sec-head"><h3>${shDot(['DefensoriaSAT'])}Early Warnings — Defensoría del Pueblo SAT</h3><span class="badge ${r.status==='error'?'err':'off'}">${r.status==='error'?'FAILED':'PENDING'}</span></div><div class="g-off-why">${esc(why)}</div></div>`;}
+  const y=s.ytd||{},bt=y.byType||{};
+  const bars=(rows,color)=>{const max=Math.max(1,...rows.map(r=>r.n));return rows.map(r=>`<div class="econ-row"><span class="elabel" style="text-transform:none">${esc(r.name)}</span><span class="eval" style="display:flex;align-items:center;gap:6px"><i style="display:inline-block;height:6px;width:${Math.round(60*r.n/max)}px;background:${ctRgba(color,0.7)}"></i>${cyN(r.n)}</span></div>`).join('')};
+  const chip=(t,lab,cnt)=>`<button type="button" class="lchip preset ${cySatType===t?'on':'off'}" onclick="cySatSet('${t}')">${lab} <b>${cnt}</b></button>`;
+  return `<div class="g-panel cy-sat-panel"><div class="sec-head"><h3>${shDot(['DefensoriaSAT'])}Early Warnings — Defensoría del Pueblo SAT</h3>${cyKind('official')}${twBadge(s,`${(s.alerts||[]).length} ALERTS`)}</div>
+    <div class="front-kpis" style="grid-template-columns:repeat(3,1fr)">
+      <div class="front-kpi"><div class="k">Alerts issued \u00b7 ${esc(String(y.year||'\u2014'))} to date</div><div class="v" style="color:#ffb74d">${cyN(y.alerts)}</div><div class="s">${cyN(bt.imminence)} imminence \u00b7 ${cyN(bt.structural)} structural</div></div>
+      <div class="front-kpi"><div class="k">Departamentos with an alert</div><div class="v">${cyN(y.departments)}</div><div class="s">${(y.topDepartments||[]).slice(0,3).map(d=>`${esc(d.name)} ${d.n}`).join(' \u00b7 ')||'\u2014'}</div></div>
+      <div class="front-kpi"><div class="k">Latest alert</div><div class="v" style="font-size:14px">${s.latest?`AT ${esc(s.latest.id)}`:'\u2014'}</div><div class="s">${s.latest?`${esc(s.latest.date)} \u00b7 ${esc(s.latest.placesText)}`:esc(s.error||'')}${Number.isFinite(s.latestAgeD)?` \u00b7 ${Math.round(s.latestAgeD)} d ago`:''}</div></div>
+    </div>
+    <div class="front-kpis" style="grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="sh-group">Alerts by departamento \u00b7 ${esc(String(y.year||''))}</div>${bars((y.topDepartments||[]).slice(0,8),'#ffb74d')||'<div class="g-off-why">none</div>'}</div>
+      <div><div class="sh-group">Armed groups named in alert themes \u00b7 ${esc(String(y.year||''))}</div>${bars((y.topGroups||[]).slice(0,8),'#ff8a65')||'<div class="g-off-why">none</div>'}<div class="ct-org-sub" style="margin-top:4px">Name matches against the CRUCIX group index in the Defensor\u00eda\u2019s own threat summary \u2014 the Defensor\u00eda\u2019s attribution, tagged, not CRUCIX\u2019s.</div></div>
+    </div>
+    <div class="ct-chiprow" style="margin:4px 0"><span class="lchip-head">TYPE</span>${chip('imminence','IMMINENCE',(s.alerts||[]).filter(a=>a.type==='imminence').length)}${chip('structural','STRUCTURAL',(s.alerts||[]).filter(a=>a.type==='structural').length)}</div>
+    <div class="ct-scroll" id="cySatBody" style="max-height:48vh">${cySatBody(s)}</div>
+    <div class="sh-note">Sistema de Alertas Tempranas index, ${esc(String(s.pagesFetched||0))} of ${esc(String(s.pagesTotal||'?'))} pages polled (newest first). ${(s.disclaimer||[]).map(esc).join(' ')} ${twLink(s.site,'alertastempranas.defensoria.gov.co')}</div></div>`;
+}
+function renderCyIndepazPanel(){
+  const c=cyD('co'),i=c.indepaz;
+  if(!i){const r=(c.sourceRows||[]).find(r=>r.name==='Indepaz')||{};const why=r.status==='error'?`indepaz.org.co did not answer this sweep${r.error?': '+r.error:''}.`:'Indepaz tallies are parsed after the first sweep completes.';
+    return `<div class="g-panel g-off cy-indepaz-panel"><div class="sec-head"><h3>${shDot(['Indepaz'])}Massacres and Social Leaders — Indepaz</h3><span class="badge ${r.status==='error'?'err':'off'}">${r.status==='error'?'FAILED':'PENDING'}</span></div><div class="g-off-why">${esc(why)}</div></div>`;}
+  const m=i.masacres,l=i.lideres,my=m?.years?.[0],lc=l?.current;
+  const yrs=(m?.years||[]).map(y=>`<div class="econ-row"><span class="elabel">${esc(String(y.year))}${y.asOf?` <span style="color:var(--dim)">to ${esc(y.asOf)}</span>`:''}</span><span class="eval"><b style="color:#ef5350">${cyN(y.massacres)}</b> massacres \u00b7 ${cyN(y.victims)} victims</span></div>`).join('');
+  const lyrs=(l?.years||[]).map(y=>`<div class="econ-row"><span class="elabel">${esc(String(y.year))}${y.latestDate?` <span style="color:var(--dim)">to ${esc(y.latestDate)}</span>`:''}</span><span class="eval"><b style="color:#ce93d8">${cyN(y.leaders)}</b> leaders \u00b7 ${cyN(y.signatories)} signatories</span></div>`).join('');
+  const bars=(rows,color)=>{const max=Math.max(1,...rows.map(r=>r.n));return rows.map(r=>`<div class="econ-row"><span class="elabel" style="text-transform:none">${esc(r.name)}</span><span class="eval" style="display:flex;align-items:center;gap:6px"><i style="display:inline-block;height:6px;width:${Math.round(60*r.n/max)}px;background:${ctRgba(color,0.7)}"></i>${cyN(r.n)}</span></div>`).join('')};
+  const recent=(m?.rows||[]).slice(0,12).map(r=>`<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:#ef5350;border-color:rgba(239,83,80,0.5)">${esc(r.date||'')}</span><span style="flex:1;min-width:0">${esc(r.municipality)}<span style="color:var(--dim)">, ${esc(r.department)}</span> \u00b7 <b>${cyN(r.victims)}</b> victims${Number.isFinite(r.lat)?` \u00b7 <a href="#" onclick="cyFocusAt(${Number(r.lat)},${Number(r.lon)},5);return false" style="color:#64f0c8">map</a>`:' \u00b7 not geocoded'}</span></div>`).join('');
+  return `<div class="g-panel cy-indepaz-panel"><div class="sec-head"><h3>${shDot(['Indepaz'])}Massacres and Social Leaders — Indepaz</h3>${cyKind('observational')}${twBadge(i,'LIVE')}</div>
+    <div class="front-kpis" style="grid-template-columns:repeat(4,1fr)">
+      <div class="front-kpi"><div class="k">Massacres \u00b7 ${esc(String(my?.year||'\u2014'))}</div><div class="v" style="color:#ef5350">${cyN(my?.massacres)}</div><div class="s">${my?`as of ${esc(my.asOf||m.asOf||'')} \u00b7 ${cyN(m.rows?.length)} rows geocoded`:esc(i.error||'')}</div></div>
+      <div class="front-kpi"><div class="k">Victims \u00b7 ${esc(String(my?.year||'\u2014'))}</div><div class="v">${cyN(my?.victims)}</div><div class="s">${m?.byDepartment?.[0]?`most: ${esc(m.byDepartment[0].name)} ${m.byDepartment[0].n} massacres`:''}</div></div>
+      <div class="front-kpi"><div class="k">Social leaders killed \u00b7 ${esc(String(lc?.year||'\u2014'))}</div><div class="v" style="color:#ce93d8">${cyN(lc?.leaders)}</div><div class="s">${lc?`latest ${esc(lc.latestDate||'')} \u00b7 ${lc.bySector?.[0]?esc(lc.bySector[0].name.toLowerCase())+' '+lc.bySector[0].n:''}`:''}</div></div>
+      <div class="front-kpi"><div class="k">Peace-accord signatories killed</div><div class="v">${cyN(lc?.signatories)}</div><div class="s">counts only \u2014 no names</div></div>
+    </div>
+    <div class="sh-group">Massacres by month \u00b7 ${esc(String(my?.year||''))}</div>${cyBars(m?.byMonth||[],'#ef5350','massacres')}
+    <div class="front-kpis" style="grid-template-columns:1fr 1fr;gap:8px">
+      <div><div class="sh-group">Massacres by year (Indepaz)</div>${yrs||'<div class="g-off-why">none</div>'}<div class="sh-group">Massacres by departamento \u00b7 ${esc(String(my?.year||''))}</div>${bars((m?.byDepartment||[]).slice(0,8),'#ef5350')||'<div class="g-off-why">none</div>'}</div>
+      <div><div class="sh-group">Leaders / signatories by year (Indepaz)</div>${lyrs||'<div class="g-off-why">none</div>'}<div class="sh-group">Leaders killed by sector \u00b7 ${esc(String(lc?.year||''))}</div>${bars((lc?.bySector||[]).slice(0,8),'#ce93d8')||'<div class="g-off-why">none</div>'}</div>
+    </div>
+    <div class="sh-group">Most recent massacres listed</div><div class="ct-scroll" style="max-height:30vh">${recent||'<div class="g-off-why">No massacre rows parsed.</div>'}</div>
+    <div class="sh-note">${(i.disclaimer||[]).map(esc).join(' ')} ${m?.post?.url?twLink(m.post.url,'Indepaz massacres post'):''}${l?.post?.url?' \u00b7 '+twLink(l.post.url,'Indepaz leaders post'):''}</div></div>`;
+}
+const CY_ACTOR_COLOR={guerrilla:'#ff8a65',dissident:'#ffab40',paramilitary:'#ce93d8',bacrim:'#ce93d8',cartel:'#ef5350',gang:'#90caf9',megabanda:'#90caf9',mafia:'#ffd54f',umbrella:'#9e9e9e'};
+function cyActorColor(t){const k=String(t||'').split(/[\s(]/)[0];return CY_ACTOR_COLOR[k]||'#bdbdbd'}
+function cyActorIsolate(cc,id){if(!kgInst(cc))return;kgUse(cc);kgIsolate(id,1);document.getElementById(KG.panelId)?.scrollIntoView({behavior:'smooth',block:'start'})}
+function renderCyActorsPanel(){
+  const c=cyD(),a=c.actors;
+  if(!a)return `<div class="g-panel g-off cy-actors-panel"><div class="sec-head"><h3>Armed Actors — group index × knowledge graph</h3><span class="badge off">PENDING</span></div><div class="g-off-why">Actor cards are assembled from the ${esc(c.name||'country')} group index and the InSight Crime knowledge graph once the graph has loaded.</div></div>`;
+  const cards=(a.cards||[]).map(k=>{const col=cyActorColor(k.type),g=k.graph;return `<div class="front-kpi cy-actor" style="display:flex;flex-direction:column;gap:3px;border-left:2px solid ${ctRgba(col,0.8)}">
+      <div class="k" style="display:flex;justify-content:space-between;gap:6px;align-items:baseline"><span style="font-size:10px;color:#e6f2ee">${k.profileUrl?twLink(k.profileUrl,k.name):esc(k.name)}</span><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}">${esc(String(k.type||'').toUpperCase())}</span></div>
+      <div class="ct-org-sub">${k.parent?`part of <b>${esc(k.parent)}</b> \u00b7 `:''}${k.usDesignation?`<span style="color:#ffb74d">${esc(k.usDesignation)}</span> \u00b7 `:''}${(k.leaders||[]).length?`leaders on record: ${k.leaders.map(esc).join(', ')}`:''}</div>
+      ${g?`<div class="ct-org-sub"><b>${cyN(g.articles)}</b> InSight Crime articles \u00b7 ${cyN(g.degree)} graph links${g.first?` \u00b7 ${esc(String(g.first).slice(0,4))}\u2013${esc(String(g.last||'').slice(0,4))}`:''} \u00b7 <a href="#" onclick="cyActorIsolate('${esc(cyCc())}','org:${esc(k.id)}');return false" style="color:#64f0c8">isolate in graph</a></div>${(g.relations||[]).map(r=>`<div class="cy-rel"><i>${esc(r.label)}</i><span>${esc(r.other)} <span style="color:var(--dim)">${r.articles} art.</span></span></div>`).join('')}`:`<div class="ct-org-sub" style="color:var(--dim)">not in the InSight Crime corpus sampled for this graph</div>`}
+      ${k.profileSummary?`<div class="s" style="color:#c8d8d2">${esc(k.profileSummary)} <span style="color:var(--dim)">\u2014 InSight Crime profile</span></div>`:''}
+    </div>`}).join('');
+  return `<div class="g-panel cy-actors-panel"><div class="sec-head"><h3>${shDot(['InSightCrime'])}Armed Actors — group index × knowledge graph</h3>${cyKind('observational')}<span class="badge live">${cyN(a.count)} GROUPS \u00b7 ${cyN(a.inGraph)} IN GRAPH \u00b7 ${cyN(a.withProfile)} PROFILES</span></div>
+    <div class="ct-scroll" style="max-height:60vh"><div class="front-kpis" style="grid-template-columns:repeat(3,1fr)">${cards}</div>${cards?'':'<div class="g-off-why">No groups configured.</div>'}</div>
+    <div class="sh-note">${esc(a.note||'')} Group index ${esc(a.groupsVersion||'')} \u00b7 extractor ${esc(a.extractor||'')}${a.computedAt?' \u00b7 graph '+twWhen(a.computedAt):''}.</div></div>`;
 }
 function renderCyLinkOutsPanel(){
   const c=cyD(),acled=c.acled||{};
