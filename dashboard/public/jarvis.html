@@ -5726,7 +5726,8 @@ function renderCyProfilesPanel(){
     <div class="sh-note">InSight Crime\u2019s \u201c${esc(p?.label||(c.name||'')+' Groups')}\u201d tag: PROFILE = a group profile page, ANALYSIS = a tagged article. Excerpts as published${p?.status==='stale'?' \u00b7 serving the last good copy ('+esc(p.error||'')+')':''}; configured group names in ${esc(c.name||'')} wires: ${(c.groups||[]).slice(0,12).map(esc).join(', ')}.</div></div>`;
 }
 let cySatType=null;
-function cySatSet(t){cySatType=cySatType===t?null:t;const el=document.getElementById('cySatBody');if(el)el.innerHTML=cySatBody(cyD('co').sat)}
+function cySatSet(t){cySatType=cySatType===t?null:t;const s=cyD('co').sat;const el=document.getElementById('cySatBody');if(el)el.innerHTML=cySatBody(s);const ch=document.getElementById('cySatChips');if(ch)ch.innerHTML=cySatChips(s)}
+function cySatChips(s){const chip=(t,lab,cnt)=>`<button type="button" class="lchip preset ${cySatType===t?'on':'off'}" onclick="cySatSet('${t}')">${lab} <b>${cnt}</b></button>`;return chip('imminence','IMMINENCE',(s.alerts||[]).filter(a=>a.type==='imminence').length)+chip('structural','STRUCTURAL',(s.alerts||[]).filter(a=>a.type==='structural').length)}
 function cySatBody(s){
   const alerts=(s.alerts||[]).filter(a=>!cySatType||a.type===cySatType);
   const col=t=>t==='imminence'?'#ff8a65':'#ffb74d';
@@ -5738,7 +5739,6 @@ function renderCySatPanel(){
     return `<div class="g-panel g-off cy-sat-panel"><div class="sec-head"><h3>${shDot(['DefensoriaSAT'])}Early Warnings — Defensoría del Pueblo SAT</h3><span class="badge ${r.status==='error'?'err':'off'}">${r.status==='error'?'FAILED':'PENDING'}</span></div><div class="g-off-why">${esc(why)}</div></div>`;}
   const y=s.ytd||{},bt=y.byType||{};
   const bars=(rows,color)=>{const max=Math.max(1,...rows.map(r=>r.n));return rows.map(r=>`<div class="econ-row"><span class="elabel" style="text-transform:none">${esc(r.name)}</span><span class="eval" style="display:flex;align-items:center;gap:6px"><i style="display:inline-block;height:6px;width:${Math.round(60*r.n/max)}px;background:${ctRgba(color,0.7)}"></i>${cyN(r.n)}</span></div>`).join('')};
-  const chip=(t,lab,cnt)=>`<button type="button" class="lchip preset ${cySatType===t?'on':'off'}" onclick="cySatSet('${t}')">${lab} <b>${cnt}</b></button>`;
   return `<div class="g-panel cy-sat-panel"><div class="sec-head"><h3>${shDot(['DefensoriaSAT'])}Early Warnings — Defensoría del Pueblo SAT</h3>${cyKind('official')}${twBadge(s,`${(s.alerts||[]).length} ALERTS`)}</div>
     <div class="front-kpis" style="grid-template-columns:repeat(3,1fr)">
       <div class="front-kpi"><div class="k">Alerts issued \u00b7 ${esc(String(y.year||'\u2014'))} to date</div><div class="v" style="color:#ffb74d">${cyN(y.alerts)}</div><div class="s">${cyN(bt.imminence)} imminence \u00b7 ${cyN(bt.structural)} structural</div></div>
@@ -5749,7 +5749,7 @@ function renderCySatPanel(){
       <div><div class="sh-group">Alerts by departamento \u00b7 ${esc(String(y.year||''))}</div>${bars((y.topDepartments||[]).slice(0,8),'#ffb74d')||'<div class="g-off-why">none</div>'}</div>
       <div><div class="sh-group">Armed groups named in alert themes \u00b7 ${esc(String(y.year||''))}</div>${bars((y.topGroups||[]).slice(0,8),'#ff8a65')||'<div class="g-off-why">none</div>'}<div class="ct-org-sub" style="margin-top:4px">Name matches against the CRUCIX group index in the Defensor\u00eda\u2019s own threat summary \u2014 the Defensor\u00eda\u2019s attribution, tagged, not CRUCIX\u2019s.</div></div>
     </div>
-    <div class="ct-chiprow" style="margin:4px 0"><span class="lchip-head">TYPE</span>${chip('imminence','IMMINENCE',(s.alerts||[]).filter(a=>a.type==='imminence').length)}${chip('structural','STRUCTURAL',(s.alerts||[]).filter(a=>a.type==='structural').length)}</div>
+    <div class="ct-chiprow" style="margin:4px 0"><span class="lchip-head">TYPE</span><span id="cySatChips" style="display:contents">${cySatChips(s)}</span></div>
     <div class="ct-scroll" id="cySatBody" style="max-height:48vh">${cySatBody(s)}</div>
     <div class="sh-note">Sistema de Alertas Tempranas index, ${esc(String(s.pagesFetched||0))} of ${esc(String(s.pagesTotal||'?'))} pages polled (newest first). ${(s.disclaimer||[]).map(esc).join(' ')} ${twLink(s.site,'alertastempranas.defensoria.gov.co')}</div></div>`;
 }
@@ -5785,11 +5785,13 @@ function renderCyActorsPanel(){
   if(!a)return `<div class="g-panel g-off cy-actors-panel"><div class="sec-head"><h3>Armed Actors — group index × knowledge graph</h3><span class="badge off">PENDING</span></div><div class="g-off-why">Actor cards are assembled from the ${esc(c.name||'country')} group index and the InSight Crime knowledge graph once the graph has loaded.</div></div>`;
   const cards=(a.cards||[]).map(k=>{const col=cyActorColor(k.type),g=k.graph;return `<div class="front-kpi cy-actor" style="display:flex;flex-direction:column;gap:3px;border-left:2px solid ${ctRgba(col,0.8)}">
       <div class="k" style="display:flex;justify-content:space-between;gap:6px;align-items:baseline"><span style="font-size:10px;color:#e6f2ee">${k.profileUrl?twLink(k.profileUrl,k.name):esc(k.name)}</span><span class="ct-kind" style="color:${col};border-color:${ctRgba(col,0.5)}">${esc(String(k.type||'').toUpperCase())}</span></div>
+      ${(k.aliases||[]).length?`<div class="ct-org-sub">a.k.a. ${k.aliases.map(esc).join(', ')}</div>`:''}
       <div class="ct-org-sub">${k.parent?`part of <b>${esc(k.parent)}</b> \u00b7 `:''}${k.usDesignation?`<span style="color:#ffb74d">${esc(k.usDesignation)}</span> \u00b7 `:''}${(k.leaders||[]).length?`leaders on record: ${k.leaders.map(esc).join(', ')}`:''}</div>
       ${g?`<div class="ct-org-sub"><b>${cyN(g.articles)}</b> InSight Crime articles \u00b7 ${cyN(g.degree)} graph links${g.first?` \u00b7 ${esc(String(g.first).slice(0,4))}\u2013${esc(String(g.last||'').slice(0,4))}`:''} \u00b7 <a href="#" onclick="cyActorIsolate('${esc(cyCc())}','org:${esc(k.id)}');return false" style="color:#64f0c8">isolate in graph</a></div>${(g.relations||[]).map(r=>`<div class="cy-rel"><i>${esc(r.label)}</i><span>${esc(r.other)} <span style="color:var(--dim)">${r.articles} art.</span></span></div>`).join('')}`:`<div class="ct-org-sub" style="color:var(--dim)">not in the InSight Crime corpus sampled for this graph</div>`}
       ${k.profileSummary?`<div class="s" style="color:#c8d8d2">${esc(k.profileSummary)} <span style="color:var(--dim)">\u2014 InSight Crime profile</span></div>`:''}
     </div>`}).join('');
   return `<div class="g-panel cy-actors-panel"><div class="sec-head"><h3>${shDot(['InSightCrime'])}Armed Actors — group index × knowledge graph</h3>${cyKind('observational')}<span class="badge live">${cyN(a.count)} GROUPS \u00b7 ${cyN(a.inGraph)} IN GRAPH \u00b7 ${cyN(a.withProfile)} PROFILES</span></div>
+    ${Number(a.shown)<Number(a.count)?`<div class="ct-org-sub" style="margin:-2px 0 4px">Showing the <b>${cyN(a.shown)}</b> most-covered of ${cyN(a.count)} indexed groups (by InSight Crime article count); the rest are reachable through the knowledge graph below.</div>`:''}
     <div class="ct-scroll" style="max-height:60vh"><div class="front-kpis" style="grid-template-columns:repeat(3,1fr)">${cards}</div>${cards?'':'<div class="g-off-why">No groups configured.</div>'}</div>
     <div class="sh-note">${esc(a.note||'')} Group index ${esc(a.groupsVersion||'')} \u00b7 extractor ${esc(a.extractor||'')}${a.computedAt?' \u00b7 graph '+twWhen(a.computedAt):''}.</div></div>`;
 }
