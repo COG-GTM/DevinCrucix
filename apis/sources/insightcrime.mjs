@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { safeFetch } from '../utils/fetch.mjs';
+import { decodeEntities } from '../utils/rss.mjs';
 import { crossReference } from './opensanctions.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -37,7 +38,7 @@ function parseRSS(xmlText) {
     const get = (tag) => {
       const m = xml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`, 'i'))
         || xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
-      return m ? m[1].trim() : '';
+      return m ? decodeEntities(m[1].trim()) : '';
     };
     items.push({
       title: get('title'),
@@ -50,7 +51,7 @@ function parseRSS(xmlText) {
   return items;
 }
 
-const stripHtml = (s, max) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/&#8217;|&rsquo;/g, '’').replace(/&#8220;|&#8221;|&ldquo;|&rdquo;/g, '"').replace(/&amp;/g, '&').replace(/&hellip;|&#8230;/g, '…').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+const stripHtml = (s, max) => decodeEntities(String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/&rsquo;/g, '’').replace(/&ldquo;|&rdquo;/g, '"').replace(/&hellip;/g, '…')).replace(/\s+/g, ' ').trim().slice(0, max);
 const icUrl = (raw) => { try { const u = new URL(String(raw ?? '')); return u.protocol === 'https:' && /(^|\.)insightcrime\.org$/.test(u.hostname) ? u.toString() : null; } catch { return null; } };
 const isoDate = (raw) => { const t = Date.parse(String(raw ?? '')); return Number.isFinite(t) ? new Date(t).toISOString() : null; };
 

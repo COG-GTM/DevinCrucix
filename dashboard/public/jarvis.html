@@ -494,6 +494,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sh-sum span{display:inline-flex;align-items:center}
 .sh-row{display:grid;grid-template-columns:8px minmax(72px,1fr) auto;align-items:center;column-gap:8px;padding:5px 8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);margin-bottom:3px;font-size:11px}
 .sh-row .hdot{margin:0}
+.cy-source-panel .sh-row{grid-template-columns:8px minmax(150px,2fr) 3fr}
+.cy-source-panel .sh-name{white-space:normal;overflow:visible;text-overflow:clip}
 .sh-name{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sh-env{grid-column:2/4;font-family:var(--mono);font-size:9px;color:var(--accent2);opacity:0.85;margin-top:2px;word-break:break-word}
 .sh-env::before{content:'SET ';color:var(--dim)}
@@ -5663,7 +5665,8 @@ function renderCyProfilesPanel(){
     <div class="sh-note">InSight Crime\u2019s \u201c${esc(p?.label||(c.name||'')+' Groups')}\u201d tag: PROFILE = a group profile page, ANALYSIS = a tagged article. Excerpts as published${p?.status==='stale'?' \u00b7 serving the last good copy ('+esc(p.error||'')+')':''}; configured group names in ${esc(c.name||'')} wires: ${(c.groups||[]).slice(0,12).map(esc).join(', ')}.</div></div>`;
 }
 function renderCyLinkOutsPanel(){
-  const links=cyD().linkOuts||[];
+  const c=cyD(),acled=c.acled||{};
+  const links=[...(c.linkOuts||[]),...(acled.status!=='live'&&acled.registerUrl?[{label:'ACLED conflict events',url:acled.registerUrl,why:'NO KEY \u2014 free research account + API key required (ACLED_EMAIL / ACLED_KEY); register at acleddata.com.'}]:[])];
   const rows=links.map(l=>{const u=l.url?safeExternalUrl(l.url):null;return `<div class="front-row" style="cursor:default"><span class="ct-kind" style="color:var(--dim);border-color:rgba(255,255,255,0.2)">LINK-OUT</span><span style="flex:1;min-width:0">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="color:#e6f2ee">${esc(l.label)} \u2197</a>`:esc(l.label)}<div class="ct-org-sub">${esc(l.why||'')}</div></span></div>`}).join('');
   return `<div class="g-panel cy-links-panel"><div class="sec-head"><h3>Not Polled — Go to the Source</h3><span class="badge off">${links.length} LINK-OUTS</span></div>
     <div class="ct-scroll">${rows||'<div class="g-off-why">No link-outs listed.</div>'}</div>
@@ -5677,9 +5680,11 @@ function renderCySourcePanel(){
     const st=r.status||'unavailable';
     const detail=[st.toUpperCase()+(r.stale?' \u00b7 cached copy':''),r.fetchedAt?twWhen(r.fetchedAt):null].filter(Boolean).join(' \u00b7 ');
     const probs=[r.error,...(r.problems||[])].filter(Boolean).slice(0,3).map(p=>`<div class="g-off-why" style="color:#ff8a65;padding-left:16px">\u26a0 ${esc(p)}</div>`).join('');
-    return `<div class="sh-row ${stClass(st)}" style="align-items:flex-start"><span class="hdot ${stClass(st)}" style="margin-top:4px"></span><span class="sh-name" style="flex:0 0 118px">${esc(r.label)} ${cyKind(r.kind)}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2">${esc(detail)}<div class="ct-org-sub">${esc(r.detail||'')}</div></span></div>${probs}`;
+    return `<div class="sh-row ${stClass(st)}" style="align-items:flex-start"><span class="hdot ${stClass(st)}" style="margin-top:4px"></span><span class="sh-name" title="${esc(r.label)} \u00b7 ${esc(r.kind||'')}">${esc(r.label)} ${cyKind(r.kind)}</span><span class="sh-why" style="text-transform:none;letter-spacing:0;white-space:normal;color:#c8d8d2">${esc(detail)}<div class="ct-org-sub">${esc(r.detail||'')}</div></span></div>${probs}`;
   }).join('');
-  return `<div class="g-panel cy-source-panel"><div class="sec-head"><h3>${shDot(rows.map(r=>r.name))}Country Sources</h3>${twBadge(c,'ALL LIVE')}</div>
+  const nLive=rows.filter(r=>r.status==='live').length,nKey=rows.filter(r=>r.status==='no-key').length,nOff=rows.filter(r=>r.status==='off'||r.status==='link-out').length,nBad=rows.length-nLive-nKey-nOff;
+  const badge=rows.length?`<span class="badge ${nBad?'err':nLive===rows.length?'live':'off'}">${nLive} LIVE${nBad?` \u00b7 ${nBad} DEGRADED`:''}${nKey?` \u00b7 ${nKey} NO KEY`:''}${nOff?` \u00b7 ${nOff} OFF`:''}</span>`:twBadge(c,'ALL LIVE');
+  return `<div class="g-panel cy-source-panel"><div class="sec-head"><h3>${shDot(rows.map(r=>r.name))}Country Sources</h3>${badge}</div>
     ${html||'<div class="g-off-why">No country payload this sweep.</div>'}
     <div class="sh-note">OFFICIAL = government open data; OBSERVATIONAL = press / NGO reporting; DERIVED = a CRUCIX computation; LICENSED = needs a key. LIVE = fetched and parsed this sweep; LIMITED = a part failed; STALE = last good copy; EMPTY = answered with nothing.</div></div>`;
 }
