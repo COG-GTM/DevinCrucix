@@ -494,8 +494,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sh-sum span{display:inline-flex;align-items:center}
 .sh-row{display:grid;grid-template-columns:8px minmax(72px,1fr) auto;align-items:center;column-gap:8px;padding:5px 8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);margin-bottom:3px;font-size:11px}
 .sh-row .hdot{margin:0}
-.cy-source-panel .sh-row{grid-template-columns:8px minmax(150px,2fr) 3fr}
-.cy-source-panel .sh-name{white-space:normal;overflow:visible;text-overflow:clip}
+.cy-source-panel .sh-row{grid-template-columns:8px minmax(0,1fr);row-gap:2px}
+.cy-source-panel .sh-row .hdot{grid-row:1}
+.cy-source-panel .sh-name{grid-column:2;white-space:normal;overflow:visible;text-overflow:clip}
+.cy-source-panel .sh-row .sh-why{grid-column:2;min-width:0;overflow-wrap:anywhere}
 .sh-name{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sh-env{grid-column:2/4;font-family:var(--mono);font-size:9px;color:var(--accent2);opacity:0.85;margin-top:2px;word-break:break-word}
 .sh-env::before{content:'SET ';color:var(--dim)}
