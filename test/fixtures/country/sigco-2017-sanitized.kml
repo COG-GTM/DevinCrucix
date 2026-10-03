@@ -1,0 +1,2475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>163 Muertes ocurridas en protestas 2017 - VENEZUELA</name>
+    <description></description>
+    <Style id="icon-1657-DB4436-normal">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1657-DB4436-highlight">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1657-DB4436">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1657-DB4436-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1657-DB4436-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="icon-1899-DB4436-normal">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+        <hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1899-DB4436-highlight">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+        <hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1899-DB4436">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1899-DB4436-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1899-DB4436-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Folder>
+      <name>Personas fallecidas</name>
+      <Placemark>
+        <name>Caso 1 (19) 06.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7hk0NdAvtBNNBFhFFFrOne3jMIXh7qyvkkZ6qPl1hnYrzNNOs85UD5ZqUs9XgNc9rs4tTA_K5yOEDigjmkFLKMkfyODD_wjbu5_rxcqusF4Fhtyjp07F0rn_upbl1bt4IAOgeFqbicCil3nvWgKyyQBQJO-zT-UlckL2OyWSe_DZigmH1r8ZwiknklV1Oc8PAM6Dw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6HWK_hxLKRxJKYtSGKwRGL7QMUAmx6Rg35Zafx9Y42NQ68s73ICOuj5KIzVhw8ZdyXKjRaNgW-Ha1t_FHF_XDMjDhb_h4VFqxgmIJMaUfTnWHw4q52THIn1RJSXcAWN7WRb9Fp5JSlVOB3pk0qcHlsXTY8GhoQp2hOvtPoCbUqc7Elpjn3qUzSfriNRwTtTIjTioY?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4fMhIqipv23KZ2c6HegPPLloWuXgCqjU6SZ6Bwa_ZGhXOZJvLO_HVD_DLBIjTCpTCnUalhUlyQaGh2ksuLuuv7T6oIOwULD3r5maryNKmRVXC-RrJjY5p1w_SpGTDAKq6AbD8I6wz99uIaouVyYMX7igBngXNJRAsBnx9MoYmPrf21Atn-dXOEO9RkZsj_KNr-c0g?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.992844,10.3618354,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 2 (20) 10.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7yJh1bAfQ3ZTmMOoWi42-9L0jn278F44wRUYzLzNIUui-NUXDiZoodgIM4JO87GTZ1ycz4zNxzEBET8vGgsUEjFq5m2kW3O2ZCMb3NB9gBR_sE41qFs8DH4ercBopW9iPBXwAOAR-neC4kzLUwSeUgWnTK2Cr4_nX14fWhVrfA9B_VKE0hZb_XQudTTV2P31fvSsg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7e5a2_LMMZcvGYSz9t0MAc8SAAuVV5TzwkYJv5AgCCQCC7JvsjIMjVtub2DHw3Wgmu_-HrX1dvqMyscHCUwZlWPq8bmU5-6cHcMeywyS2_PYZ-YyXjFERyYas-M7DF3c60QAko81JaFrA31KfJ-HbO5fWOpb5qg69RsjyLfc4UYTr8y8LhZI1AlxB-O8WGo6SKI4c?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7hZZ6-ojQjb7oVkCnw7IjPwa7eA-JCek9xls-il6wA5QDj-o1yUENxe3B8p6gPB7VHlkwyShjU5kgbvmYPI07MZGfNX_ceAW7Vw7dMsTBugt0s6eI3QsoLu-GA8xGZW2trZ515zFgkDeitRPsnWv3KgobBExG6Eis1t-FhUqyGG_IdMZyuaDgRMaq2lAWYfpvqy2c?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9972104,10.1579312,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 3 (36) 11.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5iW0EU5QpzZXFSoo9ZNi1VMtFql0FTQb1t30iW35WRi-wT4jnLfW2d1OhDnbup6oeDCXsNQnOL5zMfzj6tl_B-rS7YHBp6Z3MEhjnBnj9cST4MDdELIvEaD41v0zOAwgUhHl8L4HdaJMsSIjaow7LhaO1Eww7A6HrP1kLkeCL-3qgFAH7vJHu_nSePS-Wd9Ojv_Ag?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3423584,10.0602666,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 4 (14) 11.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6y8QGU7aQWc3sYfWG1PMg6TRZB4wg4XxcUzsOYQ6T1sRDCmB-YsatOrMWGDI4XVzymXrQtkjMjBWH5Cq_Z9DTFPTKyylXm4VLlCuWYrwYFF6rDRGqB-9JhNXDK9djoLsTwKnP4zLcNIa2YKXyuI3a3QqPnQNJH3PCBQyRR3QM4c-wMzGyi1s1jQYTH0U8Egjl-UMw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4DU0mXaInaztRoa6-318B8EC0VS3fh1OtUkCmOdzq29-m7WqM4CH8N2GZaxcT_977bJ5bOF2VhZGW02Wv3-TVeuVGNT-RiEGXZfo5sJe53DfR3SDDrGyIP7da3OjnHQi1cvxN4xguGScGky-C14alieZQ4W5VUYHK1lqhuJTzxAvuwPDYawDw6o_3dQvuOpq91JiA?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3423584,10.0602666,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 5 (32) 11.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6ErtsLNAb654vnxNxMOV9cb94HDKyN792xEf7IWahrbW9d-ckjhlZ_ddp18ngg04zF-YXz1_NStk-xs7mou6QZqFW0qgesv5ALWaAlG7nCtnwmUG-NFYMM98pzJM-bnASdH0WP9qqUlNIDD4xtp2WqYOS5f1MRWEsuFi7ab4BbuDxJZ_iICKXtSv0CyBNfr5EOXNg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7FMBewc9tFngxK40ty_QD2O-BDQBT8wkAcuh2f84r-lkzj46P98GJFRXyK9yCJ0BJK1knmlHJX0dUEFljhMwzT9Nl9JWiwAqiI1G5H71KYf-Z3oZrvfJe7W0UByrOMOMqGlfB_OxKsLQlIF8bihhohWNR6Ys2wKhPMxguJ537t9IXNBKVBqlfFcuUUA1IIGSFXaNw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2821281,10.0382034,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 6 (17) 19.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6G-vy8S8tnKnbxuRNXYzlHWlJxrQhjninp0I5hr7DG_R9W89Rg6IsYKqtg2RAiRwCWvKBxahKuqaRWqnb6t3ZtLmvpcm-ngOUbZ2ztXVajNazFpm_uXgvpQpQHcE01ClgpUxyQ84IAMC8WJYTud9Fn--y5JT1X1PGKbB8rmQ9gqonvjzTzwn0YRkjshvufmfqqZ98?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR59UiNvAfZrMLmSLtw4fm96oDD5avinjTW77nM8F3JvMHZGsmfbyW_40d8tnJ41j7kAdeIS0fEFzjd0Lt4BL5V7kt3Xyw0pCz2qZC0zta6bxxCPqecnroSZE04fgEeiR0zcmky_XkoxBhTP_7ZHvVZRL8RXeDiG4Au-4v1M-Bm6QRVX2Aju5d8dA92W-SvPP_TDN_8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9027679,10.5091873,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 7 (28) 19.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1657-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4HVS59tUlkwXqflbpNEXIFBs7m3GouGzeNoFzOGhIvWm9qhvi2eU88PVshnAOeZR89Tr_hosa6UEzyN8mqFMIKvk0x6LMYauWJhxGc7Kk2Tf3DrMHlExX6WtjvIIYqZe_LJVDmHuYY0AmzbLaTd5Hp7YWr4G0fxoftQrsGsx3_sA0qVggrVVMrTp3jkUu2Yiz7eQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9571026,10.3696393,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 8 (23) 19.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7zLsyvlE1Zk5T4m4xg6Wdt0L7PHbdcWIWcUy7iaSM_usnvbrwW6i4w4qz8ZEEFpPN_xIBuXb0VLLLr4YUwrrhAdm77brV6qt02wCtXLiJ2_svdOeXQx-pGRWQVUEKSCu3WcBARjGr-Ed3Lw-i2MdKgVbtiqqfwELr3qKgucbQDEWfUjViJeLIfpyoFb9ssaRA6zQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4oIy-mpFXVnwBFPwGNuUMaimqEz3szfUO6w_yLf5P8vBio_aTWI2ULoimSo878oUwzRlG9szLlRKq6kk2z6U1a_5ka_0GRfMngF_AGVATaEbYx7iPYJEEZG7oOFcRuQmUZ_onJ8F7LezSh4dky8UAyoiGvSLmxTTfjBz8n8jj7xAKjfhynYANnll7JoLDOnmsWuu8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2280512,7.7721947,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 9 (21) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6cIIarMNGPMzMtfh2osLGYbbAYsWIpEB78XjWDI5L9fSVSCD_bTd1id74gtKrQgofwEbfO-B4NnPvKVwiWjYuzKbXoWJBdpsp-XZ4AN5UhzdHri6C4mUd_5NilUpCZHZnLGZW83VNw1hiiJ2gY1qmmui9AuyQKuRCzv11QPcKYwMZDZ-zYcokgOpaNdKZYq_m_bQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 10 (46) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Mw93kLHEFVa_fMiu-WfRRPfPey4CsE1aloFejrGPbVi7AbFZxO8NB_ofHnyDyTKYYInqd9KBl5XJbpBdHPKvZdUCIL5Bwo9IjZwGcsFxp4FUitO-U70LJs5QoHaIABg_DyFc-rawMVWM0d8WBoZPHrPdEBGXnZ2Vr4D_euTm8shMyAMOO9LYWlG_wkcvSMSFZ_A?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 11 (29) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5ewqecKSSCNX3WQ8KRANX3xr_x72m9XhWlsF0uCz7gIUbSvVw9T55P0IA9hR6domi5tG01ZFXxilV5MJRSVErrnOdexvxUB4oMx95GI-cSXlh5aEPRcX0NJGA5oQPEBxYx3T2Q7KgMVaIEMlZe68W78sKktbE88ieDIA_7-CiwlHXbKTBpON4rZx7YI8RqINyIzw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 12 (33) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5n8bVsgjI1TWI3WpSCvr_m4DNF_XUYMGjh2uOJpbHbI0kaV5YtPJ7r47UBSOhkCoF3D4emxKaep3D45xFbWPe2jewR9yH-DgrRZKkjY9MMJJK7mfOcxiABELsxSidK7KUqciFFknDK7VFyoMqv8pUbQ3Fe-eC6y5n2D3KdW_7LZaYqrVWTDbXdXokOn-eiEjQ_5A?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 13 (27) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4iQMsFV9mOwVd0rtGrIZsdBq1tSD8ZrtDLXomsjcCTX-AkyoFCA8ivsQmPSDRl_onIMESWo5f6t9bk7jef9uohbCZCec3y9ve0a66adMefukdUSUBhoon4_SZdVph4Xt0Aul0Qn_fuKHolWCLqbdW3rgYrGZNKQdBLIgmbyUMKN6aK5iKVbwta-uKFo8qeCWffGw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 14 (29) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4dDrXNlNIoElrR2-cQnK2vdqh5GfcFOYCUZC-TjKW-KFuT-znC5k-09MFgmLJpumnyrpR9-DJq2bOWv505tRrhmQwD3Rw4-4nTfPlGwB6XZlX5yWj6FM6kxCUIolhXQbyBS1zTFTPFh0vtmcpEVsXSXbSlh7t9U_QSLkTpOyWVi2qNBhx8Es0TXIP3uOalc4qphw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 15 (20) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR71zt8mR7bXQLzcfw1EoMB3EFkZ2yrEQ-owgcrzlpFjqK2B9qyutOplIyoDX7nC_5PSamIIMoutAC-iPrwPn-TinpLaWvye_JVCh1gGgZPJ_P3jY0WMS6QQSNtZTU0G6WjksBgGXgB6B-DHRSPTce1fY6cDx-XDWbJhJQBKyr3MB8G3storQk84SYlcd6sKdEt9EGY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 16 (15) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR41cMl_bnCfJhsfhmXEt_7tHNHkh2ZQGWHYPQvFPQKe17MfCp52WW6tzB9Prn-5CjGSC0XgPgz6T-p63RE2kfAKg6ujiYm2U8hLWvDlIRs5lD6oO0KDM-mdFF1KkVZUoa6C_YO-r6DoHoTRswwPuKx_qrJ-9gVb9XdfeZMrpmnaZZ-he14rT5rjJidtHPCiVhMCAQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4aHHQiUHiFlScrqlaNovrUqgTmmuyabKl7BQSnEnjCHKOa_wY_PrKwMjo5iWVRyasim3yS3e96M68rqYiu2fkU_DO3Af8lxWy9EVrhc5rqrdJovyelBJYE_vdKo5_OCXN3_r85F729ldhIZGuSKNx_2E0QJBXKN7S2N7x3mRlbxFKP1xxtdciMXM8WUhVBAuO7yF0?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 17 (16) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7sX4Cr9owH5W4j_c9mCoyDXgANbqnCUTgDAgwvo-Ci80CT2qXHu73Jmmz8zU4aDdA418eUJsW70AWJRb4t9KBAIUGylccF1NRl_fPI6ZYEyUu9fXI9RWrO_4zXDAd0xN2c762p1KlTXpXUi7LM0Nuuo_ZNONMjHTeIAKzMKRhEn6yOG0vBq9DGeZBc7JkIyiz2_w?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6HKCVOqmVDWYfdpB-XNYGHdMSNMqpij4hvm8qBeLNSqvEsIsvuJoKVw0OHyk0IBPfAhqn02AOAtxMUn_TLA6kSSbZQED7JRzOnS3SucJxnVEHZ8uLnXNRWgMXkC9_UnjZcF5rV3egLJDi2pghaie4LNXETXZsrb0UgbuoE-8o_wwcUjwp1EEcL7Wfjcy45MWQPwyw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 18 (28) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7HUAed3XJFJMuriIpGd9o2owZCsTn2Q-l81a5Ax2mLrVm2TGYszSYADxHCtbaumxqfD5rJzfl3_-jkjcShfoVRvaMxb7KkXAxYM8SpjfahTudjABfjYqjyD6UWBkwodt9oGQT8XnVbfSR5tpWt4baupuSvbEHld3dsePJ2KyBYA_fiRKVjrhN85gxx39AdvXPvEg?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 19 (34) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6_-5bBSagCtRW5O-hBdxEKL9HI2hnBiaFm7FRmt04ugn-ynjndyTx0VHHK6rsQo491pC_1OaxziL4cvj5hObfUzayeAZMtQeDiNz2k9HNw4Vx9Kci-_cInD01OyUjZMBE3mJA5WAA1E_6ybH6N_AbFlf3bOkpxcFOHntNnSipwe9yNh29JgDz1XXi2gyRCe2NWPA?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 20 (19) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6atTsB2ryQh2yq-Ka0fmnEll8Rs4dnsuI68WxWWAat0saNoljbGjWtOyHSzW5QzgwwYtfR0JbSQAT9BDR9AHcshXMKAd8UtXquUQuQ4GmQBe9Prc0Cit22rukwF4oXmhlwUCCVs1k6aTeTiG4HlKyL9_5gEzMRbQkst5QMZ-yA1JDSA8RHdtPkKxvtJFWdm9QhAQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9024842,10.5108196,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 21 (19) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Os0fKEoQ0QugiFoVA27ckMX0e4Ja1MrUvW1oKsLgC2iu8kDI_oYi18QzQ6iF4iR9IXmVtGvBppHtfoA3ThHoddQnMBO8XUZsfgFK719B0_Oz42HbjbT42-_BGERDwr8ptf6ksVPrgGoy5XWMEz2BW4xmIu57aZmlpgyXz-8spaobstOz8gJ2-M8fKC3mUvpbd4mo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9061695,10.4682925,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 22  20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6qb5IQZl-84oo7RUI8td1qCm_9tNCwj88fYe1aKd5SomT9_G0aCjzgHPmoovTiQS8bCjf8n20mbyISgB7SO9eWzBzLmPbx7d4M8W2bttkowLmzntrQLUVgdRbfbX4_4VeNNeRR82xrEUptjYu2FTY48x2hgyfBZYvludvgFBYUo80MWvj3z2IBq94nHHrPsMk2kNw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9061695,10.4682925,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 23  20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7zmFkbXOOZCdeVd9sIXUYSsvXaVivpFruJcX1KUjz12QGEOK8ysEe98syNELJ2QHquFGUe64xvWaCpD9rzkSUqOaPQpPZP04ekEJAxVl9g_pWunwthTDVrPWDzvLMf-VrsU0ACxokK2ZurYJvOIiCti5G-dKvaEPOsX45ixi9mmuSGXJu_eC12p1SSiaBwnZjI5io?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9061695,10.4682925,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 24  20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5QsDcjhy04lV-Ju4s-6PnQIr27zmUFxb8jj7P5DoMjGYegwHnDKGqE5jT9zZNE4yX15AZ0cjWqvE3t8XMs8CXosBPvVFnc_eYg_XsAzjj6XPnTP9VZcnCb8A7s2ha2HZ69JFtfI839eO8E_3e0KXI9461r3cSYgLZvQBuyvnjhKLJNJz_9M9mOIdk0efloEqJk1_Y?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9061695,10.4682925,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 25  20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4FwL6M3iFsh4APuts7IaESUwU0rQ_YAu8lA8Dl3kjQwCCIZaZnrZJsabsNOt3DV5bjVLazZN-mM88AjPxcEhpwrGDvIvpKR8U_1U-HYLed1KHZhiNWjp8Hs2-pS8HBSClXgJIXgjXMgyVxCSOf5OiRZ6XyZC8e4_1Eiq9QNOFl4AByKCZ3KtSXUti9fjAQtqoUF_w?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9061695,10.4682925,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 26 (25) 20.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5cCsJCFkQHa3KbUFjMF0xzCwe-4EKABqCeZ2ZuFqeIatX550cF5SXLKdMGpWUXG9I6bTk55rsW0yGRjMFi-v22EW4M3DvNZPj4HasudUU_BZPe_d_Jn7dUsL9YtXJzQwJQ3UhlxxmL7kylRdv0oJCgqsXmQ7sQsqhw2BMWCv6J4IZgWldkGo8UsV1q7lIEUi1HvAk?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.7992646,10.4704517,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 27 (48) 23.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4cOc0TdZEedOMrsYn_6ZC3EksVP_8eUXaE4rtE0UoJ5sCo2gSUGWcBEfwkts9fq5hhJcOXpgmGgfpmf1HEi8IbXggIodvDGh5ZEykQ6j9MwmJYlEXNqsAC7Qcz5l1MloDnGSvculAceKxwsEukYS2KteIFrSW5IcTdTTz9nlrqp9-Gt2pq8H81JUqEnzcmeE4-0w?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.904148,10.5036193,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 28 (41) 24.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6IsaTGau7kl7B71pdiQ4EK1AsOkCQf5wdOt4uGmEEPcPPQQAeZ3iKKI6lnbu8ttPUdCdzmtxFnMJ8w-UIep9TIBqTYf1hDBeu3LZS72B-KGP8l3eJfY6Z8wcGJ5_okgQ1dX4HH6eQoQQ6O1IVKTUiKqHRen9EQGrzKsLsBKsT--i7IaiSVeHAO2mqiJqLqG78G9kM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.1485445,8.5982759,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 29 (52) 24.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7asXb02f_DB5tyc_i1BY9g4d1VrzX-Lomssc9E7gO07ALC2AyVrTXGmjX9Fgqd--CE50Tb6dkjkYndEAcgbePHOzybqNjuWP2rDCUH5dQiaEm4fxXYfvxp7ekFAeSi5puDODS02DOKvY1TdkYwsLNUbPlpjNhbRgjknrUB0SpO8C9P_b8SQa-rZAudGZ6cPCzuJA?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.1485445,8.5982759,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 30 (54) 24.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4As_6r17IyOJKONtAXrrVGZXx89qTcSxwLi9z7GzoWWTjqwjIRc3jIzSd5Chsb7AWZQQnSXQNiWBEtDWno8_1NWGKVtWkljdppuJ30P6xqpWU-6xoa4kZ95SqHwFebaiHXKbkCZv0FhiC4LNKeDBgssZ-PDDFqf1ET5viqVgitG2HKZOoTzO3RkNdTYgf-ybCssxI?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.411146,8.756118,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 31 (22) 24.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5kjinkfULtlbQc2jHl4KCN6AtyYcRab0AFNJ8axI0w7oT-oQv160ggF5wk2SBzyJrlr0a_4iiiW0xu4IjDERFMPRg4jpBSwWqcXvPEfV5kWQo8jS9kGp_B1i9DoCsxwnVNocwCdxI187qQ_xW_be1-ugHcSb_OQHYxXP1f-Pmwm5P2TZg_tOe9m1MUFBzVtELiMIM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.7941735,9.7866602,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 32 (16) 24.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6AUdYb5d6bqonG__98_nWZJhPWPe2YJ8IWrPkFdIisA2KhTECrAOK7CfkMX280mXVT2_QH2FgoN4Wdh9pl4HrnmXM6ueCZ6OFY89DqnZoHxW3a0xC8l7ySjiY5u8dai3kteCj-S3NpDYhozxkyKtcTqt13ZHpwmIrxNbLKALwJ06OQM8xcnnxe9XZoYQDI85iAfg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5pv0Tnmy1BN_uNKS6bsqwioLZBsN5W4B1HKi5PWb-Gy531yVDkVG0o0M2i8b09BuIkV7KsYDiQHMFPwO3gA9XpX1ARqUmJyPGJIn6aaeOBCnYJqOIklxV5afawDqhfACqv7Q1mHNWN6STi7LptPVpFKibFSUQfPUWjc94ozrPePpc4seT7aKSMh8DXQUkGVw0JNr8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2780228,7.8094733,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 33 (22) 25.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6ww1S0fJ27e9JSRlA0qqJXzMbybzWhDYDs86mlBXH61wPC2W0UgAy7o7epnXJe7KATP2y6EItHRLGhi8z4N7Z9umaptNbw0RQRu9pNdJ6CYTmWsm3bkjv9Odk2QZjOrL4T2NcSyltOBF5XADcTo6D5saTkW6_nXe0UzzC8G8kk6GM85lcnePjSzMMZ6vGrR-AMWw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0229064,10.1398406,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 34 (20) 26.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7SuPlTCXCZWefj_fHDZg0Mx6bt88du23IUx1Lvmj-sKizjl94_VtkT3MwUYEJ9ul2WXj5lBGQ1rg22DDjxAPMjFfDOAnlv97Rh5aWqsQuvad8-bBg1s_2GXfH3hiX8uqPtNrg1woyzPeBDR1yXfYXkc43t4hX9c05gFkcgmK7WLarykYM9UK3VtyS3nstCwu_vW3o?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8488616,10.4963121,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 35 (20) 26.04.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4A148rVWCXhNsMKCqUnCk-ix0TxNecyo4gvCsTNhYgUAATIyk8M2tD2H8X5NmZughvV1VGVF-yNzgkp-i41iLszoTl9I6yD1vZ0d_-LNjaHK7TlKGhaAqvRSsKN0alkIK0ORklF1W4u6p3dPWCKvbXQc84NefpPYL8GuL9vu3d2VRDL5vngbELI_pLRpyWhhmI6VU?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3537658,10.060278,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 36 (21) 02.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6pE4GlaoD49xMaDJe7rHo8a1X4H3P1SoSQOdazoJ_ChSrB5hl3J8C_0mEI5oBZpkI5iYtOT0CL5VS3kGhQ_4JBxCXVmSWBLo77tp2VGgHj-xl9mf03-o3UBgNWKuiR9Y2PRO4bY4CI_B9tx0pYQ_Bc-XukQiwgMZ8qSTIjhyuMhv3Rerjfk_SUoI5bRWlxNac9Q9E?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4lSEeopGlLjUoz8kn6tBIULe-7V69Xr6b-Vd2ny44lwIs_LxrrHZFtyHDrdGCLePwKanbtbkKcf5tWKSifGevHzC67eey7EHy9LyOh4Wfp9rhbfyLcmlPKK_S2lTrZWj4em3yzl2-re0eKFTeGcdZ-ywqNIjdAMr-WkU-UCAKFiiqiZgNPo0j2aSDbRb7qq1bQcf4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0389526,10.1438315,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 37 (28) 02.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR79i5LWX0YTXUB6TBoCUsT52tyb-ZmW_XMbAgKZHZtraoZs4qc4wSFiGmr8shSs0_5jHgkI1nUNIjf_02m22f4gXUf72zgSjroaPDGVfATdUusjNM9wmWmxjRgZ6Y52nsv8nzqn_kD2rP9BQHGx8uAQlslbp-fg6M81Z6j9ai8hGPuPhWujzQzRS1fJLfgfzHCUmr0?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR41LGH4A2rGZ0ERjY2LKKnlXZbdVLg9WiwH0smT8inDBNQDUmVoCXQTMi-wiXkw4NJyYI1E_yb3ACxIPNtqeQ4vIaoc8683GxNEQZ-TikkoXimb0iXZXjr7-MCXMQ8rdjDCg3i6rjTS3lF-_RNY6H0ZyQ-hY4yJ-I3YPBTIS1iVyrh2xtqMV_5-_0cy4sgx94f65aQ?fife=s16383 https://www.youtube.com/embed/3j_0_tdxlLM</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8639966,10.4631201,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 38 (30) 02.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5CJ5taABTgr_6diSZBtEj0krQmVbEB_OEfIFvpLC0RKcZ5QsSmyWCtItGLxqAO-obfvjuOwOXeDKSAEk8R-ZUZWDweDmZBCAzzU1qrJAYsOmW6KvrkZlWTPON14vCqHre_OoLb3uEpSx25_fbTZp8IfZzeCrjQkuYyYUZvwcU1UbI7hPuZdDizX0_BtzW7QrWTYoE?fife=s16383 https://www.youtube.com/embed/CB2Fb7hoDic</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8063942,10.4747037,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 39 (43) 02.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5xWe7l4rD_mJcUfhz2BBM_OzoNAYPimKApTtPYYThGkGKAr6GyWt8YDlulzr3x8H3bX_Dc7Idp5UBJxrFHvxejOCY15InMGmu7qEpI2JAwSBr2cuNUlw8RZ0VcBjyuX29ba7sVZCDPH2P6g9Z6krsP7GdPuPzRdT-_uYB5xcp-4MrcCIAm45AU2u0XQN5n5CqM1hQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6epZf0IVaZ6pDaXEh7QiqIhEojDbvcxrMgBKE_zkqbU5Sxp6PnwBLn0hy_vdbILJ4QB9QvWO_dmAFvOoIQfuPwlRQ-ugW7YJHb51DiHGWCKxjqhAUBtoJHyQQnJLt-d1nUVDxhweXJ6QSWQe4gD6RtPkaCpEyM-mlzc9Tso6Y0GvoaSu-B2ao1GpaQ1HCseOha8qY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0291998,10.2877801,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 40 (38) 02.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7X2BTt4SbiSnFy51mrmJk8gbJY5EJXgSZTnErFElFFtOoLTp8oHad746nznE87T-PQfBnBfJKn6dMTau_xrZzhDzb2uB5hzHLy-scbxgyB0eyfaAvzv78pai4bqmn60t_d2YF_SYMbnud-8BbX5TMRkZDfEc9FZ7fQD_hV83Rpt_cJmPIHrYHstG-nJRO7jsHk8dw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7O7j3FX4f8Gzk7mqN7VlVJ5RBZU2UISNFLJy2sVU6sqBBkWxN0J5zmQnoYn_esx2KuZ_kIpBzh7s5vTfiBQ7cSCNN-SaWPvLR-dbuVViiBOE4pGVZDmVbdySi3OJCX1HvAmPU-3wH6L97BnnF611wvZgAioYytfCKZeHzDxoqxgBz9XgAXbMCOdvsF-tFBQWVyvEo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0291998,10.2877801,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 41 (18) 03.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR79YHzxsb_SDK1778j0_yMDoX4qfqFdI4M6AtLo9XhI3qM5UC7eADsJqGYksdnDUGqZtN6PFaHvgdkNYCZLowX_dJ2KXqjqJRqMmScVBwniHGA2vYaMl12mYNpZwhxs6FkDE7P5Fr_6gmFx3ZbgyUKsQfBJxBdZt3vNWhFsrTF3ry7hTnBoBT4raJ1-7jRKADourUE?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8641663,10.4865248,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 42 (38) 04.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5TBrLTmawFr242--AGDXx4fJa_WD_0esMjLj3KtrV6AEgAUipv_i0PhsoSMPIuMnRfFxeLS3J5_d8QE5yPxQit_jD91d1v0fRd3Awzl5nQ0kFuGEwEewEVNcWY_J0wMMwtEKyaPhLodQc6eUXEev7lJr2ETrmtmeJFSbbne2SiYFl1Dh2gaV_yLiG9YXAekXFXdy4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.8398396,10.2365731,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 43  </name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5XFvaVJfjMsuz9kGO3xAzp3SQNHAkdY3lnzzpBsuBzh7Ocuz1q6bemDYe3HbL3S3OTaV1tih07Fgzwy8eOc7iYK8G7dTlfozrP-2hYs7ZIyBwWFj_RL41ndp-5XW5Sz9EXT3E9pBFK0zeC_bTN0j3Dx3o-byPpQRZPb3Y610-Gb91hTxv8AZX2fORWyoVtXa5SZwA?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0190146,10.1703653,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 44 (20) 05.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7tYmNqY5u96X6SegpGnXq1njfCX5CtE0Ih0je00m2Z8HvYzI6h4xOiO2IllLkc0iBgyRU2unkCGQcWPPwLc9hzuPUu3i52EYNAlO1HTUJdyt6EN9WCiPrtHIELpFdHhQ3DSGlu-twLwz56mr9TVMdNVRCk8HQRJwbFcHWxf_wotVY5_KYvWs7ISyclZP6DBa7hAHM?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR65g_s0gGX-MAYgNEAgMQYGq3gysBLqOzp-towx38R6755vm7oLO84Nh8n-4cqWuQGPIMtvpBgy_eKwt1PWNuJAikh8mLh7yRpM0mBP1mZuzknBcmd5c25zeB-Ak49R5Fp1CG5WafRfV3HCbH0tXJiHsz1egksv5ScVJpz3QfVslG-fgW_XtZ7ieOTiTQ22jsj6MDI?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6Jf-lqafib_5k-AHI3KluY91s6O5a744L2SUB1Ey6aGmLYLVtlZfgKj90ygKMlQWn1S28lFoSXAjMPDJuKP0rpmBIwgwjHxFIDIgWLea_8ASPmR_HrEnTC8P5RgYSglHPOMbn6fFgbegVVSjGSNag6lG6svssVsTyBJNrDnmiGNQwPw2F_OgLSGlmxtU6I7CteBOQ?fife=s16383 https://www.youtube.com/embed/OgIInJPJWEo</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9583392,10.2708377,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 45 (15) 02.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6frdLXKtAsVi19K1i59ZLdmu3fzJIrfxWQptMHXMInMUBXb2O2Vp3OIEKLXIPzSQmSEYsNkfrmSrQ1Og2QUQOOVxrCl-5a4DmFczOHRWF3I3O3p0C96vw58OosY8P7EhHSiyMec8TyT1u1XeLUelycK0miiSGZT_tqH_gykinX2nfD2Jgqp0aIh9tyT5BNIB5NoSc?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0272794,10.121107,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 46 (26) 03.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -67.98627,10.1518354,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 47 (20) 05.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6i9Oixq5ejmmzPfxH4fCUPIUGGy9INs8ajB1EfNroz1UqVxXZU4uRurRPFRsFHd1VUVmRhWiNPhVBliVCIwA2eUnKwsMUqQ06o-v8AsSi2bdMVai2C8JfOWwKXByxi-kJJ_gDLWOisgrxTkx9m_maXdHnDN4-3NwoxLf70eAYEjDAu3OG9VO6MiCtcdthr5zAy9w?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6302525,10.6237326,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 48 (22) 04.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7tBs7T_SGVniVnb4jmmk0T_qJoC1VgbFqgiJ1fdMENa8JKMZZnhSXAdF-x0DUXKZiAqwzKVeWwmXyreAZdwjCtLqWtJBTu3Fu6Ijk32ollfbhditQtS_oZV4jLoE-F70U1in1wzNrA80FjjLkBioT961qwI37fEyvmtGJvmo5cjiKzWlzCgJOR096xRIKzVr7skFI?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9011941,10.0868767,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 49 (20) 04.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6tl6iPQB-CAe0kf_sJ595yRAjBT3bwUgCzwMYFvw-aP_FBmramdqh7eQqXJ8Yfi9hXF9wmLXvhiC1g8jgIW3b3RdTnmdYIqlTbtBNSCvS4keLiWVJBMHsx46CCB46GLsb7VMczP-vjuv0TK5_cfcGQ6Twh1E2Vhi4QG7ED9A6CeqUkTSiAzpRyC9dH16dAvyozK8Q?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9344781,10.1360306,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 50 (40) 04.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -68.0549641,10.1381781,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 51 (31) 10.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR72xYuPiV73hfIkssxcBym97aan98vzw22V98GnQ98AW-wtEWM7DEByqB0XoRyztsfZMaYkBuOHeslhcTikGPHo7wrBYiOyx1ZzZZtAXV-VghpuEcqvszHLwk3Trb8QUndR2LuKjkvV0GU5WHZHOYIOi_kFr4FTj3PNKm_gg8gmVzDO9lVegNt8P4P5MPo_qy4-sJ0?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.1471444,8.5964301,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 52 (27) 10.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7GTeOyFoWnkO7Lb6bmrB_9gJOJspUvkb1sxS1LUKYEnKFkXu3QPQQyNWog0-oZjlys0s-g812oc2LYgk41T1Zdz2eytX4veB5YoFd-nVbfWCqRPDmtJzoddxMvOaQ54sDcxAnMAUV7tbLEoh0Ig3SCDkNaqXUJiK7Ktn0szbd49B2Ateq8X-EbFPv8AKAf6iHojQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6MejhBb8DbjqykZuS_GMmDY_IvWjLJXB1tCC9QHvBfDJXFWJFMrY7HnP_O0DjKCBJ0RSpZBZ1x6eALRQa_3a0ZxIaZFqKyXP2R14-0-b-cd2PR98gZewz2KMFHu9mzlBs0nlr1Y5d15p-tlDlZF6_MpO3DejbME0RmFAf-MhFjrgLRtMoFhua8HAD1TwXYvr14wYk?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8636084,10.483592,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 53 (18) 15.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7yAAIX0aEWEKyomUVRvsIN3_EUWvmmZ7zfVzc-myw7wyPz4QI2DISZmjvzp_-de7W3kpk6jPQyMy8_p3Q8uRejowbsuRRkJbA5fNv5xbvx36fFHG1w-CNPMsBRK5d17cgNaVaB1ytO7KCZhl5kiDsfegOT4uS-wkVL0ifyVGy58JVrzinR0zyF4iY4h0G_RaINWLQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5D3MUQclv-dtapPwmvrzBmqhFgAB5sl8d0t9Mjh7b1VDsyokNBf9BXN8rMgj5k0Wr0NooafHoICJU2kaSCvNCpO98la5qTTvsh6UD9KX9O5zu11qq62I09mTygFMLh0oB1lER6EebmFve34rh7kLt3nGYWh-PLUnqR00q1i70xwPJ6oOxx_MIKNewOrhnylQ4aT-I?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.224535,7.8651184,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 54 (32) 15.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4anMUvf2Om1o12-yPbImrLBAl3spB3g_x36o87KrA9O22sqK_WAwcqxtBKXgE4rIRgPWD2wLnhXdh5-7_qF10YPVbgKBLXSW2INSoK53zus7yT0EBZa6ivSydr8v_VQ-8JNsPa6rgR_4fFH568Vn7w4jb0lkyWB1YKtISkzZRukUBJdVnto-UUdlvvaYyprjaaY4U?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4CPnf4xaj4V7mNP0Y1_nq4H-412c63a2kbvHqtBfXaSNUTthuwMnbCkGLJ9dpxOcLfsUoUZLMx4PaBSicL6OFuv29OABMuhqm5fwSRptutfc9EnnusdGHk8Ix_m0ZU_VcGScjP8c0opUmD3cnjXSWc6XwYvAbHKcPsF1R6QfaKrY2qQvIy_4iBlnsFfMPAI4XXNVQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2896709,7.8209667,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 55 (17) 16.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4BnhGxJVakroPRtrw-aGlmXnLR_KuxJ1NDU8hUu2zlm6nGtJSsbh7rrXlXYzB9uofSHA0lUQI1MAYIR52GxxWohoihdy11r1KdJUZnfMk3suYQxMWQJs9TclnL0AhOb6SLp0xViFT__H5YPHFn2RBIYB9a78MXFt19FJ9Nu4r8oETmoIs58x2LcCg0i9krMfrT_Ug?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5Dw6NRX9WKhmV6OAaqVNfguLa30vX56dm_Fg67s1d2l48eboDdyKibbGYU-XXEI6gnrpirfDtjPT9F1OURbnQezvmWj_kP6JRMhf6cBb-iuZFUDmh9v_fv-oUvw3v44cUkJry1mDw8TcnL9tUG_VKlU6QLQQn3wY7GR4MjSMuWVRQcMFhhyCGzCWsG8eU5rGLhizw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.2306279,8.6261931,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 56 (31) 16.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Pm52KhmTVT8E6vxSIXmgAvwSAvEDZzbEupJLPyEPYGGoxzxBfWzlR3yw1UtvT2we3OfmEOMBGidh9J6MtB9E0JVDaJ0iRt2--0UxBW5FwanH-Gc_CrOT33RrbryZ-3Gj1LHCI5ylWIid6nkaKMASicTc1yvpAHP-EEtl1z9NzRI735QDVTIvxJhAOGFEfObG8QRU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6p_9tbqy9ALhaXUs9XJWp140xsmiuvY1Z2HqB_9_IxGCmu3fo4ee1sgBJgQOGA7RAEYF07_rH__CK0HOBJsfdUWJVS2_WeXTMKhoxKIJXEIgaBylobMOwYTQvqrkkP11SJIxjnOhFJ16N9YkqnrRINlMow_kfy9RpgfQPOc65WFjBOTjFOPbUVGsFFAbVmrQNQ1aw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4EvRWW337UoPPJd1lX-WBebVFw4XEgkpZOCE9I9jxmNHyI8CMQLc9nzNKS0DvWHCIoiSqWKoUqOJ-oyw5LZf3K4D6bVK5Nij-dV7dFV7xDI86J4sHTyr24OoFmoR4oxfdr7JOUQidQIgceeXescYTS9aJ7-3zleSf4UwevZ1qxFs_wPLvAzO_1-UFIoCU0EJHOtDI?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9675059,10.3746775,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 57 (15) 17.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://www.youtube.com/embed/eSESz9S_OgM https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7EC3m-A_nXjyz4zNJvwufc_yXe905br7EcIRUkYpMd8V1G5wV_SOD3xoCrzI-zAijz-9ljBgtTYHWHcXyc2XbywtG2Pw8oJ0gborSeUg4kmTLliO2Nvb7g5sIlBa0GHJqQMIUCKaL7m4JHDiuF_jI11Qjojm93xf8qUVcwUcRqoV1WWx_Qm2jD4nGScJfPuL1LoR0?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4_csudcJEjHBhveg_pJil21qo9_U6kCB-tdEJCUBSnMUU4PTFCrvIE6puzhC38rQQBaHT4A0hlVR2FJh1EJuOjjQi7BpcVX6eWKzu3k0RA23rKc3XQOq6tSsQ760W6RbHBaTwVaG-OUpLhpqlxsHMw-en--fvbN1nge0TH7xiI7XeGOSKak8ztqU7lCJ-w9R2R1kE?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7lteMy-xwyPR78pY2kVH3Yi_rvBc_oi1FkoEDJ7Y9Vwp2LalQaveM31U9ZSYyhszYI4zehrzcfcFc-vZMtLBBDlc4dLMGDbV7qK2QSXR1WzoBHJC17hAWttygMSRaQLHoukMlNCn_1lyOKp3fxhhh-HaC95GaCsKWWLkxBqWL0YC4j4rvZgaFzaLilnF05rXzgsbE?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.244762,7.720246,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 58 (46) 17.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4KIJ08JmvbIwfX1TqMJJZvF8QA1n_j11liOKkDpUr_wLhkK4FW9byuXJTf5ebfdK82tXtDbBrQMJMPbnd1nCR4VJUghILABQtXbFsvhkZuYAtNMAHIBLE-XsONCtBYV2nQcLh8BqYUGw_h1iziM5adqvTLQKi1bbF0hoN_keykcyj_jf5H1el4XTx5FSGtXTNluuM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2526637,7.8128512,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 59 (36) 17.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5cKrab67QTqVMsn5rK6Dz7uIY0Yxb5sjjqM2ScMc97cE3RlenaA-o2fIZijuKtDkysCIUMvLxiXIV8jHB_73BEPwywgMi4WAaLjWQ39dFWBBjv8oaeUGzKHK3ibJKSnnWKeWKie0mQ7vLcDk6Ikr1EAMh3JeEaBXKH49fEDBj1xFEZApap4CmUK9c-1KMJgtbOPcI?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6nH7XnsNSZuj2L2fY8YLT_lnzPZHeYn8CXVsAsF1YeGsY_sR6O9pDMtniDYJWYGWEMHCuu7XanlI7NawXydLuYSnZ52IVK-KEHUzg0ZwIMhv4J2ZnmZGUIP6f8VGqdTobUihNdQpo3g_3tuNP-P8DtqTokiH1vxRdNBTg_TlmmgbEwod9B6X_ewIA1Qz9Tr2pu_YY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.044225,10.334863,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 60 (19) 17.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4H0V1DJPngW90CR7RBB4JkWHGZ2Oj1eeNomg5AHNMbT0osu1J5O_RR6tsGzY9abFblhtHGhq1YuzgxveVnPWMOc5KEqPp0lEE2MLee9ZstIvJWXvXnaI7mWmggmIk15_VjTOj7oq2yfXDaRq8dCUURXxWDzRG1UFnOOZTsZfBSPaFKPE08Ingnt6m3XS386xFxnXI?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7GNb3WXPskrsiKstx5RrbAZkuVg7ssrb5E46snQrXAoWnrki3JtgH0XMlfcETIf_7Kp94erNI-Ml_A7NFjD2uQbwvRjBEZJ7HKb429Xypjua8a784-yAnAkPju8tcZSg5KrzOwVwqvj1z3TESFxaKiiAVo9HH5BnTtqA_wj6fte2X4fhLnif1IrGFS_PsaHGuead8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.04422,10.33486,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 61 (17) </name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR74p_7NfT94rbg7FjDU_DQmozw7OJNdUg08-R2TMrgLXgt2M-hJDoKB9FavSgRXcZNWxKceJWgil80S047obXuITyaSVwUILrfFI0fv08SocE4APqOlk0BVFSmdh38cHhDr2gJcuZfClb9swvJaqvpR9VLqfS2zfM8llPWCsfV4dNqPnjPOWOkmd9QIuLFuolTqcso?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6OBKyLOYJtIljO5uE6krm2CfLCM5CW5zHQqBL1Rq1QfhISfBrc59Bbe2DIBJWyQFYLcrfRK0H3z9QYbCO_Vuhietr3WbU6KHThYQJzrTpU8xHcUpLBcE8vW2v8wl4Mq3YqXPLX3-nPj3k9oIWmKsa0MNTk_khxs3UbH6-7t_s687WM9XGwGOchA7p_Uagnb0wkooI?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.04422,10.33486,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 62 (24) 18.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6LMltHdhx0xqZ-aCWYacsiS95dNdH4Xo36dcARnJ3epaFC57diRbGgCvqkn686fJX_9Xmej13dXVyaq4vkx10e65AKPaC4j8LK7hgapQvcx7uzHBrNFAfO9RBM51uHTja8wNH5p67Kx4iVi-YKqHaWJ8ZZFYLWlR6qXVWxSJ98uz07pKnZl9hHl80Vko5lZKK-bSCx?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7TMNviFQTkWjN8HP8dXJi322jTxfFWgYfZvgu9hwEIBZ56BDvEvEK2FYyIVKMwX3qAHI7vtbN7V0toQUBR256HWEJ9UUkx219NDA_AxC1P4GNu0JsZIehQ-0TY1Cht2Sjr1dMxo58sZPW5oLlYHVvWuQjVUAPkHR4Kljp7rCDcZ6Zo9LFGCO7X8bYSceWClhEJLyc?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6243172,10.7093987,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 63 (18) 19.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR40FkiwcmADYwl2OIYXGQtAf-KMERkXuCk4G6BZIuBlVUVa7MSsBf4tan98mmZDMn6fyV9VXK0FIv0JsNExIxxuWybmEiYxU5duJb0qHb6_rb7DnceZiSVR8Xc1GBpYKr4svf-C6SwCnETB4v-II8lfTcGmGCXATeKACxCJPWeo_uCnvJKkhnSjgzzSJny7W1nTvCk?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6NuG1HJvDxPPor9PyX7X_acPrcAMEYCP_fyQrVP_Gz1hY7C0t7oeV45tK6L3QBN2UbD_4m2YBztIasCYmhhtliIbo1ZJLnthcrkJkeqVR6DhQtpp-uBPG2ldFG_WyeMZq2O9dlmphCqrup1HtQtYkR1Y3jxRTpkQ-73ABS0RCkNd2BlMLgTQvoqnf_prCJum7kAhQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5l0IyIrqZrIlGtAFiRrWR_pdpDaenqeQ4oVOpIl-xlim9wWzxZtCitVISreU7zC2My6Y0mb30DdTxHmFRc8ziqJlxRoWmLvW4Uuup2Gr2wJ9SFMivqwqFLojDuH6b69N78J4iL-iybzsGCZUeiI_H6Xz8XjBpJt2XlTVH-ByBBAGNqQUsx4iBOnGBhw8zsBb_k3K0?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2896709,7.6437912,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 64 (37) 19.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4fi013UCHxFugfK9ER4vwvihf-gmoJYqhzgpTTnGJj5KcuXTC3bK46hFRdXITN5YAWhEnqvUQr4CkPhiF3gZV25q-uiCzXiMp_9zU3OaL1JVrqzmieDEUqV6D7RJlv6nxDb0c2OX9ZW9YaSrRXNAlc_gSrRD0TqmT2AQsr8999GMKDK5CxgbxwUDxIrchol_qxEsQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6JIIKDaR2tPAoPgYxXlcnU-L3MjZy553XugnFBnonPC7y4bGg__8aaiWgK7E8Mkuo6D2-brG6Y3_j-QByzJPbp5aVOtX5dcT8OJRGvHk56YGxYGFEPGbzSdGUXh9sOmGi5nzU9g0DRFuWu2FbVA82Tb8WcgkYmWVNyoy4K9_89SkDGSPlbhyooFcYPiXBbYwG0Wpc?fife=s16383 https://www.youtube.com/embed/1y7IH8fIJkg</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9985661,10.244546,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 65 (22) 20.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7h8mGcjywxaV9j7vcAjs2tDNP7JO03z2SXd7TUlNype24M6qPY1bFUxBCKqF4K783CgMyUthr45pZkDzrbdBKv2ZoaU6enQg8XUk71tE0hoYdaNFJKloUYCBhglTo7xGWrhjwjHilj6TprLyxSEya8441idVkcQUwB4tXP-PewQnTMop7nZZV154WjxQP3_mPDb68?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6Diq3NI6gSn06AERsoYq9BnQ7QGcJi8320FHfa5dF_2yk8YKv_zfowMa4TYbDWTGBat9AWUlIQYBGwVaQ0Usz550yZ-_w9pHU_nai__be0pCBF8kmPiyQkimYaI8fwWOgKkVlaunepniTqHlXrmS-Qz-WKeGtnyu8Rx8asj_23NFdxb_ec5n0NllgLPnZ9lvbknFk?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5Ym0NFLiBoSDZqLGEa7fo7Er2XwPDl7okfyuoK3NfnVVkcRJlmx-ILHeWJlOaNEOXo5_G8JyDZwwGfRlA_9TPW7T3DDtJpTWYCLEbhO235Q5c1TbumUG-9M5TvYYCoD_dAIZOwoauHywY_ictPBjeNhK7ZubIr8bFqAHbYbqx6lQjUHt51B5kgOk71Ms89CcEOWNY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.6211853,9.2938371,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 66 (18) 22.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6hXdTNEscqXEdKbi2mIxZXLceLdpyRyc3oPh3aAQZXintfBKNG0IqxCkNOv1ETCO4ZDCck5X4XD_Z1Fl5zt1OcKRZhByoa4A5F1oT0SoJKlMFTf7dyrm1kE5WTqryN-Jpt-5-izGDpluw8HqVVmfPO7iZywjmpfuhCkkJ5fiK6R7mKuS8qiJbGaidwmlexKdrL5jU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5gCF2Bys44tA7qnbkW-IbHYpRljgEPg6PJS57-GrjFmBUQYEh1vrfw-iB-jLpGIbdv507M7p7fwVwUpr5qU58uCiUFxkGu0xTb7dcolapfkV3O3ctsCcDqStgX7FJUndwW3CZAsAx1a3Ty8NO99TCgNTwkjNaPO7lJmLe8iZlWPH0YCNdhOzrkwOn27QHx_pgEOOg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR536bac6_vzBIzvStD119kYP0UEHdsnpvXUPvnhe9FQ4znvS0w98oblJ17qbIyrWJLyjldrqWC_KCypuECDBVAt0i9p1cBYf-ZHlIeP76aQFS3U3YPg_sQ-R8zE8NHBXhpaz3Wo7bzCEdIu4dQsPY3pfhWI0cL1RrvmBFJtjRVNScGAtfyv7pub3KVlQISGQtqaXBc?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.2418613,8.6396671,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 67  22.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4Y78M80Mo3yljT7KJWe9NcGCEEhGbbDlbnCXwrqDVXH5Cr8Isec2_xIITFN_nZ1ViTmWpNhSy3BS2MNyzkSUZgn8zBYKqsD0__9LibU2_msVLN_yK4wJwFLGSQhtyQAVeyw150VamxsYOlqZzvxgvhd5LkD54oXdRvBiYaJQrnqJxtMiejE6_5rSFlrxM71RLkBLg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR79yw78eSQa6vIjivPjLmiq7kAQ8c-XtWgaJWH4uXl_9Tx3SsJ4tEc5nrnp6glo5oLR2lpY6c_clXgih1qjTys6SFXM8AGp6wTuGG19OEGPEZ7axpHPr-L7tpe4ZPR5XNR1lkW4uzhBKumtXZ5rjkSTTJm6vx35aLg7ZoVVBK2MpTsfmi06KML4CtyW_8P0C-aPzWk?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.2601787,8.6622237,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 68 (20) 22.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7E3Iz8hhzKFDNOCilzt83wrI1KDAc47e_WKnc5w-Pxl06rx3lPH9qVvaS7fB3mX2vb0-gOzWVvatArRYGcmoEsDv9w6T6gKRmxdZcDUSVuiOGLbKrYWzu9Cs1eYk7vDAuuEY6wteLxo0p4d04pYN3uBoI8LfjFdKhKGG4A0A7FNOBe3VIp06IXakslv07sEnDu_YE?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR77uHGH6M3iCovrQJCNxXJSRlPA770pRvMNKiNKjrP__ZRfOQvc7W5DZObUNEcCOQq_cfkqXqYew7YciR1BaDe1OMso8ekuj40lhdLRPM1AUHk48Clle-gxghm8XAdnOkPbnUbmSLohw5LbG_Zo5hYiCWocSEkDZm91gKTgdoIiay8mexO5qomkuR_xbr7P8ZBXi5s?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.2545981,8.6047705,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 69 (25) 22.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7yCl_0zXCCZZ6Env3Md2k-Uia5c7x0OOyjGtcofDn_WPyqZOfMlP2WidjiHMq5FZyviJyLlm4E9i8YiwLUJdDv8TJzrecbVYxI1PA5xCA0BYNzYR6sMarSciivs87kuBDcMaqzp9_atLmSA5jcUfYyWLsigPN15Shd3TWuQ0N1dtYdROfOijWNbMT4p8XJN3u0vu4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.95468,7.4049943,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 70 (25) 22.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5K3Fy2dNhwYaVZhpcpexlJDyCb_fsogHT9L-e5YvBXYuOTw2si25_hx8KhzVgifQS8wjzTNIer1_XcsfiAqe2KqWXXMxsOgE5muzkqeetoqGi8a3PVQlBwXzd7tTIls-BvVjUqenDyEI7LuFwepPsBrJa0ck-Asx6Ixuva1HDqBt4Y3PI0WtllqsSwqpO21B_CEm8?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR59YNPq8_1ZPKaoaE0uGIOdf3xvn-wwHEn0hQWDSdBj9NzBSVN0enJi-5WArlhoFIKJIbi94MPi5zrg7pbKrLAgltg5LyCs-hNIG9bvMeiLCyCvnAPqss39vg5fZ2UEuZadsVr5VmYRL7Iu6Qf6oKDWwXklcv_DHDySLVXvxYGmHeahvQGfXCYBNwuaSvD31NVSkro?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.8227697,8.2330314,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 71 (66) 22.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4ELvAw4vca8gGTZJRkC9oxfXs_71rgqicQd4N2zsu4JBZqsJlrE6GbFqFEcBTt2A0vXl9P2lRpVjmO5Mlm5ba-Iy7Z7JjSjgFs1pUrfutrtT06otW_CQwwO2qQm6r-04IMnTNU1wrZq0RWZstL37tk0nREeu5WnnYoJnl-ra1oESPy0ZGA7V1gC0MHFTfo-sk0Sjo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9093132,10.4701092,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 72 (21) 23.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR64OdfzC_GxS0c7bdWbNXUj7z2vaDgv_wn-wFHZsVCFYtX1VhDF3PLz-DHEnTEVEcchQJ-VOhif5ZuwinfSwQAXYFXTCJMBJEz5T78B5wRWeQt8yqkzdnrGeMjxaOFa9NBpB1DlNhVke9drCuxCAk86j7ju7b330yg_tbSyzixBdz_75G4PZLGgwVLwmA2PK01EBdo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.3583879,8.5681393,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 73 (21) 23.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR61gY6wXMQVgd7VA5U_Dxcju8w8rnv3Au1DDN-4q9DzUeVuyE78pzEvMeue2WQyndUItd5VhBLUvbIkg-z_tqmz3IesasXZlbHQC3l6PCK7Ls556R0ai3xndrAZ94KhV0hqNlL8LEoKnSV8de6-bk22SCurmIRaBWayzB8yZWln0NQvF9HdmjmBnCm5nAESLIKY7hw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.2400753,8.6442235,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 74 (35) 23.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6MxprCUlI8ZS_i6uERQRTEvJkN0LiAHahLYt7NnxWwGIuMiYXzkJ1fgyP1O-Updy3deABR2dOBX0DW3cxgOSrli-g75pSCy9jtq9kW-R8Gh9AWymSBaXmIa9psLIea-lQnmcWVqqwYqRlIb2jbfwuLYPdteVbaX73P6nmwaJH-hI8bwwGvl0_NGVpAXNKDGSFUeBE?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.1879993,8.6054708,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 75 (22) 23.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6jaWDbvuQXuSTYRMa6IEr5PFOad-nJSdc7PMFYv3a0Z0-pgwSPpA4SBPkuWLLiwziERHAu2_tZ3eqz4lDfIQad8KWJQ72r9WqWwrHNfS1gZtZDcTohPmILPXDehm9hZfIRnOlWL35-_4fKCovO30UHnrz7W4ZjLknm85AWMC4PGaYAks6iVbELnkpcWZpDP06ym7k?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7mzsBXgPeaaAK69WBye_HQVlnL7JCRYgPdAEQ54XttO60hNXiWiUHBzFcExxx_HJT0_SPn1O7gC476eC93jcf6W1z7mCZDzjyW6nSD2SPd-4kN4Ta2tYNma0M-n1HQ_3Qm7oVsBdvhbim4xukx0JQkiPONg6V9A00vGB4KwXafJpEJO03N5XGqWcRfVHk2a__zLro?fife=s16383 https://www.youtube.com/embed/IPyQHm0bALw</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -63.5542925,8.1164418,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 76 (23) 24.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5KWXWebXMIezacbZr9IgrlLJ9CX-orZn9aGPN15EfJ4eBEuiA_UpLooBEiTFJOE3XuaYZhZLDvkFYx5ekQI4qchVY5FRfvE4zS9Iv1-aJ3Oo4AtP79iBdADcOpnN2AAcHczxbkOtdvai_WBnSHJMPnabKqWefgVed0bFsMxfdzgDTfLpwwYjqzkO9m1i2gj0GrNNU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4uHDRMyTpJuXoW2CeAZ7BOo6cVUx-ho4XYySgdkO5lHUhA6E9pdswiJtKpWUsYOkL_ASI8mjdi6886i9Umx2Lf9ig5NY1P22pQ_LfDCvmCapBmMps4-0JAdJ-Y__Y6CNLaJQBjrMp5eiacrhnLauPRjAVMCF-xJV6Ib6iNpxU7T0xDM0RJEZjZCBrcDDTrfSsJJUs?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6151285,10.644816,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 77 (33) 25.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6IAnlurag7KCwA28PSpPefrbxJb7tfl6eXmBeCFnDKFfx9AFL-srbbD8iOmFwia5N_CcG2ioNvzz6zj6mAIMyufQyMuwxvyg26DkPIvvN_QrIriek0wkfRweFX365Bwp7BoGRaZXF_RIi42WnIAgM0NA3R0JSVi__Fp9DNmfSxEIRVOCFB0IF3im46R1ABtCKDGfs?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6ace5VEaYV1ERxwY1dwkZGZTIjda0loChMkC0UojI-qjyjq7BoQY4dzz6CNXFxnCCrZw4sppFDuxTYjShW3zCsKx4rXrduq9lgLz5ju7VQ2hanhIfJs5IFFFWVkeV18-gwSPQDJfiiJMhjMylXxcbOCW6FvPDfe8zNr94ZP3RceuICsHWbrVn7r7eFK287g14JhVA?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4MPrLzVxrzZXyNbqYegS0XPLDj-ioYwy-5qs6DEbpY1hZk-9Voj-c9flhkQ_7Mukw-m1_mQ0RbVi_kRmqvGHIc4vY6hIzYqupuc3JOAmoLJn9c2mXWdLMRrZF7U8rzc8x3_dgSBY0sNeroVC8P5bxpoju3Fpd8NHmsV_QOeywbSKi8rQf-OalN0TFu5AB8p6DYaow?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR70jWajvMWdbXztKoSIzErwTAw8i8AeHVX47HgIDffzfvzL2ELIGc7YIrZjz2hB8hUxUJXMeTqLc74g-KB4a9Sa55UEHpOiEGfetyuhELIlzBDjBpIEHBwiHZzxLY8PK4rTLU_R1QMvZlBkrGN5KCPNVtBFUUanroONCofMLbgTfAG5SJyD4L0PcqFBdJzICvVBsGw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2511714,10.0420759,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 78 (34) 27.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR664hyuoRII_xKk9EOh3_l6DxcYDOie2L8wQIhYMEoyADXPpk27f2GyvzIMAY5_vgr2mPNwiOuCXyxIMSiHoNIATaGqhYE85WlbGJLDZ9RjylGoLN0IDImBJVYpijsa6MN-ycR7z6RWKnbMZ9HKpqodrG2oXaRI98c1E5da1R_q9OEPJQR1YCu6Od44B2iTkWvampQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6WsRVT6a-QGm33lp1lPFBdFAkIW3Qw9OebLesRAkSmKSiJQOkYaXjS4iCwh0U7F_lnfCzyeftfklD36VH4iFaZM0F2J0Mzz_kOQXUgNJ3BDnZxTfvad33TT0Lx7iMJ6_nx_l8yRfpR6rWjsafJTJQWWQXP43B9pj73hPNljNd2jgic1o6bi34N-qSNRGqqCuPrauY?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7yKDTdzZyuHDKbQDXh7WKdwr14zUkYT8fuOx3PDIE5F5S4ACYNtAeTOdWaF4_wZHJPQXDiVrLR_WVUV7Ufbn6m3E5RkJzXQDPzK96aF0YV3ZvE8S1qU4busyW2GuPfpf5CdjS2UBjsAOhgcI1qfLe5ojCgNTokPnnyKTZJYG0LGF0FmB7D8vPFEJmdcEMNvae4RbM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2514877,10.0426349,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 79 (20) 28.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6kD8XU7cbwQEbB_JyKxJ6wl0PuR8kOIESsO6FtjuXK4mNUAYda64Vci3nQrObRWL0PHyq-DxdhByvYx36-togyG9k3VZJiItFj0shSrDlQ7uFNvGACsDH1MWkv_8ojjzgqgSvUuL3FWeoxDvs2LGBzi9-RxftJM1gZr-2QR0Jwgr2O9mDVW6UKELCUblkyaEL2N3w?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6Segw4PYe99NhX-rD7hnTgnBBGY2JgK4_T0sBcHR-dvZs8yBrpFE2Nc4Co_0EjI5dMaWsnkGBnLG1h0gg9WMATdY6osaEJeN4KS82fchmEiCac-GJL7Mhm_C4O099DLPEjnwT7wbw8xsyYJjOLeC3c_2yxBQCmoVD8lm-92p5Qoz0DhaBCL8OHxWXpMS1fQ89uJT8?fife=s16383 https://www.youtube.com/embed/AMvYwmiLCaM</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -64.6881867,10.1789491,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 80 (37) 31.05.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4gPb_oHXRBkFqXjmkxX4Btk5uSu9yxAewXV4FN_vvI5JJ82fGpgeR-AIGCGD3qQqV8t1XkRjAPJTqCD9b1Zu9Jqme9IHtr04CP00WYaGFiKDmReC_9NL3rUMx1A0Gb5RhDSJuxWy0bLrbz2mmj_1NG6Z54l172dif2Td_gpsB_slc8HZz9O5k6wYgnZkMKdG_z59s?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR450YzOVtKdg7cQPEGiLYAXtV4AAScawMGyrG-pBuaz7YbAoGRtNGZ3PaskU1KRY9NEcHvjp0ke7fjRu5jaL1xEBL6R3tgfP4SL3RFvxuGjPmm9p8IXsMU897ruK9wKoVAefEYAMub7DZqDaqHOFI3WjvDy1zNZKTSqhlEVO9upsemi-UZt0UQ154ucWeD-2rlXJGE?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9306699,10.4880395,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 81 (46) 01.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR79J0T6oh6W8KRjjcnxGoHTPjsoIPfBZfgR3EFVWANvoQbfcpGo2OdkfBSnNFCjIFulXXQH9m9TCEEgl89Pjxnz0AG_7hdA7vzLuLnr_LXEO0C4U60jog0DcwdBcZys6synvRVruHNLpSSo0BPu7782SgP6SMTM6ShHFKsRam0dSuWuTChuUHS_NlHKdbWsRuo_Rek?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR62_-i16gKlCpB6mmrrlNQvpJlNhOY5bBe8zxAKZDprpfUQ97J8R89dCBNcuvt_tGKswbHyfRGHzW8QoTechMsPkTmnI1-TN761I2lkwXBdCOxyb7wMw5UYyBojtWOT7lGxdyc2hHYAOO6TgnL3M3KvBuYsfldT4QaG6oMwmVs8XklJ8dnuXz0FBg2i-4P-DIxoTTM?fife=s16383 https://www.youtube.com/embed/GpYZ_Ozmew8</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.305633,10.1551644,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 82 (20) 02.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6yONE6BQ4DmZfRu7MKcz7iwzJzXfpRV1vrlHD1NQYJy4oPMz2y1wLc7Pas9nHbCevSErIb6qXPteATKV74bGE6p2ZahXN4NWCnGMpLHYKgXdGib8th9sqQWuCHMoT_HVn_9BUY5TTwNY3WHnX2mqq02jASTwpQ2oDsC4y-HvpUPTT3NA6gZAB7aNhmwMdOtbzi0YI?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6Q2x7gWcvxmKOcJrRcUNgX1Dr7naP2iNuDqCuEoLxpvuExb-BHefrI2J8FMptBpbGeab5-GczS0qjQ1xQ77MrbypF0KlXvq5I5h9MafGRmBGRdEckA42jVpDaPO9WqMbBGAbh2_iOpw_p5QjuqEn2guMmbZTgpka3_iq5HawXeVOsTc1d4gL3JpQ0EDfcEXhS4Ilw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.7592825,8.3279334,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 83 (28) 03.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7OFevDK5HNmKgafoVQS2JST9eLj3NtJ4nKHQ7WpENE51lvsGtrFtyngOvZkPKtJhi19F2v5H8AF2TygGtA6-eqq2CweN8e8m5hQceXpMVGs9-sWrDEOfFXWVRzWxckBtazj-tJ53HkjPQ_bDp3oj7lNN3BVSGQOLmQhaI7m6XDDqR0z-7tIm6PCDjmXXk1mjgZo8w?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5W9TCraAXnXPM5pRgjJdngebk5dLgagvaYApElYBA2yoiRLeEJpnTUQI13sSIYY_p8VyFH1z0K_R1udMJ8U3Ho3dGmvz_I3QSPEUcehBoCdnOkxliiPoNGUBv3LoBgVFP7tE6fb-4I2tbG-C41fIJVpE47Dc0ncdXjizVKy-HT0HOnaLGRuWHwvvcf2gkYwcDZIPo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.4108852,10.0454526,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 84 (22) 04.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6G1phCPgWIBEdiyZ6pPgyvkOVOeXJBpAeqssDJ_9WdY61PAn_WbwPVzGwI-pCVHVaSWgw-K3jWdsECxKq6-5NW8Pu3zmwyGg2DPpCVGi9UwgkdTk5qtwzFbv5AjPXkxZbcyeAXC1lSobhT8UhIIkXNdLAHJO_1U__ukwX36YvIPKcCLiuKCsRgCMbCmeVdQDFeNcc?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6TM6WTVrRlNSLDrelliqtW_MsAzQA0KH7ku4Ykn02bSvq2Vy0GcvCla9XcRqehULZ4uSrVS7bp5ZrHeOOj_kQtUWnkB-LW6YHFBXs-nC24rxz59S8odFuGcou2lq0f2ycoczt8pfA6KZTov7qXxIdvD-UjO8Cf09O26H02hMxtC69lAN_mbUQrEdG4ncevme7Z_ks?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4y5i9fBq45z0DOgyzhYjCiqJUE7YDgasjop0W5BwIt5nhWd1bqjQySw6wb-zmpGmjWMeXlqfPkxkjKnRGEQQ4_bYUrU6d_wqG_Xlc-tkSHuqEdUP7EEkQTB_WrwaYx8U8QckjRMQcomR_LPzkzQOfNwbQrcAIyGtNKVcKvu9Slrhf2OZFVw6eSJgz5cnE1ZUxHOHg?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8492103,10.4939148,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 85 (25) 06.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4uSCtsa6T5_a9dTa_gRsWaMyAuuNDkO9pKyadhzLWn_-_qNbd-dKWOJ2KeMWba-AmvoZvHx0IxHwWyS1FeVkMm4cCKBUeUdsLLuEiBoYNWYpQYE2oSf5pIFz-oLvl9_0gOpBtC4z0vDGRsJvCi8jzIdDY5fqwBeLcIwbHB7nzQyziuB3YHNyFIsmQW1CWv07cxIa4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.2499428,8.5475386,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 86 (17) 07.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6s5FIEF7nMEHscCFtg9dj768XMd6gpHaecGPGzNq3H9oTQiq1vIv3SGtr-RnYVkGONqN6lv6AmJhxVdECUZabuo1L1koaIpp4FijXUq3pvwCc4LNDcwFZ_Bb2SwY-QtfPWq4TYpbjtxObqqw-dYaAC_TC3a37OCq2YkVif6LZ_jmev7gC9q-ProPFAv4h-m66UF0U?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6qiw5VaHKF8DWV4e7NhhpjPs1Web3-mrZs6g-9Dp1exeziI_NzvgTnKJg2ONsrChZ4WKCuo1HUEiIkUEhIBeQEg2cx2uPT1NN4VC6k4dPC_JJhxM2GG3JFP7vBhvkDZAPfrEt3UcNbJeLaljCpt4UT5wn5Z7Df1TAyYCb39z1BCSuD0cWTFMqZKHZPijC3-Qk4XF4?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6QMW0vkexRw6HySsbLcQYC91J5ddVigQXJVv7tvsSw4zWq-AhSLVsaTJQ5VTg7MqJOXEM5xoBifYyD2f_rlLQeYShXbsqSqh17Oy8KPQEZ68zhii9iVIh1Z2opox5AX_m68x-q7hANUY3Bp3FaYxNHRvdOhaArLxTyzmP4ojNG-aAJe25apeZSeQwfCW1dgjmosSY?fife=s16383 https://www.youtube.com/embed/rQM0sDIndJQ https://www.youtube.com/embed/62PlKzsUE8U</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8600383,10.4921055,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 87 (49) 12.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7HJh64iL0_5u5KNf6NXNjxlfE_Xfd936J53l7UzmqrXQq5BWPjN0TnDViA7EzOOTmt8SLqPMq74kcI59MEizP4qBi688t5epc7Z7Vca5L4Pw_faE5UbmkzRDm-_pDzW-uv154hjrqtkQDDsvmLPySavdFFHCTIz4hIwTqYP9JXuAMfcHfeDhvujKlH2o-pKa5yKNs?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7C4nDM3K2lQHw4vGs_v-UuTLS3C3zMt-pzOdREQBSF_YF_CFJBbYoLt4QIkD8y88vQeY3DE0_SNI_VG37TgtTqSuXPivjnGt4appt7DFYWb6E0xenmRdkhJmaNgmhpTeFUdLVftW6ljFCyY_0hbE_fZ3Z4ZtBH-O9KeiajDkDLAIYwq7KZ2cXbrT6zX3Tjqnj_mi8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9166089,10.605513,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 88 (41) 13.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4A5V87nSsicQDpoxQl5XOukjKBAt1KcOTSE3Xz-MZfxMQF4hZq_aQf49CfQRh5B9FAf-O2m51IzaG1jESrecrbZ5RShk2XX7y3tSv91MPqN3PZkOo72TwsSupjyNEf38tDmKvJQrFBHlSVlYqjQfysViuMg2haWOk8NROpe1SypFesUQVbhNYQCZOkfRo0mHh--6Y?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR67SQx6qdPad2NBfoO9O7gPK96aim0MLydZFEAijhUWIeCWJ_vfxOOq5z09Fa67oOI8bmMQW48azVEN61-Wf26gXi3sI2sUYiEe39I29_7mdxGGfIcHbKoaChKetNXl-E6gCox-elJcE-mxcTMwkEooXnTFpkUJoPRlJSKAzXuyk7vIY1ZVXrs1L84K8HXB4z9YU_g?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7I5B0b03GGJtEaJNbamBxOM-FtCsXG21WW8xOvFZliB-DlPoFwTFLnS4VGEgY02bL1LOzw7fD6GMz9_hIsFz5NM_VenaB6kZDRy2hZ3Gm5xdyQjRmS8fEWsU4Bf479IycLGkX3vIojv0sUoV5uovgK-o9rAsEToCxE46QTAUEGJ2bSLysZFFeZzHcVQRQQYUr_d0Y?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.1689881,8.5780984,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 89 (50) 14.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5MQ70U3LcI0_WCzlmoD7kl3UYnnC-wSy03Ju_DZsuANuKWdpWekYcRuXUqNvzdBhRSC48rE7_sowOtwDqwnztc-LIJFUYXXw5i__1OaSdYA8qq4fCN0GIFsh5v7O6fkvk5D9s9fxPrNhO3tAPmHxzwJl5t6RK_bEN6i8QpuTeozltSmyzbc2HSzollmbyfTLtbl_Q?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR78fn6RfddtmcNtT27AfilJsb2FPZMaR4UFNpfmKnLLwDkk8m0S7_75TaiVQIwB9vRjSGWwkXhAVo6Br4HpAXIKktN3358W3STeHsIW6jg8j3XXK2D7StR5grPhfz09kOHedXhg7g__GfVW32xWkYWvSSVaRyXC7L4a3YrjQGcCEj8tvOuaMtEyNk4MbDnVL-kPgPs?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.870627,10.4544053,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 90 (26) 04.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4xjxOc56cVdlzbcZPVzfrasKYoU9r2rXZrplQgF0vYQOo-LbeN0XJQdegW80mol3h5PTtL8YwJ1GWy-ISxdx0AuFI8pwfAyeD93dZCV3K45THTzDyIs5N3ezh8fNiwzjLRHcOvtvgVYMAdev8BdrsQlTQRYLq2lkmzxkxxXZYxCmnH8yTLFArbsm6DmIgBtv5Vaxs?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6OTLh9-moLsZKPIw2iXL66da9BN1Rg7oSP6elm_hV3_mBP35TNjATLBXjgLW-xieRsxC3Uchktti3BPA8djhBEL2NbBjTwJ18SgycBmfaTsbno5KwzzGpAPCq99O_Cvuqql5VEPnZwdwwmvGZjmFiG4djPed-6vA4n64I5obXdrbK4dbNtare5uNxSfR1k0npBq8Q?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR67tRW-jETYK3w2bmyqxcRxqOvQWZPnB2p5HgxFs7DhUOGb0ksgzIVQJpXu6d6QKKEn9VMfSJOJ4K38lkhNI7qKRE87WO3SBbXC9YkBh7TzGIpgfaOSJ-n1OScf4cU4HjKI_vC7tVPvXOtRqfjgwHu_gtSMePeTnAobW8j8i_Ik8qncj2FoFWhil-Jnj3VgkQkVVwg?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8712278,10.4541521,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 91 (20) 15.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5ysuYYYZQxcVsfjFWeLrucXTkcvLlKspXyXBGZsTVriFAuG0RI1sPrABMEoWMtnKvTa7zVo92zz0XrkfGVg7t0N2-LCz39eRv_ypXHcsPiN5NmobJb4wJrYl8ZvLjDRByX9g0mIZIIdWHzCYcfi5Imh5kLCt0b5c9NI-L3XiGD0d3NcLLd923ofhmYeXTQY-bnCl8?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4pmuAoroU6aOze-FAq8G5XFmNKcKSGXAqUdHdWvuzG6BNS6wZxDQ5mY3E2TjnQjOcnyORFBg6MtWn8NDCiXUc7H4z7Xkxj5M1XUb1C_LQgpYofKmh8jmA6FySWczsmMLCMdZXKmZxVqeXz4lF69UjNwi5BVXM-nrvcj9xlvPEst2uNThSjjL1t9SQoui5Hvc7Jy3c?fife=s16383 https://www.youtube.com/embed/rD-T-NryF1U</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6343318,10.6938078,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 92 (20) 15.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5FXyM6sqdfx37bwRxMj3uPhtWUp3Uyx23sJENNflHL3VlKMP6JB-qNxiYyUHCPqjKk8W0BphNLwtn67qxlIoV9D__YMBsJSO3sZWLD5eudz051cI4hMr5cy20ICDZa73pOP7I706zdfJVdG2G_PaTkfK8M_RG6UDLdpfrVlO7WCTezm50UsBD2bqASvDqoDq02AIM?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7g1vsZ6yNMFkfcK8_KvcDjbcqNlWvuaDykf6N3iMgGNVLEuafmiPMyaDVbxIy7O3OcL0bE88mRwQO2e-EP0trCJK-Gfrh6kiXgQOxTKl0KGbrvNiOFhCcrrFWfVwzFKvR1PO_-BagHMdY_VMPFoZHVBXZafSjLq1kg9AC4Fk20tMY-Q8qr-GZd2G5DlJlGjpliXbs?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4b73ZMb_TGNdvHx8TmCnc0ZSH_BLC17goThfhZ7ajKIL_nY4lKfIpBpiAt4LBRfCjjtZRBpvQYIMRwq7CQ9ryPWMyIH9K9xZ-8iRxea2rI7DNRSKYLbyltPTF3ujywm4-Vl73P8IhlsZZDMT9m1SLGYC3EQaIMip1RuoLr24wB0k9wzsN18w9lihe4kEsp-RHJYXA?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.3647812,7.6791731,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 93 (28) 15.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5KI-2OTC8gtsKNMHoWAhO5BnpEUy4k8zw7vS6od1_UG_LuIQKvM9x6gsBOXI4TcJA9l6tJEiSbdr6puXT4WN2PYLrI0Ztnw0gFtryTl1y4_KTNBBQVaUCJMC2vaH6F9bEQwrvD_Iber9ewgujtZ26IGhTUzwTr8ceXZF4tm7mDP7h5P5VLRwShytIHIAs2juunBmc?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4iKT5MTRIOBMQDMKDJnzsFBheughyySLhE0ay9QW2-VbhYnhhiOSQtYFWdjZbpLWB3FT9OCdxEbfyW6lCBAXao4tAFuBmdr1dh-SSkW9W9suryfQ9V5EN1racRLWUEtcbKwJ0StQNLJT4NdVfaPLx1OLH9sfbKyK6xl57nT5ZjBKH3VJllj_nxr9vEtCu8vH6zqp8?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5L_xEI3Dtxuw5yWnQFbiKZSSMIq1EFhrPfp5lsrHfrcgnGHnV4OFgbNJ9JF478W5rmCxFQ1ReVJ8JM2j0GQG0OHZzaxtwjxGFN6XUt5pfZjdBW3fANxJGZv3eQHMmd4ltcITXZpCwGk_jByC2TZwdacoSzX9jWsHTDwJ2izJYBxpBJjRUg8pY04LsPY9XR4PJ64e8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2140521,7.7663,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 94 (22) 16.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Fl71CcjQ0YpBeg9v825CdTLUUu4PwsThWyh3Q_b1I8lmS7xtkKyYw3Mq5oCoLWf6M6BgHSv1yLepbvOrJoq4Lz65ujL53rfleH-m5WJmCH8Rf8wZBEtx-C0BDfMrSsoxHUptqz5qjwlAoZC_0D01Q0oU95dDSS7deg7bect1uR5IgaWz5ODDBAfCXvWf5KKGevD4?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR66iMQ6LsMAtmFnX0uj9giMfk6aeoO9NW8iaXohbof5t6JXw5Gd66VLQNzQuMW7NcM7sJbWL4KOELK1K6dbF8g7log73f_wkRgvalrocWr1dSueCMXHWWMT-ljPskI8s7aKzmxy1lE6zOmJxxhydit0roxgP1IxrLxMT4IIQ94OYHsJv2kDbQdG-eEuOZ-p6-xn8sU?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2795586,10.0799195,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 95 (27) 23.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -66.8037012,10.4860775,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 96 (22) 27.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4g43olEHYBbRna3I-2oONAfmYedv9_EI-1IO807DWjZW23DvKbxFSr42UhAelwx5duPE-2rcSw690MPp7C9gHuQxdVb57w3i4P9APkNfl__Sqka4KaBpfzAcl87SMjtHyWRrYaX-qCJqBIsa3sTzJpAfm67f7r1sV0Z6hxe1hRjS8j0qd4oByrdPmh97m68etABJg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4eGUkF5JyQhKX-pyb-aBEG9weLpbXNG2auuO5SmopDV2rXlJb1Ry4P9xAl_T-YyjN6YO2rlLjpo-LwxLj0LTtwas_nfaAwB_m4saxIMfhaAbL2ibOPGXOghlB8mPJwEWnfXFh8JzLUx7VFX2gVC8LrxfQ9aLlIQMTLhN-0PUB3MoIq9O8z5Eapx35A5LNoZsgeutg?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6499218,10.7290236,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 97 (17) 19.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5LnctgOob6R6MtZWF6ixVvEPTEGeDMQtPPJd9nIQ6D4f2yxYkIFiAxQl9BAQaEyioVn1osBRe6JALiEeJauKc3jP8B0eBErN-7qyu-3u-1ZyEWD3CebF_mc3dPdU3SO_JfqGULgqsc88i2vWJ6bA32spBlbBFVAaSyIrOKOSn1FaXjOsLRHrH16C3y9qHZfXcUG2w?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7PxvYiaJ7H8R2iFNaC7Oo16VNoRIsc2WopW1BBqwxXD11H2E6k8GpBIIy6WJAgq_uDxGQjztiYXUFve44NtNiXvqcYPvN2Fxe0KHLuJPfQ4UhP9K8Jw2f0Mu6YOdkKj-q9FgCa5WXXFw_yzrkarATojoia98QNDPCYiMckJr-UOAm56T6UoBKIJPdIKdgEhbPLU8A?fife=s16383 https://www.youtube.com/embed/TnsLSRHvyco</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8488794,10.4896753,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 98 (22) 22.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR50rd-oKPBpCPsnBNvFFTkRkvoXQF1YIW9zLQ7T0Y_pIj0Rl8f7eN7IXW6vz9wEZb_yAg2tgWQpGFA5BBj_NHtBA_UOlehupfWkCOImS0ZIWFiudb4aLGbBll_c9Gs4gaUW2Kr5I-6d-oe9VVKszcTJt56XVKSDXXL4DHoQJ-PzlTAubdSspUJu1e5-AKLwvWioYcQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7yU9f610mKoHe38ALNvIqHAcZJa_gAzl1Z-5H26A-FH0PA5lP7jTmWzFPj044MwOHxbrmw8DKAPRa6MLbdFClyIXUj5FU4e_SxI8ZaYpVAhegzx7l9AHZUY_Fo_k9EKbxgoX5nTfljbEgz10ZTZQsDFxJC7MY8VZhDxg0NZ5o3sOCcgBItwxmFH1iHwIcM_eI-xpQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5SAHVD2sDt_m2NYFEn4Awcmc5gwtKGKKSFCzHYJ_tTuG0tT0-zJgYPpG9PthyhLfJgLiO_ndyhNBBNzBXaJN-DQEcvqnB02NVqxrUc7DWl8DyQvsC_Et-wPKoK9PF8U4Av-BGZI9xVKRLv5Dr1iKpwA_517dzL396g0hSvrXzOT-I8FfCiXQlzZHIdcnko6XH48gE?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5zsVFDh_1MwT5IQ-Z0HI5P18mBtjuBQk9eRBCWSKjQOunpNO8j6plvZkR9KnLPVGm4iSDtIGsZ8TYtbV83AMoD7XKSEPEE-Pihf3ruGG77ZTY2roGmNf7sYB-Cprkt4U-nfwC6ZDbRIuKwgYMrKq9Kh81VisioHhdxIp2Sr3zAtna_I7YkOEYk-ypk1S09LFH9HjE?fife=s16383 https://www.youtube.com/embed/3JC2IlYV1XI</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8455195,10.4880756,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 99 (27) 27.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4w5IGgc8BoralzXGuIfQx2AOYjqdtKbgyKU-gavmDeRaC298D4n3X3joTBpExil6LuT4RfkvVGYvHxUTP65uk7pyRzdrHKiALjgIdbFA9N4J0CFkGB3tem8Ne8cvR1DwHtktJWbK4G_sc03EZLJ-I2iYb4eKN9IutXDlvoOw4EXilypW0WPPgclQ_PwtZer3tCRvM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.5552676,10.3154642,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 100 (25) 27.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5JfJC_vU9YfTqMbE7FWyIh5fsN1UcgppR_K-P034dqK4ZRTMR9H-yy1sKfxXG0swO_uoTDMbdtzMiwWwaTg69DJZxTsq8xVKatMh_6a_mZ25HQK98M9kO9ya9gDIzfJkqaCKnIwqjYBdRSRgjabswQ8rsuFU-g1gjkQdYqouVKpoaOuWriWrcZuegfQYdNXySdLCQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8014979,10.484398,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 101 (34) 27.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -67.5529725,10.1615136,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 102 (36) 28.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -71.6349594,10.6320493,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 103 (18) 28.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5p6fDImzTq3Bl1Rslt7qysrtTDYEcYvlYi6h36304aC3SVlu2P7GRe06VQ0RjA_NPSYQHiSkHQEgC-cQvDmGD81U10Yv2vAznMF3KOnNN4LZcGwvx6xXPHy8Q4UYOtjjH2iAoJDqeShSU9HOewr-6Dl8taD7UR2VZJq9xwdkK7JGWTwKDCn8t2S9hQ1_5Eil58Q0M?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR78_v2NC0KCLsD7DDjUhqL2doaIhCjIoizMLmiGkgUlpJGaOL_sjVKVmcMmvXeQK9LuKH6lBuFiPsl_0cm-vXmiFajwJJXIslKsvz7omUREyLtZPZQP3hCJJ-hI1U027AN_t3qWqsfOn4KHo2cVJtzrtmMD9WE5L-i6HweUqIWVoRL0lzZStjygOV8oZB1ueNsoAUk?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5zHdctBACnvDsv2cjqRYNx5_1YF1wpEzZ6Ghv_pGGXqd4bM1PqdQYhISFFoZiDzz4IAZaXxo7U0UWUZByl2H4mc8ZpiA7op7cCUdp9mTjWGgBx9LtRYLq67p9Fosz89QDEW5-lzdJRnHUWJOVCGy2oYdARSys8j8NjC3nJtkQkSJoTBavri4KhTSLXvvcETaJEKu8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -64.6743736,10.1670618,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 104 (24) 28.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR57oGnfr1pckbNgYtwPDaGaSBHmwk1_q_aBlRYeXb-Auvl915DQtdzLg-vfcuYBy5fc15AbZ4h9ms3qbHB_BZYGUyMmpKc7Pz1YMQf7fqnofjHjhv_8pOJRUwIogxGLOebhv-j73q2d93mv2d9U_Y-OPOm70Pn5Lo8ikCn1bd1NtDwUMB5-GKO1s0b3gMavjLDsfyU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5aBpRyzg2P1oO8QNqHWo31d5KHV-nq5Zy1ibTAIyLgNtRqGjiuQnOQ_k7LIDUMSppd3dxNAQ5NWxaWigoDx5R2XtUmxTpw7PEQlKsdfp7vpt5ME6urljp0ALNSb8oI_7KOxmGcmnqCiMYN_CR7L_nv4pPl5ekYhyAyWFZyhqfswgWHy_qp1YUlhE70jm0uyHOrS0s?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR65fL2JgCSutKuBCtMfCPuZ-CcJuhPLVa0oML1vijg34NrHjFkgUK41mD11wwgG2OlH0aiRYS1LnSnEbIoEOmpvrD0H8BNwzx74MTa1FO5rcXW2ratD6Hep89ZNhQmX7o7sQ_EsrqTaS6Q-Xs51iVndugRW03FlQu-L5ISH_UgsCLq-7KFX-5hOQk683dw_uuNcQwc?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3253159,10.0722459,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 105 (20) 28.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6unk-yZNOseywlLe9UCXIu5oiw2HRVjsC9J2bvr05DVBncfk-yYiR-7NL68ZP0mzrgDSG9lOh6cvk_07bR6JmiyA4eIIefBG75Y44MKjngEOrkGoFQquL3O2Kwz7cwjXHfT42cbc0Km2YY3_HpeGfyphB3_-TPmbtN_3Wf603vMiMW2Jt7bGeBn1_M0AmomvkhPc4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6285628,10.5893317,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 106 (18) 28.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -64.1740057,10.4482918,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 107 (19) 29.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5mwbiZDMpkAq-cLqpHaljgn2g_w8hh0rQBcBKR4EnbsC37JqUaMhy-Xg5TxFZ903b8BJskNebXxBhV6_VwVc68EgnaA0d8O14JHD-xAc5urFWOTd8s5yMLhaiXb0CUMlWx8A5GtuWHmm-FBjk7wJTnoI3C2T1aU0Lg9l4Fx82ZKPCKTH2qdecfKjQ0eqiA7rARrgo?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6tvlvs8k18i7ic3uW0uqiP5dE8iA2oRKnS_GW2zswpGMkYPAJI76Qlbb3LCAio9nav76zt8baFDwnpyOQKqVzQcn0f7GwYuSEDvjy9NFvRFT1WRLG3NM9Ayn0pNKV8m4XCG90TQ_K7Wotirtnz74UQprFjbbP8kwwK5EFp1i3AjadAW82NUvgvzFJP9vlTFqYIlBo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.6300092,10.2997816,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 108 (20) 30.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7338vKyUGhjMPcemTjkc2ZrwUlOZEjXUsFdOnN9SARa_ifxrSn_2t9Mv4oHoA-IR5vT8aUQgW6-ktk4vDEm2t7-IHQ5LidwMvmFUinQTeRHL_i5xfREl6CPh3i0Qt9RD8DF3ToqLXWi3zY4ZlkbYo0-vrLSKZPfN70E9TI9uZ82PjuIQrPOtf55Blc21L5NZbGeto?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.1689881,8.5780984,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 109 (33) 30.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR53yY8jVYYBW7aGrg9fSb6Zqz3Dn6Kqjq-9A3feeOjrHirfmWT1FECFSsMkz6OTrKhgbqvqXfR1XGxxY6CakNerd_fD5a4DtFhozU8BJ2N_0jkyqaN-mi3HqQaV2Ao0fVAs-lQ3DiHcPTRM-LlcAy-xSWy6iyPT0Xsms8NFLv6yxtUNYnMtbX87ZV1Lqs93bbzqXxo?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5PsX6x6v-kxXtCHAQPbRsV75VDrusFsCV6REkurjmnfIFXGk7O5gYLrImo9vW7GeULSI8LXfGKBDRNdqz6rQN6UqDxwnEXpnb63K9JnscR_NmcCs9lr-pVODHbYwe0teUpeS1hDEuo_3XcupPLTVLeCHM7O4XZPkaoiG1fVNsYN-YzGOmhZBpLxRg4FZlIzQqpqAg?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3447294,10.0631829,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 110 (44) 30.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4wJoXacA3_o3Z4mv2Vb9AaFAqqd-tdLYg6L6NgGmdKr4eE00r21S59v7RRRzYirhbSmmTCepvDkTztga7kSUQ6zIoVA3flgHWEqZ-V_32TzrRtykfMuglHxeHaF52HnntSZHForSWKpdYQSsRmZErw6TApPBZ7_t-qCFVSwv0vE4E7ZGPj3rc-AWIf3Pfc2eniZV8?fife=s16383 https://www.youtube.com/embed/1zsbSDsf9Ds</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3776751,10.0318652,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 111 (49) 30.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7rmTLgtd0DkZFh4rkyrNr3GrnFqY6ikJuDtIzwZwsDbGKDjRg-lBTzXlN5O4cuAG_I5xLZZnAGCAqBtbqc7EVsxI7T3G4cxvHvWfDecZO7qrSSnOh3ndTIk80oXfQ1_EHGMRJLtHYbx-wzN5acT7TQ-BfnWwqbxmiM54viugAIVL3jxzUwaP5vymnKd3WldIIR2sU?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3360483,10.0790307,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 112 (33) 30.06.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -71.6349491,10.6320336,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 113 (20) 01.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7sVgP4SeujG5Jq3vjjNZ_y_Y1YBbx4TtRUFrP6WirGCoDF6dTrRjHdZD1e3ASSmw-alCAuhRRGsuOfbte7ZsM5zB8fumCSXDKWqWr-ZldlRXaHGjogXaFl4xQ6EoDAb_z2l9WELsnEFiwTgQhttjihJz54VGTsQrAtotWurHoopMIeUSzBciHCbMNQVdZg2lwZFoM?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4HOXhFhAV9uZuQXCBJuRwtn6Qn6CkJBQBcy5g7B1DFK5d8KXob2VgY20BKl7c_GD0md891f_FcJJxawWcTlWDU-lthe27qLDmpAHPI8kYWEa6u4k9ADriUzuPq-_csvuYHnEg-BxNTh_-CxbbN8pxSOSzk_nbdEN2Khi8p2oMSTBztNqGQYibzK7lz4S5ZnY72Qys?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4ZO973zcDHV894FHg-cgL4AMHMPfHEBDGLjUqMARGHZ0x0tFmAD3AkAoBbS0DwTdbB-fXNYJAWqOMU4IY38E7Zbxor5tFT6ZXDY7P-YtvgHVJwVibueVfapkZ-TfzvbxVv0fY_dxjb8LmWL25_KY8eDhGZi9Q-rFAcC6qO0AS0q5Zsrw-LsFx6MaE63rg115MoRhE?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7CVNc2vjdAhVnlgzGdXUfIj3ABaEgpg2MURlC9esC39fRmOnXwRrhTZBPxJ5Fvon1xpNEezkUPgOszTe0fXM2QHwkdGwSevbAH3o2mXJqcBZV2jY3qz0FegSp6PNHRnjF8VEZPH0CVrQVPD48whgQG0kbrDV1489UUEHJuT7kAGxz4mRSw3eM2ujl2iO_GPdQ_mXw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6ptjaaQ4cAxSHlAn3WLMRMYDrY05l3Ujs_ZXfiQF1Em2eMfvFp0TtOK3rdIVJzEzkvU2kv4jEkf1Un-gjKG49NHJAKz9Qi4KkCSzNrE-nHuPplWEzWBwbRYmIZDtqXX7i6jB53xQdjsG_E4sNePcgU4ZlOW3vcnheiwLwbly59o8oFCGH_bk7l_V7BA-_lkRs8MoA?fife=s16383 https://www.youtube.com/embed/J-AmmsUAF4o</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2963384,10.0863261,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 114 (25) 04.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4S0R-UMzV2ZlkFYBn4WcvAwjtEtibxdD7F9nGqdQIIzZkiDeVuGR473o6uBMdz3EW72C5Tr9N_nM79FSMA0Hu-pb8WcYh958AXn5lWtEIQfGiC6n6z2PdBoowSTFODaFDilmXBgdIT4q1W48BJEilS3lLE6yEyKBNHvXq6g-Ygc09gEVXfgt3nhBDGp8FiUE818TQ?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4SZOv7e2tlZ3pOAiViiOvtWPHywQhb-5SCVGix9Zo6-ekMxF_MdjuXDTfHMnjVMSlqdiVO_oov-orV2LnzQyPCHYXUFpNRgRj4mIgo2wNTBYlpVa8SAgUZsa7u2kmBmNISoMTaQ6OwqGVGK5UJ7SY1qi3dAgNRLM1I4_PnZuyJH-AxmaEh2SeDJsuJ9AcMivGxKVw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR62dqM7DdzTZsvQtEUGlgy3G3LSTpbWLAzv1LzPI7h5c80TqpFnAWwjL_4ao9NCYcYlzBnJQ_Qey1gMFeZ0CHmN3JEmc3i5k0F8-0-m2Lt5QSOOCvrsI1mRq3sNIPVTnmb_UtNbAmdrY42j9FEyYTgQdW-StEsMkndkWTrLB-TTfArk2akS8m-kkrRVFH5qwbdDLGj_?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2207575,7.8273884,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 115 (29) 05.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -66.9238757,10.499586,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 116 (16) 10.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7I2Wn_HWQxYqYXCey_kwTnq0eSnRFVfvEyxz_Cs4BNAShg3Y0lxKF93ZxaZ9lSbav4RuS1e_-P92KZecc4jXJvsfbUTsqGTKaT3THo_N9V90DwwlwN4jKDxBsnbjJ2eE_72AkZydkSA-tL-mPcnmB7ErdY8qZWThGi0DDrdqhCOoydsD7GF757G9bb86-ghqGV9JU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4_qRiH1orNrp0WEd3MVypo809ceWORZ7IT9Wlb1cA24tyy5IvGbcR2gXnR1jwS0P3lfzSp8idqFR0Zjn667maRdmbXDdj4tIb003oBaBvobCLRZVAjpM9CQOVNSZ1-gRdYWVA-AyNrxR8gH3dRUfqKdz7JpfAvcke6wRZ-HXm6XV2RAt230ZPPxG23PMLw-x4i03s?fife=s16383 https://www.youtube.com/embed/W0klbl4A4fg</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9676753,10.1670452,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 117 (17) 11.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7vmzp8xuyApTiNEgnF_TYCEMajpnNwDHj1NmHvLrwAqPbWeohWrc7pWlPPqg-VrkxjuS5nldNzRvqmLA82H6ZTwZ1GvMzVF4QKljiOdfwF6kkARgbvggbuF6v-R-QZcWjAg4wcNHKn68ZIHT8rXLXVcPIKHielBr7e4lAcrFzukwOENjDnXPrBCVzHmDx6UkFRlys?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4PodRfSUg4eiF9pooV3BbzBDW-16nSYDvcH4gaGft_wr8_jqI_NOhpfQQvsyvlEmHiDWYGkx8xcBYucHvUXNZFa1hwGjTXSJXM-95WZ7nKtManUfZ6Lty5cuy7N1Gkx2kqrlPTd067i1Byu3E9m6SE3vfcPLl0U9TL7H8cdtrN8HhdZd97oWkoILcsFhDfFE6AkMU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7rJyTvZx6lh7xGSivhoMxjE5LmfcwUwM3Y8JJcOMZqpvWFtBes8OP1JUUFxot9GRPxgfCL3bwvYhk4kWvphByT6L-LF4leyyPQSFxp9bnSLE_Y2_z3IXJFa6ktGt-AF1GGgn4SKB6ebYzlmelG4aF33viZh7OhiklVUAlCRqBiiBmnz6DxxOvpGpe01Kd5TyTCOL8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -63.5497981,8.1295098,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 118 (55) 11.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5hu77KxbZtMtMq4d-QYEMSZjjERjpfxcGKYnfWpD8ZIPGryj6Ad7PAjGmG7vfougXxwpPALIIaWjNqQUC2Qb3XIbk4ViRTHnk1WVphySahMzu6xkxzmMkJLzGs8IJBaRWRuUB5b9pT5lK_2EQr-ZaTrYt9qpnsrlidOIac8aHqwXpYW4A5s7wxv-AwQ1Sv45n35eo?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR73VzZH7p0ly6eAEizqDpHgNl-7yBrKNKyE_QxVM8DcHpXAYhiF8DY2xFnRqMjHBpu5fKrWlZJfRK6XwwbB53dMkP5b0nchd-MYiBHa_lCgvd2kiImTBGxHuZkQ-I_SZaWRQVRvqKeGtiKRvsyfg932hwSq6VdUJTBrUcdwQ7TpCZKCyuYBrP-qkPtJUIq43jMriQA?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7TLynF6qWtRXWV-7VsZK1ZKPZ53-VVJ9uoSEgJqALI1rRFVFsWnxo2EaTgZcmoQX02PaTqcnXRibd2WnmSEK4l_t7sNB-z5QHG8N0vv3_FvhIMszqUHlXh-dtCmhBDIXxtm5ig3H40Hm3J__nLy7VEsyq8NkJ3h99LwXeHXTP3LCe6rcbdrFn2NqxUkdpUQSmGMpQ?fife=s16383 https://www.youtube.com/embed/PAF3ZvW72bE</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.7790478,9.809543,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 119 (22) 11.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -71.648468,10.6688011,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 120 (61) 16.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7_Kk4LNgKjFbp8cnOLMSmUtl1B5pnnFOjkchyj1i_RgsYmlFn1po1Ng3_DmvszKUGchKlAw5esfyemNc4QM71XEimO2CnzRIFe5YZJcAxoUd9N7CzK8XNm0W53vSzkYGSP_hx0sA84Y2hfbKTMCiaCElXYbzCOmPh_nht90ciaiMQdB0OiSlaP5RRgnI82nozXVSg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6zdEa0jQQQeRjS3fjRGL76830Hno1ZixdAcPcNpmPTx_D7AnPyn4B8cVH_7SmH4AjqggWUNS0QaUqMu0q7n2I-zAxdx7KbiiK6ttzoYfJh_PQoFmmkycHGGEQrNTrAy30l5xoWtFLUmbzCCYyFWtTGCuqobp5F1lsAFw4d6FL54bjxvkETbqO8rqKC2Qmfj7AOZlg?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9413859,10.5160557,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 121 (35) 18.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4GBwJLTjDKfRPcmV3BLbTQLva6-mRidb_WgTzqyJrmj4_0bMeKpTABXGfhTfi2C1iPNR97jSycwqiDUzVv4n8vqOyczje-Qu2DM1ZxE-IzwGsdOJgBT6tZ9OltEXZiIF4bp9e8EZa4ErX51ODhlpoALLMGlQ_Sk4hN9Whn-4Psw1q9NsQUxlIEX_x3SDlhY2dtH5A?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5CD4XlydWHXeGbTNNWqVrlxnGV88fiOFC7F_IgTHhQ8wjzMB68dyaS3-WkLvWgciukFrylJBpzdBjeA6YBmK-M7eITQycG3HTR3_Vnchpr-zNtSyK-4ppNHHl_YcShmuQiMjBfMwzlWbz-I72FUfPqVNPMHdH5L_k1Ci92Z1LGAsc-wn2EyYfKWes47BFV6zmijCc?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -64.6833183,10.1788471,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 122 (76) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4VQcebsdnHn8F1JT6U_LVBC9dlheMbM0dtSWpbQIawftLRYq9m3uC4iMR2rFHhNTo_w6IuLadtrdqbGf0S0Tq-y5Yib8NrlWOeEsC3Q9fLxvy0GUCBlqODoP3xhes-NPCKOqJJHJcT08iaMcIkDiO7gtkHaS1GNl7ule05sjsBwGHltg_5XepI2ig5LAO4icZE8Wk?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5MA7y82YFAs9uQicxnykag9rJ6yViqlHSBIvh9_H6lx9Er1Hb7Xb4tk9LU8yW8D0_xP5l6RdL1EfNXdpWcv42MsZOx56mL1JCEb84gLwf3qG9T0bT-c-MMWTD-bxBLShc31PYGgw30Ky9d1wltgSlM2CIqg07rShZ_PtrfHQ4BQRVTJRuOXEm1KtYFkxLAslS-1Jo?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.2979135,10.2298571,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 123 (23) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR47rMoPHmJqJJWASG_8e0KJ7qmdIfNjVmz9SeTwY5OSt2FrYNEwhT45egMRMK8RaM_oHKHhp8dSVl8g9OvES6Cn99SgdYAe8DgzgF25zBJU3WeMlrN0NzKyYuz4zKrgZyR3BcCccoZx0X6FbpP4b_-aqfLPwzvsa97YxRGu3TijiFHuUTnZBTnriE-ALZFnyCRuYYM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9680123,10.1693068,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 124 (24) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Tz7BnMHG8yARvA4ex5NNJptP0vNFH2tjrJFkKnfGL9cybABZt6VKAVU_LiIkyKIw5PkfFMtHKN2Gc1GP82D8zti_iLBnx70pVPsF0TrtMjihxSOzMHWpEO8JTNzYwyen0mMcg6iTwmN1FrPdChM3IAgoquyYri3KAkjAEJGAbcDbc8vTYshv15pjrzNxkNQiMyQY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.0446649,10.3345147,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 125 (34) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7CZqQ5todPn5CcrTGp3HpLI4lbDwshjbZLHzHYEUfmftCF7FDEDiD7zwJNmpjeTBsgR-OY1598NxAAdGPkYs7ybIGkG4myEid6eemTYxiD2S9lR9IzHyQ0CoN3BF8S_Na8diNDL0dNj3Ke-xW8-DkSOg7_9mBD-HB4Sna9X_qywi7N_-Bq4b3bAPK7Iebt-ciKsbw?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Hj8ecTbpBdKiTBl034B4bSWnJgBULPPuFgj2hOTpexqgatxO-MZ9AieLhutOmRKvNT8b0YywK9KPpQmaC0U2HKpI-tcH5JQYhjJZhXUBgOf66bIiYZrmoBa7C4Tnyq3f2hFLRxiL-qbCe446O8Cl2kJvPK4fX3iIKaCjbs6EGpcZklD6VjK5k4nq6roYEUg-HriQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.044571,10.3345279,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 126 (34) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR47vIiqfPUbQq_gXyGD4Ql8s8mSVFbS4AqtPgE8PM18L3n0MEzEr4fWEtK811ePnWcFklKALM13OVNv1TNih7JrV4DDv3c8r_MitqpNAgBquzjYDcWFpaOLo4zlFCgq9qhgfiZIS2zuslqjntTk5V-TU1wjrBIYEHEB8Dx_j9miFxYLysaFG52l6Ok5Y7jh43AArNM?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR743I1i--IkwBQCv7h236qAB0tG9m28Yxwg7dGg2zOfLgyrSir7YLU9k6NrpAczqI6FWb1hKH-q-xOnburrOKClGnYpXT-bL5EQqtG79NY6Np7SAEvJ7roMBBRwVnQeydDnJcKRmrNLGm3sIMsJ5i6r2DgijYTktjgPPQJmX7EfBzD9sEtYrPFPounxrNkfxMSwJrY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6149547,10.643466,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 127 (51) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4T4gMSImkQCusFVDmuLUs3Ub0eOlMtszjit3XqAAE8Wnml-6FDNC4VJQy_XwNVz0gXRtNDh0naMo-05WRbfG_aR4o_mobxW6g_fro2wuTc9rMhzAx8LkV2rnNq7PYwXAbdODfYJ12QFE0ouPjZyMXldryIwia_lSIastoi5dkinpWQOsqiiGcSgwPvLvNDlLdbh1Q?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6002741,10.703652,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 128 (15) 20.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7SZV-ARwXHJTHfAjPwn3zyy4zcbOBpdOmcKo9QIIVIGjS3EKTafi0h4CG0z3kpQNXZyDWKitsh3b6skjAc74QeGWMO3QjGI2I6ixL49LPjF3BVAavAq5Pf79XaNA1Lv90LEswty3qWueRiNSBNa4w4RzCElf4XNBI7GHmLV6R0RykpyR6m2iZDvHmppfsHCDEIMS0?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.6244239,10.6383298,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 129 (30) 24.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4lIGKB7f3Bj5D_XsaCJWqYh71kqHf3KeBYeSWdM8CN9zekFZrUnBwNlYyaMYQCYs-1FjwjTwYhYrIRdQLLsP4jdQ7e9TBcgdJMk9sny9m-UUuEiH7Lj9fw2hP1yaHI4AG5IAGt54quiIFMi8CRjDcqrbzzodVackfMXbBtTCDKtBNKE2COU1TC0aVM7EQCJFdPV1E?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR68J3eG-TVoYwngnPDU2aXNuUpHM0Xyuh6UMTqpcZLUiI4uzB3vLvmWhSQLu7q03qfQUPaA_iLaPbrE4P60z4N60j4nNz6ernRfU-1ptSIcGDBJah-5hxcL2sbU4IOVnZD20lqDd5_muNLwBNFpk8ePFtDGfbXK8CfnvDxJcsrFyjuS46XUcL1ZcJMDIXxZoEqraKI?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.137161,8.6153646,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 130 (30) 26.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7eX_xweSgkT8c_4y7g13-rB7959uXE5J_m-MCaNpgooJ-nmJE99_l8T1SdRu-gxDQBtYwvGFGOKHKFdoiiPn55XKNvj_QhQAcW5skPIYTziF3c9_HnVf2_qzvMMeVIhgjTlTIkcW_Y_d5n1DPnaqueYMWK708lKcYb7eBKblriIRs6sGTvrL8a1M-0p1AO4Xh6iVs?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Q56JRtswRJV9R2VNALil-jfbpIDu4W3PQ2M5Sf_A8ClOE-pvCNHVSqxasesdW5vXMBKs2zOU4nSQ-HvRZ1mLPHtjxRDq8XtWXxeRLpUcTyFaU3xZKB7_xw0HzblpmMqlIktJZQzJCbBuOXkCNU7W0hSiReNGgUVjfWYgnXJ5XYD83u4S_v5Ny3-_4V5H9pYWK4Qc?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6xpDY5bLzVPZyL2_-0X1Nbvv0ZcW2hjOffy4stZ3jc172hFsEHn3IFd1F-FEyfNzOB-bPubEU7vyDX1TnpLIXZirfkovWEjQpaSDZl_oArwkGTcU14dJbKPEHryHssfsMFpKeRsgYySbjCVigbgvQaWfJVxJb4AdbJuFmGOWnvhki6VHQBxYM4TsBBuwgzBtREGUw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.2347061,8.5443436,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 131 (16) 26.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7LlPIuCo0Ie-EbqA7HxDHNj2aht_mj4aQGDob3svFhHzQd_c1N2ZD356b9I8wGzI0n0uGOi0qme9lLqFCMkjStjGPCSi4Kp6rhSLArx9VhxK8mqsMPoN2v1UkPmvb1llfUHVmmB_4Xgqqw8SLwry2cN3VJ5PM87v036zKwcwLM3EJoV6Q6pvxyhRRixV4nfQNMuC4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.8014979,10.4843242,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 132 (23) 26.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6BF8ihnsF6B0cP2Cxi__b1gDpUebcLczgCgIqlUiAaefyXW9uNkzdXu3t7oFVC1vJ1RaWCXWTCi783RvUmTAx_wscldgvHixQ_VT4oIakR1ey-vw2RIO-GDpLtgDsv7IIdH5cX0RxbrocKtoguBERPmCior7KiUSXL2GX8VwI7bc6nWKj--RW5gfxMpWH3hblJ2Ww?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6tJHSzhIVuB9LoyBM4M4EPzH3gFIzUf2cgEJBl5oasgr9oTZinzFbWWctx7uqnAIUnz9cC5tuso2HZ6lWifjkPh7Uv5pRp-2Xye-UqY_KlIgkUs-h9ehURiEocLw0Nqf6qdbtQ0VrUfWuXnJMFyrBwx_nWWPoDG0jvrP9aaxje6qBrgv1feY20nFnnCihU9a6Z1Lk?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -70.7465829,8.9834077,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 133 (16) 27.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://www.youtube.com/embed/cCUjnOHzAhQ</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -66.9406751,10.4885968,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 134 (48) 27.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6DxTo7JuPxOSQbExJJGODFDnOlKubqTbOXQUmpwhls_CRCFTsLs5f9cYn0aIjyU6F8F0ihewdV7YcpCPo1AnMIbFMg6kNrvGnWyLogbngRRRuAJdAdsJNQZtMBCsOOr63W6SloDH0C0CgaOZ2PVuZ6dKk1GwKduEqiBPhfKvDCEEWPR28pfAu3VO4703jG8OBPOTA?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4tTiBsg8UDbacgDTIEMhotu-z8mpL1TYGq_2b-Vo-vVDLrOn82bF5MNo_ZXVJU0T68eSm6JApvPvd2IPIcHGcVOLTDdwvb53sSfOzUFNkcrZxd11Wfa72reQ2HN1-ontHylfHyBW6BVAjGd1qv1AHnUhZUp9Void7GJsxs4kc9Dg09ur0-H3F5RKtha55s5s5DIx4?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR77ZGrvggH4pK1v6T_KSDmd0PfEnxQl0GPiPbKi-vPRLFQoYN7n11Os3XZWt1fe0tAlKI58zSKoyX5nQFXXs75ZDmqQH0B0O4995l08wO7PFHB-D1JyQXeqQ6gGNRUmmZkwdbi19C2GXLGHo5VLhicCoMAvEEqo9HuNtavsr8OMGP3DYmJTzRrnZrJs8YgdpldA57s?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5uCqkKldu4PMyXrkkqoARrdkue2Hv7bvhhxoSTZLlR-F8yxpIc5r6MLMXwv-1cwHMm_JmKHrF0IAU0yT5KBk3Yp_9QC6alqxD-H0hjyLDyeFochlJTIlX8XVsYxNwxtMpcf-luLMwCq86tesbdJtCj82G-uZXIoovc71B7AxEMstdEYxW1do7ISW-u1QsHP1ODogk?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.0104896,10.2638382,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 135 (29) 27.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -65.0394139,10.0566953,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 136 (23) 27.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6WooGa58lWr2PcwgtwUVwr1WWlVqiTHRg-kB7LGc2bOvmjMgWHcIs7tJsNwbcGSkGHJXIhttUlMUyKYjhVRAh5dQBZ5Q12Sh0_XpitJkqRbjS4tsvuzz_CgjupY560JfSboob902AvPP8wBRJIeSWlCbYvdbfreZYtYtW4IIiQc6sFfYB5As6YEVRDaEry-yEIkds?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2594436,10.026319,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 137 (30) 28.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5LrgeQmtcQLh-8-Glmec-vKreq_dNsrMhM6Z8gelYAAsHQXKs0KN7KXZdyq52a8NA3o6rSBvwg2JEw9gRQYuGVZnDB7ltq8pn9S3xSSvxKAMleSltxF6khY1ck13m-Fkz1px3cDeYoDqbNIkZxPYC-hPnMpweQhpxc6LUTI5ziFzbNKOFWVYIazDk2hQtoUJWDDg8?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7K4yZZqLWqGji_c3S9M_XiRaRi1NFHOw5-BYs6liEghkTCpSXVFriul-w_RVdq1BuSZQPumbernGALiDSSX84_twhuFftXwTfThNv-qQwpJ4Ax_Omx_vWjEfLj4azUIJWFM-Rb0ZcjLdravRVYB_OKfDfwA0UYm6sHuevQMrmwLZ5KYkP91E3evS_XYuNISUCQ31o?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.2347061,8.5443436,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 138 (53) 28.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4d_0WiX8wD-JLI6EMXndlVb9wZzEKkKhpZ4opdUEWWQmt5IYNH389dpaczEvP6GGIRRrlvll9yEueUQJAheS_icmOj6x01QUnRMYxXlqHxFah_IFgFAd4eKsKsvWwC-BbHMeIKMSdt4RtYVYHbFENjzuZvkV04k7c8hKxPksOBtxpgP7B3XcGmm_KHL3VWZ8DKbSM?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7N4dJPXVkPtMB0spRb9YsvdFtQj2SzBhtn4cX8SaLFjbGKJbNf9b5QNVvpelyo3F3D6avhKUssHhRw7L5yB-L_ggm41YZvfJxEeFoAD2LYY_tbhpaX3uPS0ZhFQoSSGCevbySzPGxbOwbzG9WV8NzbeaeUmtvvEuEIUJqz4WW6Qnye4UZCkvH7tdZT5BEFVWCt26w?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4KpdNPpXpboI__3YN3Ku39O-8-qLB199o1NXsJQL0BsmBbk1TzciytZuFezx0kFjLesSGFYlHlev14LoZ1JzG1ELnRoGVuuVwNPb05DQvutia8bRT2EAGDywtVtPdGaDt18nJl9WLTnGA2vskib3Yx-XlzlIk56TidTh7WqscQ2bluH9oegCcKPFmO-1veT64LMH8?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.179875,7.8262105,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 139 (18) 28.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5RS5_EHafX8H4vCAPm0LPr9bPdu1mcnflmdmc06oiVw51g3hUIAhNexICs72NuFfLsGhf4TV0g2DWbuzvKaS6_lA0DnSzhHH1Sz7DLYhN-9CJJJlIRMBmQC2H-NAPqNWUuzYhIU_XiKYAdg16HFLUDVmG_myMKH2DSK4iWIFn9jw9CzUlfuYMCmeJm624bUU2iOKg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7naPLkOqZEIdFYKar3PEO9UXB6bscvViSREf6SFuK4kgqDwK5_GqNcC1YfLnCNvtYee0AYbyRMevNNENusjBvLRTNdJEroCajAkMETXeQr16rbPPYGs7tnkNsqKSImUBofBrCu5STZ6Druy6sinxkyrHOXo5FhOwPCMctFGV17YqVMi-fms1vIat0P5S0-Xbi3qX0?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR51qdqqWSIw05oBzB035-gpLZynYuHUB-_MV4JRTHVj3ya1oVzbIeWclymRoZ62fbj2CGwsxBDBBfnRjAttxmJ19KVlFjdIsGqKyyPGVnqrkfZ2BdcSgDguJzhhfcMmmdJNGJXaxqkwzelBBzyZFLgAP4olsiBg_pRzSvOUxM21SMb0muMfvHsM5R_ZC7B8pYCgjtQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2298932,7.7815066,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 140 (38) 29.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4ugRSPBN0QsmBGS103mO6vHSEfguPO3iVkgd22nRRMtxnjXDaCBCZsb9raVX9FnYgoyTea4T_TBi7Uv6asVyve53OyQtZY2fRzTUNtKmdbxg-pcFfnASONtk5TpbE9DbM6yMlzhrIgJeDpWFqeelVxcgGMtp7Vsn8LjLM3ZR5vmn-zxcrk8Dg7L5akf_sW4VIpeDQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.5382698,8.4891363,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 141  29.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR66VGhiri-0T3QPgpRxN_GeAqyrhR_2eTPCBR5yxyplwBM85rjj9UAdvYFyPkEPtSkno_hJsCHTR-_Jak8LEtVb6gD1tyUNi09kt2KRkVyMMTOg_k5H8jzvkA-lQTPZSVT7W4lo4F-L9VXIboEFXblI8qwdPi_h6dxxCyOVlUssCdELy-PaVAQ_5OBkDxEdmjhgrQs?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.5382698,8.4891363,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 142 (28) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6UMtrOwgjCZaUSogl0i6_o26lIAnkJCUy4AGAmuzLtqbX15WeXweBVrK-WgbHwvR7uUm-5MCRCj-xQI_TATkGFwqHYDkzbJQy0Ndr8LBYh8XShSzVFqMDtn7KQgb2Ys0-QB-3LngQH514LulvO-i3cTaMyPXQACb3CgRbJAj-j10DFz-2v8RxtUszLyp4mygAyj54?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2536019,8.013629,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 143 (39) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7vAFCogYYgrtNjF--JsisfCzhjUWnqdFAORT1EmRb7ENSxOflxLhtztev783U4D5o1C09hz0bjuXDpPZPrynUa0Xs-G0yhNmbzB1y5NtB_1ud0uulW5iwdq2Dnm3ptlrYKsBrY7TKn71ovJ62EtjMaadImWpobDb_Q4zU-hgBabixHIH7UEQDjkQ6hwxdiN3nLqOc?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5GgoiiG1lNN3Sj2VoMqs6Cail_KNFhxW3v3jBB_ZbIJ6dE39I0Pt69DimihnHcA4iclNDne_PwrtVlpCY2dxvBwUwYK7iWDOkLFCfIzDVObPc8_oq7qAOtTTS5qCTq6-UomqXbBYmDbb4aK29f-83Bqq-qfK976TWpBm17zvCAa0EIX0NPR7vihUCV68tLEHwoDyI?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2536019,8.013629,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 144 (16) 29.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5W_mygJtGuCRSCJJj7mDotyTe1w3W1eLUy1ob7NeoFxR7RsQOKiujmdXivvlUR-LX5NF0-wLRseMFL843cNMFx0lkfYbdijaMm4AicB1vSKf0Rkzp_O9cb8ln4NeJKW-50EbpNdtcS0FP0pouA5P1ZAUXdn1qDHtLUcIz6TrNTk4Fj6V6RE5-LEX4oIFFVW9miNos?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.9786626,8.1338118,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 145 (30) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5BIaBSziQuHIruzOpr9EfS-QPyFJRoT6URIuToG1aCwn9GSILS2p8u_tq8_M5wkQUyjJAeFWgx582iF0mHPU7vce4LpjWUArGG0ALgFIiRxSP81pB0Tek_d20on5zYFj1ULGBIOJMQ39QZcsbJsUwKH2UpBGaGL_iHcWx4aUEdfDiV_RQ7oBLo9-FvY7qJvIlRKWk?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -64.1680126,10.4701185,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 146 (43) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4ukbZv0w3yLXMaTfofLPtyM2E3DQq-RJmWXJCtligRMox73ImsOJFn69Dnyhop88msYLsTd5ph3MBIQY-Ddr6CgW9e9actU9NH2uQVxj7x8AGc5W5Dj3Zz8MaNoQxm5YlLtuJMHnJCAJsgtjQDPlIcTx4ItZUpN04T8iIOU-pjSDLusGgEBDQfG_SZTI7B4XA5NqU?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6pv3vkq1NHs27uDx8UVH6bE4bZn6iaWgyE-3UwqNxTn7SH7TBaE6N-CRb_VZLQwQKbbUqDIli_D2w89njj3bSlUYUh5R81GVsCfq_1k-UzCJYCM-N2uOB2a7kxVEt14Esi1_HZCnHSVFAb1lpURfL4duIWQ0rYcpfZlmZ0Bkt0LVx4uKxEpMbNJcq8uHPzsc12LuM?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.3450405,10.0646565,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 147 (17) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7stSDkCPbp0jghtyzZQcaYv2aV-Kv0Ctmd7dzzcKGuTDLJHFGnb5t5ifzoNzQkPoNjRz2nUQfjQZmeuEV3XnntT49M2lL8aBjWU5pmse7YeCuql0Uv4nL-PXXIinSe4HY51_ZZ3cdIe4mQBtuOenU0sOa_iLe77scL0X5dmFYSu6vvLJQBsfZz2LXQFLXgCY_Uph0?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR58KumB66yOPfalcddbrBVnZPsbb6ta2Pf8HBFYKKaK_wcFpqbGlTaFQRI0ZW5YJLe6yWt8rmUWky_uJmlYeSlhoclgkkZ9PYowjc4lTUyhUQlqPuXuTacYjOjUHMaMxLtTB2B3ZRhyPwJHio3HdY5E863AASlVOI4rRREwnrNaYPyIJycrloRppXUzbvB6VbY6gyw?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2526637,7.8128512,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 148 (53) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7fsx9ZJa_hUWnoEEUlRNiUIQqPVfxsIVFZgJAZ2YlqGzcHKlAoeCFxucZ5r9LTWQj0gSDPzXS_Uy2ZjH_wImOCZxIn1-Mru2LwK8Tx1zDQmSwU1JPLzzk8M1ib9b6CQ5aEHldLM00qKU8wbNNpi0KaUs1Kz5koWsLjxI0L1iyvzGk_TOBINP8KVe0ik7hSAgkHFds?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2526637,7.8128512,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 149 (13) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7Db15ihFXk4_RqPli5lyUih630NNM2Dvd9oLKLIzOfLFhRhIzFbSMKMwMcu26t8Vci813KsVEfYTq5GpzNZvQkt4E1Jnh5VUr9S-ySmlRyOMJLSLl2poxJrtyPU5soXl_6KeQtbo4MrtGCZE2AjXS2jNA4v5OJCPwzb4AhaKX_5SYowrGVAVp94nSLrNgKurQH940?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2896709,7.8209667,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 150 (23) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5AYgiPttS8VD5uwQR7MvFk0tE1S1OjGUjCiLWOXX6bn372jIQDG5UO12aLCKvy25CUPLWCQIzFAstxiV77U6kuefU1xUzGGaz_Tq0aFmd_doj7WZprDtPTHBg3Qv0WhimJUdP-S6eGalNxf14-bt05gP03pzPdFzaBlkTwnj4bo7RhLZxTdUglGiz-8ZsqHX5I9HU?fife=s16383 https://www.youtube.com/embed/EvBAABu2zU8</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.9804682,8.1317823,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 151 (42) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -69.4873923,10.5901532,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 152 (19) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5EAzJIgg93sZ6my4guouZ63SvTBN0SflQELyDF46ObfEJKb4yEXr2Gt6TWwPUOG-HhBtedbKbc6CKWsJBse5h4PPLUHotHlhSvWtO0BNCo0Ah5itrMf7qkYYGH_RxXlB8S08xbZGAoWsmEMrAuB3NKvuVLj4JicH4ybulKlPJcEJMTCovaBClcOBBDX5yPdeD0fSs?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5H7YXn1raqlytIFDkaNVVdcP2s0K3o5vNp3cVGTqYqJUnYLzEnidM7a4RTqpaqojhmddnG4leXDREc9mxWMDAyJLGlK50UM8fT6P5RqdO1YFN6qz68QNkWZh42Y3I8v2RIdvrM2d9PkVRY2x5SsmPyQk2o7vbXs8C8mERXVe_Y7H-wy23trdx-plMT_Z1IhePFljY?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5zA0fciD-BqQhlKHSOUeZi4cdRTD5clY0hBDke4zOSt1Vl8eaUoASHrfbYhrOLm-mCaxKGSVKghnac5q5HyTTc4uc62z820dWhZ4JrIRK2Hn0VDK24iZpp-pcUZh4VOr14gBDJXimDuJAHsV1rrR4esLegRwFmhXaLJkC7f3vIzGUENvlNdamfK2qx-Y9pXfiFAIOV?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2248963,7.7472766,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 153 (25) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -71.744377,10.66708,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 154 (25) 30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6dmIQqdziM9HQA-xNQPfTw7yfWPa_Tv86KMW81uFaKaKC3wcZAuIuVUCUC9YyjLSs6l24C4U6h6uHamZ6kO2PDGLzofyX88W2ypH9isKZRkkyqSXH2SFY58rlA6wvkUXN05_XDLiUx1o0_FrAH_C5a-QSWWjODU79oGmDR1JJAefrPiux76TUhR0cdfUOrYk6YsdY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.7592825,8.3279334,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 155  30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7WXSXkuR4fuQ_WRSpO_oa111kvezC24KUVs_AIpF0_ZkhN_V2QHh0waHJ-BzpJ2_b0T5LRLa31Mltr1oCq5Cz1KolsKM1YxsjVBMlEe0e2rKYP1DBBAsA_D-Ah20hZrwRDENd516jZiVGQu_JTj_3AQ-vDKFoXtZEgijNT0ACay9zifcl8wcuV-m0weEWY4IJhUmQ?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -71.7147951,10.6544509,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 156  30.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR453zkRfBJlU4G3OLbgKudqBpqvP5naqnfSUUPEHCv6ofCa7IISmCvH3FnvLKigFCltKRkM2fm6zekKPsF9zPVSohI48tTPzL7OHhN0XGD-MOi5EFCculgX1D_AlmDj9s0-iE1WgOWRidnLvJ_slS_YaSU_BkCHELmNlVDnXNgVxNVlvMCJtebuZXOBabmmezbmKng?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2261466,7.7713572,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 157 (28) 31.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR65M-aoliPhTyue6ATMo25PB0mKoFz2QUs7Gwz_jA905yrGcrGuFdlAAK8uKd5v0agxfxbtSZb_5PfO2CGOc22R7nr1eneiP1wZsT4GW8V8fe6pC-xjIetVbaGPePVJfJcubyHeSSIcHchfieJ09foV_ITmPVuouE3voZMrBkII23xE_pahMbjms9bF0jctT3XGOX4?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.4435674,7.9216285,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 158 (15) 31.07.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4yHRh-dEp0gVve0K-p5hohs-I1NNllSxcn_Mxx2cNXE4I0r-txqdoXOuQgPX66ULoecQAJAvPzmAsvflH5XEfobLmShJ29bdah8bcLhwy8fF4uSu3lMr6uI5J0RLDqd0sCNr3_iKiFPMEICJ_jWV-tQsbNGLKBHZtVBK5X0lUiNoeSuTZL_rqIhsYzOMJE5WblhkA?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2319376,7.7546081,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 159 (25) 03.08.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6SxbiLMgjBdSzhUThz1-ug8tJv1Bcb-4HStoVVaGStWpOmcibDff9H6K-2bejyh_ZEZT2IqId5BbGjYwDCWlEUd6djhi71ZASP5roPmT8o_kpCerbC8Xm0ZxihXDh-XOR30ShnNJA8TfJjRTkJIV_vGMmEIR0UwM8owrJvTy2jUP2gRG06LJzNV4f8_nESJX0pksY?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -72.2467421,7.9300616,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 160 (58) 06.08.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7AxEyM8-Yt7jPoZD139xU5rs__E5GPvchTTk-4DDFaN9TOayrSjiqlIKUOhGcLg_Fm5USs8mYGwBRDZBJIcYdNOYJ7gwaQlvrh5ZASgPdsxdLGnM4NZ7CehZ-nIq-6D0QkWJpLmarv0mBn402VVqZ6meUlz8n0FXhtQDvxqVX8-3W-gJTML7ObxJIs_H8lfCpgwno?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4IZDFcCKlyx8Er2OEl9DyT-i5d4ySfYvsZ7tfDfVlJhtoru5bkN8T73ZX3ZfpKmu_aQ5oN4PaV3Tj3zoVKwN6BRXjRgiLa5s4egmRJm_W2cMP2po-gI5o2A4GMJS37mGbG3aSeZVK-vHoCEmXRLGVIeJoHE6tlgBwUyNKp-uKRVCdzGk5oLBxGaTvsMKOP4Qodqfo?fife=s16383 https://www.youtube.com/embed/j3sOkzKpSrw</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -68.011285,10.2298741,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 161 (39) 06.08.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            -68.011285,10.2298741,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 162 (20) 07.08.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5WyQ83kvF8ThEC3G4W_At0XjSodrL7pXwKS150j6Fi_neG6m89c6WdXoqbeIBt5rgNoK6uAJalWVPAnCeUm1ML3GiCqZ142yU7nlA71K6kfxMC5JfDwBXYJllDriOJkVf3pOz5burr5GMZ_yHA02N5k1R5K24N0LPTo5MB6HoUuwFrVtxRJOC_zR5q1rxaUSGRdxk?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR6KLLaQmAmIATXIEsg-DoZGytH0meFrJ_xHTWCxPB0vqjbR6iSEoUcI2wG7ez_S2finBRyQFcqIG7Ou5tXvBVqdftF-onpli4qJQrWP5C52s_mUw7Jn3Bx6iYMAKDBOCE8zRhRuURydadqlcd-FO60wNrFa71zB4nRjannaluHiDoMgwG84X_pe9jEh-xdsWzrVq-I?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -63.5717587,8.1015434,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 163 (19) 07.08.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5ECTx4NNwSwziaAZnlJPOcE4rfgxqXDKAzAxIXCTwgyDQyJJ8HH_0izc-M-nkBgy4dnHug-YRh6AqxcLWG-Sgm0WJJeC-v8N9z2pPmsb8Udeo1H5Rnmjew_Qe0RTYAwthNch7_x5z9U2m0lS_IQvlUTNqH4lV6ZYU1IKr-_Do_I8UO6-yHquO8ykXI1k9M0iHX6dg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR5zXgjtTLPZRQKdDuktWflQTz-mIFp5YfQ_jrQ4ZnqVrLl0rOG8ST-7_tPwHvoD601JLaUB3hUI4pEJtWXauk2QQF0dUAtnCIMkwPeQOQnv9Pw7hDiCu-NypDXPU2F1UTkBDga17mi3NSUxwMwVJQ2vDeEV8zFNAjId0MmfVCMjRLU-UfMWvXf7Th-uOmgzgmBvjS0?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -69.2823259,10.038195,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>Caso 164 (16) 13.08.17</name>
+        <description></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <ExtendedData>
+          <Data name="gx_media_links">
+            <value>https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4pSIzE87j8PRQq1NK4RPGn70UuAfHGiXJUBjgbzHn-52jO83zSlfQTSyeM7d9dUDMayiFQ2-cvS9ZhnWut2eICT42tR6cOi8JwcrFMHjY_e8VJGt1AmKl6QoUCx9wHiGTP0eFT6DRZoxnA6bqTvph9Cl4m9UY56O_MH8IbrDWk3wxeIp-TiaLBRipNwd1UgD7F2dg?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR7V5DsR0e7Ehsii6InqUTslETHFwL-T5zlN9cTueINsAgDtlx7xpRqhdXXdea6cJPHg75oF95GbMRkYHJAu8e4hARbOawyMWlEuKBEwCJ6UcM1UKTId0_GOO5FqcpMPoGR__1WWUNImMuXR-vPPAGK7J5yPPGNZxoPq0vya7PipSvVTLjqtSGBFNXs6sB18c4bKpvE?fife=s16383 https://mymaps.usercontent.google.com/hostedimage/m/*/3AAjQbR4VKxX9P4P7X_UvDgHGXeIvGd_-fcvztWlqXXFfD_dDYAqzxwQXtln-kw3Gz_e34tftwHT5D_uIf8n9wVwdxp4m5lgTQiTWvTJ2CDzJRsxeO52tk4CSpR6HyxY5rtcFtMFfyT-MSYsi3KFSSvMtcwZduNwz0V5MVjzOOG-MMhTMjg7RKotPo1k7SsoREQ1emlkBBsc?fife=s16383</value>
+          </Data>
+        </ExtendedData>
+        <Point>
+          <coordinates>
+            -67.9585985,10.2687981,0
+          </coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

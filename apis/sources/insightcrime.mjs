@@ -3,15 +3,29 @@
 // Extracts named entities from articles and cross-references against OpenSanctions.
 // Alert logic: PRIORITY if a named entity matches a sanctions hit simultaneously.
 
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { safeFetch } from '../utils/fetch.mjs';
 import { crossReference } from './opensanctions.mjs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROFILE_CACHE = join(__dirname, '../../runs/insightcrime/profiles.json');
 
 const FEEDS = [
   { name: 'Main', url: 'https://insightcrime.org/feed/' },
   { name: 'Mexico', url: 'https://insightcrime.org/tag/mexico/feed/' },
-  { name: 'Colombia', url: 'https://insightcrime.org/tag/colombia/feed/' },
+  { name: 'Colombia', url: 'https://insightcrime.org/tag/colombia/feed/', country: 'co' },
+  { name: 'Venezuela', url: 'https://insightcrime.org/tag/venezuela/feed/', country: 've' },
   { name: 'Central America', url: 'https://insightcrime.org/tag/central-america/feed/' },
 ];
+
+// Criminal-group profile pages, by InSight Crime's own "<Country> Groups" tag. Refreshed daily;
+// the last good copy is kept on disk so a 429 from the WordPress API never blanks the cards.
+export const PROFILE_TAGS = { co: { tag: 540, label: 'Colombia Groups' }, ve: { tag: 612, label: 'Venezuela Groups' } };
+const PROFILE_TTL_MS = 24 * 3600 * 1000;
+const PROFILE_URL = (tag) => `https://insightcrime.org/wp-json/wp/v2/posts?tags=${tag}&per_page=30&_fields=id,date_gmt,modified_gmt,link,title,excerpt`;
+const COUNTRY_ARTICLES_MAX = 20;
 
 // Simple XML RSS parser (no dependencies)
 function parseRSS(xmlText) {
@@ -35,6 +49,63 @@ function parseRSS(xmlText) {
   }
   return items;
 }
+
+const stripHtml = (s, max) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/&#8217;|&rsquo;/g, '’').replace(/&#8220;|&#8221;|&ldquo;|&rdquo;/g, '"').replace(/&amp;/g, '&').replace(/&hellip;|&#8230;/g, '…').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+const icUrl = (raw) => { try { const u = new URL(String(raw ?? '')); return u.protocol === 'https:' && /(^|\.)insightcrime\.org$/.test(u.hostname) ? u.toString() : null; } catch { return null; } };
+const isoDate = (raw) => { const t = Date.parse(String(raw ?? '')); return Number.isFinite(t) ? new Date(t).toISOString() : null; };
+
+// Bounded profile card from a WordPress post record (title / excerpt / link only).
+export function normalizeProfile(post) {
+  const url = icUrl(post?.link);
+  const name = stripHtml(post?.title?.rendered, 120);
+  if (!url || !name) return null;
+  return {
+    id: Number.isInteger(post?.id) ? post.id : null,
+    name,
+    url,
+    kind: /\/[a-z-]*organized-crime-news\/[^/]+\/?$/.test(new URL(url).pathname) ? 'profile' : 'analysis',
+    summary: stripHtml(post?.excerpt?.rendered, 320),
+    published: isoDate(post?.date_gmt ? `${post.date_gmt}Z` : post?.date),
+    updated: isoDate(post?.modified_gmt ? `${post.modified_gmt}Z` : post?.modified),
+  };
+}
+
+export function normalizeProfiles(posts) {
+  return (Array.isArray(posts) ? posts : []).map(normalizeProfile).filter(Boolean)
+    .sort((a, b) => (b.updated || b.published || '').localeCompare(a.updated || a.published || ''));
+}
+
+let profileState = null;
+function loadProfileState() {
+  if (profileState) return profileState;
+  try { profileState = JSON.parse(readFileSync(PROFILE_CACHE, 'utf8')); } catch { profileState = {}; }
+  return profileState;
+}
+function saveProfileState() {
+  try { mkdirSync(dirname(PROFILE_CACHE), { recursive: true }); writeFileSync(PROFILE_CACHE, JSON.stringify(profileState)); } catch { /* best effort */ }
+}
+
+async function fetchProfiles(cc) {
+  const { tag, label } = PROFILE_TAGS[cc];
+  const state = loadProfileState();
+  const prev = state[cc];
+  const now = Date.now();
+  if (prev && now - Date.parse(prev.fetchedAt) < PROFILE_TTL_MS) return { ...prev, status: 'live', error: null };
+  const r = await safeFetch(PROFILE_URL(tag), { timeout: 20000, retries: 0, headers: { Accept: 'application/json' } });
+  if (!r?.error && Array.isArray(r)) {
+    const cards = normalizeProfiles(r);
+    if (cards.length) {
+      state[cc] = { tag, label, fetchedAt: new Date(now).toISOString(), cards };
+      saveProfileState();
+      return { ...state[cc], status: 'live', error: null };
+    }
+  }
+  const err = r?.error || 'no profile records';
+  if (prev) return { ...prev, status: 'cached', error: `serving cached profiles: ${err}`.slice(0, 160) };
+  return { tag, label, fetchedAt: null, cards: [], status: 'unavailable', error: String(err).slice(0, 160) };
+}
+
+export function _resetProfilesForTests() { profileState = null; }
 
 // Extract named entities from text (simple NER: capitalized multi-word sequences, known patterns)
 function extractEntities(text) {
@@ -84,7 +155,21 @@ async function fetchFeed(feed) {
 // Briefing — pull all feeds, extract entities, cross-reference OpenSanctions
 export async function briefing() {
   // Fetch all feeds in parallel
-  const feedResults = await Promise.all(FEEDS.map(fetchFeed));
+  const [feedResults, ...profileResults] = await Promise.all([Promise.all(FEEDS.map(fetchFeed)), ...Object.keys(PROFILE_TAGS).map(cc => fetchProfiles(cc).catch(e => ({ ...PROFILE_TAGS[cc], fetchedAt: null, cards: [], status: 'unavailable', error: String(e.message).slice(0, 160) })))]);
+  const profiles = Object.fromEntries(Object.keys(PROFILE_TAGS).map((cc, i) => [cc, profileResults[i]]));
+
+  // Country-tagged articles for the Country Home Pages (bounded: title / link / date / excerpt).
+  const byCountry = {};
+  for (const feed of FEEDS) {
+    if (!feed.country) continue;
+    const res = feedResults.find(r => r.feed === feed.name);
+    byCountry[feed.country] = {
+      feed: feed.name,
+      error: res?.error || null,
+      count: res?.articles.length || 0,
+      articles: (res?.articles || []).slice(0, COUNTRY_ARTICLES_MAX).map(a => ({ title: a.title, link: icUrl(a.link), date: isoDate(a.pubDate), description: a.description?.substring(0, 200), categories: a.categories?.slice(0, 5) })).filter(a => a.link),
+    };
+  }
 
   // Aggregate all articles
   const allArticles = [];
@@ -143,6 +228,8 @@ export async function briefing() {
       entities: a.entities?.slice(0, 10),
     })),
     extractedEntities: entityList.slice(0, 50),
+    byCountry,
+    profiles,
     sanctionsHits,
     priorityAlerts,
   };
