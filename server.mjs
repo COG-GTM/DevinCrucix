@@ -22,6 +22,8 @@ import { installAuthGate } from './lib/authgate.mjs';
 import { securityHeaders } from './lib/securityHeaders.mjs';
 import { buildSituation } from './lib/situation.mjs';
 import { buildTaiwanGeo } from './lib/taiwanview.mjs';
+import { buildAllCountryGeo, buildAllCountryViews } from './lib/countryview.mjs';
+import { isCountryId } from './lib/countryconfig.mjs';
 
 // Phase 4: Analytical Features
 import { computeCII } from './apis/sources/cii.mjs';
@@ -76,6 +78,7 @@ let frontGeo = null;       // DeepStateMAP geometry from the last sweep (served 
 let cartelGeo = null;      // Cartel-map KML geometry from the last sweep
 let iranGeo = null;        // Iran War Live geocoded events (kinetic + ground) from the last sweep (served separately from /api/data)
 let taiwanGeo = null;      // China / Taiwan theater geometry (MND ADIZ sectors, CGA area circles, GCA points) from the last sweep
+let countryGeo = {};       // Country Home Page geometry by country id (ADM1 polygons + choropleth values + place anchors) from the last sweep
 let lastSweepTime = null;  // Timestamp of last sweep
 let sweepStartedAt = null; // Timestamp when current/last sweep started
 let sweepInProgress = false;
@@ -537,6 +540,22 @@ app.get('/api/taiwan/geo', (req, res) => {
   if (!taiwanGeo) return res.status(404).json({ error: 'No China / Taiwan geometry yet' });
   res.set('Cache-Control', 'private, max-age=300');
   res.json(taiwanGeo);
+});
+
+// API: Country Home Pages — one bounded payload per configured country (config/countries/<cc>.json);
+// ADM1 polygons + choropleth values + place anchors on demand for the country map.
+app.get('/api/country/:cc', (req, res) => {
+  if (!isCountryId(req.params.cc)) return res.status(404).json({ error: 'unknown country' });
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.country?.[req.params.cc] || { status: 'unavailable' });
+});
+
+app.get('/api/country/:cc/geo', (req, res) => {
+  if (!isCountryId(req.params.cc)) return res.status(404).json({ error: 'unknown country' });
+  const geo = countryGeo[req.params.cc];
+  if (!geo) return res.status(404).json({ error: 'No country geometry yet' });
+  res.set('Cache-Control', 'private, max-age=300');
+  res.json(geo);
 });
 
 // API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
@@ -1213,6 +1232,7 @@ async function runSweepCycle() {
     if (rawData.sources?.Cartels?.geo) cartelGeo = rawData.sources.Cartels.geo;
     if (rawData.sources?.IranWarLive?.geo) iranGeo = rawData.sources.IranWarLive.geo;
     taiwanGeo = buildTaiwanGeo(rawData.sources || {});
+    countryGeo = buildAllCountryGeo(rawData.sources || {});
 
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
@@ -1246,6 +1266,8 @@ async function runSweepCycle() {
         const prior = synthesized.ukraine.cii.health || {};
         synthesized.ukraine.cii = trimCii({ CII: synthesized.cii }, [{ name: 'CII', state: prior.state, reason: prior.reason }]);
       }
+      // Same for the country pages' CII tile / health row.
+      synthesized.country = buildAllCountryViews({ ...(rawData.sources || {}), CII: synthesized.cii }, rawData.errors);
 
       // Step 5: Signals (uses raw sources + convergence + CII)
       const signalsResult = computeSignals(rawData.sources || {}, convergenceResult, synthesized.cii);
@@ -1465,6 +1487,7 @@ async function start() {
       if (existing.sources?.Cartels?.geo) cartelGeo = existing.sources.Cartels.geo;
       if (existing.sources?.IranWarLive?.geo) iranGeo = existing.sources.IranWarLive.geo;
       taiwanGeo = buildTaiwanGeo(existing.sources || {});
+      countryGeo = buildAllCountryGeo(existing.sources || {});
       const data = await synthesize(existing);
       data.narco = narcoView(narcoData, existing.sources || {});
       data.delta = memory.getLastDelta() || null;

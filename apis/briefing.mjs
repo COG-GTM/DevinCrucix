@@ -89,6 +89,9 @@ import { briefing as taiwancga } from './sources/taiwancga.mjs';
 import { briefing as taiwannews } from './sources/taiwannews.mjs';
 import { briefing as gcataiwan } from './sources/gcataiwan.mjs';
 import { briefing as taiwanmarkets } from './sources/taiwanmarkets.mjs';
+import { briefing as colombiaOpenData } from './sources/socrata-co.mjs';
+import { briefingCo as colombiaNews, briefingVe as venezuelaNews } from './sources/countrynews.mjs';
+import { briefing as ovcs } from './sources/ovcs.mjs';
 
 // Border-region news ingestion + structured baselines (Python service bridge)
 import { briefing as borderingest } from './sources/borderingest.mjs';
@@ -108,7 +111,7 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'DOJ', 'OFACNarco']); // sources that need extra time (CBP multi-MB CSVs, DOJ paged backfill, OFAC 30 MB XML)
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'DOJ', 'OFACNarco', 'ColombiaOpenData']); // sources that need extra time (CBP multi-MB CSVs, DOJ paged backfill, OFAC 30 MB XML, seven datos.gov.co SODA aggregates)
 export async function runSource(name, fn, ...args) {
   const start = Date.now();
   let timer;
@@ -222,6 +225,10 @@ export async function fullBriefing() {
     runSource('TaiwanNews', taiwannews),
     runSource('GCATaiwan', gcataiwan),
     runSource('TaiwanMarkets', taiwanmarkets),
+    runSource('ColombiaOpenData', colombiaOpenData),
+    runSource('ColombiaNews', colombiaNews),
+    runSource('VenezuelaNews', venezuelaNews),
+    runSource('OVCS', ovcs),
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),

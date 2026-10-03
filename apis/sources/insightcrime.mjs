@@ -85,6 +85,9 @@ function saveProfileState() {
   try { mkdirSync(dirname(PROFILE_CACHE), { recursive: true }); writeFileSync(PROFILE_CACHE, JSON.stringify(profileState)); } catch { /* best effort */ }
 }
 
+// Upstream error bodies are HTML pages; keep the status line only.
+function shortErr(e) { const m = /^HTTP \d{3}/.exec(String(e || '')); return (m ? m[0] + (m[0] === 'HTTP 429' ? ' rate limited' : '') : String(e || 'error').split('\n')[0]).slice(0, 120); }
+
 async function fetchProfiles(cc) {
   const { tag, label } = PROFILE_TAGS[cc];
   const state = loadProfileState();
@@ -100,9 +103,9 @@ async function fetchProfiles(cc) {
       return { ...state[cc], status: 'live', error: null };
     }
   }
-  const err = r?.error || 'no profile records';
+  const err = shortErr(r?.error || 'no profile records');
   if (prev) return { ...prev, status: 'cached', error: `serving cached profiles: ${err}`.slice(0, 160) };
-  return { tag, label, fetchedAt: null, cards: [], status: 'unavailable', error: String(err).slice(0, 160) };
+  return { tag, label, fetchedAt: null, cards: [], status: 'unavailable', error: err };
 }
 
 export function _resetProfilesForTests() { profileState = null; }
@@ -155,8 +158,13 @@ async function fetchFeed(feed) {
 // Briefing — pull all feeds, extract entities, cross-reference OpenSanctions
 export async function briefing() {
   // Fetch all feeds in parallel
-  const [feedResults, ...profileResults] = await Promise.all([Promise.all(FEEDS.map(fetchFeed)), ...Object.keys(PROFILE_TAGS).map(cc => fetchProfiles(cc).catch(e => ({ ...PROFILE_TAGS[cc], fetchedAt: null, cards: [], status: 'unavailable', error: String(e.message).slice(0, 160) })))]);
-  const profiles = Object.fromEntries(Object.keys(PROFILE_TAGS).map((cc, i) => [cc, profileResults[i]]));
+  const feedResults = await Promise.all(FEEDS.map(fetchFeed));
+  // Profile tags hit the same origin as the feeds: fetch them one at a time, after the feeds, so a
+  // sweep never fires more than one WP-API request at insightcrime.org at once (it rate-limits bursts).
+  const profiles = {};
+  for (const cc of Object.keys(PROFILE_TAGS)) {
+    profiles[cc] = await fetchProfiles(cc).catch(e => ({ ...PROFILE_TAGS[cc], fetchedAt: null, cards: [], status: 'unavailable', error: shortErr(e.message) }));
+  }
 
   // Country-tagged articles for the Country Home Pages (bounded: title / link / date / excerpt).
   const byCountry = {};

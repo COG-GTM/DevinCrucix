@@ -6,6 +6,7 @@
 // here is locality / barrio level.
 
 import { safeFetch } from '../utils/fetch.mjs';
+import { countryConfig } from '../../lib/countryconfig.mjs';
 
 export const SOURCE = 'ColombiaOpenData';
 export const BASE = 'https://www.datos.gov.co/resource/';
@@ -249,7 +250,7 @@ export async function fetchColombiaOpenData(admCodes = {}) {
 export function _resetCacheForTests() { _cache = null; _cacheTs = 0; }
 
 export async function briefing() {
-  return fetchColombiaOpenData();
+  return fetchColombiaOpenData(countryConfig('co').admCodes || {});
 }
 
 export default briefing;
