@@ -424,6 +424,57 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .glossary-line + .glossary-line{margin-top:5px}
 .glossary-label{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);margin-right:6px}
 .glossary-foot{padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,0.06);font-family:var(--mono);font-size:9px;line-height:1.5;color:rgba(106,138,130,0.8)}
+/* ASK CRUCIX — right-side drawer, available from every tab */
+.ask-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(100,240,200,0.35);background:rgba(100,240,200,0.08);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;cursor:pointer;transition:background .15s,border-color .15s}
+.ask-btn:hover{background:rgba(100,240,200,0.16);border-color:var(--accent)}
+.ask-btn .ask-ico{font-size:12px;line-height:1}
+.ask-overlay{position:fixed;inset:0;z-index:1250;background:rgba(2,6,10,0.55);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity 0.2s ease}
+.ask-overlay.show{opacity:1;pointer-events:auto}
+.ask-drawer{position:absolute;top:0;right:0;bottom:0;width:min(520px,100vw);display:flex;flex-direction:column;border-left:1px solid rgba(100,240,200,0.22);background:rgba(5,12,19,0.98);box-shadow:-18px 0 48px rgba(0,0,0,0.5);transform:translateX(16px);transition:transform 0.2s ease}
+.ask-overlay.show .ask-drawer{transform:none}
+.ask-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.ask-status{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);margin-top:6px;display:flex;flex-wrap:wrap;gap:6px 10px}
+.ask-status .on{color:var(--accent)}.ask-status .off{color:#ff9f43}
+.ask-body{flex:1;overflow:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.ask-msg{max-width:100%;font-size:12px;line-height:1.55}
+.ask-msg.user{align-self:flex-end;background:rgba(68,204,255,0.08);border:1px solid rgba(68,204,255,0.22);padding:8px 11px;color:#dbeafe;white-space:pre-wrap;max-width:88%}
+.ask-msg.assistant{border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);padding:10px 12px;color:#c8d8d2}
+.ask-msg.assistant.external{border-color:rgba(255,159,67,0.35);background:rgba(255,159,67,0.05)}
+.ask-msg.assistant.error{border-color:rgba(255,80,80,0.35);background:rgba(255,80,80,0.05)}
+.ask-tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border:1px solid rgba(100,240,200,0.22);color:var(--accent);background:rgba(100,240,200,0.05);margin-right:6px;margin-bottom:6px}
+.ask-tag.ext{border-color:rgba(255,159,67,0.45);color:#ffb86b;background:rgba(255,159,67,0.08)}
+.ask-tag.rules{border-color:rgba(255,255,255,0.18);color:var(--dim);background:none}
+.ask-tag.partial{border-color:rgba(255,215,0,0.35);color:#ffd700;background:rgba(255,215,0,0.06)}
+.ask-text{white-space:pre-wrap;word-break:break-word}
+.ask-text a{color:#ffb86b}
+.ask-cite{display:inline-block;font-family:var(--mono);font-size:10px;padding:0 5px;border:1px solid rgba(68,204,255,0.35);color:var(--accent2);background:rgba(68,204,255,0.06);cursor:pointer;vertical-align:baseline;margin:0 1px}
+.ask-cite:hover{background:rgba(68,204,255,0.16)}
+.ask-cites,.ask-follow,.ask-sources{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.ask-jump{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(68,204,255,0.3);color:var(--accent2);background:rgba(68,204,255,0.05);cursor:pointer}
+.ask-jump:hover{background:rgba(68,204,255,0.14)}
+.ask-chip{font-size:11px;padding:3px 9px;border:1px solid rgba(255,255,255,0.12);color:#c8d8d2;background:rgba(255,255,255,0.03);cursor:pointer;text-align:left}
+.ask-chip:hover{border-color:var(--accent);color:var(--accent)}
+.ask-sources{flex-direction:column;gap:3px}
+.ask-sources a{font-size:11px;color:#ffb86b;text-decoration:none;word-break:break-all}
+.ask-sources a:hover{text-decoration:underline}
+.ask-sources .host{font-family:var(--mono);font-size:9px;color:var(--dim);margin-left:6px}
+.ask-ext-offer{margin-top:10px;padding:9px 11px;border:1px dashed rgba(255,159,67,0.45);background:rgba(255,159,67,0.04);font-size:11px;color:#f1d7bd}
+.ask-ext-offer button{margin-top:7px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border:1px solid rgba(255,159,67,0.6);color:#ffb86b;background:rgba(255,159,67,0.1);cursor:pointer}
+.ask-ext-offer button:hover{background:rgba(255,159,67,0.22)}
+.ask-ext-offer button[disabled]{opacity:.5;cursor:default}
+.ask-meta{margin-top:8px;font-family:var(--mono);font-size:9px;color:rgba(106,138,130,0.9);letter-spacing:0.04em}
+.ask-empty{font-size:12px;line-height:1.6;color:var(--dim)}
+.ask-empty .ask-chip{display:block;margin-top:6px}
+.ask-foot{padding:10px 16px 12px;border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:7px}
+.ask-row{display:flex;gap:8px;align-items:flex-end}
+.ask-input{flex:1;min-height:40px;max-height:120px;resize:vertical;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:#e6f0ec;font:inherit;font-size:12px;line-height:1.45;padding:8px 10px}
+.ask-input:focus{outline:none;border-color:rgba(100,240,200,0.5)}
+.ask-send{height:40px;padding:0 14px;border:1px solid rgba(100,240,200,0.5);background:rgba(100,240,200,0.12);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer}
+.ask-send[disabled]{opacity:.45;cursor:default}
+.ask-hint{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:rgba(106,138,130,0.8);letter-spacing:0.04em}
+.ask-hint button{background:none;border:none;color:var(--dim);font:inherit;cursor:pointer;text-decoration:underline}
+.ask-thinking{display:inline-block;width:10px;height:10px;border:2px solid rgba(100,240,200,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px}
+@media (max-width:720px){.ask-btn .ask-label{display:none}.ask-btn{padding:4px 7px}}
 .map-loading{position:absolute;inset:0;z-index:12;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(2,6,10,0.78),rgba(2,6,10,0.9));backdrop-filter:blur(10px)}
 .map-loading.show{display:flex}
 .map-loading-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 18px;border:1px solid rgba(68,204,255,0.18);background:rgba(6,14,22,0.88);box-shadow:0 12px 32px rgba(0,0,0,0.35)}
@@ -1066,6 +1117,26 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
   </div>
   <div class="foot"><span>CRUCIX MONITOR</span><span>Built with Devin &middot; <b>Cognition AI</b></span><span>Public OSINT only &middot; judgments are rule-based, not conclusions</span></div>
 </div>
+<div class="ask-overlay" id="askOverlay" onclick="if(event.target===this) closeAsk()" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+  <div class="ask-drawer">
+    <div class="ask-head">
+      <div>
+        <div class="glossary-kicker">Read-only analyst assistant</div>
+        <div class="glossary-title" id="askTitle">Ask CRUCIX</div>
+        <div class="ask-status" id="askStatus">checking model…</div>
+      </div>
+      <button class="glossary-close" onclick="closeAsk()" aria-label="Close Ask CRUCIX">&times;</button>
+    </div>
+    <div class="ask-body" id="askBody"></div>
+    <div class="ask-foot">
+      <div class="ask-row">
+        <textarea class="ask-input" id="askInput" rows="1" placeholder="Ask about what CRUCIX is showing… (Enter to send, Shift+Enter for newline)" maxlength="600" onkeydown="askKey(event)"></textarea>
+        <button class="ask-send" id="askSend" onclick="askSubmit()">Ask</button>
+      </div>
+      <div class="ask-hint"><span>Answers cite CRUCIX sections first; external search only when you confirm.</span><button onclick="askClear()">clear</button></div>
+    </div>
+  </div>
+</div>
 <div class="glossary-overlay" id="glossaryOverlay" onclick="if(event.target===this) closeGlossary()">
   <div class="glossary-panel">
     <div class="glossary-head">
@@ -1298,6 +1369,7 @@ function renderTopbar(){
       <span class="meta-pill">${d} <span class="v">${timeStr}</span></span>
       ${renderHealthPill()}
       ${D.delta?.summary ? `<span class="meta-pill">${t('dashboard.delta','DELTA')} <span class="v">${D.delta.summary.direction==='risk-off'?'&#x25B2; '+t('dashboard.riskOff','RISK-OFF'):D.delta.summary.direction==='risk-on'?'&#x25BC; '+t('dashboard.riskOn','RISK-ON'):'&#x25C6; '+t('dashboard.mixed','MIXED')}</span></span>` : ''}
+      <button class="ask-btn" id="askBtn" onclick="openAsk()" title="Ask CRUCIX — question the live data, cite the tab it came from" aria-label="Ask CRUCIX"><span class="ask-ico">&#x25C8;</span><span class="ask-label">${t('dashboard.askBtn','Ask CRUCIX')}</span></button>
       <button class="guide-btn" onclick="openGlossary()">${t('dashboard.guideBtn','What Signals Mean')}</button>
       ${(() => {
         const dc = D.defcon || {};
@@ -7466,6 +7538,105 @@ function closeGlossary(){
   if(!overlay) return;
   overlay.classList.remove('show');
   document.body.style.overflow = '';
+}
+
+// === ASK CRUCIX ===
+// Drawer over /api/ask. Conversation lives in sessionStorage only (nothing persists server-side).
+// Grounded answers cite section ids that map to tabs; external answers are visibly labelled and
+// only requested after the analyst clicks the confirm button.
+const ASK={status:null,msgs:[],busy:false,pendingExternal:null};
+const ASK_STORE='crucix_ask_v1';
+const ASK_STARTERS=['What changed since the last sweep?','Why is DEFCON at its current level?','Which cartel events are graded highest this week?','What do the standing requirements say right now?','Which sources are degraded and why?'];
+try{const saved=JSON.parse(sessionStorage.getItem(ASK_STORE)||'null');if(saved&&Array.isArray(saved.msgs))ASK.msgs=saved.msgs.slice(-40)}catch{}
+function askSave(){try{sessionStorage.setItem(ASK_STORE,JSON.stringify({msgs:ASK.msgs.slice(-40)}))}catch{}}
+function openAsk(){
+  const o=document.getElementById('askOverlay');if(!o)return;
+  o.classList.add('show');document.body.style.overflow='hidden';
+  askLoadStatus();askRender();
+  setTimeout(()=>document.getElementById('askInput')?.focus(),60);
+}
+function closeAsk(){
+  const o=document.getElementById('askOverlay');if(!o)return;
+  o.classList.remove('show');document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('askOverlay')?.classList.contains('show'))closeAsk()});
+async function askLoadStatus(){
+  try{const r=await fetch('/api/ask/status',{cache:'no-store'});if(!r.ok)throw new Error(r.status);ASK.status=await r.json()}
+  catch{ASK.status={enabled:false,external:false,error:true}}
+  askRenderStatus();
+}
+function askRenderStatus(){
+  const el=document.getElementById('askStatus');if(!el)return;const s=ASK.status;
+  if(!s){el.textContent='checking model…';return}
+  const asOf=s.asOf?new Date(s.asOf).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—';
+  el.innerHTML=s.error?`<span class="off">status unavailable</span>`
+    :`<span class="${s.enabled?'on':'off'}">model ${s.enabled?esc(s.provider)+' · '+esc(s.model||''):'not configured — rules-only'}</span><span>data as of ${esc(asOf)}</span><span class="${s.external?'on':'off'}">external search ${s.external?'on request':'off'}</span>`;
+}
+function askKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askSubmit()}}
+function askClear(){ASK.msgs=[];ASK.pendingExternal=null;askSave();askRender()}
+function askJump(tab){closeAsk();setTab(tab);}
+function askStarter(q){const i=document.getElementById('askInput');if(i)i.value=q;askSubmit()}
+function askHistory(){
+  return ASK.msgs.filter(m=>m.role==='user'||(m.role==='assistant'&&m.answer)).slice(-6).map(m=>({role:m.role,content:m.role==='user'?m.content:m.answer}));
+}
+function askLinkify(text,cites,ext){
+  const byId=new Map((cites||[]).map(c=>[c.id,c]));
+  let h=esc(text);
+  if(ext)h=h.replace(/\[([^\]]{1,120})\]\((https?:\/\/[^)\s]+)\)/g,(m,label,url)=>`<a href="${url.replace(/[?&]utm_[^&)]+/g,'')}" target="_blank" rel="noopener noreferrer nofollow">${label}</a>`);
+  return h.replace(/\[([a-z]+)\]/g,(m,id)=>{const c=byId.get(id);return c?`<button class="ask-cite" onclick="askJump('${esc(c.tab)}')" title="${esc(c.label)} · open ${esc(c.tab)} tab">${esc(id)}</button>`:m});
+}
+function askMsgHtml(m,i){
+  if(m.role==='user')return `<div class="ask-msg user">${esc(m.content)}</div>`;
+  if(m.role==='pending')return `<div class="ask-msg assistant"><span class="ask-thinking"></span><span style="color:var(--dim)">${m.mode==='external'?'searching outside CRUCIX…':'reading CRUCIX data…'}</span></div>`;
+  if(m.error)return `<div class="ask-msg assistant error"><span class="ask-tag rules">error</span><div class="ask-text">${esc(m.error)}</div></div>`;
+  const ext=m.mode==='external';
+  let tags=ext?`<span class="ask-tag ext">${esc(m.label||'EXTERNAL — UNVERIFIED')}</span>`
+    :m.llm&&m.llm.used===false?`<span class="ask-tag rules">rules-only · no model</span>`
+    :`<span class="ask-tag">CRUCIX-grounded</span>`;
+  if(!ext&&m.sufficiency&&m.sufficiency!=='sufficient')tags+=`<span class="ask-tag partial">${esc(m.sufficiency==='insufficient'?'not in CRUCIX data':'partial')}</span>`;
+  let h=`<div class="ask-msg assistant${ext?' external':''}">${tags}<div class="ask-text">${askLinkify(m.answer||'',m.citations,ext)}</div>`;
+  if(m.citations?.length)h+=`<div class="ask-cites">${m.citations.map(c=>`<button class="ask-jump" onclick="askJump('${esc(c.tab)}')" title="${esc(c.label)}">&rarr; ${esc(c.tab)} · ${esc(c.id)}</button>`).join('')}</div>`;
+  if(ext&&m.sources?.length)h+=`<div class="ask-sources">${m.sources.map(sr=>`<a href="${esc(sr.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(sr.title||sr.host)}<span class="host">${esc(sr.host)}</span></a>`).join('')}</div>`;
+  if(ext&&m.sources&&!m.sources.length)h+=`<div class="ask-meta">no URL citations returned — treat as unsourced</div>`;
+  if(m.followups?.length)h+=`<div class="ask-follow">${m.followups.map(f=>`<button class="ask-chip" onclick="askStarter(${JSON.stringify(f).replace(/"/g,'&quot;')})">${esc(f)}</button>`).join('')}</div>`;
+  if(!ext&&m.suggestExternal&&m.question)h+=`<div class="ask-ext-offer">CRUCIX does not hold enough data to answer this fully. Search outside CRUCIX? Results will be labelled <b>EXTERNAL — UNVERIFIED</b> and kept separate from dashboard data.<br><button onclick="askExternal(${i})" ${ASK.busy?'disabled':''}>Search outside CRUCIX</button></div>`;
+  const meta=[];if(m.model)meta.push(esc(m.model));if(m.usage)meta.push(`${m.usage.inputTokens||0}/${m.usage.outputTokens||0} tok`);if(m.context?.asOf)meta.push('data '+esc(new Date(m.context.asOf).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));if(m.llm&&m.llm.used===false&&m.llm.reason)meta.push(esc(m.llm.reason));
+  if(meta.length)h+=`<div class="ask-meta">${meta.join(' · ')}</div>`;
+  return h+'</div>';
+}
+function askRender(){
+  const body=document.getElementById('askBody');if(!body)return;
+  if(!ASK.msgs.length){
+    body.innerHTML=`<div class="ask-empty">Ask about anything on the dashboard — the answer is drawn from the current sweep (situation, DEFCON, signals, cartel events, Border Watch, CJNG graph, KEV, requirements, target packages) and cites the tab it came from. If CRUCIX has no data, you can choose to search outside.${ASK_STARTERS.map(q=>`<button class="ask-chip" onclick="askStarter(${JSON.stringify(q).replace(/"/g,'&quot;')})">${esc(q)}</button>`).join('')}</div>`;
+  } else body.innerHTML=ASK.msgs.map(askMsgHtml).join('');
+  body.scrollTop=body.scrollHeight;
+  const send=document.getElementById('askSend');if(send)send.disabled=ASK.busy;
+}
+async function askPost(payload){
+  const r=await fetch('/api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+  let j=null;try{j=await r.json()}catch{}
+  if(!r.ok){const why=r.status===429?'Rate limited — wait a minute and try again.':r.status===409?`External search unavailable: ${j?.reason||''}`:r.status===400?`Rejected: ${j?.field||''} ${j?.reason||''}`:`Request failed (${r.status}) ${j?.detail||j?.error||''}`;throw new Error(why.trim())}
+  return j;
+}
+async function askSubmit(){
+  if(ASK.busy)return;
+  const input=document.getElementById('askInput');const q=(input?.value||'').trim();
+  if(q.length<3)return;
+  input.value='';
+  const history=askHistory();
+  ASK.msgs.push({role:'user',content:q},{role:'pending',mode:'grounded'});ASK.busy=true;askRender();
+  try{const out=await askPost({question:q,history,mode:'grounded'});ASK.msgs.pop();ASK.msgs.push({role:'assistant',...out})}
+  catch(e){ASK.msgs.pop();ASK.msgs.push({role:'assistant',error:e.message})}
+  ASK.busy=false;askSave();askRender();
+}
+async function askExternal(idx){
+  if(ASK.busy)return;
+  const src=ASK.msgs[idx];if(!src?.question)return;
+  const history=askHistory();
+  ASK.msgs.push({role:'pending',mode:'external'});ASK.busy=true;askRender();
+  try{const out=await askPost({question:src.question,history,mode:'external'});ASK.msgs.pop();src.suggestExternal=false;ASK.msgs.push({role:'assistant',...out})}
+  catch(e){ASK.msgs.pop();ASK.msgs.push({role:'assistant',error:e.message})}
+  ASK.busy=false;askSave();askRender();
 }
 
 function refreshMapViewport(forceGlobeReflow=false){
