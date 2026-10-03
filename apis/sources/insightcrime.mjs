@@ -80,6 +80,10 @@ let profileState = null;
 function loadProfileState() {
   if (profileState) return profileState;
   try { profileState = JSON.parse(readFileSync(PROFILE_CACHE, 'utf8')); } catch { profileState = {}; }
+  // Text fields pass through stripHtml again so a cache written by an older normalizer is still clean.
+  for (const st of Object.values(profileState)) {
+    if (Array.isArray(st?.cards)) st.cards = st.cards.map(c => ({ ...c, name: stripHtml(c.name, 120), summary: stripHtml(c.summary, 320) }));
+  }
   return profileState;
 }
 function saveProfileState() {
