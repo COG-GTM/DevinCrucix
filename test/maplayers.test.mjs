@@ -105,11 +105,15 @@ test('buildSituation attaches map layer evaluation using the same PRC composite'
 test('registry types and dashboard marker types agree in both directions', async () => {
   const { readFileSync } = await import('node:fs');
   const html = readFileSync(new URL('../dashboard/public/jarvis.html', import.meta.url), 'utf8');
+  // The Colombia MapLibre block declares style-spec layer types (fill/line/symbol/...), not marker types.
+  const glBlock = /\/\/ ---- cy-gl:start[\s\S]*?\/\/ ---- cy-gl:end/;
+  assert.match(html, glBlock, 'cy-gl block markers missing');
+  const scanned = html.replace(glBlock, '');
   // 3D globe: `type:'x'` on point/label objects; flat map: trailing layer-type arg to addPt() / layerOn('x').
   const used = new Set([
-    ...[...html.matchAll(/type:\s*['"]([a-z-]+)['"]/g)].map(m => m[1]),
-    ...[...html.matchAll(/layerOn\(['"]([a-z-]+)['"]\)/g)].map(m => m[1]),
-    ...[...html.matchAll(/addPt\([^;]*?,\s*\d,\s*['"]([a-z-]+)['"]\)/g)].map(m => m[1]),
+    ...[...scanned.matchAll(/type:\s*['"]([a-z-]+)['"]/g)].map(m => m[1]),
+    ...[...scanned.matchAll(/layerOn\(['"]([a-z-]+)['"]\)/g)].map(m => m[1]),
+    ...[...scanned.matchAll(/addPt\([^;]*?,\s*\d,\s*['"]([a-z-]+)['"]\)/g)].map(m => m[1]),
   ]);
   const registry = new Set(LAYERS.flatMap(l => l.types));
   const unowned = [...used].filter(t => !registry.has(t));
