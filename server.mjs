@@ -13,6 +13,8 @@ import { fullBriefing } from './apis/briefing.mjs';
 import { collectQuick as yfinanceQuick } from './apis/sources/yfinance.mjs';
 import { synthesize, generateIdeas } from './dashboard/inject.mjs';
 import { MemoryManager } from './lib/delta/index.mjs';
+import { fuseAirContacts } from './lib/contacts/provenance.mjs';
+import { ContactHistory, REGION_KEYS as CONTACT_REGIONS, RETENTION_HOURS as CONTACT_RETENTION_HOURS, ID_RE as CONTACT_ID_RE } from './lib/contacts/history.mjs';
 import { createLLMProvider } from './lib/llm/index.mjs';
 import { geolocatePhoto, photoGeolocAvailability, sanitizeHint } from './lib/geoloc/photo.mjs';
 import { generateLLMIdeas } from './lib/llm/ideas.mjs';
@@ -136,6 +138,8 @@ function sourceSummaryLine() {
 
 // === Delta/Memory ===
 const memory = new MemoryManager(RUNS_DIR);
+const contactHistory = new ContactHistory(RUNS_DIR);
+let contactProvenance = null; // summary from the last sweep's source fusion
 
 // === LLM + Telegram + Discord ===
 const llmProvider = createLLMProvider(config.llm);
@@ -1194,6 +1198,34 @@ app.get('/api/history/series', validateQuery({
 });
 // === end standing requirements ===
 
+// === Contact provenance + replay (Velocity model) ===
+// GET /api/contacts — last sweep's provenance summary + what the replay store holds
+app.get('/api/contacts', (req, res) => {
+  res.json({
+    provenance: contactProvenance,
+    history: contactHistory.stats(),
+    regions: CONTACT_REGIONS,
+    retentionHours: CONTACT_RETENTION_HOURS,
+    sweepAt: lastSweepTime,
+  });
+});
+
+// GET /api/contacts/history?region=ukraine&hours=24[&id=icao24] — per-sweep frames + polylines
+app.get('/api/contacts/history', validateQuery({
+  region: (v) => oneOf(v, CONTACT_REGIONS, { required: true }),
+  hours: (v) => num(v, { min: 1, max: CONTACT_RETENTION_HOURS }),
+  id: (v) => str(v, { max: 12, pattern: CONTACT_ID_RE }),
+}), (req, res) => {
+  try {
+    const { region, hours = 24, id } = req.validated.query;
+    res.json(contactHistory.replay({ region, hours, id: id ? id.toLowerCase() : undefined }));
+  } catch (err) {
+    console.error('[Contacts] replay failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+// === end contacts ===
+
 // === Ask CRUCIX ===
 // === Devin Security — scan the configured repos for what KEV / ransomware data says is being exploited ===
 // Token stays server-side. Unconfigured → 503 with the env vars to set (the panel renders "Not connected").
@@ -1435,6 +1467,21 @@ async function runSweepCycle() {
   try {
     // 1. Run the full briefing sweep
     const rawData = await fullBriefing();
+
+    // 1b. Contact provenance: score every air contact by independent-source agreement + fix age,
+    // then append the sweep's positions to the rolling replay store (non-fatal).
+    try {
+      const fused = fuseAirContacts(rawData.sources || {});
+      if (rawData.sources?.OpenSky) {
+        rawData.sources.OpenSky.hotspots = fused.hotspots;
+        rawData.sources.OpenSky.provenance = fused.summary;
+      }
+      contactProvenance = fused.summary;
+      const written = contactHistory.record(fused);
+      console.log(`[Crucix] Contacts: ${fused.summary.total} scored (${fused.summary.byConfidence.corroborated} corroborated) · ${fused.military} adsb.fi-only military · ${written} positions recorded`);
+    } catch (provErr) {
+      console.error('[Crucix] Contact provenance failed (non-fatal):', provErr.message);
+    }
 
     // 2. Save to runs/latest.json
     writeFileSync(join(RUNS_DIR, 'latest.json'), JSON.stringify(rawData, null, 2));

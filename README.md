@@ -239,6 +239,12 @@ The **Target Development** tab turns the stores CRUCIX already holds into an ana
 
 Routes live under `/api/targeting` (list, nominate, get, develop, link / proposal decisions, close, delete, dossier, overlay); ids, enums and body fields are whitelisted and unexpected fields are a 400.
 
+### Contact provenance & replay (Military tab)
+
+Ported from the [Velocity](https://github.com/AndrewCTF/velocity) model: an air contact is only as good as the number of independent feeds that agree on it and the age of its newest fix. Each sweep `lib/contacts/provenance.mjs` cross-references the OpenSky hotspot tracks with the keyless adsb.fi military feed by ICAO24 and tags every track with `prov` — the feeds that saw it, whether they agree (within 25 km), the fix age in seconds (observation age, not response age) and a documented confidence: **corroborated** (2+ feeds agree), **single** (one feed, fix ≤ 120 s), **stale** (one feed, older fix) or **conflict** (feeds disagree), with a 0–100 score that falls 3 pts per minute of fix age. Military airframes adsb.fi carries inside a hotspot box that OpenSky did not list are surfaced with their own single-source provenance. Nothing here is an intent assessment; the rule is printed in the panel and returned by the API.
+
+Positions are appended to a rolling 48 h store (`runs/contacts/positions.jsonl`, one row per contact per sweep) and the **Contact Replay** panel on the Military tab scrubs through them: pick a hotspot and window, drag the slider or press play, and the map shows each sweep's contacts coloured by confidence with their trailing tracks. Resolution is the sweep cadence (~15 min) — a frame is the fix at sweep time, never a continuous track — and the panel says so. The same `prov` line appears in aircraft popups on the globe, the Ukraine theater map and the Taiwan Strait map.
+
 ### Ask CRUCIX (header drawer)
 
 The **◈ Ask CRUCIX** button in the header opens a read-only side drawer from any tab. A question is answered in two clearly separated modes:
@@ -749,6 +755,8 @@ When running `npm run dev`:
 | `GET /api/country/:cc` | Country home page view (Colombia `co`, Venezuela `ve`): hero tiles, official open data, wires, InSight Crime feed / profiles, Defensoría SAT and Indepaz trims (Colombia), OVCS protest monitor (Venezuela), armed-actor cards, graph summary, source rows and link-outs |
 | `GET /api/country/:cc/graph` | Country knowledge graph (Colombia `co`, Venezuela `ve`) from the InSight Crime corpus; same `type`, `rel`, `min` filters; 404 for countries without a profile |
 | `GET /api/country/:cc/geo` | Country map payload: ADM1 polygons + values, configured places, and for Colombia the Bogotá localidad polygons, Defensoría SAT alert points and Indepaz massacre points; for Venezuela the partial OVCS state values |
+| `GET /api/contacts` | Contact provenance summary from the last sweep (corroborated / single / stale / conflict counts, per-feed exclusives, scoring rule) plus what the replay store holds |
+| `GET /api/contacts/history?region=<hotspot>&hours=<1-48>[&id=<icao24>]` | Contact replay: one frame per sweep (positions + provenance at that instant) and per-contact polylines for a hotspot region over the trailing window |
 | `GET /api/ask/status` | Ask CRUCIX capability: model configured, external search available, limits |
 | `POST /api/ask` | Ask CRUCIX: `{ question, history?, mode: grounded\|external }` → cited answer; external only when explicitly requested; rate limited |
 
