@@ -113,6 +113,32 @@ test('server routes', async (t) => {
     assert.match(csp, /base-uri 'self'/);
   });
 
+  await t.test('Devin Security routes answer 503 with the env vars to set when unconfigured', async () => {
+    const st = await req('/api/devinsec/status');
+    assert.equal(st.status, 200);
+    const body = await st.json();
+    assert.equal(body.configured, false);
+    assert.deepEqual(body.missing, ['DEVIN_API_KEY', 'DEVIN_ORG_ID', 'CRUCIX_SCAN_REPOS']);
+    assert.ok(typeof body.brief?.text === 'string');
+    assert.ok(!('token' in body));
+
+    const scan = await postJson('/api/devinsec/scan', { repo: 'acme/web', effort: 'normal' });
+    assert.equal(scan.status, 503);
+    assert.deepEqual((await scan.json()).missing, ['DEVIN_API_KEY', 'DEVIN_ORG_ID', 'CRUCIX_SCAN_REPOS']);
+
+    const rem = await postJson('/api/devinsec/remediate', { scan_id: 'scan_1', finding_id: 'fnd_1' });
+    assert.equal(rem.status, 503);
+    assert.equal((await req('/api/devinsec/scans')).status, 503);
+    assert.equal((await req('/api/devinsec/findings?scan_id=scan_1')).status, 503);
+  });
+
+  await t.test('Devin Security routes validate input before checking configuration', async () => {
+    assert.equal((await postJson('/api/devinsec/scan', { repo: '../../etc', effort: 'normal' })).status, 400);
+    assert.equal((await postJson('/api/devinsec/scan', { repo: 'acme/web', effort: 'max' })).status, 400);
+    assert.equal((await postJson('/api/devinsec/remediate', { scan_id: 'ok', finding_id: 'bad id!' })).status, 400);
+    assert.equal((await req('/api/devinsec/findings')).status, 400);
+  });
+
   await t.test('HSTS is emitted when the proxy reports https', async () => {
     const res = await req('/api/health', { headers: { 'x-forwarded-proto': 'https' } });
     assert.equal(res.headers.get('strict-transport-security'), 'max-age=31536000; includeSubDomains');
