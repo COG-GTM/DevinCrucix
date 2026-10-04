@@ -5874,7 +5874,7 @@ function cyGlDraw(){
   map.setFilter('cy-ev-halo',['all',['>',['get','mentions'],0],hiddenF,zF]);map.setFilter('cy-ev-ring1',['all',['==',['get','tier'],1],hiddenF,zF]);map.setFilter('cy-ev-ring3',['all',['==',['get','tier'],3],hiddenF,zF]);
   ['cy-ev-glyph','cy-ev-lbl','cy-ev-halo','cy-ev-ring1','cy-ev-ring3','cy-ev-focus'].forEach(id=>vis(id,on('places')));
   vis('cy-hs',gl('terrain'));vis('cy-night',gl('night'));vis('cy-adm2',gl('adm2'));vis('cy-adm2-lbl',gl('adm2'));vis('cy-grat',gl('grat'));vis('cy-ne-dot',gl('labels'));vis('cy-ne-lbl',gl('labels'));
-  vis('cy-nlx-fill',gl('nightx'));vis('cy-nlx-line',gl('nightx'));if(gl('nightx'))cyNlxEnsure(cc);
+  vis('cy-nlx-fill',gl('nightx'));vis('cy-nlx-line',gl('nightx'));if(gl('nightx')){cyNlxEnsure(cc);cyNlxApply(cc)}
   const counts={adm1:adm1.features.length,places:ev.features.length,hist:0};
   cyLastCounts=counts;
   cyGlLegend(c,ev);cyNlxLegend();
@@ -5969,7 +5969,7 @@ function cyNlxApply(cc){const m=cyGlMap;if(!m||!cyGlReady||cyGlCc!==cc)return;m.
 function cyNlxLegend(){
   const el=document.getElementById('cyGlLegend');if(!el)return;el.querySelector('.nlx')?.remove();if(!cyGlOn.has('nightx'))return;
   const st=cyNlx[cyGlCc]||{},d=st.data;const div=document.createElement('div');div.className='nlx';div.style.cssText='margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08)';
-  div.innerHTML=d?`<h5 style="margin:0 0 2px">Night lights \u0394 \u00b7 ${esc(d.recentDate||'')} vs ${esc(String((d.baselineDates||[])[0]||''))} / ${esc(String((d.baselineDates||[])[2]||''))}${d.status==='stale'?' \u00b7 stale':''}</h5><span style="color:#ff7043">\u25A0</span> dimmed ${d.summary?.dimmed??0} \u00b7 <span style="color:#ffee58">\u25A0</span> brightened ${d.summary?.brightened??0} \u00b7 of ${d.summary?.litCells??0} lit ~${d.cellKm||10} km cells${d.error?`<br><span style="color:#ff8a80">${esc(d.error)}</span>`:''}<br><span style="color:var(--dim)">${esc(d.attribution||'')} \u00b7 click a cell</span>`
+  div.innerHTML=d?`<h5 style="margin:0 0 2px">Night lights \u0394 \u00b7 ${esc(d.recentDate||'')} vs ${esc(String((d.baselineDates||[])[0]||''))} / ${esc(String((d.baselineDates||[])[2]||''))}${d.status==='stale'?' \u00b7 stale':''}</h5><span style="color:#ff7043">\u25A0</span> dimmed ${d.summary?.dimmed??0} \u00b7 <span style="color:#ffee58">\u25A0</span> brightened ${d.summary?.brightened??0} \u00b7 of ${d.summary?.litCells??0} lit ~${d.cellKm||10} km cells${d.error?`<br><span style="color:#ff8a80">${esc(d.error)}</span>`:''}<br><span style="color:var(--dim)">${esc(d.caveat||'')}</span><br><span style="color:var(--dim)">${esc(d.attribution||'')} \u00b7 click a cell</span>`
     :st.status==='computing'?'<h5 style="margin:0">Night lights \u0394 \u00b7 computing from NASA GIBS (\u2248 80 tiles)\u2026</h5>'
     :st.error?`<h5 style="margin:0;color:#ff8a80">Night lights \u0394 \u00b7 ${esc(st.error)}</h5>`:'<h5 style="margin:0">Night lights \u0394 \u00b7 loading\u2026</h5>';
   el.appendChild(div);
