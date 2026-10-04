@@ -595,6 +595,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sh-row.degraded .sh-why{color:#ffd54f}
 .sh-row.error .sh-why{color:var(--danger)}
 .sh-note{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:6px}
+/* Contact replay (Military tab) */
+#crMapSvg{width:100%;height:100%;display:block}
+#crMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+#crMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#crMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#crMapSvg .cr-box{fill:none;stroke:rgba(100,240,200,0.35);stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+#crMapSvg .cr-trail{fill:none;stroke-width:1.2;opacity:0.65;vector-effect:non-scaling-stroke;pointer-events:none}
+#crMapSvg .cr-sym{cursor:pointer;stroke:rgba(0,0,0,0.7);stroke-width:1;vector-effect:non-scaling-stroke}
+#crMapSvg .cr-lbl{font-family:var(--mono);font-size:7px;fill:rgba(200,220,230,0.55);pointer-events:none}
+.cr-ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--dim)}
+.cr-ctl select{background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 6px;outline:none}
+.cr-ctl select:focus{border-color:var(--accent2)}
+.cr-ctl input[type=range]{flex:1;min-width:140px;accent-color:#64f0c8;cursor:pointer}
+.cr-ctl .cr-time{color:var(--accent);font-size:10px;text-transform:none;letter-spacing:0.04em;min-width:150px}
+.cr-ctl .cr-frame{color:var(--dim);font-size:9px;text-transform:none}
+.cr-prov{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:9px;letter-spacing:0.04em;margin-top:6px}
+.cr-prov b{font-weight:600}
 .g-panel.g-off{padding:8px 12px;opacity:0.7}
 .g-panel.g-off .sec-head{margin-bottom:3px}
 .g-off-why{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.04em;line-height:1.5}
@@ -1464,7 +1481,7 @@ function renderTopbar(){
 // panel set rendered into #lowerGrid (and #leftRail), so the wall of ~30 equal panels is gone.
 const TAB_DEFS=[
   {id:'situation',label:'Situation',hint:'What matters this sweep'},
-  {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
+  {id:'military',label:'Military',hint:'Air (provenance-scored contacts + 48 h replay), maritime, PRC, nuclear, space'},
   {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal + strike candidates, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
@@ -1914,6 +1931,7 @@ document.addEventListener('keydown',e=>{
 // One line under each panel title: what it shows, where it comes from, what it does not establish.
 // Keyed by the panel title text (i18n-independent English fallback titles).
 const PANEL_CAPTIONS={
+  'contact replay':'Scrub through the last 48 h of air contacts in one hotspot, one frame per sweep. Each contact is coloured by provenance confidence \u2014 how many independent feeds (OpenSky, adsb.fi) reported the same ICAO24, whether they agreed on position, and how old the fix was at sweep time. <b>Computed from the feeds CRUCIX already pulls</b>; not a live track and not an intent assessment.',
   'target nomination':'Nominate a public-source target with a logged basis (knowledge-graph node, OFAC SDN id, DOJ release or a source URL) and the requirement it must answer. Persons, organizations, facilities, vehicles, vessels, aircraft already named in public reporting only.',
   'target deck':'Every nominated target with status and pending review count. Select one to open its package; closed targets stay for the record.',
   'source coverage':'Which local stores the package was built from, how many hit, and whether an OpenAI / Anthropic model adjudicated. <b>Not available</b> means the store was empty this sweep, not that the target is absent from it.',
@@ -2564,11 +2582,31 @@ function initGlobe(){
 // third-party strings, so everything goes through esc().
 const AIR_TRACK_COLOR_DARK='rgba(255,184,76,0.9)';
 const AIR_TRACK_COLOR='rgba(100,240,200,0.9)';
-function airTrackColor(t){ return t.callsign ? AIR_TRACK_COLOR : AIR_TRACK_COLOR_DARK; }
+function airTrackColor(t){
+  const c=t.prov?.confidence;
+  if(c==='stale')return 'rgba(127,148,143,0.75)';
+  if(c==='conflict')return 'rgba(255,82,82,0.9)';
+  return t.callsign ? AIR_TRACK_COLOR : AIR_TRACK_COLOR_DARK;
+}
+// Provenance line (Velocity model): which feeds saw the contact, whether they agree, how old the fix was
+// at sweep time. Strings are source labels / numbers from the server, still escaped.
+const PROV_COLORS={corroborated:'#64f0c8',single:'#ffd54f',stale:'#7f948f',conflict:'#ff5252'};
+function provAge(s){return s<90?`${s}s`:s<5400?`${Math.round(s/60)} min`:`${(s/3600).toFixed(1)} h`}
+function provText(p){
+  if(!p||!Array.isArray(p.sources))return '';
+  const agree=p.n>1?(p.confidence==='conflict'?`disagree by ${p.agreeKm} km`:`agree${Number.isFinite(p.agreeKm)?` within ${p.agreeKm} km`:''}`):'single feed';
+  return `${esc(p.sources.join(' + '))} \u00b7 ${agree} \u00b7 ${Number.isFinite(p.fixAgeS)?`fix ${provAge(p.fixAgeS)} old at sweep`:'fix age unknown'}`;
+}
+function provLine(p){
+  if(!p||!Array.isArray(p.sources))return '';
+  const col=PROV_COLORS[p.confidence]||PROV_COLORS.single;
+  return `<br><span style="color:${col};font-family:var(--mono);font-size:9px;letter-spacing:0.06em">${esc(String(p.confidence).toUpperCase())} ${p.score}/100</span> <span style="color:var(--dim);font-size:9px">${provText(p)}</span>`;
+}
 function airTrackPop(t,region){
   const head=t.callsign ? esc(t.callsign) : 'NO CALLSIGN';
   const rows=[];
   if(t.icao24) rows.push('ICAO24: '+esc(t.icao24));
+  if(t.prov) rows.push(provLine(t.prov).replace(/^<br>/,''));
   if(t.country) rows.push('Registry: '+esc(t.country));
   rows.push(Number.isFinite(t.altitude) ? `Altitude: ${Math.round(t.altitude).toLocaleString()} m (FL${Math.round(t.altitude*3.28084/100)})` : (t.onGround ? 'On ground' : 'Altitude: --'));
   if(Number.isFinite(t.velocity)) rows.push(`Speed: ${Math.round(t.velocity*1.94384)} kt`);
@@ -3749,7 +3787,7 @@ function renderLower(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
-    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    military:[wrap(renderContactReplayPanel(),'lp-wide'),wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
@@ -3773,6 +3811,7 @@ function renderLower(){
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
+  if(currentTab==='military')requestAnimationFrame(initContactReplay);else crStop();
   if(CY_TAB[currentTab]){requestAnimationFrame(initCyMap);kgMount(CY_TAB[currentTab])}
   if(currentTab==='targeting')requestAnimationFrame(initTgtMap);
 }
@@ -3786,7 +3825,146 @@ function renderAirTheatersPanel(){
   const max=Math.max(1,...air.map(a=>a.total||0));
   const rows=air.map(a=>`<div class="cii-row" title="${esc(a.region)}: ${a.total||0} aircraft · ${a.noCallsign||0} no callsign · ${a.highAlt||0} high altitude"><span class="cii-name" style="flex:0 0 112px">${esc(a.region)}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${Math.round((a.total||0)/max*100)}%;background:var(--accent2)"></div></div><span class="cii-score" style="color:var(--accent2)">${a.total||0}</span><span class="cii-level" style="color:var(--dim);border:1px solid var(--border)">${(a.top||[]).slice(0,2).map(tp=>esc(tp[0])+' '+tp[1]).join(' · ')||'—'}</span></div>`).join('');
   const note=D.airMeta?.method&&D.airMeta.method!=='opensky'?`<div class="sh-note">Source: ${esc(D.airMeta.source||D.airMeta.method)} (OpenSky fallback). Counts are civil + military transponders inside each theater box, not military-only.</div>`:'<div class="sh-note">Counts are all transponding aircraft inside each theater box (civil + military). Sudden drops usually mean the upstream feed thinned, not that the sky emptied.</div>';
-  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT</span></div>${rows}${note}</div>`;
+  const pv=D.airMeta?.provenance,bc=pv?.byConfidence;
+  const prov=bc?`<div class="cr-prov" title="${esc(pv.rule||'')}"><span style="color:${PROV_COLORS.corroborated}"><b>${bc.corroborated||0}</b> corroborated</span><span style="color:${PROV_COLORS.single}"><b>${bc.single||0}</b> single-source</span><span style="color:${PROV_COLORS.stale}"><b>${bc.stale||0}</b> stale</span>${bc.conflict?`<span style="color:${PROV_COLORS.conflict}"><b>${bc.conflict}</b> conflict</span>`:''}${Number.isFinite(pv.meanScore)?`<span style="color:var(--dim)">mean ${pv.meanScore}/100</span>`:''}${pv.military?`<span style="color:var(--dim)">+${pv.military} adsb.fi-only military</span>`:''}</div>`:'';
+  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT</span></div>${rows}${prov}${note}</div>`;
+}
+// === CONTACT REPLAY (Velocity model) ===
+// Scrubs the rolling position store (/api/contacts/history): one frame per sweep, contacts coloured by
+// provenance confidence, trailing tracks up to the selected frame. Resolution is the sweep cadence and
+// the panel says so — never a live or continuous track.
+const CR_REGIONS=[['ukraine','Ukraine Region'],['taiwan','Taiwan Strait'],['middleEast','Middle East'],['baltics','Baltic Region'],['southChinaSea','South China Sea'],['koreanPeninsula','Korean Peninsula'],['caribbean','Caribbean'],['gulfOfGuinea','Gulf of Guinea'],['capeRoute','Cape Route'],['hornOfAfrica','Horn of Africa']];
+const CR_WINDOWS=[6,12,24,48];
+const CR={region:CR_REGIONS.some(r=>r[0]===localStorage.getItem('crucix_cr_region'))?localStorage.getItem('crucix_cr_region'):'ukraine',hours:24,data:null,key:'',frame:-1,timer:null,busy:false,failed:false};
+let crProj=null,crBase=null,crLayers=null,crSvg=null;
+function crWhen(ts){const d=new Date(ts);return Number.isFinite(d.getTime())?d.toISOString().slice(5,16).replace('T',' ')+'Z':''}
+function renderContactReplayPanel(){
+  const pv=D.airMeta?.provenance,bc=pv?.byConfidence||{};
+  const src=['OpenSky','ADS-B'];
+  const n=v=>Number.isFinite(v)?Number(v).toLocaleString('en-US'):'\u2014';
+  const kpis=`<div class="front-kpis">
+      <div class="front-kpi"><div class="k">Corroborated \u00b7 2+ feeds agree</div><div class="v" style="color:${PROV_COLORS.corroborated}">${n(bc.corroborated)}</div><div class="s">OpenSky + adsb.fi on the same ICAO24, within 25 km</div></div>
+      <div class="front-kpi"><div class="k">Single-source \u00b7 fresh</div><div class="v" style="color:${PROV_COLORS.single}">${n(bc.single)}</div><div class="s">one feed, fix \u2264 120 s old at sweep</div></div>
+      <div class="front-kpi"><div class="k">Stale \u00b7 conflict</div><div class="v"><span style="color:${PROV_COLORS.stale}">${n(bc.stale)}</span><span style="font-size:9px;color:var(--dim)"> \u00b7 </span><span style="color:${PROV_COLORS.conflict}">${n(bc.conflict)}</span></div><div class="s">older fix \u00b7 feeds disagree on position</div></div>
+      <div class="front-kpi"><div class="k">Mean score \u00b7 adsb.fi-only military</div><div class="v" style="color:var(--accent)">${pv&&Number.isFinite(pv.meanScore)?pv.meanScore+'<span style="font-size:9px;color:var(--dim)"> /100</span>':'\u2014'}</div><div class="s">${pv?`${n(pv.military)} military airframes OpenSky did not list`:'no scored sweep yet'}</div></div>
+    </div>`;
+  const d=CR.data,frames=d?.frames||[],fi=Math.min(Math.max(CR.frame,0),Math.max(0,frames.length-1)),fr=frames[fi];
+  return `<div class="g-panel cr-panel">
+      <div class="sec-head"><h3>${shDot(src)}Contact Replay — Provenance-Scored Air Tracks</h3><span class="badge" id="crBadge">${d?`${d.sweeps} SWEEPS \u00b7 ${d.contacts} CONTACTS`:'LOADING'}</span></div>
+      ${kpis}
+      <div class="cr-ctl">
+        <label>Theater <select onchange="crSetRegion(this.value)">${CR_REGIONS.map(([k,l])=>`<option value="${k}" ${k===CR.region?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+        <label>Window <select onchange="crSetHours(+this.value)">${CR_WINDOWS.map(h=>`<option value="${h}" ${h===CR.hours?'selected':''}>${h} h</option>`).join('')}</select></label>
+        <button class="inv-btn" id="crPlay" onclick="crTogglePlay()" ${frames.length>1?'':'disabled'}>${CR.timer?'\u23f8 Pause':'\u25b6 Play'}</button>
+        <input type="range" id="crRange" min="0" max="${Math.max(0,frames.length-1)}" value="${fi}" ${frames.length>1?'':'disabled'} oninput="crSetFrame(+this.value)" aria-label="Replay sweep">
+        <span class="cr-time" id="crTime">${fr?crWhen(fr.ts):(CR.failed?'replay unavailable':d?'no positions in window yet':'\u2026')}</span>
+        <span class="cr-frame" id="crFrame">${frames.length?`sweep ${fi+1}/${frames.length}`:''}</span>
+      </div>
+      <div class="ct-map" id="crMapWrap" style="height:clamp(300px,42vh,480px)">
+        <svg id="crMapSvg"></svg>
+        <div class="ct-hint" id="crHint">ONE FRAME PER SWEEP (~15 MIN) \u00b7 CLICK A CONTACT</div>
+        <div class="ct-key"><span><i style="border-color:${PROV_COLORS.corroborated}"></i>CORROBORATED</span><span><i style="border-color:${PROV_COLORS.single}"></i>SINGLE-SOURCE</span><span><i style="border-color:${PROV_COLORS.stale}"></i>STALE</span><span><i style="border-color:${PROV_COLORS.conflict}"></i>CONFLICT</span><span><i class="dash" style="border-color:rgba(200,220,230,0.5)"></i>TRAIL TO THIS SWEEP</span></div>
+        <div class="map-popup" id="crPopup"><div class="pp-close" onclick="crClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
+      </div>
+      <div class="sh-note" id="crNote">${esc(d?.resolution||'One frame per sweep (~15 min); positions are the fix at sweep time, not a continuous track.')} Rule: ${esc(pv?.rule||'corroborated = 2+ feeds agree on the same ICAO24 within 25 km \u00b7 single = one feed, fix \u2264 120 s \u00b7 stale = older fix \u00b7 conflict = feeds disagree \u00b7 score = base \u2212 3/min of fix age')}. Fix age is the observation age, not the HTTP response age. Positions are kept 48 h in runs/contacts.</div>
+    </div>`;
+}
+function crSetRegion(k){if(!CR_REGIONS.some(r=>r[0]===k))return;CR.region=k;localStorage.setItem('crucix_cr_region',k);crStop();CR.data=null;initContactReplay()}
+function crSetHours(h){if(!CR_WINDOWS.includes(h))return;CR.hours=h;crStop();CR.data=null;initContactReplay()}
+function crStop(){if(CR.timer){clearInterval(CR.timer);CR.timer=null}const b=document.getElementById('crPlay');if(b)b.textContent='\u25b6 Play'}
+function crTogglePlay(){
+  const n=CR.data?.frames?.length||0;
+  if(CR.timer){crStop();return}
+  if(n<2)return;
+  CR.timer=setInterval(()=>{if(!document.getElementById('crMapSvg')){crStop();return}crSetFrame((CR.frame+1)%n)},650);
+  const b=document.getElementById('crPlay');if(b)b.textContent='\u23f8 Pause';
+}
+function crClosePopup(){document.getElementById('crPopup')?.classList.remove('show')}
+function crPopup(ev,head,html,meta){
+  const popup=document.getElementById('crPopup'),wrap=document.getElementById('crMapWrap');
+  if(!popup||!wrap)return;
+  const rect=wrap.getBoundingClientRect();
+  const left=ev&&ev.clientX!=null?ev.clientX-rect.left+10:rect.width/2-140, top=ev&&ev.clientY!=null?ev.clientY-rect.top-10:rect.height/2-60;
+  fillPopup(popup,head,html,meta);
+  placePopup(popup,rect,left,top);
+}
+function initContactReplay(){
+  const wrap=document.getElementById('crMapWrap'),svgEl=document.getElementById('crMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  const key=`${CR.region}|${CR.hours}|${D.meta?.timestamp||''}`;
+  if(CR.data&&CR.key===key){crBuild();return}
+  if(CR.busy)return;
+  CR.busy=true;
+  fetch(`/api/contacts/history?region=${encodeURIComponent(CR.region)}&hours=${CR.hours}`,{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(d=>{
+    CR.busy=false;
+    if(!d||!Array.isArray(d.frames)){CR.failed=true;crBuild();return}
+    const keepLast=!CR.data||CR.frame>=(CR.data.frames.length-1);
+    CR.data=d;CR.key=key;CR.failed=false;
+    CR.frame=keepLast?d.frames.length-1:Math.min(CR.frame,d.frames.length-1);
+    const grid=document.getElementById('lowerGrid');
+    if(currentTab==='military'&&grid){const old=grid.querySelector('.cr-panel');if(old){const tmp=document.createElement('div');tmp.innerHTML=renderContactReplayPanel();const nu=tmp.firstElementChild;nu.className=old.className;old.replaceWith(nu)}}
+    crBuild();
+  }).catch(()=>{CR.busy=false;CR.failed=true;crBuild()});
+}
+function crBuild(){
+  const wrap=document.getElementById('crMapWrap'),svgEl=document.getElementById('crMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  const W=wrap.clientWidth||900,H=wrap.clientHeight||380;
+  crSvg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
+  crSvg.selectAll('*').remove();
+  const b=CR.data?.box||{lamin:44,lomin:22,lamax:53,lomax:41};
+  const bbox={type:'Polygon',coordinates:[[[b.lomin,b.lamin],[b.lomax,b.lamin],[b.lomax,b.lamax],[b.lomin,b.lamax],[b.lomin,b.lamin]]]};
+  crProj=d3.geoMercator().fitExtent([[14,14],[W-14,H-14]],bbox);
+  const path=d3.geoPath(crProj);
+  crBase=crSvg.append('g');crLayers=crSvg.append('g');
+  crSvg.on('click',()=>crClosePopup());
+  crBase.append('path').datum(d3.geoGraticule().step([5,5])()).attr('class','graticule').attr('d',path);
+  crBase.append('path').datum(bbox).attr('class','cr-box').attr('d',path);
+  ctWorld().then(world=>{
+    if(!world||!crBase||!window.topojson||crBase.node()?.ownerSVGElement!==svgEl)return;
+    const countries=topojson.feature(world,world.objects.countries);
+    crBase.selectAll('path.land').data(countries.features).enter().append('path').attr('class','land').attr('d',path);
+    crBase.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',path);
+    crBase.selectAll('.cr-box').raise();
+    crLayers.raise();
+  });
+  if(CR.data&&!CR.data.frames.length){crBase.append('text').attr('class','cr-lbl').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').style('font-size','9px').text(`NO POSITIONS RECORDED FOR ${(CR.data.label||CR.region).toUpperCase()} IN THE LAST ${CR.hours} H \u2014 FRAMES APPEAR AFTER THE NEXT SWEEP`)}
+  if(CR.failed&&!CR.data){crBase.append('text').attr('class','cr-lbl').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').style('font-size','9px').text('REPLAY STORE UNAVAILABLE')}
+  crDrawFrame();
+}
+function crSetFrame(i){
+  const n=CR.data?.frames?.length||0;if(!n)return;
+  CR.frame=Math.max(0,Math.min(n-1,i));
+  const r=document.getElementById('crRange');if(r&&+r.value!==CR.frame)r.value=CR.frame;
+  crDrawFrame();
+}
+function crDrawFrame(){
+  if(!crLayers||!crProj)return;
+  crLayers.selectAll('*').remove();
+  const d=CR.data,frames=d?.frames||[];
+  if(!frames.length)return;
+  const fi=Math.max(0,Math.min(frames.length-1,CR.frame)),fr=frames[fi],t=Date.parse(fr.ts);
+  const line=d3.line().x(p=>p[0]).y(p=>p[1]);
+  const counts={corroborated:0,single:0,stale:0,conflict:0};
+  // trails: every recorded position of each contact up to this sweep
+  (d.tracks||[]).forEach(tr=>{
+    const pts=tr.points.filter(p=>Date.parse(p[0])<=t).map(p=>crProj([p[2],p[1]])).filter(xy=>xy&&Number.isFinite(xy[0]));
+    if(pts.length<2)return;
+    const last=tr.points.filter(p=>Date.parse(p[0])<=t).pop();
+    crLayers.append('path').attr('class','cr-trail').attr('d',line(pts)).attr('stroke',PROV_COLORS[last?.[4]]||PROV_COLORS.single);
+  });
+  fr.contacts.forEach(c=>{
+    const xy=crProj([c.lon,c.lat]);if(!xy||!Number.isFinite(xy[0]))return;
+    const col=PROV_COLORS[c.c]||PROV_COLORS.single;counts[c.c in counts?c.c:'single']++;
+    const hd=Number.isFinite(c.hdg)?c.hdg:0;
+    const prov={sources:c.s||[],n:c.n||((c.s||[]).length),confidence:c.c||'single',score:null,fixAgeS:null,agreeKm:null};
+    const head=`${c.cs||c.id||'contact'} \u00b7 ${crWhen(fr.ts)}`;
+    const text=`${Number.isFinite(c.alt)?`Alt ${Math.round(c.alt).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(c.vel)?`${Math.round(c.vel*1.944)} kt \u00b7 `:''}${Number.isFinite(c.hdg)?`hdg ${Math.round(c.hdg)}\u00b0`:''}<br>ICAO24 ${esc(c.id)} \u00b7 ${c.lat.toFixed(2)}, ${c.lon.toFixed(2)}<br><span style="color:${col};font-family:var(--mono);font-size:9px;letter-spacing:0.06em">${esc(String(prov.confidence).toUpperCase())}</span> <span style="color:var(--dim);font-size:9px">${esc(prov.sources.join(' + ')||'unscored')} \u00b7 ${prov.n>1?'feeds agreed at sweep time':'single feed'}</span><br><span style="color:var(--dim)">Position recorded at this sweep; the aircraft has moved since. Registry / callsign as broadcast, not operator.</span>`;
+    crLayers.append('path').attr('class','cr-sym').attr('d','M0,-5 L3.5,4 L0,2 L-3.5,4 Z').attr('fill',col).attr('transform',`translate(${xy[0]},${xy[1]}) rotate(${hd})`)
+      .on('click',e=>{e.stopPropagation();crPopup(e,head,text,`Contact replay \u00b7 ${esc(d.label||CR.region)}`)});
+  });
+  const tm=document.getElementById('crTime');if(tm)tm.textContent=crWhen(fr.ts);
+  const fl=document.getElementById('crFrame');if(fl)fl.textContent=`sweep ${fi+1}/${frames.length} \u00b7 ${fr.contacts.length} contacts \u00b7 ${counts.corroborated} corroborated \u00b7 ${counts.single} single \u00b7 ${counts.stale} stale${counts.conflict?` \u00b7 ${counts.conflict} conflict`:''}`;
 }
 function renderPrcPanel(){
   const prcAirR = D.air.find(a => a.region === 'Taiwan Strait') || {};
@@ -4886,7 +5064,7 @@ function uaDraw(){
       const xy=uaProj([t.lon,t.lat]);if(!xy||!Number.isFinite(xy[0]))return;
       gr.append('path').attr('class','ua-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).attr('d','M0,-5 L3.5,4 L0,2 L-3.5,4 Z').attr('fill',t.callsign?'rgba(100,240,200,0.9)':'rgba(255,213,79,0.9)').attr('stroke','rgba(0,0,0,0.7)').attr('stroke-width',1)
         .style('transform-box','fill-box').attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)}) rotate(${hd})`)
-        .on('click',e=>{e.stopPropagation();uaPopup(e,`${t.callsign||t.icao24||'aircraft'} \u00b7 ${t.country||'unknown registry'}`,`${Number.isFinite(t.altitude)?`Alt ${Math.round(t.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(t.velocity)?`${Math.round(t.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(t.heading)?`hdg ${Math.round(t.heading)}\u00b0`:''}${t.onGround?' \u00b7 on ground':''}<br><span style="color:var(--dim)">OpenSky state vector in the ukraine box \u00b7 registry country, not operator${t.callsign?'':' \u00b7 no callsign broadcast'}.</span>`,'Air Activity \u00b7 OpenSky')});
+        .on('click',e=>{e.stopPropagation();uaPopup(e,`${t.callsign||t.icao24||'aircraft'} \u00b7 ${t.country||'unknown registry'}`,`${Number.isFinite(t.altitude)?`Alt ${Math.round(t.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(t.velocity)?`${Math.round(t.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(t.heading)?`hdg ${Math.round(t.heading)}\u00b0`:''}${t.onGround?' \u00b7 on ground':''}<br><span style="color:var(--dim)">OpenSky state vector in the ukraine box \u00b7 registry country, not operator${t.callsign?'':' \u00b7 no callsign broadcast'}.</span>${provLine(t.prov)}`,'Air Activity \u00b7 OpenSky')});
       drawn++;
     });
     (ad.aircraft||[]).forEach(a=>{
@@ -5309,7 +5487,7 @@ function twDraw(){
   if(on('air'))twAirTracks().forEach(tr=>{
     const cn=/china/i.test(String(tr.country||''));
     const col=cn?'#ff5252':TW_LAYERS.air.color;
-    const pop={head:`${esc(tr.callsign||tr.icao24||'aircraft')} \u00b7 ${esc(tr.country||'unknown registry')}`,text:`${Number.isFinite(tr.altitude)?`Alt ${Math.round(tr.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(tr.velocity)?`${Math.round(tr.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(tr.heading)?`hdg ${Math.round(tr.heading)}\u00b0`:''}<br><span style="color:var(--dim)">${esc(tr.region||'')} hotspot \u00b7 ${D.airMeta?.fallback?'ADS-B sample (OpenSky unreachable)':'OpenSky state vector'} \u00b7 registry country, not operator</span>`,meta:'Air Activity'};
+    const pop={head:`${esc(tr.callsign||tr.icao24||'aircraft')} \u00b7 ${esc(tr.country||'unknown registry')}`,text:`${Number.isFinite(tr.altitude)?`Alt ${Math.round(tr.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(tr.velocity)?`${Math.round(tr.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(tr.heading)?`hdg ${Math.round(tr.heading)}\u00b0`:''}<br><span style="color:var(--dim)">${esc(tr.region||'')} hotspot \u00b7 ${D.airMeta?.fallback?'ADS-B sample (OpenSky unreachable)':'OpenSky state vector'} \u00b7 registry country, not operator</span>${provLine(tr.prov)}`,meta:'Air Activity'};
     if(sym(gAir,tr.lon,tr.lat,'M0,-4 L2.6,3.2 L0,1.8 L-2.6,3.2 Z',ctRgba(col,0.9),'rgba(0,0,0,0.6)',e=>twPopup(e,pop.head,pop.text,pop.meta),Number.isFinite(tr.heading)?Math.round(tr.heading):0))counts.air++;
   });
   if(on('isr'))(t.signals?.isr||[]).forEach(a=>{

@@ -6,6 +6,7 @@
 // Exports synthesize(), generateIdeas(), fetchAllNews() for use by server.mjs
 
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs';
+import { compactProv } from '../lib/contacts/provenance.mjs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
@@ -147,9 +148,11 @@ function sumAirHotspots(hotspots = []) {
 function summarizeAirHotspots(hotspots = []) {
   return hotspots.map(h => ({
     region: h.region,
+    key: h.key || null,
     total: h.totalAircraft || 0,
     noCallsign: h.noCallsign || 0,
     highAlt: h.highAltitude || 0,
+    ...(h.provenance ? { provenance: h.provenance } : {}),
     top: Object.entries(h.byCountry || {}).sort((a, b) => b[1] - a[1]).slice(0, 5),
     tracks: summarizeAirTracks(h.tracks),
   }));
@@ -175,6 +178,7 @@ function summarizeAirTracks(tracks) {
       velocity: finiteOrNull(t.velocity),
       heading: finiteOrNull(t.heading),
       onGround: Boolean(t.onGround),
+      ...(t.prov ? { prov: compactProv(t.prov) } : {}),
     }));
 }
 
@@ -746,6 +750,7 @@ export async function synthesize(data) {
       ...(data.sources.OpenSky?.auth ? { auth: data.sources.OpenSky.auth } : {}),
       ...(data.sources.OpenSky?.creditsRemaining != null ? { creditsRemaining: data.sources.OpenSky.creditsRemaining } : {}),
       ...(data.sources.OpenSky?.error ? { error: data.sources.OpenSky.error } : {}),
+      ...(data.sources.OpenSky?.provenance ? { provenance: data.sources.OpenSky.provenance } : {}),
     },
     sdr: { total: sdrNet.totalReceivers || 0, online: sdrNet.online || 0, zones: sdrZones },
     tg: { posts: tgData.totalPosts || 0, urgent: tgUrgent, topPosts: tgTop },
