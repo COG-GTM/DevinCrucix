@@ -16,6 +16,7 @@ import { buildSourceHealth } from '../lib/sourcehealth.mjs';
 import { buildCartelsView } from '../lib/cartelview.mjs';
 import { buildIranWarView } from '../lib/iranwarview.mjs';
 import { buildTaiwanView } from '../lib/taiwanview.mjs';
+import { buildAllCountryViews } from '../lib/countryview.mjs';
 import { buildUkraineView } from '../lib/ukraineview.mjs';
 import { buildNarcoView } from '../lib/narco/view.mjs';
 import { loadGraph as loadCjngGraph, summarizeGraph as summarizeCjngGraph } from '../lib/cjng/graph.mjs';
@@ -1441,6 +1442,9 @@ export async function synthesize(data) {
   // CRUCIX already computes (built after V2 so it can read air / adsbMilitary / carriers). Geometry
   // stays out of the payload (/api/taiwan/geo).
   V2.taiwan = buildTaiwanView(data.sources, V2);
+  // Country Home Pages (Colombia / Bogotá, Venezuela / Caracas): bounded per-country payloads from the
+  // adapters each config/countries/<cc>.json names. Geometry stays out of the payload (/api/country/:cc/geo).
+  V2.country = buildAllCountryViews(data.sources, data.errors);
 
   return V2;
 }

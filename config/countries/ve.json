@@ -1,0 +1,67 @@
+{
+  "id": "ve",
+  "iso3": "VEN",
+  "name": "Venezuela",
+  "title": "Venezuela / Caracas",
+  "subtitle": "Independent Venezuelan wires, OVCS protest monitor, Caracas focus, state outlines, InSight Crime group profiles — monitoring under censorship",
+  "languages": ["es", "en"],
+  "focusCity": { "name": "Caracas", "lon": -66.9036, "lat": 10.4806, "adm1Iso": "VE-A" },
+  "viewport": { "bbox": [-73.6, 0.4, -59.6, 12.5] },
+  "geo": { "file": "ven-adm1.json", "unitLabel": "estado" },
+  "admCodes": {},
+  "feeds": [
+    { "key": "runrun", "name": "Runrun.es", "type": "rss", "url": "https://runrun.es/feed/", "siteUrl": "https://runrun.es/", "host": "runrun\\.es", "tier": "independent", "scope": "national" },
+    { "key": "efectococuyo", "name": "Efecto Cocuyo", "type": "wp-json", "url": "https://efectococuyo.com/wp-json/wp/v2/posts?per_page=20&_fields=id,date_gmt,link,title,excerpt", "siteUrl": "https://efectococuyo.com/", "host": "efectococuyo\\.com", "tier": "independent", "scope": "national", "note": "RSS sits behind a JS challenge; public WordPress REST is used instead." },
+    { "key": "cronicauno", "name": "Crónica Uno", "type": "rss", "url": "https://cronica.uno/feed/", "siteUrl": "https://cronica.uno/", "host": "cronica\\.uno", "tier": "independent", "scope": "city" },
+    { "key": "elpitazo", "name": "El Pitazo", "type": "rss", "url": "https://elpitazo.net/feed/", "siteUrl": "https://elpitazo.net/", "host": "elpitazo\\.net", "tier": "independent", "scope": "national", "note": "WordPress REST returns Cloudflare 403; RSS only." },
+    { "key": "foropenal", "name": "Foro Penal", "type": "rss", "url": "https://foropenal.com/feed/", "siteUrl": "https://foropenal.com/", "host": "foropenal\\.com", "tier": "ngo", "scope": "national" }
+  ],
+  "places": [
+    { "key": "caracas", "name": "Caracas", "aliases": ["Caracas", "Distrito Capital", "Gran Caracas"], "lon": -66.9036, "lat": 10.4806, "level": "city" },
+    { "key": "petare", "name": "Petare", "aliases": ["Petare", "José Félix Ribas"], "lon": -66.81, "lat": 10.48, "level": "sector" },
+    { "key": "catia", "name": "Catia", "aliases": ["Catia", "Sucre (Caracas)"], "lon": -66.95, "lat": 10.51, "level": "sector" },
+    { "key": "23-de-enero", "name": "23 de Enero", "aliases": ["23 de Enero"], "lon": -66.93, "lat": 10.51, "level": "sector" },
+    { "key": "cota-905", "name": "Cota 905", "aliases": ["Cota 905", "El Cementerio"], "lon": -66.92, "lat": 10.48, "level": "sector" },
+    { "key": "cota-mil", "name": "Cota Mil", "aliases": ["Cota Mil", "Boyacá avenue"], "lon": -66.86, "lat": 10.52, "level": "sector" },
+    { "key": "el-valle", "name": "El Valle", "aliases": ["El Valle"], "lon": -66.9, "lat": 10.46, "level": "sector" },
+    { "key": "la-vega", "name": "La Vega", "aliases": ["La Vega"], "lon": -66.95, "lat": 10.47, "level": "sector" },
+    { "key": "antimano", "name": "Antímano", "aliases": ["Antímano", "Antimano"], "lon": -66.98, "lat": 10.46, "level": "sector" },
+    { "key": "el-paraiso", "name": "El Paraíso", "aliases": ["El Paraíso", "El Paraiso"], "lon": -66.93, "lat": 10.49, "level": "sector" },
+    { "key": "chacao", "name": "Chacao", "aliases": ["Chacao", "Altamira"], "lon": -66.85, "lat": 10.5, "level": "municipio" },
+    { "key": "baruta", "name": "Baruta", "aliases": ["Baruta", "Las Mercedes"], "lon": -66.87, "lat": 10.43, "level": "municipio" },
+    { "key": "el-hatillo", "name": "El Hatillo", "aliases": ["El Hatillo"], "lon": -66.82, "lat": 10.42, "level": "municipio" },
+    { "key": "libertador", "name": "Libertador", "aliases": ["municipio Libertador"], "lon": -66.93, "lat": 10.49, "level": "municipio" },
+    { "key": "la-guaira", "name": "La Guaira", "aliases": ["La Guaira", "Maiquetía", "Vargas"], "lon": -66.93, "lat": 10.6, "level": "city" },
+    { "key": "los-teques", "name": "Los Teques", "aliases": ["Los Teques", "Altos Mirandinos"], "lon": -67.04, "lat": 10.34, "level": "city" },
+    { "key": "guarenas", "name": "Guarenas-Guatire", "aliases": ["Guarenas", "Guatire"], "lon": -66.6, "lat": 10.47, "level": "city" },
+    { "key": "maracaibo", "name": "Maracaibo", "aliases": ["Maracaibo", "Zulia"], "lon": -71.64, "lat": 10.65, "level": "city" },
+    { "key": "valencia", "name": "Valencia", "aliases": ["Valencia", "Carabobo"], "lon": -68.0, "lat": 10.16, "level": "city" },
+    { "key": "maracay", "name": "Maracay", "aliases": ["Maracay", "Aragua"], "lon": -67.6, "lat": 10.25, "level": "city" },
+    { "key": "barquisimeto", "name": "Barquisimeto", "aliases": ["Barquisimeto", "Lara"], "lon": -69.32, "lat": 10.07, "level": "city" },
+    { "key": "tachira", "name": "Táchira", "aliases": ["Táchira", "Tachira", "San Cristóbal", "San Antonio del Táchira", "Ureña"], "lon": -72.22, "lat": 7.77, "level": "region" },
+    { "key": "apure", "name": "Apure", "aliases": ["Apure"], "lon": -68.8, "lat": 7.1, "level": "region" },
+    { "key": "bolivar", "name": "Bolívar", "aliases": ["Ciudad Guayana", "Puerto Ordaz", "Tumeremo", "El Callao", "Arco Minero"], "lon": -62.7, "lat": 8.3, "level": "region" },
+    { "key": "falcon", "name": "Falcón", "aliases": ["Falcón", "Falcon", "Paraguaná"], "lon": -69.7, "lat": 11.4, "level": "region" }
+  ],
+  "groups": ["Tren de Aragua", "ELN", "FARC", "disidencias", "Cartel de los Soles", "colectivos", "colectivo", "Tren del Llano", "sindicato", "megabanda", "El Koki", "Wilexis"],
+  "sources": [
+    { "name": "VenezuelaNews", "label": "Independent Venezuelan wires", "kind": "observational", "detail": "Runrun.es, Efecto Cocuyo, Crónica Uno, El Pitazo, Foro Penal — headline, time and link only." },
+    { "name": "OVCS", "label": "Observatorio Venezolano de Conflictividad Social", "kind": "observational", "detail": "Monthly protest tallies parsed from OVCS reports; 2017 protest-death map is historical (names withheld)." },
+    { "name": "InSightCrime", "label": "InSight Crime · Venezuela", "kind": "observational", "detail": "Venezuela tag feed + Venezuela Groups profiles (title / excerpt / link)." },
+    { "name": "CII", "label": "Country Instability Index", "kind": "derived", "detail": "CRUCIX composite score for Venezuela (unrest / security / information)." },
+    { "name": "ACLED", "label": "ACLED conflict events", "kind": "licensed", "detail": "Needs ACLED_EMAIL + ACLED_KEY; stays NO KEY until registered." }
+  ],
+  "linkOuts": [
+    { "label": "Monitor de Víctimas (Runrun.es)", "href": "https://monitordevictimas.com/", "why": "Case cards name victims; CRUCIX does not index personal records — consult the source." },
+    { "label": "Foro Penal · Presos políticos", "href": "https://foropenal.com/", "why": "Detainee counts are published as reports / PDF; headlines only here." },
+    { "label": "OVCS · SIGCO", "href": "https://www.observatoriodeconflictos.org.ve/sigco", "why": "Interactive conflict maps (Google My Maps); 2017 deaths layer mirrored as historical points." },
+    { "label": "Provea", "href": "https://provea.org/", "why": "Human-rights reporting; not polled." },
+    { "label": "InSight Crime · Venezuela", "href": "https://insightcrime.org/venezuela-organized-crime-news/", "why": "Country profile and group index." },
+    { "label": "ACLED · registration", "href": "https://acleddata.com/api-documentation/getting-started", "why": "Account + OAuth required before CRUCIX can poll events." }
+  ],
+  "notes": [
+    "There is no official, key-free Venezuelan crime dataset comparable to datos.gov.co; every figure on this page is observational (NGO / press) or a CRUCIX derivation and is labelled as such.",
+    "Victim and detainee names from Monitor de Víctimas, SIGCO and Foro Penal are never indexed; counts and links only.",
+    "ACLED stays NO KEY until an account is registered; no conflict-event layer is drawn for Venezuela in this build."
+  ]
+}

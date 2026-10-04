@@ -1,0 +1,74 @@
+{
+  "id": "co",
+  "iso3": "COL",
+  "name": "Colombia",
+  "title": "Colombia / Bogotá",
+  "subtitle": "Official Policía Nacional crime counts, Bogotá focus, departmental choropleth, Colombian wires, InSight Crime group profiles",
+  "languages": ["es", "en"],
+  "focusCity": { "name": "Bogotá D.C.", "lon": -74.0721, "lat": 4.711, "daneCode": "11001", "daneCode8": "11001000", "adm1Iso": "CO-DC" },
+  "viewport": { "bbox": [-79.6, -4.4, -66.6, 13.2] },
+  "geo": { "file": "col-adm1.json", "unitLabel": "departamento" },
+  "admCodes": {
+    "05": "CO-ANT", "08": "CO-ATL", "11": "CO-DC", "13": "CO-BOL", "15": "CO-BOY", "17": "CO-CAL", "18": "CO-CAQ", "19": "CO-CAU",
+    "20": "CO-CES", "23": "CO-COR", "25": "CO-CUN", "27": "CO-CHO", "41": "CO-HUI", "44": "CO-LAG", "47": "CO-MAG", "50": "CO-MET",
+    "52": "CO-NAR", "54": "CO-NSA", "63": "CO-QUI", "66": "CO-RIS", "68": "CO-SAN", "70": "CO-SUC", "73": "CO-TOL", "76": "CO-VAC",
+    "81": "CO-ARA", "85": "CO-CAS", "86": "CO-PUT", "88": "CO-SAP", "91": "CO-AMA", "94": "CO-GUA", "95": "CO-GUV", "97": "CO-VAU", "99": "CO-VID"
+  },
+  "feeds": [
+    { "key": "eltiempo-bogota", "name": "El Tiempo · Bogotá", "type": "rss", "url": "https://www.eltiempo.com/rss/bogota.xml", "siteUrl": "https://www.eltiempo.com/bogota", "host": "eltiempo\\.com", "tier": "national-daily", "scope": "city" },
+    { "key": "lasillavacia", "name": "La Silla Vacía", "type": "rss", "url": "https://www.lasillavacia.com/feed/", "siteUrl": "https://www.lasillavacia.com/", "host": "lasillavacia\\.com", "tier": "investigative", "scope": "national" },
+    { "key": "indepaz", "name": "Indepaz", "type": "rss", "url": "https://indepaz.org.co/feed/", "siteUrl": "https://indepaz.org.co/", "host": "indepaz\\.org\\.co", "tier": "ngo", "scope": "national" }
+  ],
+  "places": [
+    { "key": "bogota", "name": "Bogotá", "aliases": ["Bogotá", "Bogota", "la capital"], "lon": -74.0721, "lat": 4.711, "level": "city" },
+    { "key": "usaquen", "name": "Usaquén", "aliases": ["Usaquén", "Usaquen"], "lon": -74.03, "lat": 4.7, "level": "localidad" },
+    { "key": "chapinero", "name": "Chapinero", "aliases": ["Chapinero"], "lon": -74.05, "lat": 4.65, "level": "localidad" },
+    { "key": "santa-fe", "name": "Santa Fe", "aliases": ["localidad de Santa Fe", "Santa Fe, Bogotá"], "lon": -74.07, "lat": 4.6, "level": "localidad" },
+    { "key": "san-cristobal", "name": "San Cristóbal", "aliases": ["San Cristóbal", "San Cristobal"], "lon": -74.08, "lat": 4.56, "level": "localidad" },
+    { "key": "usme", "name": "Usme", "aliases": ["Usme"], "lon": -74.11, "lat": 4.48, "level": "localidad" },
+    { "key": "tunjuelito", "name": "Tunjuelito", "aliases": ["Tunjuelito"], "lon": -74.13, "lat": 4.57, "level": "localidad" },
+    { "key": "bosa", "name": "Bosa", "aliases": ["Bosa"], "lon": -74.19, "lat": 4.61, "level": "localidad" },
+    { "key": "kennedy", "name": "Kennedy", "aliases": ["Kennedy"], "lon": -74.16, "lat": 4.63, "level": "localidad" },
+    { "key": "fontibon", "name": "Fontibón", "aliases": ["Fontibón", "Fontibon"], "lon": -74.14, "lat": 4.68, "level": "localidad" },
+    { "key": "engativa", "name": "Engativá", "aliases": ["Engativá", "Engativa"], "lon": -74.11, "lat": 4.71, "level": "localidad" },
+    { "key": "suba", "name": "Suba", "aliases": ["Suba"], "lon": -74.08, "lat": 4.75, "level": "localidad" },
+    { "key": "barrios-unidos", "name": "Barrios Unidos", "aliases": ["Barrios Unidos"], "lon": -74.08, "lat": 4.67, "level": "localidad" },
+    { "key": "teusaquillo", "name": "Teusaquillo", "aliases": ["Teusaquillo"], "lon": -74.09, "lat": 4.64, "level": "localidad" },
+    { "key": "los-martires", "name": "Los Mártires", "aliases": ["Los Mártires", "Los Martires"], "lon": -74.09, "lat": 4.6, "level": "localidad" },
+    { "key": "antonio-narino", "name": "Antonio Nariño", "aliases": ["Antonio Nariño"], "lon": -74.1, "lat": 4.59, "level": "localidad" },
+    { "key": "puente-aranda", "name": "Puente Aranda", "aliases": ["Puente Aranda"], "lon": -74.11, "lat": 4.62, "level": "localidad" },
+    { "key": "la-candelaria", "name": "La Candelaria", "aliases": ["La Candelaria"], "lon": -74.07, "lat": 4.6, "level": "localidad" },
+    { "key": "rafael-uribe", "name": "Rafael Uribe Uribe", "aliases": ["Rafael Uribe"], "lon": -74.11, "lat": 4.56, "level": "localidad" },
+    { "key": "ciudad-bolivar", "name": "Ciudad Bolívar", "aliases": ["Ciudad Bolívar", "Ciudad Bolivar"], "lon": -74.16, "lat": 4.52, "level": "localidad" },
+    { "key": "sumapaz", "name": "Sumapaz", "aliases": ["Sumapaz"], "lon": -74.3, "lat": 4.2, "level": "localidad" },
+    { "key": "soacha", "name": "Soacha", "aliases": ["Soacha"], "lon": -74.22, "lat": 4.58, "level": "metro" },
+    { "key": "medellin", "name": "Medellín", "aliases": ["Medellín", "Medellin"], "lon": -75.56, "lat": 6.25, "level": "city" },
+    { "key": "cali", "name": "Cali", "aliases": ["Cali"], "lon": -76.52, "lat": 3.44, "level": "city" },
+    { "key": "cucuta", "name": "Cúcuta", "aliases": ["Cúcuta", "Cucuta"], "lon": -72.5, "lat": 7.89, "level": "city" },
+    { "key": "catatumbo", "name": "Catatumbo", "aliases": ["Catatumbo"], "lon": -72.9, "lat": 8.6, "level": "region" },
+    { "key": "cauca", "name": "Cauca", "aliases": ["Cauca", "Popayán"], "lon": -76.6, "lat": 2.45, "level": "region" },
+    { "key": "arauca", "name": "Arauca", "aliases": ["Arauca"], "lon": -70.75, "lat": 7.08, "level": "region" },
+    { "key": "tumaco", "name": "Tumaco", "aliases": ["Tumaco"], "lon": -78.76, "lat": 1.8, "level": "city" },
+    { "key": "buenaventura", "name": "Buenaventura", "aliases": ["Buenaventura"], "lon": -77.0, "lat": 3.88, "level": "city" }
+  ],
+  "groups": ["ELN", "Clan del Golfo", "Gaitanistas", "AGC", "EMC", "Estado Mayor Central", "Segunda Marquetalia", "EMBF", "disidencias", "FARC", "Tren de Aragua", "Oficina de Envigado", "Los Shottas", "Los Espartanos", "Comandos de la Frontera"],
+  "sources": [
+    { "name": "ColombiaOpenData", "label": "datos.gov.co · Policía Nacional (SIEDCO)", "kind": "official", "detail": "Monthly incident counts by municipio; published with ~1 month lag; key-free SODA API." },
+    { "name": "ColombiaNews", "label": "Colombian wires", "kind": "observational", "detail": "El Tiempo Bogotá, La Silla Vacía, Indepaz RSS — headline, time and link only." },
+    { "name": "InSightCrime", "label": "InSight Crime · Colombia", "kind": "observational", "detail": "Colombia tag feed + Colombia Groups profiles (title / excerpt / link)." },
+    { "name": "ACLED", "label": "ACLED conflict events", "kind": "licensed", "detail": "Needs ACLED_EMAIL + ACLED_KEY; stays NO KEY until registered." },
+    { "name": "CII", "label": "Country Instability Index", "kind": "derived", "detail": "CRUCIX composite — Colombia is not in the 24-country CII set; shown for Venezuela only." }
+  ],
+  "linkOuts": [
+    { "label": "Defensoría del Pueblo · Alertas Tempranas (SAT)", "href": "https://alertastempranas.defensoria.gov.co/", "why": "Early-warning alerts are PDF / server-rendered; not polled." },
+    { "label": "SCJ Bogotá · Cifras de seguridad", "href": "https://scj.gov.co/es/oficina-oaiee/estadisticas-mapas", "why": "ArcGIS service timed out from CRUCIX hosts; localidad-level figures live here." },
+    { "label": "Medicina Legal · Forensis / datos abiertos", "href": "https://www.medicinalegal.gov.co/cifras-estadisticas", "why": "Annual files carry localidad_del_hecho; not a live feed." },
+    { "label": "El Espectador · Bogotá", "href": "https://www.elespectador.com/bogota/", "why": "Public RSS endpoint tested was an empty comments feed." },
+    { "label": "Indepaz · Masacres y líderes asesinados", "href": "https://indepaz.org.co/", "why": "Massacre / leader tallies are prose; structured parsing deferred." },
+    { "label": "InSight Crime · Colombia", "href": "https://insightcrime.org/colombia-organized-crime-news/", "why": "Country profile and group index." }
+  ],
+  "notes": [
+    "Policía Nacional counts are reports (denuncias) per municipio — not localidad or barrio — and lag by about one month.",
+    "ACLED stays NO KEY until an account is registered; no conflict-event layer is drawn for Colombia in this build."
+  ]
+}
