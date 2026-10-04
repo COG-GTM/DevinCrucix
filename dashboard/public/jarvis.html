@@ -8746,10 +8746,11 @@ function renderTgtEvidencePanel(){
   return wrapP(`${form}${ev?.error?`<div class="inv-hint" style="color:#ff8a80">${esc(ev.error)}</div>`:''}${rows||(TGT.evBusy==='load'?'<div class="inv-hint" style="padding:4px 0">Loading\u2026</div>':'<div class="inv-hint" style="padding:4px 0">No captures yet. A capture records what a public URL served to CRUCIX at that moment \u2014 not that the content is true.</div>')}<div class="sh-note">${esc(ev?.rule||'')}${chain?` Custody chain: ${chain.ok?`intact (${chain.length} entries)`:`<b style="color:#ff8a80">BROKEN at #${esc(String(chain.brokenAt))}</b>`}.`:''}</div>`,
     `<span class="badge">${items.length} ITEM${items.length===1?'':'S'}${chain&&!chain.ok?' \u00b7 CHAIN BROKEN':''}</span>`);
 }
-async function tgtEvLoad(){
+async function tgtEvLoad(keepError){
   if(!TGT.sel)return;const id=TGT.sel;TGT.evBusy='load';
+  const held=keepError&&TGT.ev&&TGT.ev.for===id?TGT.ev.error:null;
   const r=await tgtApi('GET',`/api/targeting/targets/${id}/evidence`);
-  TGT.ev=r.ok?{for:id,...r.body}:{for:id,items:(TGT.ev&&TGT.ev.for===id?TGT.ev.items:[])||[],error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
+  TGT.ev=r.ok?{for:id,...r.body,error:held||null}:{for:id,items:(TGT.ev&&TGT.ev.for===id?TGT.ev.items:[])||[],error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
   TGT.evBusy=null;
   tgtRerender();
 }
@@ -8760,14 +8761,14 @@ async function tgtEvCapture(){
   TGT.evBusy=null;
   if(r.ok){if(TGT.ev&&TGT.ev.for===id)TGT.ev.error=null;setTimeout(()=>{if(TGT.ev&&TGT.ev.for===id){TGT.ev.stale=true;tgtRerender()}},30000)}
   else TGT.ev={...(TGT.ev&&TGT.ev.for===id?TGT.ev:{for:id,items:[]}),error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
-  await tgtEvLoad();
+  await tgtEvLoad(!r.ok);
 }
 async function tgtEvVerify(id){
   TGT.evBusy='verify';tgtRerender();
   const r=await tgtApi('POST',`/api/targeting/evidence/${id}/verify`);
   TGT.evBusy=null;
   if(!r.ok)TGT.ev={...(TGT.ev||{for:TGT.sel,items:[]}),error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
-  await tgtEvLoad();
+  await tgtEvLoad(!r.ok);
 }
 function initTgtMap(){
   const wrap=document.getElementById('tgtMapWrap'),svgEl=document.getElementById('tgtMapSvg');
