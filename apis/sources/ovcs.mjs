@@ -7,6 +7,8 @@
 import { safeFetch } from '../utils/fetch.mjs';
 import { stripTags } from '../utils/rss.mjs';
 import { cleanText, httpUrl, toIso, toCoord } from './iranwarlive.mjs';
+import { resolveDepartment } from '../../lib/countrygeo.mjs';
+import { fold } from '../../lib/countryconfig.mjs';
 
 export const SOURCE = 'OVCS';
 export const SITE = 'https://www.observatoriodeconflictos.org.ve/';
@@ -86,6 +88,52 @@ export function parseReportNumbers(html) {
   };
 }
 
+// Geographic distribution, modalities and repression detail from the same report. OVCS names only
+// the top and bottom states ("el mayor número ... Lara (70), seguido por Anzoátegui (68) ...";
+// "las entidades con menor número ... Delta Amacuro (1), ..."), so byState is a partial ranking,
+// never a full table; every name is checked against the Venezuela gazetteer before it is kept.
+export const MAX_STATES = 14;
+const MODALITIES = ['concentraciones', 'cierres de vías', 'cierres de vias', 'vigilias', 'marchas', 'huelgas', 'paros', 'cacerolazos', 'plantones', 'tomas', 'caravanas', 'protestas de calle'];
+const MODALITY_RE = new RegExp(`\\b(${MODALITIES.map(m => m.replace(/ /g, '\\s+')).join('|')})\\b`, 'i');
+const STATE_PAIR_RE = /((?:[A-ZÁÉÍÓÚÑ][\wáéíóúñü]*)(?:\s+(?:de|del|la)?\s*[A-ZÁÉÍÓÚÑ][\wáéíóúñü]*){0,2})\s*\((\d{1,4})\)/g;
+
+export function parseReportBreakdown(html, resolveState = (name) => resolveDepartment('ve', name)) {
+  const sents = sentences(html);
+  const byState = [];
+  const seen = new Set();
+  const takeStates = (s, rank) => {
+    for (const m of s.matchAll(STATE_PAIR_RE)) {
+      const st = resolveState(m[1].trim());
+      if (!st || seen.has(st.name) || byState.length >= MAX_STATES) continue;
+      seen.add(st.name);
+      byState.push({ state: st.name, iso: st.iso || null, n: int(m[2]), rank });
+    }
+  };
+  const topS = sents.find(s => /mayor n[uú]mero de (?:protestas|manifestaciones)/i.test(s) && /\(\d+\)/.test(s));
+  const lowS = sents.find(s => /menor n[uú]mero de (?:protestas|manifestaciones)/i.test(s) && /\(\d+\)/.test(s));
+  if (topS) takeStates(topS, 'top');
+  if (lowS) takeStates(lowS, 'bottom');
+  const modalities = [];
+  const mseen = new Set();
+  const addMod = (kind, n, pct) => { const k = fold(kind).replace(/\s+/g, ' '); if (n === null || mseen.has(k)) return; mseen.add(k); modalities.push({ kind: k.replace('cierres de vias', 'cierres de vías'), n, pct }); };
+  for (const s of sents.filter(x => MODALITY_RE.test(x) && /\d/.test(x) && /registros|modalidad|seguid/i.test(x))) {
+    // "Las concentraciones fueron la principal modalidad ..., con 394 registros, equivalentes al 60%"
+    for (const m of s.matchAll(new RegExp(`(${MODALITIES.join('|')})[^,.]{0,80}?,?\\s+con\\s+([\\d.]+)\\s+registros(?:,?\\s+equivalentes?\\s+al\\s+(\\d{1,3})\\s*%)?`, 'gi'))) addMod(m[1], int(m[2]), m[3] ? int(m[3]) : null);
+    // "seguidos por 43 vigilias" / "107 cierres de vías"
+    for (const m of s.matchAll(new RegExp(`([\\d.]+)\\s+(${MODALITIES.join('|')})`, 'gi'))) addMod(m[2], int(m[1]), null);
+  }
+  const abuseS = sents.find(s => /abuso de poder/i.test(s) && /(?:protestas|manifestaciones)/i.test(s));
+  const abuse = abuseS ? abuseS.match(/([\d.]+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:protestas|manifestaciones)/i) : null;
+  const repStatesS = sents.find(s => /estados? del pa[ií]s/i.test(s) && /reprimid/i.test(s));
+  const repStates = repStatesS ? repStatesS.match(/En\s+([\d.]+|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+estados?/i) : null;
+  return {
+    byState,
+    modalities: modalities.slice(0, 6),
+    abuseComplaints: abuse ? (WORD_NUM[abuse[1].toLowerCase()] ?? int(abuse[1])) : null,
+    repressedStates: repStates ? (/^una?$/i.test(repStates[1]) ? 1 : (WORD_NUM[repStates[1].toLowerCase()] ?? int(repStates[1]))) : null,
+  };
+}
+
 export function parseReports(posts) {
   const monthly = [], periods = [];
   for (const p of Array.isArray(posts) ? posts : []) {
@@ -96,7 +144,7 @@ export function parseReports(posts) {
     if (period.kind === 'month') {
       const nums = parseReportNumbers(p?.content?.rendered ?? '');
       if (nums.protests === null) continue;
-      monthly.push({ month: period.month, ...base, ...nums });
+      monthly.push({ month: period.month, ...base, ...nums, ...parseReportBreakdown(p?.content?.rendered ?? '') });
     } else {
       periods.push({ ...base, year: period.year });
     }

@@ -7,7 +7,7 @@
   "languages": ["es", "en"],
   "focusCity": { "name": "Bogotá D.C.", "lon": -74.0721, "lat": 4.711, "daneCode": "11001", "daneCode8": "11001000", "adm1Iso": "CO-DC" },
   "viewport": { "bbox": [-79.6, -4.4, -66.6, 13.2] },
-  "geo": { "file": "col-adm1.json", "unitLabel": "departamento" },
+  "geo": { "file": "col-adm1.json", "unitLabel": "departamento", "localidadesFile": "bog-localidades.json" },
   "admCodes": {
     "05": "CO-ANT", "08": "CO-ATL", "11": "CO-DC", "13": "CO-BOL", "15": "CO-BOY", "17": "CO-CAL", "18": "CO-CAQ", "19": "CO-CAU",
     "20": "CO-CES", "23": "CO-COR", "25": "CO-CUN", "27": "CO-CHO", "41": "CO-HUI", "44": "CO-LAG", "47": "CO-MAG", "50": "CO-MET",
@@ -56,19 +56,23 @@
     { "name": "ColombiaOpenData", "label": "datos.gov.co · Policía Nacional (SIEDCO)", "kind": "official", "detail": "Monthly incident counts by municipio; published with ~1 month lag; key-free SODA API." },
     { "name": "ColombiaNews", "label": "Colombian wires", "kind": "observational", "detail": "El Tiempo Bogotá, La Silla Vacía, Indepaz RSS — headline, time and link only." },
     { "name": "InSightCrime", "label": "InSight Crime · Colombia", "kind": "observational", "detail": "Colombia tag feed + Colombia Groups profiles (title / excerpt / link)." },
+    { "name": "DefensoriaSAT", "label": "Defensoría del Pueblo · Alertas Tempranas (SAT)", "kind": "official", "detail": "Early-warning alert index (number, type, municipios, key threat, date, PDF) — first two index pages polled; the alert text stays in the Defensoría PDF." },
+    { "name": "Indepaz", "label": "Indepaz · masacres y líderes asesinados", "kind": "observational", "detail": "Massacre rows (date, place, victims) and killed-leader / signatory counts re-tallied from Indepaz's running posts; no names stored." },
     { "name": "ACLED", "label": "ACLED conflict events", "kind": "licensed", "detail": "Needs ACLED_EMAIL + ACLED_KEY; stays NO KEY until registered." },
     { "name": "CII", "label": "Country Instability Index", "kind": "derived", "detail": "CRUCIX composite — Colombia is not in the 24-country CII set; shown for Venezuela only." }
   ],
   "linkOuts": [
-    { "label": "Defensoría del Pueblo · Alertas Tempranas (SAT)", "href": "https://alertastempranas.defensoria.gov.co/", "why": "Early-warning alerts are PDF / server-rendered; not polled." },
-    { "label": "SCJ Bogotá · Cifras de seguridad", "href": "https://scj.gov.co/es/oficina-oaiee/estadisticas-mapas", "why": "ArcGIS service timed out from CRUCIX hosts; localidad-level figures live here." },
+    { "label": "Defensoría del Pueblo · Alertas Tempranas (SAT)", "href": "https://alertastempranas.defensoria.gov.co/", "why": "Full alert PDFs and interactive fichas; CRUCIX polls only the index rows (Early Warnings panel)." },
+    { "label": "SCJ Bogotá · Cifras de seguridad", "href": "https://scj.gov.co/es/oficina-oaiee/estadisticas-mapas", "why": "ArcGIS service timed out from CRUCIX hosts; official localidad-level figures live here — the map draws official localidad polygons but has no official per-localidad values." },
     { "label": "Medicina Legal · Forensis / datos abiertos", "href": "https://www.medicinalegal.gov.co/cifras-estadisticas", "why": "Annual files carry localidad_del_hecho; not a live feed." },
     { "label": "El Espectador · Bogotá", "href": "https://www.elespectador.com/bogota/", "why": "Public RSS endpoint tested was an empty comments feed." },
-    { "label": "Indepaz · Masacres y líderes asesinados", "href": "https://indepaz.org.co/", "why": "Massacre / leader tallies are prose; structured parsing deferred." },
+    { "label": "Indepaz · Masacres y líderes asesinados", "href": "https://indepaz.org.co/", "why": "Running massacre and killed-leader lists with names; CRUCIX shows counts and places only." },
     { "label": "InSight Crime · Colombia", "href": "https://insightcrime.org/colombia-organized-crime-news/", "why": "Country profile and group index." }
   ],
   "notes": [
     "Policía Nacional counts are reports (denuncias) per municipio — not localidad or barrio — and lag by about one month.",
-    "ACLED stays NO KEY until an account is registered; no conflict-event layer is drawn for Colombia in this build."
+    "ACLED stays NO KEY until an account is registered; no conflict-event layer is drawn for Colombia in this build.",
+    "Bogotá localidad polygons are official (Datos Abiertos Bogotá / SDP); their shading is wire mentions only — no official per-localidad crime series is polled.",
+    "Defensoría SAT alerts cover whole municipios: points mark the listed municipio seats, not incident sites. Indepaz tallies are an NGO count, not an official one."
   ]
 }

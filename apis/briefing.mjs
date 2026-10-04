@@ -92,6 +92,10 @@ import { briefing as taiwanmarkets } from './sources/taiwanmarkets.mjs';
 import { briefing as colombiaOpenData } from './sources/socrata-co.mjs';
 import { briefingCo as colombiaNews, briefingVe as venezuelaNews } from './sources/countrynews.mjs';
 import { briefing as ovcs } from './sources/ovcs.mjs';
+// Colombia: Defensoría SAT early-warning index (bounded rows, PDF linked) + Indepaz massacre /
+// killed-leader tallies (counts only, no names)
+import { briefing as defensoriaSat } from './sources/defensoriasat.mjs';
+import { briefing as indepaz } from './sources/indepaz.mjs';
 
 // Border-region news ingestion + structured baselines (Python service bridge)
 import { briefing as borderingest } from './sources/borderingest.mjs';
@@ -229,6 +233,8 @@ export async function fullBriefing() {
     runSource('ColombiaNews', colombiaNews),
     runSource('VenezuelaNews', venezuelaNews),
     runSource('OVCS', ovcs),
+    runSource('DefensoriaSAT', defensoriaSat),
+    runSource('Indepaz', indepaz),
 
     // Tier 16: Border Watch — Python ingestion service bridge (crucix_ingest)
     runSource('BorderIngest', borderingest),
