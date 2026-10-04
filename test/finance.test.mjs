@@ -2,7 +2,7 @@
 // query layer over the committed demo snapshot (no network, no full index needed).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, existsSync } from 'node:fs';
+import { mkdtempSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -132,4 +132,30 @@ test('offshoreleaks: demo snapshot search / profile / graph are bounded and attr
   assert.ok(g.nodes.length <= 40); assert.ok(g.truncated); assert.equal(g.root, 'icij:56027574'); assert.ok(g.links.every(l => l.role !== 'identity'));
   assert.equal(idx.graph(1), null);
   idx.close();
+});
+
+test('csv: bare carriage returns end rows, including before an empty first field and at EOF', async () => {
+  const f = join(mkdtempSync(join(tmpdir(), 'fin-csv-')), 'cr.csv');
+  writeFileSync(f, 'a,b\r,c\rd,"e"\r\nf,g\r');
+  const rows = []; for await (const r of csvRows(f)) rows.push(r);
+  assert.deepEqual(rows, [['a', 'b'], ['', 'c'], ['d', 'e'], ['f', 'g']]);
+});
+
+test('trails: decision timestamps are server-owned and survive re-saves', async () => {
+  const store = new TrailStore({ dataDir: mkdtempSync(join(tmpdir(), 'fin-trl-')) });
+  const nodes = [{ id: 'icij:1', caption: 'A' }, { id: 'icij:2', caption: 'B' }];
+  const v = validateTrail({ title: 'Decision stamps', nodes, links: [{ from: 'icij:1', to: 'icij:2', label: 'possible same', state: 'accepted', decidedAt: '1999-01-01T00:00:00.000Z' }] });
+  assert.ok(v.ok);
+  const { trail } = store.create(v.value);
+  const first = trail.links[0];
+  assert.ok(first.decidedAt && first.decidedAt > '2020', 'client-supplied decidedAt is replaced');
+  const again = validateTrail({ title: 'Decision stamps', nodes, links: [{ ...first, state: 'proposed' }] });
+  const r = store.replace(trail.id, again.value);
+  assert.equal(r.trail.links[0].state, 'accepted');
+  assert.equal(r.trail.links[0].decidedAt, first.decidedAt, 'unchanged decision keeps its timestamp');
+  await new Promise(r => setTimeout(r, 5));
+  const flipped = validateTrail({ title: 'Decision stamps', nodes, links: [{ ...first, state: 'rejected' }] });
+  const r2 = store.replace(trail.id, flipped.value);
+  assert.equal(r2.trail.links[0].state, 'rejected');
+  assert.notEqual(r2.trail.links[0].decidedAt, first.decidedAt, 'a new decision gets a new timestamp');
 });

@@ -13,6 +13,8 @@ import { fullBriefing } from './apis/briefing.mjs';
 import { collectQuick as yfinanceQuick } from './apis/sources/yfinance.mjs';
 import { synthesize, generateIdeas } from './dashboard/inject.mjs';
 import { MemoryManager } from './lib/delta/index.mjs';
+import { fuseAirContacts } from './lib/contacts/provenance.mjs';
+import { ContactHistory, REGION_KEYS as CONTACT_REGIONS, RETENTION_HOURS as CONTACT_RETENTION_HOURS, ID_RE as CONTACT_ID_RE } from './lib/contacts/history.mjs';
 import { createLLMProvider } from './lib/llm/index.mjs';
 import { geolocatePhoto, photoGeolocAvailability, sanitizeHint } from './lib/geoloc/photo.mjs';
 import { generateLLMIdeas } from './lib/llm/ideas.mjs';
@@ -59,7 +61,8 @@ import { refreshCorpus as refreshInsightCorpus } from './lib/cjng/corpus.mjs';
 import { PROFILES as KG_PROFILES, COUNTRY_PROFILES as KG_COUNTRY_PROFILES } from './lib/cjng/profiles.mjs';
 import { buildActorCards } from './lib/cjng/actors.mjs';
 import { loadGroups } from './lib/narco/groups.mjs';
-import { TargetStore, validateNomination, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE } from './lib/targeting/store.mjs';
+import { TargetStore, validateNomination, validateAccount, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE, ACCOUNT_ID_RE } from './lib/targeting/store.mjs';
+import { manifestInfo as sherlockManifestInfo } from './lib/sherlock.mjs';
 import { FinanceService, CLAIM_STATES as FIN_CLAIM_STATES } from './lib/finance/index.mjs';
 import { validateTrail, TRAIL_ID_RE, LINK_ID_RE as TRL_LINK_ID_RE, RECORD_ID_RE as TRL_RECORD_ID_RE, DECISIONS as TRL_DECISIONS } from './lib/finance/trails.mjs';
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
@@ -132,6 +135,8 @@ function sourceSummaryLine() {
 
 // === Delta/Memory ===
 const memory = new MemoryManager(RUNS_DIR);
+const contactHistory = new ContactHistory(RUNS_DIR);
+let contactProvenance = null; // summary from the last sweep's source fusion
 
 // === LLM + Telegram + Discord ===
 const llmProvider = createLLMProvider(config.llm);
@@ -731,7 +736,7 @@ app.get('/api/targeting/targets/:id', validateParams({ id: TGT_ID }), (req, res)
   if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
   const t = targetStore.get(req.validated.params.id);
   if (!t) return res.status(404).json({ error: 'Target not found' });
-  res.json({ ...summarizeTarget(t), decisions: t.decisions, graphProposals: t.graphProposals, exports: t.exports, package: compactPackage(t.package), developing: targetDevelopInFlight.has(t.id) });
+  res.json({ ...summarizeTarget(t), decisions: t.decisions, graphProposals: t.graphProposals, accountList: t.accounts || [], exports: t.exports, package: compactPackage(t.package), developing: targetDevelopInFlight.has(t.id) });
 });
 app.post('/api/targeting/targets/:id/develop', validateParams({ id: TGT_ID }), async (req, res) => {
   if (req.body && typeof req.body === 'object' && Object.keys(req.body).length) return res.status(400).json({ error: 'invalid request', field: 'body' });
@@ -773,6 +778,31 @@ app.post('/api/targeting/targets/:id/proposals/:proposalId', validateParams({ id
   targetAudit('targeting_proposal_decision', req, { id, proposalId, decision: req.validated.body.decision });
   res.json({ proposal: r.proposal, target: summarizeTarget(r.target) });
 });
+const ACC_ID = (v) => str(v, { max: 16, pattern: ACCOUNT_ID_RE, required: true });
+app.post('/api/targeting/targets/:id/accounts', validateParams({ id: TGT_ID }), (req, res) => {
+  const t = targetStore.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  const v = validateAccount(req.body);
+  if (!v.ok) { targetAudit('targeting_validation_failure', req, { field: v.field, scope: 'account' }); return res.status(400).json({ error: 'invalid request', field: v.field }); }
+  const r = targetStore.attachAccount(t.id, v.value);
+  if (r.error === 'closed') return res.status(409).json({ error: 'Target is closed' });
+  if (r.error === 'duplicate') return res.status(409).json({ error: 'Profile already attached', id: r.account.id });
+  if (r.error === 'capacity') return res.status(409).json({ error: 'Profile capacity reached for this target' });
+  targetAudit('targeting_account_attach', req, { id: t.id, accountId: r.account.id, platform: r.account.platform, confidence: r.account.confidence });
+  res.status(201).json({ target: summarizeTarget(r.target), account: r.account });
+});
+app.post('/api/targeting/targets/:id/accounts/:accountId', validateParams({ id: TGT_ID, accountId: ACC_ID }), TGT_DECISION_BODY, (req, res) => {
+  const r = targetStore.decideAccount(req.validated.params.id, req.validated.params.accountId, req.validated.body.decision);
+  if (!r) return res.status(404).json({ error: 'Profile not found' });
+  targetAudit('targeting_account_decide', req, { id: r.target.id, accountId: r.account.id, decision: req.validated.body.decision });
+  res.json({ target: summarizeTarget(r.target), account: r.account });
+});
+app.delete('/api/targeting/targets/:id/accounts/:accountId', validateParams({ id: TGT_ID, accountId: ACC_ID }), (req, res) => {
+  const r = targetStore.detachAccount(req.validated.params.id, req.validated.params.accountId);
+  if (!r) return res.status(404).json({ error: 'Profile not found' });
+  targetAudit('targeting_account_detach', req, { id: r.target.id, accountId: req.validated.params.accountId });
+  res.status(204).end();
+});
 app.post('/api/targeting/targets/:id/close', validateParams({ id: TGT_ID }), (req, res) => {
   const t = targetStore.close(req.validated.params.id);
   if (!t) return res.status(404).json({ error: 'Target not found' });
@@ -788,7 +818,7 @@ app.get('/api/targeting/targets/:id/dossier.md', validateParams({ id: TGT_ID }),
   if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
   const t = targetStore.get(req.validated.params.id);
   if (!t) return res.status(404).json({ error: 'Target not found' });
-  if (!t.package) return res.status(409).json({ error: 'Target not developed yet' });
+  if (!t.package && !(t.accounts || []).length) return res.status(409).json({ error: 'Target not developed yet' });
   try {
     const md = renderDossier(t);
     targetStore.recordExport(t.id, 'markdown');
@@ -840,28 +870,67 @@ function investigateRateLimited(ip) {
 // Selector hint: whitelisted against TARGET_HINTS from investigate.mjs. The dashboard sends `type`;
 // `kind` is accepted as an alias. Omitted → 'auto'.
 const HINT = (v) => oneOf(v, TARGET_HINTS);
-app.get('/api/investigate', validateQuery({ target: (v) => str(v, { max: 255, required: true }), type: HINT, kind: HINT }), async (req, res) => {
+const INV_FLAG = (v) => v === undefined ? undefined : oneOf(String(v), ['0', '1', 'true', 'false']);
+const INV_QUERY = validateQuery({ target: (v) => str(v, { max: 255, required: true }), type: HINT, kind: HINT, nsfw: INV_FLAG });
+function investigateRequest(req, res) {
   const raw = req.validated.query.target;
   const hint = req.validated.query.type ?? req.validated.query.kind ?? 'auto';
   if (investigateRateLimited(req.ip)) {
     console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate_rate_limited', ip: req.ip }));
-    return res.status(429).json({ error: 'Too many investigations; wait a minute' });
+    res.status(429).json({ error: 'Too many investigations; wait a minute' });
+    return null;
   }
   const target = classifyTarget(raw, hint === 'auto' ? undefined : hint);
   if (!target) {
-    return res.status(400).json({ error: 'Selector not recognized. Supported: domain, URL, IPv4/IPv6, MD5/SHA1/SHA256 hash, email, @username, +phone, BTC/ETH address, or company name (choose CO.)' });
+    res.status(400).json({ error: 'Selector not recognized. Supported: domain, URL, IPv4/IPv6, MD5/SHA1/SHA256 hash, email, @username, +phone, BTC/ETH address, or company name (choose CO.)' });
+    return null;
   }
-  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate', ip: req.ip, type: target.type, target: target.value }));
+  const includeNsfw = ['1', 'true'].includes(String(req.validated.query.nsfw));
+  console.log(JSON.stringify({ timestamp: new Date().toISOString(), event: 'investigate', ip: req.ip, type: target.type, target: target.value, nsfw: includeNsfw || undefined }));
+  return { target, includeNsfw };
+}
+
+app.get('/api/investigate', INV_QUERY, async (req, res) => {
+  const r = investigateRequest(req, res);
+  if (!r) return;
   try {
-    res.json(await investigate(target));
+    res.json(await investigate(r.target, { includeNsfw: r.includeNsfw }));
   } catch (err) {
     console.error('[Crucix] Investigate error:', err);
     res.status(500).json({ error: 'Investigation failed' });
   }
 });
 
+// Streaming variant: SSE frames `progress` (per-site, throttled) then a single `dossier`, so the
+// Workbench can show the handle sweep advancing instead of a 30 s spinner.
+app.get('/api/investigate/stream', INV_QUERY, async (req, res) => {
+  const r = investigateRequest(req, res);
+  if (!r) return;
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+  res.flushHeaders();
+  let closed = false;
+  req.on('close', () => { closed = true; });
+  const send = (event, data) => { if (!closed) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`); };
+  let lastSent = 0; const hits = [];
+  const onProgress = (p) => {
+    if (p.status === 'found') hits.push(p.platform);
+    const now = Date.now();
+    if (now - lastSent < 250 && p.done < p.total) return;
+    lastSent = now;
+    send('progress', { done: p.done, total: p.total, found: p.found, recent: hits.splice(0, hits.length).slice(-6) });
+  };
+  try {
+    const dossier = await investigate(r.target, { includeNsfw: r.includeNsfw, onProgress });
+    send('dossier', dossier);
+  } catch (err) {
+    console.error('[Crucix] Investigate stream error:', err);
+    send('error', { error: 'Investigation failed' });
+  }
+  res.end();
+});
+
 app.get('/api/investigate/status', (req, res) => {
-  res.json({ keyed: keyedSourceStatus(), types: TARGET_TYPES, platformProbes: PLATFORMS.length, typosquatWatchlist: typosquatWatchlist() });
+  res.json({ keyed: keyedSourceStatus(), types: TARGET_TYPES, platformProbes: PLATFORMS.length, sherlock: sherlockManifestInfo(), typosquatWatchlist: typosquatWatchlist() });
 });
 
 // API: Image / document metadata — parsed in-process, nothing is written to disk or forwarded upstream.
@@ -1159,6 +1228,34 @@ app.get('/api/history/series', validateQuery({
 });
 // === end standing requirements ===
 
+// === Contact provenance + replay (Velocity model) ===
+// GET /api/contacts — last sweep's provenance summary + what the replay store holds
+app.get('/api/contacts', (req, res) => {
+  res.json({
+    provenance: contactProvenance,
+    history: contactHistory.stats(),
+    regions: CONTACT_REGIONS,
+    retentionHours: CONTACT_RETENTION_HOURS,
+    sweepAt: lastSweepTime,
+  });
+});
+
+// GET /api/contacts/history?region=ukraine&hours=24[&id=icao24] — per-sweep frames + polylines
+app.get('/api/contacts/history', validateQuery({
+  region: (v) => oneOf(v, CONTACT_REGIONS, { required: true }),
+  hours: (v) => num(v, { min: 1, max: CONTACT_RETENTION_HOURS }),
+  id: (v) => str(v, { max: 12, pattern: CONTACT_ID_RE }),
+}), (req, res) => {
+  try {
+    const { region, hours = 24, id } = req.validated.query;
+    res.json(contactHistory.replay({ region, hours, id: id ? id.toLowerCase() : undefined }));
+  } catch (err) {
+    console.error('[Contacts] replay failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+// === end contacts ===
+
 // === Ask CRUCIX ===
 // === Devin Security — scan the configured repos for what KEV / ransomware data says is being exploited ===
 // Token stays server-side. Unconfigured → 503 with the env vars to set (the panel renders "Not connected").
@@ -1382,6 +1479,7 @@ app.get('/api/finance/trails', (req, res) => {
 app.post('/api/finance/trails', (req, res) => {
   if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
   const v = validateTrail(req.body);
+  if (v.ok) v.value.links = finance.verifyReported(v.value.links);
   if (!v.ok) { finAudit('finance_validation_failure', req, { field: v.field }); return res.status(400).json({ error: 'invalid request', field: v.field }); }
   const r = finance.trails.create(v.value, { ip: req.ip });
   if (!r.ok) return res.status(409).json({ error: r.error });
@@ -1397,6 +1495,7 @@ app.get('/api/finance/trails/:id', validateParams({ id: FIN_TRAIL_ID }), (req, r
 app.put('/api/finance/trails/:id', validateParams({ id: FIN_TRAIL_ID }), (req, res) => {
   if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
   const v = validateTrail(req.body);
+  if (v.ok) v.value.links = finance.verifyReported(v.value.links);
   if (!v.ok) { finAudit('finance_validation_failure', req, { field: v.field }); return res.status(400).json({ error: 'invalid request', field: v.field }); }
   const r = finance.trails.replace(req.validated.params.id, v.value, { ip: req.ip });
   if (!r.ok) return res.status(404).json({ error: 'Trail not found' });
@@ -1552,6 +1651,21 @@ async function runSweepCycle() {
   try {
     // 1. Run the full briefing sweep
     const rawData = await fullBriefing();
+
+    // 1b. Contact provenance: score every air contact by independent-source agreement + fix age,
+    // then append the sweep's positions to the rolling replay store (non-fatal).
+    try {
+      const fused = fuseAirContacts(rawData.sources || {});
+      if (rawData.sources?.OpenSky) {
+        rawData.sources.OpenSky.hotspots = fused.hotspots;
+        rawData.sources.OpenSky.provenance = fused.summary;
+      }
+      contactProvenance = fused.summary;
+      const written = contactHistory.record(fused);
+      console.log(`[Crucix] Contacts: ${fused.summary.total} scored (${fused.summary.byConfidence.corroborated} corroborated) · ${fused.military} adsb.fi-only military · ${written} positions recorded`);
+    } catch (provErr) {
+      console.error('[Crucix] Contact provenance failed (non-fatal):', provErr.message);
+    }
 
     // 2. Save to runs/latest.json
     writeFileSync(join(RUNS_DIR, 'latest.json'), JSON.stringify(rawData, null, 2));

@@ -6,6 +6,8 @@
 //
 // --download fetches https://offshoreleaks-data.icij.org/offshoreleaks/csv/full-oldb.LATEST.zip (~300 MB) into
 // --src (default runs/finance/oldb) and extracts it with python3 (present in the production image).
+// --clean deletes the extracted CSVs after a successful build (peak disk ≈ zip 0.3 GB + CSVs 0.8 GB + old and new
+// index 1 GB each; the boot build passes --clean so the Fly volume only keeps the finished index).
 // The full build streams ~5.3 M CSV rows into a temp file and atomically renames it over --out so the
 // dashboard keeps serving the previous index until the new one is complete.
 // --snapshot copies a bounded 2-hop neighbourhood around the demo seeds into a small gzipped index that is
@@ -181,6 +183,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       const src = resolve(a.src || DEFAULT_SRC);
       if (a.download) await download(src);
       await buildFull({ src, out: resolve(a.out || DEFAULT_OUT) });
+      if (a.clean) { rmSync(src, { recursive: true, force: true }); log(`removed extracted CSVs ${src}`); }
     }
   } catch (err) { log('FAILED', err.message); process.exit(1); }
 }

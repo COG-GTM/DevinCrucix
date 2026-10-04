@@ -595,6 +595,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .sh-row.degraded .sh-why{color:#ffd54f}
 .sh-row.error .sh-why{color:var(--danger)}
 .sh-note{font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.5;margin-top:6px}
+/* Contact replay (Military tab) */
+#crMapSvg{width:100%;height:100%;display:block}
+#crMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+#crMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#crMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#crMapSvg .cr-box{fill:none;stroke:rgba(100,240,200,0.35);stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+#crMapSvg .cr-trail{fill:none;stroke-width:1.2;opacity:0.65;vector-effect:non-scaling-stroke;pointer-events:none}
+#crMapSvg .cr-sym{cursor:pointer;stroke:rgba(0,0,0,0.7);stroke-width:1;vector-effect:non-scaling-stroke}
+#crMapSvg .cr-lbl{font-family:var(--mono);font-size:7px;fill:rgba(200,220,230,0.55);pointer-events:none}
+.cr-ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--dim)}
+.cr-ctl select{background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 6px;outline:none}
+.cr-ctl select:focus{border-color:var(--accent2)}
+.cr-ctl input[type=range]{flex:1;min-width:140px;accent-color:#64f0c8;cursor:pointer}
+.cr-ctl .cr-time{color:var(--accent);font-size:10px;text-transform:none;letter-spacing:0.04em;min-width:150px}
+.cr-ctl .cr-frame{color:var(--dim);font-size:9px;text-transform:none}
+.cr-prov{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:9px;letter-spacing:0.04em;margin-top:6px}
+.cr-prov b{font-weight:600}
 .g-panel.g-off{padding:8px 12px;opacity:0.7}
 .g-panel.g-off .sec-head{margin-bottom:3px}
 .g-off-why{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.04em;line-height:1.5}
@@ -1118,6 +1135,22 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .inv-plat.found{color:var(--text);border-color:rgba(100,240,200,0.4);background:rgba(100,240,200,0.06)}
 .inv-plat.found:hover{border-color:var(--accent)}
 .inv-plat.err{opacity:0.6}
+.inv-plat.waf{color:#ffd54f;border-color:rgba(255,213,79,0.3)}
+.inv-plat.found .inv-plat-a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.inv-plat.found .inv-plat-a:hover{text-decoration:underline}
+.inv-conf{font-family:var(--mono);font-size:7px;padding:0 3px;border:1px solid currentColor;line-height:1.5;opacity:.85}
+.inv-conf.api{color:var(--accent)}.inv-conf.message{color:#4dd0e1}.inv-conf.status_code{color:#ffab40}.inv-conf.response_url{color:#b39ddb}.inv-conf.manual{color:var(--dim)}
+.inv-plat-act{font-family:var(--mono);font-size:8px;padding:0 4px;margin-left:2px;border:1px solid rgba(100,240,200,0.35);background:transparent;color:var(--accent);cursor:pointer;line-height:1.6}
+.inv-plat-act:hover{background:rgba(100,240,200,0.12)}.inv-plat-act:disabled{opacity:.5;cursor:default}
+.inv-plat-act.done{color:var(--dim);border-color:rgba(255,255,255,0.15)}
+.inv-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 6px;font-size:10px}
+.inv-filters select{font-family:var(--mono);font-size:9px;background:rgba(0,0,0,.3);color:var(--text);border:1px solid rgba(255,255,255,.15);padding:2px 4px}
+.inv-filters label{display:inline-flex;align-items:center;gap:4px;color:var(--dim);cursor:pointer}
+.inv-progress{margin:6px 0 4px}
+.inv-progress-bar{height:4px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
+.inv-progress-bar span{position:absolute;left:0;top:0;bottom:0;background:var(--accent);box-shadow:0 0 6px rgba(100,240,200,.6);transition:width .25s}
+.inv-progress-txt{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:3px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.inv-progress-txt b{color:var(--text)}
 .inv-chain{font-family:var(--mono);font-size:10px;margin:2px 0 6px}
 .inv-hop{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-left:2px solid rgba(68,204,255,0.25);padding-left:8px;margin-left:4px;flex-wrap:wrap}
 .inv-hop-n{color:var(--dim);font-size:9px;min-width:12px}
@@ -1555,7 +1588,7 @@ function renderTopbar(){
 // panel set rendered into #lowerGrid (and #leftRail), so the wall of ~30 equal panels is gone.
 const TAB_DEFS=[
   {id:'situation',label:'Situation',hint:'What matters this sweep'},
-  {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
+  {id:'military',label:'Military',hint:'Air (provenance-scored contacts + 48 h replay), maritime, PRC, nuclear, space'},
   {id:'cyber',label:'Cyber',hint:'Exploited in the wild, ransomware, outages, Devin scan'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal + strike candidates, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
@@ -2022,7 +2055,7 @@ function fmCompact(rec){const props={};for(const [k,v] of Object.entries(rec.pro
 function fmSdnFor(rec){const s=FM.profile&&FM.profile.record.id===rec.id?FM.profile.screening?.ofac?.hits:null;if(s)return s;return FM.overlaps?.byIcij?.[rec.id]||null}
 
 // --- data loads ---
-async function fmLoadStatus(force){if(!force&&FM.status&&Date.now()-FM.statusAt<60000)return;try{FM.status=await fmFetch('/api/finance/status');FM.statusAt=Date.now();FM.error=null;}catch(e){FM.error=e.message}if(!FM.overlaps)fmLoadOverlaps();if(fmActive())renderLeftRail()}
+async function fmLoadStatus(force){if(!force&&FM.status&&Date.now()-FM.statusAt<60000)return;try{FM.status=await fmFetch('/api/finance/status');FM.statusAt=Date.now();FM.error=null;}catch(e){FM.error=e.message}if(!FM.overlaps||FM.overlaps.error||(FM.status?.overlaps?.computedAt&&FM.overlaps.computedAt!==FM.status.overlaps.computedAt))fmLoadOverlaps();if(fmActive())renderLeftRail()}
 async function fmLoadOverlaps(){try{const o=await fmFetch('/api/finance/overlaps?limit=400');const byIcij={};for(const l of o.leads||[])(byIcij[l.icij.id]||=[]).push({score:l.score,band:'strong',matched:l.matched,record:{id:l.ofac.id,caption:l.ofac.name,schema:l.ofac.type==='Individual'?'Person':'LegalEntity',properties:{program:l.ofac.programs||[]},source:{key:'ofac',url:'https://sanctionssearch.ofac.treas.gov/Details.aspx?id='+String(l.ofac.id).replace('ofac:','')}}});FM.overlaps={...o,byIcij};if(fmActive()){renderLeftRail();fmRenderProfile();}}catch(e){FM.overlaps={leads:[],byIcij:{},error:e.message}}}
 async function fmLoadTrails(){try{const t=await fmFetch('/api/finance/trails');FM.trails=t.trails||[];fmRenderTrail();}catch(e){console.warn('[finance] trails',e)}}
 async function fmSearch(q,kind=FM.kind){q=String(q||'').trim();if(q.length<2)return;FM.q=q;FM.kind=kind||'';FM.searching=true;FM.search=null;renderLeftRail();try{const p=new URLSearchParams({q,limit:'30'});if(FM.kind)p.set('kind',FM.kind);FM.search=await fmFetch('/api/finance/search?'+p);FM.error=null}catch(e){FM.error=e.message}FM.searching=false;if(fmActive())renderLeftRail()}
@@ -2046,7 +2079,7 @@ async function fmLoadTrail(id){try{const r=await fmFetch('/api/finance/trails/'+
 async function fmDeleteTrail(id){try{await fmFetch('/api/finance/trails/'+encodeURIComponent(id),{method:'DELETE'});if(FM.trail.id===id)FM.trail=fmNewTrail();fmLoadTrails();invToast('Trail deleted')}catch(e){invToast(e.message)}}
 function fmExportTrail(){if(!FM.trail.id){invToast('Save the trail first — export is license-aware per source');return}window.open(`/api/finance/trails/${encodeURIComponent(FM.trail.id)}/export.json`,'_blank','noopener')}
 function fmTrailToCase(){const t=FM.trail;if(!t.nodes.length){invToast('Trail is empty');return}const typeOf=n=>n.schema==='Person'?'person':n.schema==='Address'?'location':'company';let added=0;const keys={};for(const n of t.nodes){const k=invAddEntity(typeOf(n),n.caption,{source:`${n.source?.key||'finance'}${n.source?.dataset?` · ${n.source.dataset}`:''}`,ref:n.id,url:n.source?.url||null});if(k){keys[n.id]=k;added++}}for(const l of t.links){if(l.state==='rejected')continue;if(keys[l.from]&&keys[l.to])invAddEdge(keys[l.from],keys[l.to],`${l.label}${l.state==='proposed'?' (proposed)':l.state==='accepted'?' (accepted)':''}`)}invSaveCase();invToast(`${added} record${added===1?'':'s'} + ${t.links.filter(l=>l.state!=='rejected').length} links added to the Investigations case graph`)}
-async function fmNominate(nodeId){const t=FM.trail;if(!t.id){invToast('Save the trail first, then nominate');return}const node=t.nodes.find(n=>n.id===nodeId);if(!node)return;const requirement=prompt(`Nominate "${node.caption}" to Target Development.\nWhy does this record matter? (standing requirement, 10–400 chars)`,`Offshore structure / sanctions lead from Follow the Money trail ${t.id}`);if(!requirement)return;try{const r=await fmFetch(`/api/finance/trails/${t.id}/nominate`,{method:'POST',body:JSON.stringify({nodeId,requirement:requirement.slice(0,400),priority:2})});FM.trail.nominated={id:r.target.id,label:r.target.label,nodeId};invToast(`${r.duplicate?'Already nominated':'Nominated'} → Target Development ${r.target.id}`);fmRenderTrail()}catch(e){invToast('Nominate failed: '+e.message)}}
+async function fmNominate(nodeId){const t=FM.trail;if(!t.id){invToast('Save the trail first, then nominate');return}const node=t.nodes.find(n=>n.id===nodeId);if(!node)return;const requirement=prompt(`Nominate "${node.caption}" to Target Development.\nWhy does this record matter? (standing requirement, 10–400 chars)`,`Offshore structure / sanctions lead from Follow the Money trail ${t.id}`);if(!requirement)return;try{const r=await fmFetch(`/api/finance/trails/${t.id}/nominate`,{method:'POST',body:JSON.stringify({nodeId,requirement:requirement.slice(0,400),priority:2})});FM.trail.nominated={id:r.target.id,label:r.target.label,nodeId};invToast(`${r.duplicate?'Already nominated':'Nominated'} → Target Development ${r.target.id}`);fmRenderTrail();if(typeof tgtLoad==='function')tgtLoad().catch(()=>{})}catch(e){invToast('Nominate failed: '+e.message)}}
 
 // --- left rail ---
 function fmRailSearch(){
@@ -2096,7 +2129,7 @@ function fmRailSources(){
 // --- lower grid ---
 function fmLowerPanels(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
-  if(!FM.ref)return [wrap(fmEmptyPanel(),'lp-wide'),wrap(`<div class="g-panel"><div class="sec-head"><h3>Money trail</h3><span class="badge">${FM.trail.nodes.length} RECORDS</span></div><div id="fmTrail"></div></div>`,'lp-wide')];
+  if(!FM.ref)return [wrap(fmEmptyPanel(),'lp-wide'),wrap(`<div class="g-panel"><div class="sec-head"><h3>Money trail</h3><span class="badge" id="fmTrailBadge">${FM.trail.nodes.length} RECORDS</span></div><div id="fmTrail"></div></div>`,'lp-wide')];
   return [
     wrap(`<div class="g-panel"><div class="sec-head"><h3>Shell structure</h3><span class="badge" id="fmProfileBadge">${FM.profileLoading?'LOADING':'ICIJ'}</span></div><div id="fmProfile" class="inv-scroll"></div></div>`,'lp-half'),
     wrap(`<div class="g-panel"><div class="sec-head"><h3>Structure graph</h3><span class="badge" id="fmGraphBadge">…</span></div><div class="fm-acts"><button class="fm-chip ${FM.graphDepth===1?'on':''}" data-fm="depth" data-depth="1">1 hop</button><button class="fm-chip ${FM.graphDepth===2?'on':''}" data-fm="depth" data-depth="2">2 hops</button><button class="fm-chip ${FM.graphIdentity?'on':''}" data-fm="identity">same-name edges</button></div><div class="fm-canvas" id="fmCanvas"><svg id="fmSvg"></svg></div><div class="fm-legend"><span><i style="background:#ff8a65"></i>entity</span><span><i style="background:#64f0c8"></i>officer</span><span><i style="background:#ce93d8"></i>intermediary</span><span><i style="background:#64b5f6"></i>address</span><span><i style="background:#90a4ae"></i>other</span><span style="margin-left:auto">edges: <span style="color:#ff8a65">ownership</span> · <span style="color:#64f0c8">control</span> · <span style="color:#ce93d8">service</span> · <span style="color:#64b5f6">address</span> · red ring = SDN name match</span></div></div>`,'lp-half'),
@@ -2237,11 +2270,13 @@ document.addEventListener('keydown',e=>{
 // One line under each panel title: what it shows, where it comes from, what it does not establish.
 // Keyed by the panel title text (i18n-independent English fallback titles).
 const PANEL_CAPTIONS={
+  'contact replay':'Scrub through the last 48 h of air contacts in one hotspot, one frame per sweep. Each contact is coloured by provenance confidence \u2014 how many independent feeds (OpenSky, adsb.fi) reported the same ICAO24, whether they agreed on position, and how old the fix was at sweep time. <b>Computed from the feeds CRUCIX already pulls</b>; not a live track and not an intent assessment.',
   'target nomination':'Nominate a public-source target with a logged basis (knowledge-graph node, OFAC SDN id, DOJ release or a source URL) and the requirement it must answer. Persons, organizations, facilities, vehicles, vessels, aircraft already named in public reporting only.',
   'target deck':'Every nominated target with status and pending review count. Select one to open its package; closed targets stay for the record.',
   'source coverage':'Which local stores the package was built from, how many hit, and whether an OpenAI / Anthropic model adjudicated. <b>Not available</b> means the store was empty this sweep, not that the target is absent from it.',
   'target package':'Find / fix summary for the selected target: counts, model status, deviation flags and the dated <b>public-record</b> last known location. Every figure is a count of published mentions, not verified activity.',
   'identity & association review':'Personas, entities and places linked to the target with a proposed role (target / associate / background), confidence, provenance and one verbatim evidence sentence. Nothing is accepted until an analyst decides.',
+  'attached public profiles':'Profiles attached from the OSINT Workbench handle sweep (curated probes + Sherlock manifest), each with its detector confidence. A same-handle match is a lead until an analyst accepts it; nothing is written to the graph.',
   'graph proposals':'Relations the package would add to the CJNG graph, each with evidence. Accepted proposals form an analyst-approved overlay; the verified source-attributed graph is never modified.',
   'published selectors':'Identifiers literally present in official or published text (OFAC ids and programs, DOJ case numbers, IMO, registrations, domains). Nothing is inferred or looked up.',
   'public-record locations':'Dated place mentions snapped to the gazetteer, drawn at the radius their precision supports. Last known is the newest sentence that <i>states</i> presence — not a live position. Telegram is never used for location.',
@@ -2339,7 +2374,7 @@ const PANEL_CAPTIONS={
   'us–mexico border reporting':'Journalism about the border corridor: Border Watch feeds with place / topic spike detection, InSight Crime\u2019s organized-crime reporting and the Python ingestion service behind them. Reporting volume, not event data.',
   'us enforcement · doj & ofac':'What the U.S. government has put on the record: U.S. Attorney press releases from the south-west border districts and Treasury SDN entries under the narco programs. Charges are allegations until a plea or conviction is stated.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
-  'osint workbench':'Passive, read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Blue values pivot; nothing is written to the target.',
+  'osint workbench':'Read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Handle sweeps send one request per platform (curated probes + the Sherlock manifest); nothing is sent to the subject. Blue values pivot.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
   'typosquat watch':'Look-alike domains for the watchlist, resolved via DNS each sweep. Registered is not the same as malicious.',
   'pivot providers':'Which enrichment providers answer today and which need a key.',
@@ -2900,11 +2935,31 @@ function initGlobe(){
 // third-party strings, so everything goes through esc().
 const AIR_TRACK_COLOR_DARK='rgba(255,184,76,0.9)';
 const AIR_TRACK_COLOR='rgba(100,240,200,0.9)';
-function airTrackColor(t){ return t.callsign ? AIR_TRACK_COLOR : AIR_TRACK_COLOR_DARK; }
+function airTrackColor(t){
+  const c=t.prov?.confidence;
+  if(c==='stale')return 'rgba(127,148,143,0.75)';
+  if(c==='conflict')return 'rgba(255,82,82,0.9)';
+  return t.callsign ? AIR_TRACK_COLOR : AIR_TRACK_COLOR_DARK;
+}
+// Provenance line (Velocity model): which feeds saw the contact, whether they agree, how old the fix was
+// at sweep time. Strings are source labels / numbers from the server, still escaped.
+const PROV_COLORS={corroborated:'#64f0c8',single:'#ffd54f',stale:'#7f948f',conflict:'#ff5252'};
+function provAge(s){return s<90?`${s}s`:s<5400?`${Math.round(s/60)} min`:`${(s/3600).toFixed(1)} h`}
+function provText(p){
+  if(!p||!Array.isArray(p.sources))return '';
+  const agree=p.n>1?(p.confidence==='conflict'?`disagree by ${p.agreeKm} km`:`agree${Number.isFinite(p.agreeKm)?` within ${p.agreeKm} km`:''}`):'single feed';
+  return `${esc(p.sources.join(' + '))} \u00b7 ${agree} \u00b7 ${Number.isFinite(p.fixAgeS)?`fix ${provAge(p.fixAgeS)} old at sweep`:'fix age unknown'}`;
+}
+function provLine(p){
+  if(!p||!Array.isArray(p.sources))return '';
+  const col=PROV_COLORS[p.confidence]||PROV_COLORS.single;
+  return `<br><span style="color:${col};font-family:var(--mono);font-size:9px;letter-spacing:0.06em">${esc(String(p.confidence).toUpperCase())} ${p.score}/100</span> <span style="color:var(--dim);font-size:9px">${provText(p)}</span>`;
+}
 function airTrackPop(t,region){
   const head=t.callsign ? esc(t.callsign) : 'NO CALLSIGN';
   const rows=[];
   if(t.icao24) rows.push('ICAO24: '+esc(t.icao24));
+  if(t.prov) rows.push(provLine(t.prov).replace(/^<br>/,''));
   if(t.country) rows.push('Registry: '+esc(t.country));
   rows.push(Number.isFinite(t.altitude) ? `Altitude: ${Math.round(t.altitude).toLocaleString()} m (FL${Math.round(t.altitude*3.28084/100)})` : (t.onGround ? 'On ground' : 'Altitude: --'));
   if(Number.isFinite(t.velocity)) rows.push(`Speed: ${Math.round(t.velocity*1.94384)} kt`);
@@ -4085,7 +4140,7 @@ function renderLower(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
-    military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    military:[wrap(renderContactReplayPanel(),'lp-wide'),wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberAttackMapPanel(),'lp-wide'),wrap(renderRansomwarePanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderDevinSecPanel(),'lp-wide'),wrap(renderIodaPanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
@@ -4110,6 +4165,7 @@ function renderLower(){
   if(currentTab==='cyber'){requestAnimationFrame(initCyberAttackMap);devinSecRefresh();}
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
+  if(currentTab==='military')requestAnimationFrame(initContactReplay);else crStop();
   if(CY_TAB[currentTab]){requestAnimationFrame(initCyMap);kgMount(CY_TAB[currentTab])}
   if(currentTab==='targeting')requestAnimationFrame(initTgtMap);
 }
@@ -4123,7 +4179,147 @@ function renderAirTheatersPanel(){
   const max=Math.max(1,...air.map(a=>a.total||0));
   const rows=air.map(a=>`<div class="cii-row" title="${esc(a.region)}: ${a.total||0} aircraft · ${a.noCallsign||0} no callsign · ${a.highAlt||0} high altitude"><span class="cii-name" style="flex:0 0 112px">${esc(a.region)}</span><div class="cii-bar"><div class="cii-bar-fill" style="width:${Math.round((a.total||0)/max*100)}%;background:var(--accent2)"></div></div><span class="cii-score" style="color:var(--accent2)">${a.total||0}</span><span class="cii-level" style="color:var(--dim);border:1px solid var(--border)">${(a.top||[]).slice(0,2).map(tp=>esc(tp[0])+' '+tp[1]).join(' · ')||'—'}</span></div>`).join('');
   const note=D.airMeta?.method&&D.airMeta.method!=='opensky'?`<div class="sh-note">Source: ${esc(D.airMeta.source||D.airMeta.method)} (OpenSky fallback). Counts are civil + military transponders inside each theater box, not military-only.</div>`:'<div class="sh-note">Counts are all transponding aircraft inside each theater box (civil + military). Sudden drops usually mean the upstream feed thinned, not that the sky emptied.</div>';
-  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT</span></div>${rows}${note}</div>`;
+  const pv=D.airMeta?.provenance,bc=pv?.byConfidence;
+  const prov=bc?`<div class="cr-prov" title="${esc(pv.rule||'')}"><span style="color:${PROV_COLORS.corroborated}"><b>${bc.corroborated||0}</b> corroborated</span><span style="color:${PROV_COLORS.single}"><b>${bc.single||0}</b> single-source</span><span style="color:${PROV_COLORS.stale}"><b>${bc.stale||0}</b> stale</span>${bc.conflict?`<span style="color:${PROV_COLORS.conflict}"><b>${bc.conflict}</b> conflict</span>`:''}${Number.isFinite(pv.meanScore)?`<span style="color:var(--dim)">mean ${pv.meanScore}/100</span>`:''}${pv.military?`<span style="color:var(--dim)">+${pv.military} adsb.fi-only military</span>`:''}</div>`:'';
+  return `<div class="g-panel air-theaters"><div class="sec-head"><h3>${shDot(src)}Air Activity By Theater</h3><span class="badge">${air.reduce((n,a)=>n+(a.total||0),0)} AIRCRAFT</span></div>${rows}${prov}${note}</div>`;
+}
+// === CONTACT REPLAY (Velocity model) ===
+// Scrubs the rolling position store (/api/contacts/history): one frame per sweep, contacts coloured by
+// provenance confidence, trailing tracks up to the selected frame. Resolution is the sweep cadence and
+// the panel says so — never a live or continuous track.
+const CR_REGIONS=[['ukraine','Ukraine Region'],['taiwan','Taiwan Strait'],['middleEast','Middle East'],['baltics','Baltic Region'],['southChinaSea','South China Sea'],['koreanPeninsula','Korean Peninsula'],['caribbean','Caribbean'],['gulfOfGuinea','Gulf of Guinea'],['capeRoute','Cape Route'],['hornOfAfrica','Horn of Africa']];
+const CR_WINDOWS=[6,12,24,48];
+const CR={region:CR_REGIONS.some(r=>r[0]===localStorage.getItem('crucix_cr_region'))?localStorage.getItem('crucix_cr_region'):'ukraine',hours:24,data:null,key:'',frame:-1,timer:null,busy:false,failed:false};
+let crProj=null,crBase=null,crLayers=null,crSvg=null;
+function crWhen(ts){const d=new Date(ts);return Number.isFinite(d.getTime())?d.toISOString().slice(5,16).replace('T',' ')+'Z':''}
+function renderContactReplayPanel(){
+  const pv=D.airMeta?.provenance,bc=pv?.byConfidence||{};
+  const src=['OpenSky','ADS-B'];
+  const n=v=>Number.isFinite(v)?Number(v).toLocaleString('en-US'):'\u2014';
+  const kpis=`<div class="front-kpis">
+      <div class="front-kpi"><div class="k">Corroborated \u00b7 2+ feeds agree</div><div class="v" style="color:${PROV_COLORS.corroborated}">${n(bc.corroborated)}</div><div class="s">OpenSky + adsb.fi on the same ICAO24, within 25 km</div></div>
+      <div class="front-kpi"><div class="k">Single-source \u00b7 fresh</div><div class="v" style="color:${PROV_COLORS.single}">${n(bc.single)}</div><div class="s">one feed, fix \u2264 120 s old at sweep</div></div>
+      <div class="front-kpi"><div class="k">Stale \u00b7 conflict</div><div class="v"><span style="color:${PROV_COLORS.stale}">${n(bc.stale)}</span><span style="font-size:9px;color:var(--dim)"> \u00b7 </span><span style="color:${PROV_COLORS.conflict}">${n(bc.conflict)}</span></div><div class="s">older fix \u00b7 feeds disagree on position</div></div>
+      <div class="front-kpi"><div class="k">Mean score \u00b7 adsb.fi-only military</div><div class="v" style="color:var(--accent)">${pv&&Number.isFinite(pv.meanScore)?pv.meanScore+'<span style="font-size:9px;color:var(--dim)"> /100</span>':'\u2014'}</div><div class="s">${pv?`${n(pv.military)} military airframes OpenSky did not list`:'no scored sweep yet'}</div></div>
+    </div>`;
+  const d=CR.data,frames=d?.frames||[],fi=Math.min(Math.max(CR.frame,0),Math.max(0,frames.length-1)),fr=frames[fi];
+  return `<div class="g-panel cr-panel">
+      <div class="sec-head"><h3>${shDot(src)}Contact Replay — Provenance-Scored Air Tracks</h3><span class="badge" id="crBadge">${d?`${d.sweeps} SWEEPS \u00b7 ${d.contacts} CONTACTS`:'LOADING'}</span></div>
+      ${kpis}
+      <div class="cr-ctl">
+        <label>Theater <select onchange="crSetRegion(this.value)">${CR_REGIONS.map(([k,l])=>`<option value="${k}" ${k===CR.region?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+        <label>Window <select onchange="crSetHours(+this.value)">${CR_WINDOWS.map(h=>`<option value="${h}" ${h===CR.hours?'selected':''}>${h} h</option>`).join('')}</select></label>
+        <button class="inv-btn" id="crPlay" onclick="crTogglePlay()" ${frames.length>1?'':'disabled'}>${CR.timer?'\u23f8 Pause':'\u25b6 Play'}</button>
+        <input type="range" id="crRange" min="0" max="${Math.max(0,frames.length-1)}" value="${fi}" ${frames.length>1?'':'disabled'} oninput="crSetFrame(+this.value)" aria-label="Replay sweep">
+        <span class="cr-time" id="crTime">${fr?crWhen(fr.ts):(CR.failed?'replay unavailable':d?'no positions in window yet':'\u2026')}</span>
+        <span class="cr-frame" id="crFrame">${frames.length?`sweep ${fi+1}/${frames.length}`:''}</span>
+      </div>
+      <div class="ct-map" id="crMapWrap" style="height:clamp(300px,42vh,480px)">
+        <svg id="crMapSvg"></svg>
+        <div class="ct-hint" id="crHint">ONE FRAME PER SWEEP (~15 MIN) \u00b7 CLICK A CONTACT</div>
+        <div class="ct-key"><span><i style="border-color:${PROV_COLORS.corroborated}"></i>CORROBORATED</span><span><i style="border-color:${PROV_COLORS.single}"></i>SINGLE-SOURCE</span><span><i style="border-color:${PROV_COLORS.stale}"></i>STALE</span><span><i style="border-color:${PROV_COLORS.conflict}"></i>CONFLICT</span><span><i class="dash" style="border-color:rgba(200,220,230,0.5)"></i>TRAIL TO THIS SWEEP</span></div>
+        <div class="map-popup" id="crPopup"><div class="pp-close" onclick="crClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
+      </div>
+      <div class="sh-note" id="crNote">${esc(d?.resolution||'One frame per sweep (~15 min); positions are the fix at sweep time, not a continuous track.')} Rule: ${esc(pv?.rule||'corroborated = 2+ feeds agree on the same ICAO24 within 25 km \u00b7 single = one feed, fix \u2264 120 s \u00b7 stale = older fix \u00b7 conflict = feeds disagree \u00b7 score = base \u2212 3/min of fix age')}. Fix age is the observation age, not the HTTP response age. Positions are kept 48 h in runs/contacts.</div>
+    </div>`;
+}
+function crSetRegion(k){if(!CR_REGIONS.some(r=>r[0]===k))return;CR.region=k;localStorage.setItem('crucix_cr_region',k);crStop();CR.data=null;initContactReplay()}
+function crSetHours(h){if(!CR_WINDOWS.includes(h))return;CR.hours=h;crStop();CR.data=null;initContactReplay()}
+function crStop(){if(CR.timer){clearInterval(CR.timer);CR.timer=null}const b=document.getElementById('crPlay');if(b)b.textContent='\u25b6 Play'}
+function crTogglePlay(){
+  const n=CR.data?.frames?.length||0;
+  if(CR.timer){crStop();return}
+  if(n<2)return;
+  CR.timer=setInterval(()=>{if(!document.getElementById('crMapSvg')){crStop();return}crSetFrame((CR.frame+1)%n)},650);
+  const b=document.getElementById('crPlay');if(b)b.textContent='\u23f8 Pause';
+}
+function crClosePopup(){document.getElementById('crPopup')?.classList.remove('show')}
+function crPopup(ev,head,html,meta){
+  const popup=document.getElementById('crPopup'),wrap=document.getElementById('crMapWrap');
+  if(!popup||!wrap)return;
+  const rect=wrap.getBoundingClientRect();
+  const left=ev&&ev.clientX!=null?ev.clientX-rect.left+10:rect.width/2-140, top=ev&&ev.clientY!=null?ev.clientY-rect.top-10:rect.height/2-60;
+  fillPopup(popup,head,html,meta);
+  placePopup(popup,rect,left,top);
+}
+function initContactReplay(){
+  const wrap=document.getElementById('crMapWrap'),svgEl=document.getElementById('crMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  const key=`${CR.region}|${CR.hours}|${D.meta?.timestamp||''}`;
+  if(CR.data&&CR.key===key){crBuild();return}
+  if(CR.busy)return;
+  CR.busy=true;
+  fetch(`/api/contacts/history?region=${encodeURIComponent(CR.region)}&hours=${CR.hours}`,{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(d=>{
+    CR.busy=false;
+    if(!d||!Array.isArray(d.frames)){CR.failed=true;crBuild();return}
+    const keepLast=!CR.data||CR.frame>=(CR.data.frames.length-1);
+    CR.data=d;CR.key=key;CR.failed=false;
+    CR.frame=keepLast?d.frames.length-1:Math.min(CR.frame,d.frames.length-1);
+    const grid=document.getElementById('lowerGrid');
+    if(currentTab==='military'&&grid){const old=grid.querySelector('.cr-panel');if(old){const tmp=document.createElement('div');tmp.innerHTML=renderContactReplayPanel();const nu=tmp.firstElementChild;nu.className=old.className;old.replaceWith(nu)}}
+    crBuild();
+  }).catch(()=>{CR.busy=false;CR.failed=true;crBuild()});
+}
+function crBuild(){
+  const wrap=document.getElementById('crMapWrap'),svgEl=document.getElementById('crMapSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  const W=wrap.clientWidth||900,H=wrap.clientHeight||380;
+  crSvg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
+  crSvg.selectAll('*').remove();
+  const b=CR.data?.box||{lamin:44,lomin:22,lamax:53,lomax:41};
+  // d3 geo uses spherical winding: the exterior ring must be clockwise or the polygon is the whole globe minus the box
+  const bbox={type:'Polygon',coordinates:[[[b.lomin,b.lamin],[b.lomin,b.lamax],[b.lomax,b.lamax],[b.lomax,b.lamin],[b.lomin,b.lamin]]]};
+  crProj=d3.geoMercator().fitExtent([[14,14],[W-14,H-14]],bbox);
+  const path=d3.geoPath(crProj);
+  crBase=crSvg.append('g');crLayers=crSvg.append('g');
+  crSvg.on('click',()=>crClosePopup());
+  crBase.append('path').datum(d3.geoGraticule().step([5,5])()).attr('class','graticule').attr('d',path);
+  crBase.append('path').datum(bbox).attr('class','cr-box').attr('d',path);
+  ctWorld().then(world=>{
+    if(!world||!crBase||!window.topojson||crBase.node()?.ownerSVGElement!==svgEl)return;
+    const countries=topojson.feature(world,world.objects.countries);
+    crBase.selectAll('path.land').data(countries.features).enter().append('path').attr('class','land').attr('d',path);
+    crBase.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',path);
+    crBase.selectAll('.cr-box').raise();
+    crLayers.raise();
+  });
+  if(CR.data&&!CR.data.frames.length){crBase.append('text').attr('class','cr-lbl').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').style('font-size','9px').text(`NO POSITIONS RECORDED FOR ${(CR.data.label||CR.region).toUpperCase()} IN THE LAST ${CR.hours} H \u2014 FRAMES APPEAR AFTER THE NEXT SWEEP`)}
+  if(CR.failed&&!CR.data){crBase.append('text').attr('class','cr-lbl').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').style('font-size','9px').text('REPLAY STORE UNAVAILABLE')}
+  crDrawFrame();
+}
+function crSetFrame(i){
+  const n=CR.data?.frames?.length||0;if(!n)return;
+  CR.frame=Math.max(0,Math.min(n-1,i));
+  const r=document.getElementById('crRange');if(r&&+r.value!==CR.frame)r.value=CR.frame;
+  crDrawFrame();
+}
+function crDrawFrame(){
+  if(!crLayers||!crProj)return;
+  crLayers.selectAll('*').remove();
+  const d=CR.data,frames=d?.frames||[];
+  if(!frames.length)return;
+  const fi=Math.max(0,Math.min(frames.length-1,CR.frame)),fr=frames[fi],t=Date.parse(fr.ts);
+  const line=d3.line().x(p=>p[0]).y(p=>p[1]);
+  const counts={corroborated:0,single:0,stale:0,conflict:0};
+  // trails: every recorded position of each contact up to this sweep
+  (d.tracks||[]).forEach(tr=>{
+    const pts=tr.points.filter(p=>Date.parse(p[0])<=t).map(p=>crProj([p[2],p[1]])).filter(xy=>xy&&Number.isFinite(xy[0]));
+    if(pts.length<2)return;
+    const last=tr.points.filter(p=>Date.parse(p[0])<=t).pop();
+    crLayers.append('path').attr('class','cr-trail').attr('d',line(pts)).attr('stroke',PROV_COLORS[last?.[4]]||PROV_COLORS.single);
+  });
+  fr.contacts.forEach(c=>{
+    const xy=crProj([c.lon,c.lat]);if(!xy||!Number.isFinite(xy[0]))return;
+    const col=PROV_COLORS[c.c]||PROV_COLORS.single;counts[c.c in counts?c.c:'single']++;
+    const hd=Number.isFinite(c.hdg)?c.hdg:0;
+    const prov={sources:c.s||[],n:c.n||((c.s||[]).length),confidence:c.c||'single',score:null,fixAgeS:null,agreeKm:null};
+    const head=`${c.cs||c.id||'contact'} \u00b7 ${crWhen(fr.ts)}`;
+    const text=`${Number.isFinite(c.alt)?`Alt ${Math.round(c.alt).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(c.vel)?`${Math.round(c.vel*1.944)} kt \u00b7 `:''}${Number.isFinite(c.hdg)?`hdg ${Math.round(c.hdg)}\u00b0`:''}<br>ICAO24 ${esc(c.id)} \u00b7 ${c.lat.toFixed(2)}, ${c.lon.toFixed(2)}<br><span style="color:${col};font-family:var(--mono);font-size:9px;letter-spacing:0.06em">${esc(String(prov.confidence).toUpperCase())}</span> <span style="color:var(--dim);font-size:9px">${esc(prov.sources.join(' + ')||'unscored')} \u00b7 ${prov.n>1?'feeds agreed at sweep time':'single feed'}</span><br><span style="color:var(--dim)">Position recorded at this sweep; the aircraft has moved since. Registry / callsign as broadcast, not operator.</span>`;
+    crLayers.append('path').attr('class','cr-sym').attr('d','M0,-5 L3.5,4 L0,2 L-3.5,4 Z').attr('fill',col).attr('transform',`translate(${xy[0]},${xy[1]}) rotate(${hd})`)
+      .on('click',e=>{e.stopPropagation();crPopup(e,head,text,`Contact replay \u00b7 ${esc(d.label||CR.region)}`)});
+  });
+  const tm=document.getElementById('crTime');if(tm)tm.textContent=crWhen(fr.ts);
+  const fl=document.getElementById('crFrame');if(fl)fl.textContent=`sweep ${fi+1}/${frames.length} \u00b7 ${fr.contacts.length} contacts \u00b7 ${counts.corroborated} corroborated \u00b7 ${counts.single} single \u00b7 ${counts.stale} stale${counts.conflict?` \u00b7 ${counts.conflict} conflict`:''}`;
 }
 function renderPrcPanel(){
   const prcAirR = D.air.find(a => a.region === 'Taiwan Strait') || {};
@@ -5223,7 +5419,7 @@ function uaDraw(){
       const xy=uaProj([t.lon,t.lat]);if(!xy||!Number.isFinite(xy[0]))return;
       gr.append('path').attr('class','ua-sym').attr('data-x',xy[0]).attr('data-y',xy[1]).attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)})`).attr('d','M0,-5 L3.5,4 L0,2 L-3.5,4 Z').attr('fill',t.callsign?'rgba(100,240,200,0.9)':'rgba(255,213,79,0.9)').attr('stroke','rgba(0,0,0,0.7)').attr('stroke-width',1)
         .style('transform-box','fill-box').attr('transform',`translate(${xy[0]},${xy[1]}) scale(${1/Math.sqrt(k)}) rotate(${hd})`)
-        .on('click',e=>{e.stopPropagation();uaPopup(e,`${t.callsign||t.icao24||'aircraft'} \u00b7 ${t.country||'unknown registry'}`,`${Number.isFinite(t.altitude)?`Alt ${Math.round(t.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(t.velocity)?`${Math.round(t.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(t.heading)?`hdg ${Math.round(t.heading)}\u00b0`:''}${t.onGround?' \u00b7 on ground':''}<br><span style="color:var(--dim)">OpenSky state vector in the ukraine box \u00b7 registry country, not operator${t.callsign?'':' \u00b7 no callsign broadcast'}.</span>`,'Air Activity \u00b7 OpenSky')});
+        .on('click',e=>{e.stopPropagation();uaPopup(e,`${t.callsign||t.icao24||'aircraft'} \u00b7 ${t.country||'unknown registry'}`,`${Number.isFinite(t.altitude)?`Alt ${Math.round(t.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(t.velocity)?`${Math.round(t.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(t.heading)?`hdg ${Math.round(t.heading)}\u00b0`:''}${t.onGround?' \u00b7 on ground':''}<br><span style="color:var(--dim)">OpenSky state vector in the ukraine box \u00b7 registry country, not operator${t.callsign?'':' \u00b7 no callsign broadcast'}.</span>${provLine(t.prov)}`,'Air Activity \u00b7 OpenSky')});
       drawn++;
     });
     (ad.aircraft||[]).forEach(a=>{
@@ -5646,7 +5842,7 @@ function twDraw(){
   if(on('air'))twAirTracks().forEach(tr=>{
     const cn=/china/i.test(String(tr.country||''));
     const col=cn?'#ff5252':TW_LAYERS.air.color;
-    const pop={head:`${esc(tr.callsign||tr.icao24||'aircraft')} \u00b7 ${esc(tr.country||'unknown registry')}`,text:`${Number.isFinite(tr.altitude)?`Alt ${Math.round(tr.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(tr.velocity)?`${Math.round(tr.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(tr.heading)?`hdg ${Math.round(tr.heading)}\u00b0`:''}<br><span style="color:var(--dim)">${esc(tr.region||'')} hotspot \u00b7 ${D.airMeta?.fallback?'ADS-B sample (OpenSky unreachable)':'OpenSky state vector'} \u00b7 registry country, not operator</span>`,meta:'Air Activity'};
+    const pop={head:`${esc(tr.callsign||tr.icao24||'aircraft')} \u00b7 ${esc(tr.country||'unknown registry')}`,text:`${Number.isFinite(tr.altitude)?`Alt ${Math.round(tr.altitude).toLocaleString('en-US')} m \u00b7 `:''}${Number.isFinite(tr.velocity)?`${Math.round(tr.velocity*1.944)} kt \u00b7 `:''}${Number.isFinite(tr.heading)?`hdg ${Math.round(tr.heading)}\u00b0`:''}<br><span style="color:var(--dim)">${esc(tr.region||'')} hotspot \u00b7 ${D.airMeta?.fallback?'ADS-B sample (OpenSky unreachable)':'OpenSky state vector'} \u00b7 registry country, not operator</span>${provLine(tr.prov)}`,meta:'Air Activity'};
     if(sym(gAir,tr.lon,tr.lat,'M0,-4 L2.6,3.2 L0,1.8 L-2.6,3.2 Z',ctRgba(col,0.9),'rgba(0,0,0,0.6)',e=>twPopup(e,pop.head,pop.text,pop.meta),Number.isFinite(tr.heading)?Math.round(tr.heading):0))counts.air++;
   });
   if(on('isr'))(t.signals?.isr||[]).forEach(a=>{
@@ -7489,7 +7685,7 @@ const INV_SOURCES_BY_TYPE = {
 };
 function invNewCase(){return {name:'Untitled case',created:new Date().toISOString(),entities:{},edges:[],dossiers:{},notes:'',exported:false,viewedGraph:false,metadata:[]}}
 function invLoadCase(){try{const c=JSON.parse(localStorage.getItem('crucix_case')||'null');if(c&&c.entities&&c.edges)return {...invNewCase(),...c}}catch{}return invNewCase()}
-const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', case:invLoadCase(), meta:null, metaLoading:false, metaError:null, metaFile:null, geo:null, geoLoading:false, geoHint:'', graphFocus:null };
+const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', nsfw:false, progress:null, plat:{status:'found',cat:'all',conf:'all'}, attachTgt:null, attached:{}, case:invLoadCase(), meta:null, metaLoading:false, metaError:null, metaFile:null, geo:null, geoLoading:false, geoHint:'', graphFocus:null };
 // Resume the last dossier of a persisted case so the workbench is not empty after a reload.
 if(INV.case.lastKey&&INV.case.dossiers[INV.case.lastKey]){INV.dossier=INV.case.dossiers[INV.case.lastKey];INV.graphFocus=INV.case.lastKey;INV.query=INV.dossier.target||''}
 function invSaveCase(){try{localStorage.setItem('crucix_case',JSON.stringify(INV.case))}catch(e){console.warn('case too large for localStorage',e)}}
@@ -7590,18 +7786,96 @@ async function investigateTarget(raw, type){
   const hint = type && type!=='auto' ? type : undefined;
   if (currentTab !== 'investigations') setTab('investigations'); else renderLower();
   const tick=setInterval(()=>{const el=document.getElementById('invElapsed');if(el)el.textContent=((Date.now()-INV.loadingSince)/1000).toFixed(1)+'s'},100);
+  INV.progress = null;
+  const qs = `target=${encodeURIComponent(q)}${hint?`&type=${encodeURIComponent(hint)}`:''}`;
+  const isHandle = classifyClientSide(q, hint||INV.hint)==='username';
   try {
-    const r = await fetch(`/api/investigate?target=${encodeURIComponent(q)}${hint?`&type=${encodeURIComponent(hint)}`:''}`);
-    const body = await r.json().catch(()=>({}));
-    if (!r.ok) { INV.error = body.error || 'Investigation failed'; INV.dossier = null; }
-    else { INV.dossier = body; INV.graphFocus = invKey(body.type, body.target); invIngestDossier(body); }
+    let r;
+    if (isHandle) r = await invStream(`/api/investigate/stream?${qs}&nsfw=${INV.nsfw?1:0}`, p => { INV.progress = p; invRenderProgress(); });
+    else { const res = await fetch(`/api/investigate?${qs}`); r = { ok: res.ok, body: await res.json().catch(()=>({})) }; }
+    if (!r.ok) { INV.error = r.body?.error || 'Investigation failed'; INV.dossier = null; }
+    else { INV.dossier = r.body; INV.graphFocus = invKey(r.body.type, r.body.target); INV.plat = { status:'found', cat:'all', conf:'all' }; INV.attached = {}; invIngestDossier(r.body); }
   } catch { INV.error = 'Investigation failed'; INV.dossier = null; }
   clearInterval(tick);
-  INV.loading = false;
+  INV.loading = false; INV.progress = null;
   renderTabbar(); renderLeftRail(); renderLower();
   const panel = document.querySelector('.right-investigate');
   if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+// Server-sent `progress` frames then one `dossier` frame (see /api/investigate/stream).
+async function invStream(url, onProgress){
+  const res = await fetch(url);
+  if (!res.ok || !res.body) return { ok:false, body: await res.json().catch(()=>({})) };
+  const rd = res.body.getReader(), dec = new TextDecoder();
+  let buf = '', dossier = null, err = null;
+  for (;;) {
+    const { value, done } = await rd.read();
+    if (done) break;
+    buf += dec.decode(value, { stream:true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const frame = buf.slice(0, i); buf = buf.slice(i + 2);
+      let ev = 'message', data = '';
+      for (const line of frame.split('\n')) { if (line.startsWith('event:')) ev = line.slice(6).trim(); else if (line.startsWith('data:')) data += line.slice(5).trim(); }
+      let j = null; try { j = JSON.parse(data); } catch {}
+      if (ev === 'progress' && j) onProgress(j); else if (ev === 'dossier') dossier = j; else if (ev === 'error') err = j?.error;
+    }
+  }
+  return dossier ? { ok:true, body:dossier } : { ok:false, body:{ error: err || 'Investigation failed' } };
+}
+function invProgressHtml(){
+  const p = INV.progress; if (!p) return '';
+  const pct = p.total ? Math.round(p.done / p.total * 100) : 0;
+  return `<div class="inv-progress-bar"><span style="width:${pct}%"></span></div><div class="inv-progress-txt"><span><b>${p.done}</b> / ${p.total} platforms checked &middot; <b>${p.found}</b> found</span><span>${(p.recent||[]).map(esc).join(' &middot; ')}</span></div>`;
+}
+function invRenderProgress(){ const el = document.getElementById('invProgress'); if (el) el.innerHTML = invProgressHtml(); }
+const INV_CONF = { api:['API','platform API confirmed the account'], message:['content','profile page content verified'], status_code:['status','HTTP status only — verify before relying on it'], response_url:['redirect','no redirect to a login/404 page — weakest signal'], manual:['manual','attached by hand'] };
+function invConfChip(c){ const m = INV_CONF[c] || [c, '']; return `<span class="inv-conf ${esc(c)}" title="${esc(m[1])}">${esc(m[0])}</span>`; }
+function invPlatFilter(k, v){ INV.plat = { ...INV.plat, [k]: v }; renderLower(); }
+function invOpenAllFound(){
+  const list = invShownPlatforms().filter(p => p.status === 'found');
+  if (!list.length) return invToast('Nothing to open in this view');
+  if (list.length > 12 && !confirm(`Open ${list.length} tabs?`)) return;
+  let n = 0; for (const p of list) { if (window.open(p.url, '_blank', 'noopener')) n++; }
+  invToast(n < list.length ? `Opened ${n}/${list.length} — allow pop-ups for the rest` : `Opened ${n} profiles`);
+}
+function invShownPlatforms(){
+  const d = INV.dossier, f = INV.plat, all = d?.platforms || [];
+  let shown = f.status === 'all' ? all : f.status === 'error' ? all.filter(p => p.status === 'error' || p.status === 'illegal') : all.filter(p => p.status === f.status);
+  if (f.cat !== 'all') shown = shown.filter(p => p.category === f.cat);
+  if (f.conf !== 'all') shown = shown.filter(p => p.confidence === f.conf);
+  return shown;
+}
+function invEnsureTargets(){ if (!TGT.loaded && !TGT.loading) { TGT.loading = true; tgtApi('GET','/api/targeting').then(r => { TGT.loading = false; TGT.loaded = true; if (r.ok && r.body) { TGT.list = r.body.targets || []; TGT.caps = r.body.capabilities || null; } if (currentTab === 'investigations') renderLower(); }); } }
+async function invAttachProfile(idx){
+  const d = INV.dossier, p = d?.platforms?.[idx];
+  if (!p || p.status !== 'found') return;
+  if (!INV.attachTgt) return invToast('Pick a target to attach to');
+  const body = { platform: p.platform, handle: d.target, url: p.url, category: p.category || 'web', confidence: p.confidence || 'manual', detector: p.detector || null };
+  if (!body.detector) delete body.detector;
+  const r = await tgtApi('POST', `/api/targeting/targets/${encodeURIComponent(INV.attachTgt)}/accounts`, body);
+  if (r.status === 201 || r.status === 409 && r.body?.id) { INV.attached[p.url] = true; invToast(r.status === 201 ? `${p.platform} profile attached for review` : 'Already attached to this target'); renderLower(); tgtApi('GET','/api/targeting').then(x => { if (x.ok && x.body) TGT.list = x.body.targets || TGT.list; }); if (TGT.sel === INV.attachTgt) tgtFetchTarget(INV.attachTgt); }
+  else if (r.status === 400) invToast(`Rejected: check ${String(r.body?.field || 'input').replace(/[^a-zA-Z.]/g, '')}`);
+  else if (r.status === 409) invToast(r.body?.error || 'Target cannot take more profiles');
+  else invToast('Attach failed');
+}
+function invNominateFromHandle(){
+  const d = INV.dossier; if (!d || d.type !== 'username') return;
+  const found = (d.platforms || []).filter(p => p.status === 'found');
+  const best = found.find(p => p.confidence === 'api') || found.find(p => p.confidence === 'message') || found[0];
+  TGT.form = { ...TGT.form, label: d.target, entityType: 'person', aliases: '', basisKind: 'source-url', basisRef: best?.url || '', requirement: '' };
+  TGT.formError = best ? null : 'Add a public HTTPS source that names this handle';
+  setTab('targeting');
+  invToast('Nomination form pre-filled — state the requirement and nominate');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-inv-act]'); if (!b || b.disabled) return;
+  const a = b.dataset.invAct;
+  if (a === 'attach') invAttachProfile(Number(b.dataset.i));
+  else if (a === 'open-all') invOpenAllFound();
+  else if (a === 'nominate') invNominateFromHandle();
+});
 
 // ─── Dossier renderers ───────────────────────────────────────────────────────
 function invRiskHeader(d){
@@ -7714,10 +7988,44 @@ function renderDossierEmail(d,out){
   out.push(invHistorySec(d.domainHistory,'Domain history · Wayback'));
 }
 function renderDossierUsername(d,out){
-  const found=(d.platforms||[]).filter(p=>p.status==='found'), miss=(d.platforms||[]).filter(p=>p.status==='not_found'), err=(d.platforms||[]).filter(p=>p.status==='error');
+  const all=d.platforms||[], f=INV.plat;
+  const groups={found:[],waf:[],not_found:[],error:[],illegal:[]};for(const p of all)(groups[p.status]||groups.error).push(p);
+  const found=groups.found;
   const cats={};for(const p of found)(cats[p.category]=cats[p.category]||[]).push(p);
-  out.push(invSec(`Handle footprint · ${found.length}/${d.checked} platforms`,`<div class="inv-plat-grid">${found.map(p=>`<a class="inv-plat found" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" title="${esc(p.category)}"><span class="hdot live"></span>${esc(p.platform)}</a>`).join('')}${miss.map(p=>`<span class="inv-plat" title="not found (HTTP ${esc(p.http)})"><span class="hdot off"></span>${esc(p.platform)}</span>`).join('')}${err.map(p=>`<span class="inv-plat err" title="probe failed"><span class="hdot error"></span>${esc(p.platform)}</span>`).join('')}</div>
-    <div class="sh-note">Presence = platform API or a content-verified profile page, not just HTTP 200. Categories: ${Object.entries(cats).map(([c,arr])=>`${esc(c)} ${arr.length}`).join(' · ')||'none'}</div>`));
+  const confs={};for(const p of found)confs[p.confidence]=(confs[p.confidence]||0)+1;
+  const shown=invShownPlatforms();
+  const idxOf=new Map(all.map((p,i)=>[p,i]));
+  invEnsureTargets();
+  const openTargets=(TGT.list||[]).filter(t=>t.status!=='closed');
+  if(INV.attachTgt&&!openTargets.some(t=>t.id===INV.attachTgt))INV.attachTgt=null;
+  if(!INV.attachTgt&&openTargets.length)INV.attachTgt=(TGT.sel&&openTargets.some(t=>t.id===TGT.sel))?TGT.sel:openTargets[0].id;
+  const tabs=[['found','Found',found.length],['waf','Challenged',groups.waf.length],['not_found','Not found',groups.not_found.length],['error','Error',groups.error.length+groups.illegal.length],['all','All',all.length]];
+  const tile=p=>{
+    const i=idxOf.get(p);
+    if(p.status==='found'){
+      const att=INV.attached[p.url];
+      return `<span class="inv-plat found" title="${esc(p.category)} · ${esc((INV_CONF[p.confidence]||[p.confidence])[1]||p.confidence)}${p.http?` · HTTP ${esc(p.http)}`:''}${p.source==='sherlock'?' · Sherlock manifest':' · curated probe'}"><a class="inv-plat-a" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="hdot live"></span>${esc(p.platform)}${p.nsfw?' <span class="inv-chip vuln" style="font-size:7px">18+</span>':''}</a>${invConfChip(p.confidence)}${openTargets.length?`<button class="inv-plat-act ${att?'done':''}" data-inv-act="attach" data-i="${i}" ${att?'disabled':''} title="${att?'attached to target':'attach this profile to the selected target for analyst review'}">${att?'\u2713 TGT':'+TGT'}</button>`:''}</span>`;
+    }
+    if(p.status==='waf')return `<span class="inv-plat waf" title="bot challenge (Cloudflare or similar) — undetermined; open manually"><span class="hdot degraded"></span>${esc(p.platform)} <a class="inv-link ext" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" style="font-size:8px">open</a></span>`;
+    if(p.status==='not_found')return `<span class="inv-plat" title="not found (HTTP ${esc(p.http)}) · ${esc(p.category)}"><span class="hdot off"></span>${esc(p.platform)}</span>`;
+    if(p.status==='illegal')return `<span class="inv-plat err" title="handle does not match this platform's username rules"><span class="hdot off"></span>${esc(p.platform)} <span style="font-size:7px">n/a</span></span>`;
+    return `<span class="inv-plat err" title="probe failed: ${esc(p.error||'unreachable')}"><span class="hdot error"></span>${esc(p.platform)}</span>`;
+  };
+  const sh=d.sherlock||{};const man=INV._status?.sherlock;
+  const catOpts=['all',...Object.keys(cats).sort()];
+  const confOpts=['all',...['api','message','status_code','response_url'].filter(c=>confs[c])];
+  out.push(invSec(`Handle footprint · ${found.length}/${d.checked} platforms`,`
+    <div class="inv-views" style="margin-top:2px">${tabs.map(([v,l,n])=>`<button class="inv-view ${f.status===v?'active':''}" onclick="invPlatFilter('status','${v}')">${l}<span class="tab-n">${n}</span></button>`).join('')}
+      <span class="inv-views-right">${f.status!=='not_found'?`<a class="inv-link" data-inv-act="open-all" title="open every found profile in this view">open all</a>`:''}</span></div>
+    <div class="inv-filters">
+      <label>category <select onchange="invPlatFilter('cat',this.value)">${catOpts.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${c==='all'?'all':`${esc(c)} (${cats[c].length})`}</option>`).join('')}</select></label>
+      <label>confidence <select onchange="invPlatFilter('conf',this.value)">${confOpts.map(c=>`<option value="${esc(c)}" ${f.conf===c?'selected':''}>${c==='all'?'all':`${esc((INV_CONF[c]||[c])[0])} (${confs[c]})`}</option>`).join('')}</select></label>
+      <label title="Re-run including the ${man?.nsfw??19} adult platforms in the manifest"><input type="checkbox" ${sh.includeNsfw?'checked':''} onchange="INV.nsfw=this.checked;investigateTarget(INV.query,'username')"> include 18+ sites</label>
+      ${openTargets.length?`<label title="Target that +TGT attaches profiles to">attach to <select onchange="INV.attachTgt=this.value;renderLower()">${openTargets.map(t=>`<option value="${esc(t.id)}" ${INV.attachTgt===t.id?'selected':''}>${esc(t.label)}</option>`).join('')}</select></label>`:''}
+      <button class="inv-btn ghost" data-inv-act="nominate" title="Open Targeting with a nomination pre-filled from this handle">${openTargets.length?'New target from handle':'Nominate as target'}</button>
+    </div>
+    <div class="inv-plat-grid">${shown.length?shown.map(tile).join(''):'<span style="color:var(--dim);font-size:10px">nothing in this view</span>'}</div>
+    <div class="sh-note">Each platform received one request for the handle; the subject was not contacted. Confidence ${['api','message','status_code','response_url'].filter(c=>confs[c]).map(c=>`${invConfChip(c)} ${confs[c]}`).join(' ')} — status-only hits are leads to verify, a same-handle match is not an identity. ${groups.waf.length?`${groups.waf.length} platform${groups.waf.length===1?'':'s'} answered with a bot challenge (undetermined). `:''}${sh.sites?`Manifest: Sherlock ${man?.commit?`<code>${esc(String(man.commit).slice(0,7))}</code>`:''} (MIT) · ${sh.sites} sites checked${sh.skipped?.nsfw&&!sh.includeNsfw?` · ${sh.skipped.nsfw} adult sites skipped`:''}${sh.skipped?.disabled?` · ${sh.skipped.disabled} disabled by self-test`:''} · ${d.checked-sh.sites} curated probes.`:''}</div>`));
   const gh=d.github;
   if(gh?.status==='ok')out.push(invSec('GitHub profile',`<div style="display:flex;gap:10px;align-items:flex-start">${gh.avatar?`<img src="${esc(gh.avatar)}&s=96" width="48" height="48" style="border:1px solid var(--border);flex-shrink:0" alt="">`:''}<div style="flex:1;min-width:0">${invKv([
     ['Name',`${esc(gh.name||gh.login)} ${invExt(gh.url,'@'+gh.login)}`],['Company',esc(gh.company)],['Location',esc(gh.location)],['Bio',esc(gh.bio)],['Blog',gh.blog?invExt(/^https?:/.test(gh.blog)?gh.blog:'https://'+gh.blog):null],['Public email',gh.email?invLink(gh.email):null],['X / Twitter',gh.twitter?invExt('https://x.com/'+gh.twitter,'@'+gh.twitter):null],
@@ -8000,7 +8308,7 @@ function renderInvestigatePanel(){
   if (INV.loading) {
     const t=classifyClientSide(INV.query,INV.hint);
     const srcs=INV_SOURCES_BY_TYPE[t]||['classifying selector'];
-    body = `<div class="inv-loading"><div class="inv-loading-head">RUNNING ${esc((t||'').toUpperCase()||'SELECTOR')} ENRICHMENT CHAIN <span id="invElapsed">0.0s</span></div><div class="inv-chips">${srcs.map((s,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(s)}</span>`).join('')}</div><div class="sh-note">Parallel keyless lookups; keyed providers (marked *) run when their env var is set. Username sweeps take ~5–10 s.</div></div>`;
+    body = `<div class="inv-loading"><div class="inv-loading-head">RUNNING ${esc((t||'').toUpperCase()||'SELECTOR')} ENRICHMENT CHAIN <span id="invElapsed">0.0s</span></div><div class="inv-chips">${srcs.map((s,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(s)}</span>`).join('')}</div><div class="sh-note">Parallel keyless lookups; keyed providers (marked *) run when their env var is set. ${t==='username'?`Handle sweeps check ~${(INV._status?.platformProbes||37)+((INV._status?.sherlock?.sites||481)-(INV._status?.sherlock?.nsfw||19)-37)} platforms in ~30 s.`:''}</div><div class="inv-progress" id="invProgress">${invProgressHtml()}</div></div>`;
   }
   else if (INV.view==='graph') body = renderCaseGraph();
   else if (INV.view==='timeline') body = renderCaseTimeline();
@@ -8009,7 +8317,7 @@ function renderInvestigatePanel(){
   else if (d) body = renderDossier(d);
   else body = renderInvestigateEmpty(false);
   const views=[['dossier','Dossier'],['graph',`Case graph${Object.keys(INV.case.entities).length?` <span class="tab-n">${Object.keys(INV.case.entities).length}</span>`:''}`],['timeline','Timeline'],['tools','Toolkit']];
-  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>OSINT Workbench</h3><div style="display:flex;gap:6px;align-items:center"><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">${(INV._status?.types||[]).length||Object.keys(INV_SOURCES_BY_TYPE).length} SELECTOR TYPES</span><span class="badge">PASSIVE · READ-ONLY</span></div></div>
+  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>OSINT Workbench</h3><div style="display:flex;gap:6px;align-items:center"><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">${(INV._status?.types||[]).length||Object.keys(INV_SOURCES_BY_TYPE).length} SELECTOR TYPES</span><span class="badge" title="Public sources only. Handle sweeps send one request per platform; nothing is sent to the subject.">READ-ONLY · NO SUBJECT CONTACT</span></div></div>
     <form class="inv-form" onsubmit="event.preventDefault();investigateTarget(this.target.value, this.kind.value)">
       <input class="inv-input" name="target" maxlength="2048" autocomplete="off" spellcheck="false" placeholder="domain · URL · IPv4/6 · hash · email · @handle · +phone · BTC/ETH · company (choose CO.)" value="${esc(INV.query)}" oninput="INV.query=this.value;invPreview()">
       <select class="inv-btn" name="kind" style="padding:6px 4px" onchange="INV.hint=this.value;invPreview()">${hints.map(([v,l])=>`<option value="${v}" ${INV.hint===v?'selected':''}>${l}</option>`).join('')}</select>
@@ -8081,7 +8389,7 @@ function renderInvestigateHelpPanel(){
     ['ipwho.is · Wayback','keyless','geolocation, archive history',['ipwho.is','Wayback']],
     ['OTX · urlscan.io','keyless','threat pulses, public scans',['OTX','urlscan.io']],
     ['Gravatar · Keybase · GitHub','keyless','identity + commit-email leaks',['Gravatar','Keybase','GitHub']],
-    [`${probes?probes+' ':''}platform probes`,'keyless','handle presence, API-verified',[]],
+    [`${probes?probes+((INV._status?.sherlock?.sites||0)?'+'+(INV._status.sherlock.sites-(INV._status.sherlock.nsfw||0)):'')+' ':''}platform probes`,'keyless','handle presence: curated API probes + Sherlock manifest',[]],
     ['mempool · BlockCypher · OFAC','keyless','BTC/ETH balances, SDN screen',['mempool.space','BlockCypher','OFAC']],
     ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation',['VirusTotal']],
     ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org',['Shodan']],
@@ -8558,7 +8866,7 @@ function tgtPick(id){
 }
 function tgtLowerPanels(wrap){
   if(!TGT.sel)return [wrap(renderTgtNominateHero(),'lp-wide')];
-  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
+  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtAccountsPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
 }
 async function tgtNominate(){
   const f=TGT.form;
@@ -8591,7 +8899,7 @@ async function tgtDevelop(){
 async function tgtDecide(kind,id,decision){
   if(!TGT.sel||TGT.busy)return;
   TGT.busy='decide';renderLower();
-  const path=`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/${kind==='link'?'links':'proposals'}/${encodeURIComponent(id)}`;
+  const path=`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/${kind==='link'?'links':kind==='account'?'accounts':'proposals'}/${encodeURIComponent(id)}`;
   const r=await tgtApi('POST',path,{decision});
   TGT.busy=null;
   if(!r.ok)TGT.error='Decision not recorded';
@@ -8620,6 +8928,7 @@ document.addEventListener('click',e=>{
   else if(a==='close')tgtClose();
   else if(a==='delete')tgtDelete();
   else if(a==='decide')tgtDecide(b.dataset.kind,b.dataset.id,b.dataset.decision);
+  else if(a==='acct-detach')tgtDetachAccount(b.dataset.id);
   else if(a==='view'){TGT.view=b.dataset.view;renderLower()}
   else if(a==='toggle-decided'){TGT.showDecided=!TGT.showDecided;renderLower()}
 });
@@ -8731,7 +9040,7 @@ function renderTgtPackagePanel(){
   const kpi=(k,v,title)=>`<div class="tgt-kpi" title="${esc(title||'')}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
   const actions=`<div class="tgt-pkg-actions">
       <button class="inv-btn" data-tgt-act="develop" ${dev||t.status==='closed'||TGT.busy?'disabled':''}>${dev?'Developing…':p?'Re-develop':'Develop target'}</button>
-      ${p?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
+      ${(p||(t.accountList||[]).length)?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
       <button class="inv-btn ghost" data-tgt-act="close" ${t.status==='closed'||TGT.busy?'disabled':''}>Close</button>
       <button class="inv-btn ghost" data-tgt-act="delete" ${TGT.busy?'disabled':''}>Delete</button>
       <button class="inv-btn ghost" data-tgt-act="new" ${TGT.busy?'disabled':''} title="Nominate another target">+ New target</button></div>`;
@@ -8786,6 +9095,29 @@ function renderTgtLinksPanel(){
     <div class="inv-scroll tgt-scroll">${rows||'<div class="inv-hint">Nothing in this view.</div>'}</div>
     <div class="sh-note">Roles are proposed against the requirement. <b>Accept</b> records an analyst decision; <b>Reject</b> withdraws any graph proposal derived from the link. Decisions survive re-development.</div>`,
     `<span class="badge ${pending?'warn':''}">${pending} PENDING \u00b7 ${links.length} LINKS</span>`);
+}
+function renderTgtAccountsPanel(){
+  const t=TGT.target;const list=t?.accountList||[];
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-accounts"><div class="sec-head"><h3>Attached Public Profiles</h3>${badge||'<span class="badge">WORKBENCH</span>'}</div>${body}</div>`;
+  if(!t)return wrapP('<div class="inv-hint">Select or nominate a target.</div>');
+  if(!list.length)return wrapP('<div class="inv-hint">No profiles attached. Run an <b>@handle</b> sweep in the OSINT Workbench and press <b>+TGT</b> on a found profile to attach it here for review.</div>');
+  const pend=list.filter(a=>!a.decision).length;
+  const order={api:0,message:1,status_code:2,response_url:3,manual:4};
+  const rows=list.slice().sort((a,b)=>(a.decision?1:0)-(b.decision?1:0)||(order[a.confidence]??9)-(order[b.confidence]??9)).map(a=>`<div class="tgt-link ${a.decision||''}">
+      <div class="tgt-link-head"><span class="inv-chip">${esc(a.category)}</span><span class="tgt-link-label">${invExt(a.url,a.platform)}</span><code>${esc(a.handle)}</code>${invConfChip(a.confidence)}<span class="inv-chip" title="who attached it">${esc(a.attachedBy)} \u00b7 ${esc(invDate(a.attachedAt))}</span></div>
+      <div class="tgt-link-why">${esc((INV_CONF[a.confidence]||[a.confidence,''])[1])}${a.detector?` \u00b7 detector <code>${esc(a.detector)}</code>`:''}${a.note?` \u00b7 ${esc(a.note)}`:''}${a.decidedAt?` \u00b7 decided ${esc(invDate(a.decidedAt))}`:''}</div>
+      ${tgtDecisionBtns('account',a.id,a.decision)} <button class="inv-btn ghost" data-tgt-act="acct-detach" data-id="${esc(a.id)}" ${TGT.busy?'disabled':''} title="remove this profile from the target">Detach</button></div>`).join('');
+  return wrapP(`<div class="inv-scroll tgt-scroll">${rows}</div>
+    <div class="sh-note">Profiles come from an active per-platform handle check in the Workbench, not from the subject. A same-handle match is a lead; <b>Accept</b> records the analyst's attribution in the dossier. Nothing is written to the graph.</div>`,
+    `<span class="badge ${pend?'warn':''}">${pend} PENDING \u00b7 ${list.length} PROFILES</span>`);
+}
+async function tgtDetachAccount(id){
+  if(!TGT.sel||TGT.busy)return;
+  TGT.busy='detach';renderLower();
+  const r=await tgtApi('DELETE',`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/accounts/${encodeURIComponent(id)}`);
+  TGT.busy=null;
+  if(!r.ok&&r.status!==204)TGT.error='Profile not detached';
+  await tgtFetchTarget(TGT.sel);tgtRerender();
 }
 function renderTgtProposalsPanel(){
   const t=TGT.target;

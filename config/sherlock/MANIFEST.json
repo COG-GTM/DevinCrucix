@@ -1,0 +1,8 @@
+{
+  "source": "https://github.com/sherlock-project/sherlock",
+  "path": "sherlock_project/resources/data.json",
+  "commit": "e40a45ec2a074b90703b3b4b842c8a3adbd6ada3",
+  "license": "MIT",
+  "fetchedAt": "2026-10-04",
+  "sites": 481
+}

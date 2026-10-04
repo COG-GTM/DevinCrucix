@@ -191,6 +191,59 @@ test('targeting routes', async (t) => {
     assert.equal(t2.exports, 1);
   });
 
+  let accountId;
+  await t.test('POST /api/targeting/targets/:id/accounts attaches a Workbench profile as a proposed association', async () => {
+    const res = await json('POST', `/api/targeting/targets/${id}/accounts`, { platform: 'GitHub', handle: 'el_mencho', url: 'https://github.com/el_mencho', category: 'dev', confidence: 'api', detector: 'api' });
+    assert.equal(res.status, 201);
+    const body = await res.json();
+    assert.match(body.account.id, /^acc_[a-f0-9]{12}$/);
+    assert.equal(body.account.state, 'proposed');
+    assert.equal(body.target.accounts.pending, 1);
+    accountId = body.account.id;
+    const dup = await json('POST', `/api/targeting/targets/${id}/accounts`, { platform: 'GitHub', handle: 'el_mencho', url: 'https://github.com/el_mencho' });
+    assert.equal(dup.status, 409);
+    const bad = await json('POST', `/api/targeting/targets/${id}/accounts`, { platform: 'GitHub', handle: 'el_mencho', url: 'http://10.0.0.1/x' });
+    assert.equal(bad.status, 400);
+    assert.equal((await bad.json()).field, 'url');
+    const extra = await json('POST', `/api/targeting/targets/${id}/accounts`, { platform: 'GitHub', handle: 'x', url: 'https://github.com/x', graph: true });
+    assert.equal(extra.status, 400);
+    const got = await (await req(`/api/targeting/targets/${id}`)).json();
+    assert.equal(got.accountList.length, 1);
+    assert.deepEqual(got.graphProposals.filter(p => p.accountId), []);
+  });
+
+  await t.test('POST /api/targeting/targets/:id/accounts/:accountId records the analyst decision; DELETE detaches', async () => {
+    const acc = await json('POST', `/api/targeting/targets/${id}/accounts/${accountId}`, { decision: 'accept' });
+    assert.equal(acc.status, 200);
+    assert.equal((await acc.json()).account.state, 'accepted');
+    const bad = await json('POST', `/api/targeting/targets/${id}/accounts/${accountId}`, { decision: 'maybe' });
+    assert.equal(bad.status, 400);
+    const missing = await json('POST', `/api/targeting/targets/${id}/accounts/acc_000000000000`, { decision: 'accept' });
+    assert.equal(missing.status, 404);
+    const md = await (await req(`/api/targeting/targets/${id}/dossier.md`)).text();
+    assert.match(md, /Attached public profiles/);
+    assert.match(md, /el\\_mencho \| api \| accepted/);
+    const del = await req(`/api/targeting/targets/${id}/accounts/${accountId}`, { method: 'DELETE' });
+    assert.equal(del.status, 204);
+    assert.equal((await req(`/api/targeting/targets/${id}/accounts/${accountId}`, { method: 'DELETE' })).status, 404);
+    const got = await (await req(`/api/targeting/targets/${id}`)).json();
+    assert.equal(got.accountList.length, 0);
+  });
+
+  await t.test('dossier.md renders for an undeveloped target once a profile is attached', async () => {
+    const res = await json('POST', '/api/targeting/targets', { ...NOMINATION, label: 'Handle-only target', aliases: [], basis: { kind: 'source-url', ref: 'https://www.justice.gov/opa/pr/handle-only' } });
+    assert.equal(res.status, 201);
+    const tid = (await res.json()).target.id;
+    assert.equal((await req(`/api/targeting/targets/${tid}/dossier.md`)).status, 409);
+    const att = await json('POST', `/api/targeting/targets/${tid}/accounts`, { platform: 'Codeberg', handle: 'handle_only', url: 'https://codeberg.org/handle_only', category: 'dev', confidence: 'status_code', detector: 'status_code' });
+    assert.equal(att.status, 201);
+    const md = await (await req(`/api/targeting/targets/${tid}/dossier.md`)).text();
+    assert.match(md, /Attached public profiles/);
+    assert.match(md, /handle\\_only \| status\\_code \| proposed/);
+    assert.match(md, /Package not yet developed/);
+    assert.equal((await req(`/api/targeting/targets/${tid}`, { method: 'DELETE' })).status, 200);
+  });
+
   await t.test('close blocks development, delete removes, both 404 afterwards', async () => {
     const closed = await json('POST', `/api/targeting/targets/${id}/close`);
     assert.equal(closed.status, 200);

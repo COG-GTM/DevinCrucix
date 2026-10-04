@@ -12,6 +12,7 @@ import { isIP } from 'net';
 import { createHash } from 'crypto';
 import { safeFetch } from '../utils/fetch.mjs';
 import { safeOutboundFetch, SafeFetchError, assertPublicHost } from '../../lib/safeOutboundFetch.mjs';
+import { runManifest, registrableHost, CONFIDENCE_RANK } from '../../lib/sherlock.mjs';
 
 export { assertPublicHost };
 
@@ -39,15 +40,16 @@ function providerError(source, raw) {
 // Bounded fetch that returns status + a slice of the body instead of throwing. Goes through
 // safeOutboundFetch, so every hop (including redirects) is checked against the private-range policy.
 // `redirect: 'manual'` returns the 3xx response itself so callers can walk the chain hop by hop.
-async function probe(url, { timeout = 8000, method = 'GET', headers = {}, maxBytes = 65536, redirect = 'follow' } = {}) {
+export async function probe(url, { timeout = 8000, method = 'GET', headers = {}, maxBytes = 65536, redirect = 'follow', body } = {}) {
   try {
     const res = await safeOutboundFetch(url, {
-      method, timeout, maxBytes, truncate: true, followRedirects: redirect !== 'manual',
+      method, body, timeout, maxBytes, truncate: true, followRedirects: redirect !== 'manual',
       headers: { 'User-Agent': UA, Accept: '*/*', ...headers },
     });
-    const body = method === 'HEAD' ? '' : await res.text();
-    return { ok: true, status: res.status, headers: res.headers, body, url: res.url };
+    const text = method === 'HEAD' ? '' : await res.text();
+    return { ok: true, status: res.status, headers: res.headers, body: text, url: res.url };
   } catch (e) {
+    if (process.env.CRUCIX_DEBUG_PROBE) console.error('[OSINT] probe failed', url, e?.code || e?.name, e?.message);
     const blocked = e instanceof SafeFetchError && e.code === 'blocked' ? e.message : null;
     const timedOut = (e instanceof SafeFetchError && e.code === 'timeout') || e.name === 'AbortError' || e.name === 'TimeoutError';
     return { ok: false, status: 0, error: blocked ? 'blocked' : timedOut ? 'timed out' : 'unreachable', blocked, headers: new Headers(), body: '' };
@@ -302,23 +304,58 @@ async function githubProfile(username) {
   };
 }
 
-export async function investigateUsername(username) {
+// Registrable hosts the curated probes already cover; the Sherlock manifest skips these so a platform
+// is reported once, by its higher-confidence (API-backed where available) curated check.
+export const CURATED_HOSTS = new Set(PLATFORMS.map(p => registrableHost(p.url('x'))).filter(Boolean));
+
+const STATUS_ORDER = { found: 0, waf: 1, not_found: 2, error: 3, illegal: 4 };
+function sortPlatforms(a, b) {
+  return (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)
+    || (CONFIDENCE_RANK[b.confidence] ?? -1) - (CONFIDENCE_RANK[a.confidence] ?? -1)
+    || a.platform.localeCompare(b.platform);
+}
+
+/**
+ * Handle footprint: the curated probes (platform APIs where they exist) plus the vendored Sherlock
+ * manifest (lib/sherlock.mjs). `onProgress` receives { done, total, found, platform, status } per
+ * site so the route can stream progress; `includeNsfw` opts adult sites in (off by default).
+ */
+export async function investigateUsername(username, { onProgress, includeNsfw = false } = {}) {
   const u = encodeURIComponent(username);
-  const pool = 8; let i = 0;
-  const results = new Array(PLATFORMS.length);
-  await Promise.all(Array.from({ length: pool }, async () => {
-    while (i < PLATFORMS.length) {
-      const idx = i++; const p = PLATFORMS[idx];
-      const r = await probe(p.check ? p.check(u) : p.url(u), { timeout: 9000, maxBytes: 48 * 1024 });
-      results[idx] = { platform: p.name, category: p.cat, url: p.url(u), status: !r.ok ? 'error' : p.ok(r) ? 'found' : 'not_found', http: r.status || null };
-    }
-  }));
-  const [gh, kb, grav] = await Promise.all([githubProfile(username), keybaseLookup('usernames', username), safeFetch(`https://en.gravatar.com/${u}.json`, { timeout: 8000, retries: 0 })]);
+  const curatedTotal = PLATFORMS.length;
+  let done = 0, found = 0, manifestTotal = 0;
+  const report = (platform, status) => { done++; if (status === 'found') found++; if (onProgress) { try { onProgress({ done, total: curatedTotal + manifestTotal, found, platform, status }); } catch { /* observer only */ } } };
+
+  const curated = new Array(PLATFORMS.length);
+  const runCurated = (async () => {
+    const pool = 8; let i = 0;
+    await Promise.all(Array.from({ length: pool }, async () => {
+      while (i < PLATFORMS.length) {
+        const idx = i++; const p = PLATFORMS[idx];
+        const r = await probe(p.check ? p.check(u) : p.url(u), { timeout: 9000, maxBytes: 48 * 1024 });
+        const status = !r.ok ? 'error' : p.ok(r) ? 'found' : 'not_found';
+        curated[idx] = { platform: p.name, category: p.cat, url: p.url(u), status, http: r.status || null, source: 'curated', confidence: p.check ? 'api' : 'message', detector: p.check ? 'api' : 'content' };
+        report(p.name, status);
+      }
+    }));
+  })();
+  const runSherlock = runManifest(username, {
+    probe, exclude: CURATED_HOSTS, includeNsfw, pool: 32,
+    onProgress: ({ total, platform, status }) => { manifestTotal = total; report(platform, status); },
+  });
+  const [, sherlock, gh, kb, grav] = await Promise.all([
+    runCurated, runSherlock, githubProfile(username), keybaseLookup('usernames', username), safeFetch(`https://en.gravatar.com/${u}.json`, { timeout: 8000, retries: 0 }),
+  ]);
   const g = grav.entry?.[0];
-  const found = results.filter(r => r.status === 'found');
+  const platforms = [...curated, ...sherlock.results].sort(sortPlatforms);
+  const count = st => platforms.filter(r => r.status === st).length;
+  const foundList = platforms.filter(r => r.status === 'found');
+  const byConfidence = {};
+  for (const r of foundList) byConfidence[r.confidence] = (byConfidence[r.confidence] || 0) + 1;
   return {
-    checked: results.length, foundCount: found.length, errorCount: results.filter(r => r.status === 'error').length,
-    platforms: results.sort((a, b) => (a.status === 'found' ? 0 : a.status === 'error' ? 2 : 1) - (b.status === 'found' ? 0 : b.status === 'error' ? 2 : 1)),
+    checked: platforms.length, foundCount: foundList.length, errorCount: count('error'), wafCount: count('waf'), illegalCount: count('illegal'),
+    platforms,
+    sherlock: { sites: sherlock.total, skipped: sherlock.skipped, found: sherlock.results.filter(r => r.status === 'found').length, includeNsfw, byConfidence },
     github: gh, keybase: kb,
     gravatar: g ? { displayName: g.displayName || null, location: g.currentLocation || null, about: String(g.aboutMe || '').slice(0, 200) || null, accounts: (g.accounts || []).map(a => ({ service: a.shortname || a.name, url: a.url })).slice(0, 10), profileUrl: g.profileUrl || null } : null,
     variants: [...new Set([username.toLowerCase(), username.replace(/[._-]/g, ''), username.replace(/[._]/g, '-'), username.replace(/[-.]/g, '_'), `${username}1`, `${username}_`, `_${username}`, `real${username}`, `${username}official`].filter(v => v !== username && USERNAME_RE.test(v)))].slice(0, 8),

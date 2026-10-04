@@ -2,8 +2,13 @@
 // and the full OFAC SDN screening index. No network — the indexes are built/refreshed by lib/finance, this
 // just tells the Sources tab what is reporting and why not.
 import { existsSync, statSync } from 'fs';
-import { DEFAULT_INDEX, SNAPSHOT_INDEX, SNAPSHOT_GZ } from '../../lib/finance/sources/offshoreleaks.mjs';
-import { DEFAULT_FILE as OFAC_FILE } from '../../lib/finance/sources/ofac.mjs';
+import { join } from 'path';
+import { DEFAULT_INDEX as DEFAULT_FULL, SNAPSHOT_INDEX, SNAPSHOT_GZ } from '../../lib/finance/sources/offshoreleaks.mjs';
+import { DEFAULT_FILE as DEFAULT_OFAC } from '../../lib/finance/sources/ofac.mjs';
+
+// Same overrides server.mjs hands to FinanceService, so a custom index location reports correctly.
+const DEFAULT_INDEX = process.env.FINANCE_INDEX_FILE || DEFAULT_FULL;
+const OFAC_FILE = process.env.FINANCE_DATA_DIR ? join(process.env.FINANCE_DATA_DIR, 'ofac-sdn.json') : DEFAULT_OFAC;
 
 export async function briefing() {
   const full = existsSync(DEFAULT_INDEX), snap = existsSync(SNAPSHOT_INDEX) || existsSync(SNAPSHOT_GZ), ofac = existsSync(OFAC_FILE);
