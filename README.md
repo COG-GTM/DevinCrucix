@@ -228,6 +228,15 @@ The **Target Development** tab turns the stores CRUCIX already holds into an ana
 
 Routes live under `/api/targeting` (list, nominate, get, develop, link / proposal decisions, close, delete, dossier, overlay); ids, enums and body fields are whitelisted and unexpected fields are a 400.
 
+### Ask CRUCIX (header drawer)
+
+The **◈ Ask CRUCIX** button in the header opens a read-only side drawer from any tab. A question is answered in two clearly separated modes:
+
+- **CRUCIX-grounded** — the server packs the live state (situation headlines, DEFCON, delta, signals, focal points, CII, cartel events, Border Watch, CBP, InsightCrime, CJNG graph, KEV, Telegram OSINT, markets, theater tabs, standing requirements, target packages, source health) into a bounded, source-attributed context and the model may only answer from it. Every claim cites a section id (`[narco]`, `[defcon]`, …) that the drawer turns into a jump to the tab it came from; the model is told to keep CRUCIX's provenance tiers apart (source-reported vs computed vs model-proposed vs analyst-decided) and to say `insufficient` instead of guessing.
+- **EXTERNAL — UNVERIFIED** — offered only when the grounded pass says CRUCIX does not hold the answer, and only run after the analyst clicks *Search outside CRUCIX*. Uses the provider's hosted web search (OpenAI Responses API `web_search_preview`); the answer is labelled and lists the cited URLs. External and grounded material are never merged into one answer.
+
+On-click only (no sweep cost), per-IP rate limited, token-capped, conversation kept in the browser's `sessionStorage` (nothing persisted server-side), rules-only card when no `LLM_*` key is set. It cannot nominate targets, decide links, or touch the verified graph. `GET /api/ask/status`, `POST /api/ask { question, history?, mode: grounded|external }`.
+
 ### Ukraine War (Ukraine theater)
 
 The **UKRAINE WAR** tab gives the Russia–Ukraine war its own theater view. No new upstream adapters are involved: every panel is a theater slice of something CRUCIX already sweeps, assembled by `lib/ukraineview.mjs` into a bounded `ukraine` view model and rendered next to the existing **Ukraine Front** panel.
@@ -666,6 +675,7 @@ All settings are in `.env` with sensible defaults:
 | `LLM_PROVIDER` | disabled | `anthropic`, `openai`, `gemini`, `codex`, `openrouter`, `minimax`, `mistral`, or `grok` |
 | `LLM_API_KEY` | — | API key (not needed for codex) |
 | `LLM_MODEL` | per-provider default | Override model selection |
+| `ASK_RATE_PER_MIN` / `ASK_MAX_CONTEXT_CHARS` / `ASK_EXTERNAL` | `10` / `14000` / `true` | Ask CRUCIX drawer: per-IP questions per minute, grounded context budget, allow the confirmed external web-search fallback (OpenAI only) |
 | `TELEGRAM_BOT_TOKEN` | disabled | For Telegram alerts + bot commands |
 | `TELEGRAM_CHAT_ID` | — | Your Telegram chat ID |
 | `TELEGRAM_CHANNELS` | — | Extra channel IDs to monitor (comma-separated) |
@@ -698,6 +708,8 @@ When running `npm run dev`:
 | `GET /api/cartels/geo` | Cartel-map geometry (polygons, points, lines) for the CARTELS tab; 404 until the first successful fetch |
 | `GET /api/narco/graph` | CJNG knowledge graph (nodes, edges with evidence, article index); optional `type`, `rel`, `min` filters |
 | `GET /api/country/:cc/graph` | Country knowledge graph (Colombia `co`, Venezuela `ve`) from the InSight Crime corpus; same `type`, `rel`, `min` filters; 404 for countries without a profile |
+| `GET /api/ask/status` | Ask CRUCIX capability: model configured, external search available, limits |
+| `POST /api/ask` | Ask CRUCIX: `{ question, history?, mode: grounded\|external }` → cited answer; external only when explicitly requested; rate limited |
 
 ---
 
