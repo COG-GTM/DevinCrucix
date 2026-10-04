@@ -356,15 +356,15 @@ export function keyedSourceStatus() {
   };
 }
 
-export async function investigate(target) {
-  const key = `${target.type}:${target.value}`;
+export async function investigate(target, { onProgress, includeNsfw = false } = {}) {
+  const key = `${target.type}:${target.value}${target.type === 'username' && includeNsfw ? ':nsfw' : ''}`;
   const cached = _cache.get(key);
   if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return { ...cached.dossier, cached: true };
 
   const start = Date.now();
   const runner = {
     domain: investigateDomain, ip: investigateIp, hash: investigateHash, company: investigateCompany,
-    email: investigateEmail, username: investigateUsername, phone: investigatePhone, url: investigateUrl,
+    email: investigateEmail, username: v => investigateUsername(v, { onProgress, includeNsfw }), phone: investigatePhone, url: investigateUrl,
     btc: v => investigateWallet('btc', v), eth: v => investigateWallet('eth', v),
   }[target.type];
   const result = await runner(target.value);
