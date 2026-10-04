@@ -240,14 +240,11 @@ The **Target Development** tab turns the stores CRUCIX already holds into an ana
 
 Routes live under `/api/targeting` (list, nominate, get, develop, link / proposal decisions, close, delete, dossier, overlay); ids, enums and body fields are whitelisted and unexpected fields are a 400.
 
-<<<<<<< HEAD
 ### Country map: OSM proximity and VIIRS night-lights change
 
 - **Nearby · OSM** (`lib/geo/overpass.mjs`) — the `NEARBY · OSM` tool on the Colombia GL map: click a point and the hospitals / clinics, police, military sites and airfields within 3 km are fetched from OpenStreetMap through the public Overpass API, drawn with glyphs and listed with distance, bearing and the OSM link; features of different kinds within 500 m of each other are called out as co-located pairs. Queries are literal and bounded (≤ 4 kinds, 250 m – 20 km, ≤ 60 features per kind, 20 s Overpass timeout), serialised with a 2 s gap, cached 6 h in `runs/osm-cache.json`; a 429 / 504 from Overpass is reported as unavailable, not retried in a loop. `GET /api/geo/nearby?lat&lon&radius&kinds=hospital,police&within=500`, kinds at `GET /api/geo/nearby/kinds`. Absence in OSM is not absence on the ground.
 - **Night Δ · VIIRS 30 d** (`lib/geo/nightlights.mjs`) — a change layer, not a picture: for the country viewport CRUCIX fetches NASA GIBS' daily *Black Marble gap-filled, BRDF / moonlight-corrected DNB radiance* tiles (the VNP46A2 product, ~500 m, key-free PNG) for the most recent available night and for two nights each ~30 and ~60 days earlier, decodes them with `node:zlib` (no image dependency), reduces each 256 px tile to 4 × 4 px (~10 km) cells and keeps the cells whose rendered brightness moved by ≥ 25 grey levels **and** ≥ 50 % against the brighter baseline. Cells are drawn orange (dimmed) / yellow (brightened) with the nearest configured place; the legend carries the dates and counts. Results persist in `runs/nightlights/<cc>.json` and refresh every 6 h (≈ 80 tiles per country); the first request returns `202 computing`. Gap-filling, residual cloud, snow, fires, flaring and sensor angle all move the value — a cell is a place to check against ground reporting, never an outage or settlement call. `GET /api/country/:cc/nightlights`.
 
-||||||| d982bc8
-=======
 ### Follow the Money (offshore leaks · sanctions · registries · money trail)
 
 The **Follow the Money** tab is an investigative-finance demo workbench (`lib/finance/`): search an offshore name, unpack the shell company around it, and follow the trail across sources — *leads, not verdicts*.
@@ -259,7 +256,6 @@ The **Follow the Money** tab is an investigative-finance demo workbench (`lib/fi
 
 Data: the committed `config/offshoreleaks-demo-snapshot.sqlite.gz` (seeds in `config/finance-seeds.json`, ~0.5 MB) serves cold starts; build the full index once with `node scripts/build-offshoreleaks.mjs --download` (official ICIJ bulk CSV, ~700 MB download, ~30 s build) or set `FINANCE_BUILD_ON_BOOT=1`. Attribution: *International Consortium of Investigative Journalists (ICIJ) Offshore Leaks Database, ODbL*; the ICIJ disclaimer is shown on the tab. Routes live under `/api/finance` (status, overlaps, search, entity, graph, screen, registry, trails + link decisions / nominate / export); query, params and body fields are whitelisted.
 
->>>>>>> origin/master
 ### Contact provenance & replay (Military tab)
 
 Ported from the [Velocity](https://github.com/AndrewCTF/velocity) model: an air contact is only as good as the number of independent feeds that agree on it and the age of its newest fix. Each sweep `lib/contacts/provenance.mjs` cross-references the OpenSky hotspot tracks with the keyless adsb.fi military feed by ICAO24 and tags every track with `prov` — the feeds that saw it, whether they agree (within 25 km), the fix age in seconds (observation age, not response age) and a documented confidence: **corroborated** (2+ feeds agree), **single** (one feed, fix ≤ 120 s), **stale** (one feed, older fix) or **conflict** (feeds disagree), with a 0–100 score that falls 3 pts per minute of fix age. Military airframes adsb.fi carries inside a hotspot box that OpenSky did not list are surfaced with their own single-source provenance. Nothing here is an intent assessment; the rule is printed in the panel and returned by the API.
