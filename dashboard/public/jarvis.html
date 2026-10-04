@@ -5763,11 +5763,12 @@ function cyGlStyle(map){
 }
 function cyGlPlacePopup(ev,p){
   const c=cyD(cyGlCc);
-  const items=cyGlItems(c).filter(i=>(i.places||[]).some(q=>q.key===p.key)).sort((a,b)=>Date.parse(b.published||0)-Date.parse(a.published||0)).slice(0,6);
+  const all=cyGlItems(c).filter(i=>(i.places||[]).some(q=>q.key===p.key)).sort((a,b)=>Date.parse(b.published||0)-Date.parse(a.published||0)),items=all.slice(0,6);
   const t=CY_GL_TOPIC[p.topic];
   const head=`${p.name} \u00b7 ${String(p.level||'').toUpperCase()}${p.focus==1?' \u00b7 FOCUS CITY':''}`;
-  const body=`<b>${items.length}</b> wire mention${items.length===1?'':'s'}${cyGlWindowH?` in the last ${cyGlWindowH} h`:' this sweep'} (configured alias match, not geocoding)${t&&p.mentions>0?` \u00b7 dominant topic <span style="color:${t.color}">${t.glyph} ${esc(t.label)}</span>`:''}${p.tier>0?` \u00b7 best source tier <b>T${p.tier}</b>`:''}${p.ageH>=0?` \u00b7 newest ${p.ageH} h ago`:''}`
+  const body=`<b>${all.length}</b> wire mention${all.length===1?'':'s'}${cyGlWindowH?` in the last ${cyGlWindowH} h`:' this sweep'} (configured alias match, not geocoding)${t&&p.mentions>0?` \u00b7 dominant topic <span style="color:${t.color}">${t.glyph} ${esc(t.label)}</span>`:''}${p.tier>0?` \u00b7 best source tier <b>T${p.tier}</b>`:''}${p.ageH>=0?` \u00b7 newest ${p.ageH} h ago`:''}`
     +(items.length?'<br>'+items.map(i=>`\u00b7 ${twLink(i.url,i.title)} <span style="color:var(--dim)">${esc(i.outlet||'')} \u00b7 ${esc(i.tier||'')} \u00b7 ${Math.round(cyGlAgeH(i.published)||0)} h</span>`).join('<br>'):'')
+    +(all.length>items.length?`<br><span style="color:var(--dim)">\u2026 ${all.length-items.length} more in the wires panel</span>`:'')
     +`<br><span style="color:var(--dim)">${esc(cyGlFmt(+ev_lng(p),+ev_lat(p)))} \u00b7 MGRS ${esc(cyGlMgrs(+ev_lng(p),+ev_lat(p))||'\u2014')}</span>`;
   cyPopup(ev,head,body,'Place anchor from config/countries \u00b7 glyph = dominant topic \u00b7 brightness = recency \u00b7 ring = source tier');
   function ev_lng(q){return (c.places||[]).find(x=>x.key===q.key)?.lon}
