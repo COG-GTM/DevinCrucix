@@ -1154,6 +1154,22 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .inv-plat.found{color:var(--text);border-color:rgba(100,240,200,0.4);background:rgba(100,240,200,0.06)}
 .inv-plat.found:hover{border-color:var(--accent)}
 .inv-plat.err{opacity:0.6}
+.inv-plat.waf{color:#ffd54f;border-color:rgba(255,213,79,0.3)}
+.inv-plat.found .inv-plat-a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.inv-plat.found .inv-plat-a:hover{text-decoration:underline}
+.inv-conf{font-family:var(--mono);font-size:7px;padding:0 3px;border:1px solid currentColor;line-height:1.5;opacity:.85}
+.inv-conf.api{color:var(--accent)}.inv-conf.message{color:#4dd0e1}.inv-conf.status_code{color:#ffab40}.inv-conf.response_url{color:#b39ddb}.inv-conf.manual{color:var(--dim)}
+.inv-plat-act{font-family:var(--mono);font-size:8px;padding:0 4px;margin-left:2px;border:1px solid rgba(100,240,200,0.35);background:transparent;color:var(--accent);cursor:pointer;line-height:1.6}
+.inv-plat-act:hover{background:rgba(100,240,200,0.12)}.inv-plat-act:disabled{opacity:.5;cursor:default}
+.inv-plat-act.done{color:var(--dim);border-color:rgba(255,255,255,0.15)}
+.inv-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 6px;font-size:10px}
+.inv-filters select{font-family:var(--mono);font-size:9px;background:rgba(0,0,0,.3);color:var(--text);border:1px solid rgba(255,255,255,.15);padding:2px 4px}
+.inv-filters label{display:inline-flex;align-items:center;gap:4px;color:var(--dim);cursor:pointer}
+.inv-progress{margin:6px 0 4px}
+.inv-progress-bar{height:4px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
+.inv-progress-bar span{position:absolute;left:0;top:0;bottom:0;background:var(--accent);box-shadow:0 0 6px rgba(100,240,200,.6);transition:width .25s}
+.inv-progress-txt{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:3px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.inv-progress-txt b{color:var(--text)}
 .inv-chain{font-family:var(--mono);font-size:10px;margin:2px 0 6px}
 .inv-hop{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-left:2px solid rgba(68,204,255,0.25);padding-left:8px;margin-left:4px;flex-wrap:wrap}
 .inv-hop-n{color:var(--dim);font-size:9px;min-width:12px}
@@ -2049,6 +2065,7 @@ const PANEL_CAPTIONS={
   'source coverage':'Which local stores the package was built from, how many hit, and whether an OpenAI / Anthropic model adjudicated. <b>Not available</b> means the store was empty this sweep, not that the target is absent from it.',
   'target package':'Find / fix summary for the selected target: counts, model status, deviation flags and the dated <b>public-record</b> last known location. Every figure is a count of published mentions, not verified activity.',
   'identity & association review':'Personas, entities and places linked to the target with a proposed role (target / associate / background), confidence, provenance and one verbatim evidence sentence. Nothing is accepted until an analyst decides.',
+  'attached public profiles':'Profiles attached from the OSINT Workbench handle sweep (curated probes + Sherlock manifest), each with its detector confidence. A same-handle match is a lead until an analyst accepts it; nothing is written to the graph.',
   'graph proposals':'Relations the package would add to the CJNG graph, each with evidence. Accepted proposals form an analyst-approved overlay; the verified source-attributed graph is never modified.',
   'published selectors':'Identifiers literally present in official or published text (OFAC ids and programs, DOJ case numbers, IMO, registrations, domains). Nothing is inferred or looked up.',
   'public-record locations':'Dated place mentions snapped to the gazetteer, drawn at the radius their precision supports. Last known is the newest sentence that <i>states</i> presence — not a live position. Telegram is never used for location.',
@@ -2146,7 +2163,7 @@ const PANEL_CAPTIONS={
   'us–mexico border reporting':'Journalism about the border corridor: Border Watch feeds with place / topic spike detection, InSight Crime\u2019s organized-crime reporting and the Python ingestion service behind them. Reporting volume, not event data.',
   'us enforcement · doj & ofac':'What the U.S. government has put on the record: U.S. Attorney press releases from the south-west border districts and Treasury SDN entries under the narco programs. Charges are allegations until a plea or conviction is stated.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
-  'osint workbench':'Passive, read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Blue values pivot; nothing is written to the target.',
+  'osint workbench':'Read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Handle sweeps send one request per platform (curated probes + the Sherlock manifest); nothing is sent to the subject. Blue values pivot.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
   'typosquat watch':'Look-alike domains for the watchlist, resolved via DNS each sweep. Registered is not the same as malicious.',
   'pivot providers':'Which enrichment providers answer today and which need a key.',
@@ -7553,7 +7570,7 @@ const INV_SOURCES_BY_TYPE = {
 };
 function invNewCase(){return {name:'Untitled case',created:new Date().toISOString(),entities:{},edges:[],dossiers:{},notes:'',exported:false,viewedGraph:false,metadata:[]}}
 function invLoadCase(){try{const c=JSON.parse(localStorage.getItem('crucix_case')||'null');if(c&&c.entities&&c.edges)return {...invNewCase(),...c}}catch{}return invNewCase()}
-const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', case:invLoadCase(), meta:null, metaLoading:false, metaError:null, metaFile:null, geo:null, geoLoading:false, geoHint:'', graphFocus:null };
+const INV = { query:'', hint:'auto', loading:false, loadingSince:0, dossier:null, error:null, view:'dossier', nsfw:false, progress:null, plat:{status:'found',cat:'all',conf:'all'}, attachTgt:null, attached:{}, case:invLoadCase(), meta:null, metaLoading:false, metaError:null, metaFile:null, geo:null, geoLoading:false, geoHint:'', graphFocus:null };
 // Resume the last dossier of a persisted case so the workbench is not empty after a reload.
 if(INV.case.lastKey&&INV.case.dossiers[INV.case.lastKey]){INV.dossier=INV.case.dossiers[INV.case.lastKey];INV.graphFocus=INV.case.lastKey;INV.query=INV.dossier.target||''}
 function invSaveCase(){try{localStorage.setItem('crucix_case',JSON.stringify(INV.case))}catch(e){console.warn('case too large for localStorage',e)}}
@@ -7654,18 +7671,96 @@ async function investigateTarget(raw, type){
   const hint = type && type!=='auto' ? type : undefined;
   if (currentTab !== 'investigations') setTab('investigations'); else renderLower();
   const tick=setInterval(()=>{const el=document.getElementById('invElapsed');if(el)el.textContent=((Date.now()-INV.loadingSince)/1000).toFixed(1)+'s'},100);
+  INV.progress = null;
+  const qs = `target=${encodeURIComponent(q)}${hint?`&type=${encodeURIComponent(hint)}`:''}`;
+  const isHandle = classifyClientSide(q, hint||INV.hint)==='username';
   try {
-    const r = await fetch(`/api/investigate?target=${encodeURIComponent(q)}${hint?`&type=${encodeURIComponent(hint)}`:''}`);
-    const body = await r.json().catch(()=>({}));
-    if (!r.ok) { INV.error = body.error || 'Investigation failed'; INV.dossier = null; }
-    else { INV.dossier = body; INV.graphFocus = invKey(body.type, body.target); invIngestDossier(body); }
+    let r;
+    if (isHandle) r = await invStream(`/api/investigate/stream?${qs}&nsfw=${INV.nsfw?1:0}`, p => { INV.progress = p; invRenderProgress(); });
+    else { const res = await fetch(`/api/investigate?${qs}`); r = { ok: res.ok, body: await res.json().catch(()=>({})) }; }
+    if (!r.ok) { INV.error = r.body?.error || 'Investigation failed'; INV.dossier = null; }
+    else { INV.dossier = r.body; INV.graphFocus = invKey(r.body.type, r.body.target); INV.plat = { status:'found', cat:'all', conf:'all' }; INV.attached = {}; invIngestDossier(r.body); }
   } catch { INV.error = 'Investigation failed'; INV.dossier = null; }
   clearInterval(tick);
-  INV.loading = false;
+  INV.loading = false; INV.progress = null;
   renderTabbar(); renderLeftRail(); renderLower();
   const panel = document.querySelector('.right-investigate');
   if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+// Server-sent `progress` frames then one `dossier` frame (see /api/investigate/stream).
+async function invStream(url, onProgress){
+  const res = await fetch(url);
+  if (!res.ok || !res.body) return { ok:false, body: await res.json().catch(()=>({})) };
+  const rd = res.body.getReader(), dec = new TextDecoder();
+  let buf = '', dossier = null, err = null;
+  for (;;) {
+    const { value, done } = await rd.read();
+    if (done) break;
+    buf += dec.decode(value, { stream:true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const frame = buf.slice(0, i); buf = buf.slice(i + 2);
+      let ev = 'message', data = '';
+      for (const line of frame.split('\n')) { if (line.startsWith('event:')) ev = line.slice(6).trim(); else if (line.startsWith('data:')) data += line.slice(5).trim(); }
+      let j = null; try { j = JSON.parse(data); } catch {}
+      if (ev === 'progress' && j) onProgress(j); else if (ev === 'dossier') dossier = j; else if (ev === 'error') err = j?.error;
+    }
+  }
+  return dossier ? { ok:true, body:dossier } : { ok:false, body:{ error: err || 'Investigation failed' } };
+}
+function invProgressHtml(){
+  const p = INV.progress; if (!p) return '';
+  const pct = p.total ? Math.round(p.done / p.total * 100) : 0;
+  return `<div class="inv-progress-bar"><span style="width:${pct}%"></span></div><div class="inv-progress-txt"><span><b>${p.done}</b> / ${p.total} platforms checked &middot; <b>${p.found}</b> found</span><span>${(p.recent||[]).map(esc).join(' &middot; ')}</span></div>`;
+}
+function invRenderProgress(){ const el = document.getElementById('invProgress'); if (el) el.innerHTML = invProgressHtml(); }
+const INV_CONF = { api:['API','platform API confirmed the account'], message:['content','profile page content verified'], status_code:['status','HTTP status only — verify before relying on it'], response_url:['redirect','no redirect to a login/404 page — weakest signal'], manual:['manual','attached by hand'] };
+function invConfChip(c){ const m = INV_CONF[c] || [c, '']; return `<span class="inv-conf ${esc(c)}" title="${esc(m[1])}">${esc(m[0])}</span>`; }
+function invPlatFilter(k, v){ INV.plat = { ...INV.plat, [k]: v }; renderLower(); }
+function invOpenAllFound(){
+  const list = invShownPlatforms().filter(p => p.status === 'found');
+  if (!list.length) return invToast('Nothing to open in this view');
+  if (list.length > 12 && !confirm(`Open ${list.length} tabs?`)) return;
+  let n = 0; for (const p of list) { if (window.open(p.url, '_blank', 'noopener')) n++; }
+  invToast(n < list.length ? `Opened ${n}/${list.length} — allow pop-ups for the rest` : `Opened ${n} profiles`);
+}
+function invShownPlatforms(){
+  const d = INV.dossier, f = INV.plat, all = d?.platforms || [];
+  let shown = f.status === 'all' ? all : f.status === 'error' ? all.filter(p => p.status === 'error' || p.status === 'illegal') : all.filter(p => p.status === f.status);
+  if (f.cat !== 'all') shown = shown.filter(p => p.category === f.cat);
+  if (f.conf !== 'all') shown = shown.filter(p => p.confidence === f.conf);
+  return shown;
+}
+function invEnsureTargets(){ if (!TGT.loaded && !TGT.loading) { TGT.loading = true; tgtApi('GET','/api/targeting').then(r => { TGT.loading = false; TGT.loaded = true; if (r.ok && r.body) { TGT.list = r.body.targets || []; TGT.caps = r.body.capabilities || null; } if (currentTab === 'investigations') renderLower(); }); } }
+async function invAttachProfile(idx){
+  const d = INV.dossier, p = d?.platforms?.[idx];
+  if (!p || p.status !== 'found') return;
+  if (!INV.attachTgt) return invToast('Pick a target to attach to');
+  const body = { platform: p.platform, handle: d.target, url: p.url, category: p.category || 'web', confidence: p.confidence || 'manual', detector: p.detector || null };
+  if (!body.detector) delete body.detector;
+  const r = await tgtApi('POST', `/api/targeting/targets/${encodeURIComponent(INV.attachTgt)}/accounts`, body);
+  if (r.status === 201 || r.status === 409 && r.body?.id) { INV.attached[p.url] = true; invToast(r.status === 201 ? `${p.platform} profile attached for review` : 'Already attached to this target'); renderLower(); tgtApi('GET','/api/targeting').then(x => { if (x.ok && x.body) TGT.list = x.body.targets || TGT.list; }); if (TGT.sel === INV.attachTgt) tgtFetchTarget(INV.attachTgt); }
+  else if (r.status === 400) invToast(`Rejected: check ${String(r.body?.field || 'input').replace(/[^a-zA-Z.]/g, '')}`);
+  else if (r.status === 409) invToast(r.body?.error || 'Target cannot take more profiles');
+  else invToast('Attach failed');
+}
+function invNominateFromHandle(){
+  const d = INV.dossier; if (!d || d.type !== 'username') return;
+  const found = (d.platforms || []).filter(p => p.status === 'found');
+  const best = found.find(p => p.confidence === 'api') || found.find(p => p.confidence === 'message') || found[0];
+  TGT.form = { ...TGT.form, label: d.target, entityType: 'person', aliases: '', basisKind: 'source-url', basisRef: best?.url || '', requirement: '' };
+  TGT.formError = best ? null : 'Add a public HTTPS source that names this handle';
+  setTab('targeting');
+  invToast('Nomination form pre-filled — state the requirement and nominate');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-inv-act]'); if (!b || b.disabled) return;
+  const a = b.dataset.invAct;
+  if (a === 'attach') invAttachProfile(Number(b.dataset.i));
+  else if (a === 'open-all') invOpenAllFound();
+  else if (a === 'nominate') invNominateFromHandle();
+});
 
 // ─── Dossier renderers ───────────────────────────────────────────────────────
 function invRiskHeader(d){
@@ -7778,10 +7873,44 @@ function renderDossierEmail(d,out){
   out.push(invHistorySec(d.domainHistory,'Domain history · Wayback'));
 }
 function renderDossierUsername(d,out){
-  const found=(d.platforms||[]).filter(p=>p.status==='found'), miss=(d.platforms||[]).filter(p=>p.status==='not_found'), err=(d.platforms||[]).filter(p=>p.status==='error');
+  const all=d.platforms||[], f=INV.plat;
+  const groups={found:[],waf:[],not_found:[],error:[],illegal:[]};for(const p of all)(groups[p.status]||groups.error).push(p);
+  const found=groups.found;
   const cats={};for(const p of found)(cats[p.category]=cats[p.category]||[]).push(p);
-  out.push(invSec(`Handle footprint · ${found.length}/${d.checked} platforms`,`<div class="inv-plat-grid">${found.map(p=>`<a class="inv-plat found" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" title="${esc(p.category)}"><span class="hdot live"></span>${esc(p.platform)}</a>`).join('')}${miss.map(p=>`<span class="inv-plat" title="not found (HTTP ${esc(p.http)})"><span class="hdot off"></span>${esc(p.platform)}</span>`).join('')}${err.map(p=>`<span class="inv-plat err" title="probe failed"><span class="hdot error"></span>${esc(p.platform)}</span>`).join('')}</div>
-    <div class="sh-note">Presence = platform API or a content-verified profile page, not just HTTP 200. Categories: ${Object.entries(cats).map(([c,arr])=>`${esc(c)} ${arr.length}`).join(' · ')||'none'}</div>`));
+  const confs={};for(const p of found)confs[p.confidence]=(confs[p.confidence]||0)+1;
+  const shown=invShownPlatforms();
+  const idxOf=new Map(all.map((p,i)=>[p,i]));
+  invEnsureTargets();
+  const openTargets=(TGT.list||[]).filter(t=>t.status!=='closed');
+  if(INV.attachTgt&&!openTargets.some(t=>t.id===INV.attachTgt))INV.attachTgt=null;
+  if(!INV.attachTgt&&openTargets.length)INV.attachTgt=(TGT.sel&&openTargets.some(t=>t.id===TGT.sel))?TGT.sel:openTargets[0].id;
+  const tabs=[['found','Found',found.length],['waf','Challenged',groups.waf.length],['not_found','Not found',groups.not_found.length],['error','Error',groups.error.length+groups.illegal.length],['all','All',all.length]];
+  const tile=p=>{
+    const i=idxOf.get(p);
+    if(p.status==='found'){
+      const att=INV.attached[p.url];
+      return `<span class="inv-plat found" title="${esc(p.category)} · ${esc((INV_CONF[p.confidence]||[p.confidence])[1]||p.confidence)}${p.http?` · HTTP ${esc(p.http)}`:''}${p.source==='sherlock'?' · Sherlock manifest':' · curated probe'}"><a class="inv-plat-a" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="hdot live"></span>${esc(p.platform)}${p.nsfw?' <span class="inv-chip vuln" style="font-size:7px">18+</span>':''}</a>${invConfChip(p.confidence)}${openTargets.length?`<button class="inv-plat-act ${att?'done':''}" data-inv-act="attach" data-i="${i}" ${att?'disabled':''} title="${att?'attached to target':'attach this profile to the selected target for analyst review'}">${att?'\u2713 TGT':'+TGT'}</button>`:''}</span>`;
+    }
+    if(p.status==='waf')return `<span class="inv-plat waf" title="bot challenge (Cloudflare or similar) — undetermined; open manually"><span class="hdot degraded"></span>${esc(p.platform)} <a class="inv-link ext" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" style="font-size:8px">open</a></span>`;
+    if(p.status==='not_found')return `<span class="inv-plat" title="not found (HTTP ${esc(p.http)}) · ${esc(p.category)}"><span class="hdot off"></span>${esc(p.platform)}</span>`;
+    if(p.status==='illegal')return `<span class="inv-plat err" title="handle does not match this platform's username rules"><span class="hdot off"></span>${esc(p.platform)} <span style="font-size:7px">n/a</span></span>`;
+    return `<span class="inv-plat err" title="probe failed: ${esc(p.error||'unreachable')}"><span class="hdot error"></span>${esc(p.platform)}</span>`;
+  };
+  const sh=d.sherlock||{};const man=INV._status?.sherlock;
+  const catOpts=['all',...Object.keys(cats).sort()];
+  const confOpts=['all',...['api','message','status_code','response_url'].filter(c=>confs[c])];
+  out.push(invSec(`Handle footprint · ${found.length}/${d.checked} platforms`,`
+    <div class="inv-views" style="margin-top:2px">${tabs.map(([v,l,n])=>`<button class="inv-view ${f.status===v?'active':''}" onclick="invPlatFilter('status','${v}')">${l}<span class="tab-n">${n}</span></button>`).join('')}
+      <span class="inv-views-right">${f.status!=='not_found'?`<a class="inv-link" data-inv-act="open-all" title="open every found profile in this view">open all</a>`:''}</span></div>
+    <div class="inv-filters">
+      <label>category <select onchange="invPlatFilter('cat',this.value)">${catOpts.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${c==='all'?'all':`${esc(c)} (${cats[c].length})`}</option>`).join('')}</select></label>
+      <label>confidence <select onchange="invPlatFilter('conf',this.value)">${confOpts.map(c=>`<option value="${esc(c)}" ${f.conf===c?'selected':''}>${c==='all'?'all':`${esc((INV_CONF[c]||[c])[0])} (${confs[c]})`}</option>`).join('')}</select></label>
+      <label title="Re-run including the ${man?.nsfw??19} adult platforms in the manifest"><input type="checkbox" ${sh.includeNsfw?'checked':''} onchange="INV.nsfw=this.checked;investigateTarget(INV.query,'username')"> include 18+ sites</label>
+      ${openTargets.length?`<label title="Target that +TGT attaches profiles to">attach to <select onchange="INV.attachTgt=this.value;renderLower()">${openTargets.map(t=>`<option value="${esc(t.id)}" ${INV.attachTgt===t.id?'selected':''}>${esc(t.label)}</option>`).join('')}</select></label>`:''}
+      <button class="inv-btn ghost" data-inv-act="nominate" title="Open Targeting with a nomination pre-filled from this handle">${openTargets.length?'New target from handle':'Nominate as target'}</button>
+    </div>
+    <div class="inv-plat-grid">${shown.length?shown.map(tile).join(''):'<span style="color:var(--dim);font-size:10px">nothing in this view</span>'}</div>
+    <div class="sh-note">Each platform received one request for the handle; the subject was not contacted. Confidence ${['api','message','status_code','response_url'].filter(c=>confs[c]).map(c=>`${invConfChip(c)} ${confs[c]}`).join(' ')} — status-only hits are leads to verify, a same-handle match is not an identity. ${groups.waf.length?`${groups.waf.length} platform${groups.waf.length===1?'':'s'} answered with a bot challenge (undetermined). `:''}${sh.sites?`Manifest: Sherlock ${man?.commit?`<code>${esc(String(man.commit).slice(0,7))}</code>`:''} (MIT) · ${sh.sites} sites checked${sh.skipped?.nsfw&&!sh.includeNsfw?` · ${sh.skipped.nsfw} adult sites skipped`:''}${sh.skipped?.disabled?` · ${sh.skipped.disabled} disabled by self-test`:''} · ${d.checked-sh.sites} curated probes.`:''}</div>`));
   const gh=d.github;
   if(gh?.status==='ok')out.push(invSec('GitHub profile',`<div style="display:flex;gap:10px;align-items:flex-start">${gh.avatar?`<img src="${esc(gh.avatar)}&s=96" width="48" height="48" style="border:1px solid var(--border);flex-shrink:0" alt="">`:''}<div style="flex:1;min-width:0">${invKv([
     ['Name',`${esc(gh.name||gh.login)} ${invExt(gh.url,'@'+gh.login)}`],['Company',esc(gh.company)],['Location',esc(gh.location)],['Bio',esc(gh.bio)],['Blog',gh.blog?invExt(/^https?:/.test(gh.blog)?gh.blog:'https://'+gh.blog):null],['Public email',gh.email?invLink(gh.email):null],['X / Twitter',gh.twitter?invExt('https://x.com/'+gh.twitter,'@'+gh.twitter):null],
@@ -8064,7 +8193,7 @@ function renderInvestigatePanel(){
   if (INV.loading) {
     const t=classifyClientSide(INV.query,INV.hint);
     const srcs=INV_SOURCES_BY_TYPE[t]||['classifying selector'];
-    body = `<div class="inv-loading"><div class="inv-loading-head">RUNNING ${esc((t||'').toUpperCase()||'SELECTOR')} ENRICHMENT CHAIN <span id="invElapsed">0.0s</span></div><div class="inv-chips">${srcs.map((s,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(s)}</span>`).join('')}</div><div class="sh-note">Parallel keyless lookups; keyed providers (marked *) run when their env var is set. Username sweeps take ~5–10 s.</div></div>`;
+    body = `<div class="inv-loading"><div class="inv-loading-head">RUNNING ${esc((t||'').toUpperCase()||'SELECTOR')} ENRICHMENT CHAIN <span id="invElapsed">0.0s</span></div><div class="inv-chips">${srcs.map((s,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(s)}</span>`).join('')}</div><div class="sh-note">Parallel keyless lookups; keyed providers (marked *) run when their env var is set. ${t==='username'?`Handle sweeps check ~${(INV._status?.platformProbes||37)+((INV._status?.sherlock?.sites||481)-(INV._status?.sherlock?.nsfw||19)-37)} platforms in ~30 s.`:''}</div><div class="inv-progress" id="invProgress">${invProgressHtml()}</div></div>`;
   }
   else if (INV.view==='graph') body = renderCaseGraph();
   else if (INV.view==='timeline') body = renderCaseTimeline();
@@ -8073,7 +8202,7 @@ function renderInvestigatePanel(){
   else if (d) body = renderDossier(d);
   else body = renderInvestigateEmpty(false);
   const views=[['dossier','Dossier'],['graph',`Case graph${Object.keys(INV.case.entities).length?` <span class="tab-n">${Object.keys(INV.case.entities).length}</span>`:''}`],['timeline','Timeline'],['tools','Toolkit']];
-  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>OSINT Workbench</h3><div style="display:flex;gap:6px;align-items:center"><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">${(INV._status?.types||[]).length||Object.keys(INV_SOURCES_BY_TYPE).length} SELECTOR TYPES</span><span class="badge">PASSIVE · READ-ONLY</span></div></div>
+  return `<div class="g-panel right-investigate"><div class="sec-head"><h3>OSINT Workbench</h3><div style="display:flex;gap:6px;align-items:center"><span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">${(INV._status?.types||[]).length||Object.keys(INV_SOURCES_BY_TYPE).length} SELECTOR TYPES</span><span class="badge" title="Public sources only. Handle sweeps send one request per platform; nothing is sent to the subject.">READ-ONLY · NO SUBJECT CONTACT</span></div></div>
     <form class="inv-form" onsubmit="event.preventDefault();investigateTarget(this.target.value, this.kind.value)">
       <input class="inv-input" name="target" maxlength="2048" autocomplete="off" spellcheck="false" placeholder="domain · URL · IPv4/6 · hash · email · @handle · +phone · BTC/ETH · company (choose CO.)" value="${esc(INV.query)}" oninput="INV.query=this.value;invPreview()">
       <select class="inv-btn" name="kind" style="padding:6px 4px" onchange="INV.hint=this.value;invPreview()">${hints.map(([v,l])=>`<option value="${v}" ${INV.hint===v?'selected':''}>${l}</option>`).join('')}</select>
@@ -8145,7 +8274,7 @@ function renderInvestigateHelpPanel(){
     ['ipwho.is · Wayback','keyless','geolocation, archive history',['ipwho.is','Wayback']],
     ['OTX · urlscan.io','keyless','threat pulses, public scans',['OTX','urlscan.io']],
     ['Gravatar · Keybase · GitHub','keyless','identity + commit-email leaks',['Gravatar','Keybase','GitHub']],
-    [`${probes?probes+' ':''}platform probes`,'keyless','handle presence, API-verified',[]],
+    [`${probes?probes+((INV._status?.sherlock?.sites||0)?'+'+(INV._status.sherlock.sites-(INV._status.sherlock.nsfw||0)):'')+' ':''}platform probes`,'keyless','handle presence: curated API probes + Sherlock manifest',[]],
     ['mempool · BlockCypher · OFAC','keyless','BTC/ETH balances, SDN screen',['mempool.space','BlockCypher','OFAC']],
     ['VirusTotal',keyed.virustotal?'on':'VIRUSTOTAL_API_KEY','domain / IP / hash reputation',['VirusTotal']],
     ['Shodan (full)',keyed.shodan?'on':'SHODAN_API_KEY','banners, hostnames, org',['Shodan']],
@@ -8622,7 +8751,7 @@ function tgtPick(id){
 }
 function tgtLowerPanels(wrap){
   if(!TGT.sel)return [wrap(renderTgtNominateHero(),'lp-wide')];
-  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
+  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtAccountsPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
 }
 async function tgtSuggestVariants(){
   const f=TGT.form;const label=(f.label||'').trim();if(!label||TGT.varBusy)return;
@@ -8678,7 +8807,7 @@ async function tgtDevelop(){
 async function tgtDecide(kind,id,decision){
   if(!TGT.sel||TGT.busy)return;
   TGT.busy='decide';renderLower();
-  const path=`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/${kind==='link'?'links':'proposals'}/${encodeURIComponent(id)}`;
+  const path=`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/${kind==='link'?'links':kind==='account'?'accounts':'proposals'}/${encodeURIComponent(id)}`;
   const r=await tgtApi('POST',path,{decision});
   TGT.busy=null;
   if(!r.ok)TGT.error='Decision not recorded';
@@ -8707,6 +8836,7 @@ document.addEventListener('click',e=>{
   else if(a==='close')tgtClose();
   else if(a==='delete')tgtDelete();
   else if(a==='decide')tgtDecide(b.dataset.kind,b.dataset.id,b.dataset.decision);
+  else if(a==='acct-detach')tgtDetachAccount(b.dataset.id);
   else if(a==='view'){TGT.view=b.dataset.view;renderLower()}
   else if(a==='toggle-decided'){TGT.showDecided=!TGT.showDecided;renderLower()}
 });
@@ -8820,7 +8950,7 @@ function renderTgtPackagePanel(){
   const kpi=(k,v,title)=>`<div class="tgt-kpi" title="${esc(title||'')}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
   const actions=`<div class="tgt-pkg-actions">
       <button class="inv-btn" data-tgt-act="develop" ${dev||t.status==='closed'||TGT.busy?'disabled':''}>${dev?'Developing…':p?'Re-develop':'Develop target'}</button>
-      ${p?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
+      ${(p||(t.accountList||[]).length)?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
       <button class="inv-btn ghost" data-tgt-act="close" ${t.status==='closed'||TGT.busy?'disabled':''}>Close</button>
       <button class="inv-btn ghost" data-tgt-act="delete" ${TGT.busy?'disabled':''}>Delete</button>
       <button class="inv-btn ghost" data-tgt-act="new" ${TGT.busy?'disabled':''} title="Nominate another target">+ New target</button></div>`;
@@ -8877,6 +9007,29 @@ function renderTgtLinksPanel(){
     <div class="inv-scroll tgt-scroll">${rows||'<div class="inv-hint">Nothing in this view.</div>'}</div>
     <div class="sh-note">Roles are proposed against the requirement. <b>Accept</b> records an analyst decision; <b>Reject</b> withdraws any graph proposal derived from the link. Decisions survive re-development.</div>`,
     `<span class="badge ${pending?'warn':''}">${pending} PENDING \u00b7 ${links.length} LINKS</span>`);
+}
+function renderTgtAccountsPanel(){
+  const t=TGT.target;const list=t?.accountList||[];
+  const wrapP=(body,badge)=>`<div class="g-panel tgt-accounts"><div class="sec-head"><h3>Attached Public Profiles</h3>${badge||'<span class="badge">WORKBENCH</span>'}</div>${body}</div>`;
+  if(!t)return wrapP('<div class="inv-hint">Select or nominate a target.</div>');
+  if(!list.length)return wrapP('<div class="inv-hint">No profiles attached. Run an <b>@handle</b> sweep in the OSINT Workbench and press <b>+TGT</b> on a found profile to attach it here for review.</div>');
+  const pend=list.filter(a=>!a.decision).length;
+  const order={api:0,message:1,status_code:2,response_url:3,manual:4};
+  const rows=list.slice().sort((a,b)=>(a.decision?1:0)-(b.decision?1:0)||(order[a.confidence]??9)-(order[b.confidence]??9)).map(a=>`<div class="tgt-link ${a.decision||''}">
+      <div class="tgt-link-head"><span class="inv-chip">${esc(a.category)}</span><span class="tgt-link-label">${invExt(a.url,a.platform)}</span><code>${esc(a.handle)}</code>${invConfChip(a.confidence)}<span class="inv-chip" title="who attached it">${esc(a.attachedBy)} \u00b7 ${esc(invDate(a.attachedAt))}</span></div>
+      <div class="tgt-link-why">${esc((INV_CONF[a.confidence]||[a.confidence,''])[1])}${a.detector?` \u00b7 detector <code>${esc(a.detector)}</code>`:''}${a.note?` \u00b7 ${esc(a.note)}`:''}${a.decidedAt?` \u00b7 decided ${esc(invDate(a.decidedAt))}`:''}</div>
+      ${tgtDecisionBtns('account',a.id,a.decision)} <button class="inv-btn ghost" data-tgt-act="acct-detach" data-id="${esc(a.id)}" ${TGT.busy?'disabled':''} title="remove this profile from the target">Detach</button></div>`).join('');
+  return wrapP(`<div class="inv-scroll tgt-scroll">${rows}</div>
+    <div class="sh-note">Profiles come from an active per-platform handle check in the Workbench, not from the subject. A same-handle match is a lead; <b>Accept</b> records the analyst's attribution in the dossier. Nothing is written to the graph.</div>`,
+    `<span class="badge ${pend?'warn':''}">${pend} PENDING \u00b7 ${list.length} PROFILES</span>`);
+}
+async function tgtDetachAccount(id){
+  if(!TGT.sel||TGT.busy)return;
+  TGT.busy='detach';renderLower();
+  const r=await tgtApi('DELETE',`/api/targeting/targets/${encodeURIComponent(TGT.sel)}/accounts/${encodeURIComponent(id)}`);
+  TGT.busy=null;
+  if(!r.ok&&r.status!==204)TGT.error='Profile not detached';
+  await tgtFetchTarget(TGT.sel);tgtRerender();
 }
 function renderTgtProposalsPanel(){
   const t=TGT.target;

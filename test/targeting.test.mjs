@@ -436,3 +436,68 @@ test('targeting', async (t) => {
     assert.deepEqual(live.narcoClusters, []);
   });
 });
+
+// ─── Attached public profiles (OSINT Workbench handle sweep → target) ───────
+import { validateAccount, ACCOUNT_ID_RE, MAX_ACCOUNTS } from '../lib/targeting/store.mjs';
+
+test('validateAccount: accepts a Sherlock hit, rejects junk', () => {
+  const ok = validateAccount({ platform: 'GitHub', handle: 'el_mencho', url: 'https://github.com/el_mencho', category: 'dev', confidence: 'api', detector: 'api' });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.value.note, '');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: 'x', url: 'http://github.com/x' }).field, 'url');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: 'x', url: 'https://127.0.0.1/x' }).field, 'url');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: '<b>', url: 'https://github.com/x' }).field, 'handle');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: 'x', url: 'https://github.com/x', confidence: 'certain' }).field, 'confidence');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: 'x', url: 'https://github.com/x', extra: 1 }).field, 'body');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: 'x', url: 'https://github.com/x', note: '<script>' }).field, 'note');
+  assert.equal(validateAccount({ platform: 'GitHub', handle: 'x', url: 'https://github.com/x' }).value.confidence, 'manual');
+});
+
+test('TargetStore: attach / decide / detach accounts are analyst-reviewed and audited; summary counts them', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'tgt-acct-'));
+  const lines = [];
+  const store = new TargetStore({ dataDir: dir, log: l => lines.push(l) });
+  const { target } = store.nominate(validateNomination(NOMINATION).value);
+  const acct = validateAccount({ platform: 'GitHub', handle: 'el_mencho', url: 'https://github.com/el_mencho', confidence: 'api' }).value;
+  const r = store.attachAccount(target.id, acct);
+  assert.ok(ACCOUNT_ID_RE.test(r.account.id));
+  assert.equal(r.account.state, 'proposed');
+  assert.equal(r.account.decision, null);
+  assert.equal(store.attachAccount(target.id, acct).error, 'duplicate');
+  assert.equal(summarizeTarget(store.get(target.id)).accounts.pending, 1);
+  const d = store.decideAccount(target.id, r.account.id, 'accept');
+  assert.equal(d.account.state, 'accepted');
+  assert.equal(summarizeTarget(store.get(target.id)).accounts.accepted, 1);
+  store.decideAccount(target.id, r.account.id, 'reset');
+  assert.equal(store.get(target.id).accounts[0].state, 'proposed');
+  assert.equal(store.decideAccount(target.id, 'acc_000000000000', 'accept'), null);
+  // The graph overlay is untouched by profile attachments.
+  assert.deepEqual(store.acceptedGraphOverlay(), []);
+  // Persisted and reloadable.
+  const again = new TargetStore({ dataDir: dir, log: () => {} });
+  assert.equal(again.get(target.id).accounts.length, 1);
+  assert.ok(store.detachAccount(target.id, r.account.id));
+  assert.equal(store.get(target.id).accounts.length, 0);
+  assert.equal(store.detachAccount(target.id, r.account.id), null);
+  for (let i = 0; i < MAX_ACCOUNTS; i++) store.attachAccount(target.id, { ...acct, url: `https://github.com/u${i}` });
+  assert.equal(store.attachAccount(target.id, { ...acct, url: 'https://github.com/overflow' }).error, 'capacity');
+  store.close(target.id);
+  assert.equal(store.attachAccount(target.id, { ...acct, url: 'https://github.com/closed' }).error, 'closed');
+  const audit = readFileSync(join(dir, 'audit.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+  assert.ok(audit.some(a => a.action === 'target.account.attach'));
+  assert.ok(audit.some(a => a.action === 'target.account.decide' && a.decision === 'accept'));
+  assert.ok(audit.some(a => a.action === 'target.account.detach'));
+});
+
+test('dossier renders attached profiles with confidence and state even before development', () => {
+  const t = { ...TARGET, accounts: [{ id: 'acc_000000000001', platform: 'GitHub', handle: 'el_mencho', url: 'https://github.com/el_mencho', category: 'dev', confidence: 'api', detector: 'api', note: '', state: 'proposed', attachedBy: 'operator', attachedAt: '2026-09-02T00:00:00.000Z', decision: null }], package: null };
+  const md = renderDossier(t, { now: Date.parse('2026-09-03T00:00:00Z') });
+  assert.match(md, /Attached public profiles/);
+  assert.match(md, /\[GitHub\]\(https:\/\/github\.com\/el_mencho\)/);
+  assert.match(md, /\| el\\_mencho \| api \| proposed \|/);
+  assert.match(md, /Package not yet developed/);
+});
+
+test('LABEL_RE admits underscore handles as target labels', () => {
+  assert.equal(validateNomination({ ...NOMINATION, label: 'el_mencho_99' }).ok, true);
+});

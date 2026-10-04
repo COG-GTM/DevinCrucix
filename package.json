@@ -14,6 +14,8 @@
     "cjng:graph": "node scripts/cjng-graph.mjs",
     "insight:graph": "node scripts/insight-graph.mjs",
     "clean": "node scripts/clean.mjs",
+    "sherlock:update": "node scripts/update-sherlock-manifest.mjs",
+    "sherlock:selftest": "node scripts/sherlock-selftest.mjs",
     "ingest": "python -m crucix_ingest serve",
     "ingest:poll": "python -m crucix_ingest poll",
     "ingest:test": "cd ingest && python -m pytest",

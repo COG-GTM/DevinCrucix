@@ -24,6 +24,7 @@ describe('classifyTarget', () => {
     assert.deepEqual(classifyTarget('@torvalds'), { type: 'username', value: 'torvalds' });
     assert.equal(classifyTarget('torvalds'), null);
     assert.deepEqual(classifyTarget('torvalds', 'username'), { type: 'username', value: 'torvalds' });
+    assert.deepEqual(classifyTarget('@torvalds', 'username'), { type: 'username', value: 'torvalds' });
     assert.equal(classifyTarget('+1 202 555 0143').type, 'phone');
     assert.equal(classifyTarget('1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa').type, 'btc');
     assert.equal(classifyTarget('0xdAC17F958D2ee523a2206206994597C13D831ec7').type, 'eth');
