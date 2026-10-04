@@ -235,7 +235,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ct-map{position:relative;height:clamp(420px,58vh,660px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden;margin-top:6px}
 #cartelMapSvg,#iwMapSvg,#twMapSvg,#uaMapSvg{width:100%;height:100%;display:block;cursor:grab}
 #cartelMapSvg:active,#iwMapSvg:active,#twMapSvg:active,#uaMapSvg:active{cursor:grabbing}
-#cartelMapSvg .land,#iwMapSvg .land,#twMapSvg .land,#uaMapSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
+#cartelMapSvg .land,#iwMapSvg .land,#twMapSvg .land,#uaMapSvg .land,#cyAtkSvg .land{fill:rgba(180,200,210,0.08);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
 /* Ukraine War tab: DeepStateMAP front polygons keep the FRONT_STYLE colours used by the globe legend. */
 #uaMapSvg .land.ua{fill:rgba(255,213,79,0.07);stroke:rgba(255,213,79,0.6);stroke-width:0.9}
 #uaMapSvg .land.ru{fill:rgba(255,82,82,0.035);stroke:rgba(255,82,82,0.3)}
@@ -275,8 +275,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 #twMapSvg .tw-ref.median{stroke:rgba(255,213,79,0.7);stroke-dasharray:2 3}
 #twMapSvg .tw-lbl{font-family:var(--mono);fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.06em}
 #twMapSvg .tw-lbl.ref{fill:rgba(255,213,79,0.8)}
-#cartelMapSvg .border,#iwMapSvg .border,#twMapSvg .border,#uaMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
-#cartelMapSvg .graticule,#iwMapSvg .graticule,#twMapSvg .graticule,#uaMapSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .border,#iwMapSvg .border,#twMapSvg .border,#uaMapSvg .border,#cyAtkSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
+#cartelMapSvg .graticule,#iwMapSvg .graticule,#twMapSvg .graticule,#uaMapSvg .graticule,#cyAtkSvg .graticule{fill:none;stroke:rgba(100,240,200,0.05);stroke-width:0.4;vector-effect:non-scaling-stroke}
 #cyMapSvg .land{fill:rgba(180,200,210,0.06);stroke:rgba(200,220,230,0.18);stroke-width:0.6;vector-effect:non-scaling-stroke}
 #cyMapSvg .land.focus{fill:rgba(255,183,77,0.03);stroke:rgba(255,183,77,0.5);stroke-width:0.9}
 #cyMapSvg .border{fill:none;stroke:rgba(200,220,230,0.1);stroke-width:0.4;vector-effect:non-scaling-stroke}
@@ -950,6 +950,97 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .kev-scroll{max-height:280px;overflow-y:auto}
 .kev-scroll::-webkit-scrollbar{width:3px}
 .kev-scroll::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3);border-radius:2px}
+.kev-tag.appliance{color:#ffb74d;border-color:rgba(255,183,77,0.4);background:rgba(255,183,77,0.08)}
+.kev-tag.due{color:#ff7043;border-color:rgba(255,112,67,0.4);background:rgba(255,112,67,0.08)}
+.kev-tag.due.urgent{color:#ff5252;border-color:rgba(255,82,82,0.6);background:rgba(255,82,82,0.14)}
+.kev-tag.cat{color:#90caf9;border-color:rgba(144,202,249,0.3);background:rgba(144,202,249,0.05)}
+/* Cyber tab — attack map, ransomware tape, outages, Devin Security */
+.cya-wrap{position:relative;height:380px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);overflow:hidden}
+.cya-wrap svg{width:100%;height:100%;display:block}
+#cyAtkSvg .land.hit{stroke:rgba(255,82,82,0.45)}
+#cyAtkSvg .cya-out{fill:none;stroke-width:1.2;vector-effect:non-scaling-stroke;pointer-events:none;animation:iwPulse 2.4s ease-out infinite}
+#cyAtkSvg .cya-out.critical{stroke:#ff9800}
+#cyAtkSvg .cya-out.warning{stroke:#ffd54f}
+#cyAtkSvg .cya-dot{stroke:rgba(0,0,0,0.6);stroke-width:0.5;vector-effect:non-scaling-stroke;cursor:pointer}
+#cyAtkSvg .cya-dot.critical{fill:#ff9800}
+#cyAtkSvg .cya-dot.warning{fill:#ffd54f}
+.cya-legend{position:absolute;left:8px;bottom:8px;display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:8px;color:var(--dim);background:rgba(0,0,0,0.55);padding:4px 7px;border:1px solid rgba(255,255,255,0.08)}
+.cya-legend i{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px}
+.cya-legend .ramp{width:60px;height:8px;background:linear-gradient(90deg,rgba(255,82,82,0.12),rgba(255,82,82,0.85));display:inline-block;margin:0 4px;vertical-align:-1px}
+.cya-tip{position:absolute;pointer-events:none;background:rgba(6,10,14,0.95);border:1px solid rgba(255,255,255,0.14);padding:5px 8px;font-family:var(--mono);font-size:9px;color:#e6f2ee;max-width:260px;display:none;z-index:4}
+.cya-tip b{color:#ff8a80}
+.cy2-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin:6px 0}
+.cy2-bar{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:6px;align-items:center;padding:3px 0;font-size:10px}
+.cy2-bar .lbl{font-family:var(--mono);font-size:9px;color:#c8d8d2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy2-bar .trk{height:5px;background:rgba(255,255,255,0.05);position:relative;margin-top:2px}
+.cy2-bar .trk i{position:absolute;left:0;top:0;bottom:0;background:rgba(255,82,82,0.55)}
+.cy2-bar .trk i.kev{background:rgba(66,165,245,0.6)}
+.cy2-bar .trk i.appl{background:rgba(255,183,77,0.7)}
+.cy2-bar .n{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:right}
+.cy2-sec{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin:8px 0 3px;display:flex;justify-content:space-between}
+.cy2-sec .r{text-transform:none;letter-spacing:0}
+.cy2-group{border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);padding:6px 8px;margin-bottom:5px}
+.cy2-group .gh{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.cy2-group .gn{font-family:var(--mono);font-size:11px;color:#ff8a80;font-weight:600}
+.cy2-group .gc{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.cy2-group .gd{font-size:10px;color:#c8d8d2;margin-top:2px}
+.cy2-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.cy2-chip{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid rgba(255,255,255,0.14);color:#c8d8d2;letter-spacing:0.03em}
+.cy2-chip.tool{color:#ffcc80;border-color:rgba(255,204,128,0.35)}
+.cy2-chip.ttp{color:#90caf9;border-color:rgba(144,202,249,0.35)}
+.cy2-victim{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.cy2-victim .ago{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.cy2-victim .who{color:#e6f2ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy2-victim .who small{color:var(--dim);font-size:9px}
+.cy2-victim .grp{font-family:var(--mono);font-size:8px;color:#ff8a80}
+.cy2-scroll{max-height:52vh;overflow-y:auto}
+.cy2-scroll::-webkit-scrollbar{width:3px}
+.cy2-scroll::-webkit-scrollbar-thumb{background:rgba(255,82,82,0.3);border-radius:2px}
+.cy2-out{display:grid;grid-template-columns:10px 120px minmax(0,1fr) 60px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.cy2-out .sev{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.cy2-out .sev.critical{background:#ff9800;box-shadow:0 0 6px rgba(255,152,0,0.6)}
+.cy2-out .sev.warning{background:#ffd54f}
+.cy2-out .nm{font-family:var(--mono);font-size:10px;color:#e6f2ee}
+.cy2-out .det{font-size:9px;color:#c8d8d2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy2-out .n{font-family:var(--mono);font-size:8px;color:var(--dim);text-align:right}
+.cy2-note{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:6px;line-height:1.4}
+.cy2-note a{color:var(--accent2)}
+/* Devin Security panel */
+.ds-banner{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px dashed rgba(255,213,79,0.45);background:rgba(255,213,79,0.05);margin:6px 0;font-size:10px;color:#ffe082}
+.ds-banner.ok{border-style:solid;border-color:rgba(102,187,106,0.45);background:rgba(102,187,106,0.06);color:#a5d6a7}
+.ds-banner.err{border-style:solid;border-color:rgba(255,82,82,0.5);background:rgba(255,82,82,0.08);color:#ff8a80}
+.ds-banner code{font-family:var(--mono);font-size:9px;color:#fff3c4;background:rgba(0,0,0,0.3);padding:1px 4px}
+.ds-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:10px}
+@media (max-width:1100px){.ds-grid{grid-template-columns:1fr}}
+.ds-repo{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;padding:6px 8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);margin-bottom:4px}
+.ds-repo .r{font-family:var(--mono);font-size:10px;color:#e6f2ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-repo .sub{font-family:var(--mono);font-size:8px;color:var(--dim)}
+.ds-btn{padding:4px 9px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;border:1px solid rgba(102,187,106,0.45);color:#a5d6a7;background:rgba(102,187,106,0.08);cursor:pointer}
+.ds-btn:hover{background:rgba(102,187,106,0.18)}
+.ds-btn.alt{border-color:rgba(68,204,255,0.3);color:var(--accent2);background:rgba(68,204,255,0.06)}
+.ds-btn:disabled{opacity:0.38;cursor:not-allowed;filter:grayscale(0.6)}
+.ds-sel{background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:9px;padding:3px 4px}
+.ds-brief{font-family:var(--mono);font-size:9px;color:#c8d8d2;white-space:pre-wrap;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);padding:8px;max-height:200px;overflow-y:auto;line-height:1.45}
+.ds-scan{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:6px;align-items:center;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
+.ds-scan .r{font-family:var(--mono);font-size:9px;color:#e6f2ee}
+.ds-scan .st{font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
+.ds-scan .st.running,.ds-scan .st.pending,.ds-scan .st.waiting{color:#ffd54f}
+.ds-scan .st.completed{color:#a5d6a7}
+.ds-scan .st.failed,.ds-scan .st.cancelled{color:#ff8a80}
+.ds-scan .st.awaiting_user_input{color:#ce93d8}
+.ds-find{padding:6px 8px;border:1px solid rgba(255,255,255,0.06);margin:4px 0;font-size:10px}
+.ds-find .t{color:#e6f2ee}
+.ds-find .m{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ds-find .m a{color:var(--accent2)}
+.ds-sev{font-family:var(--mono);font-size:8px;padding:0 4px;border:1px solid rgba(255,255,255,0.2);text-transform:uppercase}
+.ds-sev.critical,.ds-sev.high{color:#ff8a80;border-color:rgba(255,138,128,0.5)}
+.ds-sev.medium{color:#ffd54f;border-color:rgba(255,213,79,0.5)}
+.ds-sev.low,.ds-sev.info{color:var(--dim)}
+.ds-empty{font-family:var(--mono);font-size:9px;color:var(--dim);padding:8px;text-align:center}
+.ds-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.ds-step{border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);padding:6px 8px}
+.ds-step .k{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:0.08em;text-transform:uppercase}
+.ds-step .v{font-size:10px;color:#c8d8d2;margin-top:2px;line-height:1.35}
 /* Phase 7: Investigate pivot + Typosquat watch */
 .inv-form{display:flex;gap:6px;margin-bottom:8px}
 .inv-input{flex:1;min-width:0;background:rgba(0,0,0,0.35);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:6px 8px;outline:none}
@@ -1465,7 +1556,7 @@ function renderTopbar(){
 const TAB_DEFS=[
   {id:'situation',label:'Situation',hint:'What matters this sweep'},
   {id:'military',label:'Military',hint:'Air, maritime, PRC, nuclear, space'},
-  {id:'cyber',label:'Cyber',hint:'KEV, Telegram OSINT, look-alike domains'},
+  {id:'cyber',label:'Cyber',hint:'Exploited in the wild, ransomware, outages, Devin scan'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
   {id:'ukraine',label:'Ukraine War',hint:'DeepStateMAP front + attack axes, RU units / airfields, theater air & GPS jamming, FIRMS thermal + strike candidates, ZNPP / nuclear, wires, channels, odds \u00b7 observational, attributed \u00b7 not verified ground truth'},
   {id:'cartels',label:'Cartels & Border',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 official CBP data (encounters, seizures, use of force, custody) \u00b7 US\u2013Mexico border reporting \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
@@ -1492,7 +1583,7 @@ function tabCounts(){
   const hot=(c.critical||0)+(c.high||0);
   const h=D.meta?.health;
   const dark=h?h.no_key+h.off+h.error:0;
-  const kev=D.cyberKev?.totalVulnerabilities||0;
+  const kev=D.cyberKev?.added7d||0;const rwTot=D.ransomware?.total||0;
   const tsNew=D.typosquat?.newCount||0;
   const spikes=(D.borderNews?.spikes||[]).length;
   const airTotal=(D.air||[]).reduce((s,a)=>s+(a.total||0),0);
@@ -1510,7 +1601,7 @@ function tabCounts(){
   return {
     situation: hot?{n:hot,cls:'hot',title:`${hot} critical/high judgments`}:sit.quiet?{n:'QUIET',cls:'',title:'No rule fired above baseline'}:null,
     military: airTotal?{n:airTotal,cls:'',title:`${airTotal} aircraft across ${(D.air||[]).length} theaters`}:null,
-    cyber: kev?{n:kev+(tsNew?` +${tsNew}`:''),cls:tsNew?'warn':'',title:`${kev} KEV CVEs${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
+    cyber: (kev||rwTot)?{n:`${kev}${rwTot?` · ${rwTot}`:''}`,cls:(kev>=5||(D.ransomware?.last24h||0)>=15)?'warn':'',title:`${kev} KEV additions in 7 days${rwTot?` · ${rwTot} ransomware victim posts in 7 days`:''}${tsNew?` · ${tsNew} new look-alike domains`:''}`}:null,
     macro: D.markets?.timestamp?{n:'LIVE',cls:'',title:'Yahoo Finance quotes fresh'}:null,
     ukraine: uaCount,
     cartels: spikes?{n:`${ctCount?ctCount.n+' \u00b7 ':''}${spikes} SPIKE${spikes>1?'S':''}`,cls:'hot',title:`${ctCount?ctCount.title+' \u00b7 ':''}${spikes} Border Watch place spike${spikes>1?'s':''} vs baseline`}:ctCount,
@@ -1942,7 +2033,12 @@ const PANEL_CAPTIONS={
   'pentagon pizza index':'Novelty indicator from a sidecar service; shown only when configured.',
   'narco & organized crime':'InSight Crime reporting with extracted people, groups and places. Journalism, not event data.',
   'focal points':'<b>Derived.</b> Areas where several feeds point at the same place this sweep. Check each contributing source before reading it as convergence.',
-  'cisa kev threats':'CISA Known Exploited Vulnerabilities, newest first. Click a CVE or vendor to pivot into Investigate.',
+  'cisa kev delta':'What CISA added to the Known Exploited Vulnerabilities catalog in the last 30 days, grouped by vendor, with the federal remediation due date (BOD 22-01). KEV carries no CVSS, so no severity is invented. <b>Appliance</b> marks network gear a repository scan can only confirm exposure to, not patch.',
+  'attack map':'Where ransomware leak-site victims were posted in the last 7 days (country fill) and where IODA sees national or regional internet connectivity below baseline in the last 24 h (pulsing markers). Victim country is the group\'s claim; outages are measured from BGP, active probing and darknet telescopes.',
+  'ransomware attack tape':'Victims posted on ransomware leak sites in the last 7 days, by group and sector, with each group\'s known tooling and MITRE ATT&amp;CK techniques from ransomware.live. These are criminal-group claims, not confirmed breaches.',
+  'internet disruption':'IODA (Georgia Tech) country and region alerts in the last 24 h. <b>Critical</b> = connectivity signal well below the 7-day baseline; <b>normal</b> rows are recoveries. Pairs with the country tabs when a blackout coincides with unrest or conflict.',
+  'devin security':'Turns the attack picture into an action: start a Devin security code scan on the repos configured in <code>CRUCIX_SCAN_REPOS</code>, read findings, and launch a Devin remediation session that opens the fix PR. Until <code>DEVIN_API_KEY</code> and <code>DEVIN_ORG_ID</code> are set the controls are disabled and every action returns 503; the token never reaches the browser.',
+  'exposure brief':'What this sweep says a scan should look for: the vendors and products CISA is adding, the ransomware groups and tooling most active this week. Generated from live data, no model involved; paste it into a Devin session by hand if the API is not connected.',
   'cross-source signals':'<b>Derived.</b> Zones where two or more independent feeds overlap. Built from the panels above; adds no new data.',
   'carrier strike groups':'Positions estimated from public reporting (USNI, GDELT). Fallback positions are last known, not tracked.',
   'ukraine theater':'D3 theater map: DeepStateMAP front polygons, attack axes and RU unit / airfield markers over the sensors CRUCIX already sweeps for this box. Map data \u00a9 DeepStateMAP \u2014 an assessment, not verified ground truth.',
@@ -2115,7 +2211,9 @@ function renderLeftRail(){
     {name:'Signal Intel',count:D.signals?.totalSignals||0,dot:'sigint',sub:`${Object.keys(D.signals?.byType||{}).length} types`,src:'Signals'},
     {name:'Focal Points',count:D.focalPoints?.totalFocalPoints||0,dot:'focal',sub:`${((D.focalPoints?.focalPoints||[]).filter(f=>f.urgency==='Critical').length)||0} critical`,src:'FocalPoints'},
     {name:'Pizza Index',count:D.pizzaIndex?.doughcon!=null?'DC'+esc(D.pizzaIndex.doughcon):'--',dot:'pizza',sub:esc(D.pizzaIndex?.trend||'awaiting data'),src:'PizzaIndex'},
-    {name:'Cyber KEV',count:D.cyberKev?.totalVulnerabilities||0,dot:'cyber',sub:`${D.cyberKev?.ransomwareCount||0} ransomware`,src:'CyberKEV'},
+    {name:'Cyber KEV',count:D.cyberKev?.added7d||0,dot:'cyber',sub:`added 7d · ${D.cyberKev?.added30d||0} in 30d`,src:'CyberKEV'},
+    {name:'Ransomware',count:D.ransomware?.total||0,dot:'cyber',sub:`victims 7d · ${D.ransomware?.last24h||0} in 24h`,src:'Ransomware'},
+    {name:'Internet Outages',count:D.ioda?.alertCount||0,dot:'cyber',sub:`${D.ioda?.criticalCount||0} critical · 24h`,src:'IODA'},
     {name:'Telegram Live',count:D.telegramLive?.totalMessages||0,dot:'tglive',sub:`${D.telegramLive?.channels||0} channels`,src:'TelegramLive'},
     {name:'Polymarket',count:D.polymarket?.totalGeoMarkets||0,dot:'polymarket',sub:'geopolitical odds',src:'Polymarket'},
     {name:'DEFCON',count:D.defcon?.level!=null?'Level '+esc(D.defcon.level):'--',dot:'defcon',sub:esc(D.defcon?.label||'computing'),src:'DEFCON'},
@@ -2169,7 +2267,7 @@ function renderLeftRail(){
   // Sensor Grid is filtered per tab so each view only lists the layers it is about.
   const TAB_LAYERS={
     military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
-    cyber:['Cyber KEV','Telegram Live','OSINT Feed','CCTV Mesh','Signal Intel','SDR Coverage'],
+    cyber:['Cyber KEV','Ransomware','Internet Outages','Telegram Live'],
     macro:['Market Intel','Polymarket','Instability Index'],
     ukraine:['Ukraine Front','RU Units / Airfields','GPS Jamming','Thermal Spikes','Air Activity','Nuclear Sites','Telegram Live'],
     cartels:['Border Watch','Border / CBP','Narco Intel'],
@@ -2225,7 +2323,7 @@ function renderLeftRail(){
   const byTab={
     situation:[renderDeltaPanel(),sensorGridPanel,renderSourceHealthPanel()],
     military:[sensorGridPanel,nuclearPanel,seismicPanel,spacePanel],
-    cyber:[sensorGridPanel,renderSignalIntelPanel()],
+    cyber:[sensorGridPanel,renderCyberBriefPanel()],
     macro:[riskPanel,sensorGridPanel],
     ukraine:[renderUaSourcePanel(),sensorGridPanel,renderUaCorroborationPanel()],
     cartels:[renderNarcoSourcePanel(),renderCartelSourcePanel(),renderCartelOrgsPanel(),sensorGridPanel,renderSourceHealthPanel()],
@@ -3750,7 +3848,7 @@ function renderLower(){
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
-    cyber:[wrap(renderCyberKevPanel(),'lp-half'),wrap(renderTelegramLivePanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-half')],
+    cyber:[wrap(renderCyberAttackMapPanel(),'lp-wide'),wrap(renderRansomwarePanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderDevinSecPanel(),'lp-wide'),wrap(renderIodaPanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
@@ -3771,6 +3869,7 @@ function renderLower(){
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
   if(currentTab==='cartels')kgMount('cjng');
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
+  if(currentTab==='cyber'){requestAnimationFrame(initCyberAttackMap);devinSecRefresh();}
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
   if(CY_TAB[currentTab]){requestAnimationFrame(initCyMap);kgMount(CY_TAB[currentTab])}
@@ -7793,22 +7892,231 @@ document.addEventListener('click', e => {
   else if (ent.url && /^https?:\/\//i.test(ent.url)) window.open(ent.url, '_blank', 'noopener,noreferrer');
 });
 
+// === CYBER TAB — exploited in the wild → are you exposed → scan & patch with Devin ===
+const CY_REGION_NAMES=(()=>{try{return new Intl.DisplayNames(['en'],{['type']:'region'})}catch{return null}})();
+function cyCountryName(code){if(!code)return '';try{return CY_REGION_NAMES?.of(code)||code}catch{return code}}
+function cyAgo(iso){const t=Date.parse(iso||'');if(!Number.isFinite(t))return '';const m=Math.max(0,Math.round((Date.now()-t)/60000));if(m<60)return m+'m';const h=Math.round(m/60);if(h<48)return h+'h';return Math.round(h/24)+'d'}
+function cyBar(label,n,max,cls='',rightHtml){const pct=max?Math.max(2,Math.round(n/max*100)):0;return `<div class="cy2-bar"><div><div class="lbl" title="${esc(label)}">${esc(label)}</div><div class="trk"><i class="${cls}" style="width:${pct}%"></i></div></div><div class="n">${rightHtml??esc(String(n))}</div></div>`}
+
 function renderCyberKevPanel(){
-  const ck = D.cyberKev || {};
-  if (ck.status === 'unavailable' || (ck.vulnerabilities || []).length === 0) {
-    return offPanel('CISA KEV Threats','CyberKEV','CISA catalog unavailable');
-  }
-  const vulns = (ck.vulnerabilities || []).slice(0, 15).map(v => {
-    const sevClass = v.severity || 'low';
-    const tags = [];
-    if (v.severity) tags.push(`<span class="kev-tag ${esc(sevClass)}">${esc(v.severity)}</span>`);
-    if (v.ransomware) tags.push('<span class="kev-tag ransomware">RANSOMWARE</span>');
-    if (v.prcRelevant) tags.push('<span class="kev-tag prc">PRC</span>');
-    (v.categories || []).slice(0, 2).forEach(c => tags.push(`<span class="kev-tag low">${esc(c)}</span>`));
-    return `<div class="kev-row"><div class="kev-cve">${cleanText(v.cveID || '')} &middot; ${cleanText(v.vendor || '')}</div><div class="kev-name">${cleanText(v.name || '')}</div><div class="kev-meta">${tags.join('')}</div></div>`;
-  }).join('');
-  const prcBadge = ck.prcRelevantCount > 0 ? ` &middot; <span style="color:#ff4081">${ck.prcRelevantCount} PRC</span>` : '';
-  return `<div class="g-panel right-kev"><div class="sec-head"><h3>${shDot('CyberKEV')}CISA KEV Threats</h3><span class="badge" style="background:rgba(66,165,245,0.1);color:#42a5f5;border-color:rgba(66,165,245,0.3)">${ck.totalVulnerabilities||0} CVEs${prcBadge}</span></div><div class="kev-scroll">${vulns}</div></div>`;
+  const ck=D.cyberKev||{};
+  if(ck.status==='unavailable'||(ck.vulnerabilities||[]).length===0)return offPanel('CISA KEV Delta','CyberKEV','CISA catalog unavailable','right-kev');
+  const due=(ck.dueSoon||[]);
+  const kpis=`<div class="front-kpis cy2-kpis">
+    <div class="front-kpi"><div class="k">Added · 7 d</div><div class="v" style="color:#42a5f5">${ck.added7d||0}</div><div class="s">${ck.added30d||0} in 30 d · ${(ck.totalVulnerabilities||0).toLocaleString()} catalog</div></div>
+    <div class="front-kpi"><div class="k">Due ≤ ${ck.dueSoonDays||14} d</div><div class="v" style="color:#ff7043">${due.length}</div><div class="s">${due.filter(v=>v.dueInDays<=3).length} due within 3 d</div></div>
+    <div class="front-kpi"><div class="k">Ransomware use</div><div class="v" style="color:#f44336">${ck.ransomwareCount||0}</div><div class="s">CISA-flagged · 30 d</div></div>
+    <div class="front-kpi"><div class="k">Appliances</div><div class="v" style="color:#ffb74d">${ck.applianceCount||0}</div><div class="s">not patchable from a repo</div></div>
+  </div>`;
+  const vend=(ck.byVendor||[]).slice(0,6);const vmax=vend[0]?.count||1;
+  const vendors=vend.map(v=>cyBar(`${v.vendor} · ${v.products.slice(0,2).join(', ')}`,v.count,vmax,v.appliance===v.count?'appl':'kev',`${v.count}${v.appliance?` <span style="color:#ffb74d">▲${v.appliance}</span>`:''}`)).join('');
+  const row=v=>{
+    const tags=[];
+    if(v.dueInDays!=null)tags.push(`<span class="kev-tag due ${v.dueInDays<=3?'urgent':''}">${v.dueInDays<0?`overdue ${-v.dueInDays}d`:v.dueInDays===0?'due today':`due ${v.dueInDays}d`}</span>`);
+    if(v.ransomware)tags.push('<span class="kev-tag ransomware">RANSOMWARE</span>');
+    if(v.appliance)tags.push('<span class="kev-tag appliance" title="Network appliance / server product: a repository scan can confirm exposure, not patch it">APPLIANCE</span>');
+    if(v.prcRelevant)tags.push('<span class="kev-tag prc" title="Keyword hint: PRC vendor or PRC-attributed campaign">PRC?</span>');
+    (v.categories||[]).filter(c=>c!=='other').slice(0,2).forEach(c=>tags.push(`<span class="kev-tag cat">${esc(c.replace(/_/g,' '))}</span>`));
+    return `<div class="kev-row"><div class="kev-cve"><a href="${esc(v.nvdUrl||'#')}" target="_blank" rel="noopener noreferrer" style="color:inherit">${cleanText(v.cveID||'')}</a> &middot; ${cleanText(v.vendor||'')} ${cleanText(v.product||'')} &middot; <span style="color:var(--dim)">added ${cleanText(v.dateAdded||'')}</span></div><div class="kev-name">${cleanText(v.name||'')}</div><div class="kev-meta">${tags.join('')}</div></div>`};
+  const list=(ck.vulnerabilities||[]).slice(0,30).map(row).join('');
+  return `<div class="g-panel right-kev"><div class="sec-head"><h3>${shDot('CyberKEV')}CISA KEV Delta</h3><span class="badge" style="color:#42a5f5;border-color:rgba(66,165,245,0.3)">+${ck.added7d||0} / 7 D</span></div>
+    ${kpis}
+    <div class="cy2-sec"><span>Vendor concentration · 30 d</span><span class="r">▲ appliance</span></div>${vendors||'<div class="ds-empty">No additions in 30 days</div>'}
+    <div class="cy2-sec"><span>Additions · newest first</span><span class="r">${ck.catalogVersion?'catalog '+esc(ck.catalogVersion):''}</span></div>
+    <div class="kev-scroll">${list}</div>
+    <div class="cy2-note">Due dates are CISA\u2019s federal remediation deadlines (BOD 22-01). KEV publishes no CVSS score; none is shown. <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener noreferrer">Catalog \u2197</a></div>
+  </div>`;
+}
+
+function renderRansomwarePanel(){
+  const r=D.ransomware||{};
+  if(r.status!=='live'||!(r.victims||[]).length)return offPanel('Ransomware Attack Tape','Ransomware','ransomware.live unreachable this sweep','cy-attack-tape');
+  const groups=(r.groups||[]).slice(0,5);
+  const gHtml=groups.map(g=>`<div class="cy2-group"><div class="gh"><span class="gn">${esc(g.name)}</span><span class="gc">${g.count} victim${g.count===1?'':'s'} · ${esc(g.sectors.slice(0,2).join(', ')||'mixed sectors')}${g.firstSeen?` · since ${esc(String(g.firstSeen).slice(0,7))}`:''}</span></div>${g.description?`<div class="gd">${esc(g.description)}</div>`:''}${(g.tools.length||g.ttps.length)?`<div class="cy2-chips">${g.tools.slice(0,6).map(t=>`<span class="cy2-chip tool">${esc(t)}</span>`).join('')}${g.ttps.slice(0,4).map(t=>`<span class="cy2-chip ttp">${esc(t)}</span>`).join('')}</div>`:''}</div>`).join('');
+  const sec=(r.sectors||[]).slice(0,6);const smax=sec[0]?.count||1;
+  const sHtml=sec.map(x=>cyBar(x.name,x.count,smax)).join('');
+  const tape=(r.victims||[]).slice(0,25).map(v=>`<div class="cy2-victim"><span class="ago">${cyAgo(v.discovered)} ago</span><span class="who" title="${esc(v.domain||'')}">${esc(v.victim||v.domain||'—')} <small>${esc(v.sector||'')}${v.country?` · ${esc(cyCountryName(v.country))}`:''}</small></span><span class="grp">${esc(v.group)}</span></div>`).join('');
+  return `<div class="g-panel cy-attack-tape"><div class="sec-head"><h3>${shDot('Ransomware')}Ransomware Attack Tape</h3><span class="badge" style="color:#ff8a80;border-color:rgba(255,138,128,0.35)">${r.total} · 7 D</span></div>
+    <div class="front-kpis cy2-kpis">
+      <div class="front-kpi"><div class="k">Victim posts · 7 d</div><div class="v" style="color:#ff8a80">${r.total}</div><div class="s">${r.last24h} in 24 h${r.feedCovered?'':' · feed window short'}</div></div>
+      <div class="front-kpi"><div class="k">Active groups</div><div class="v">${(r.groups||[]).length}</div><div class="s">${groups[0]?esc(groups[0].name)+' leads':''}</div></div>
+      <div class="front-kpi"><div class="k">Countries</div><div class="v">${(r.countries||[]).length}</div><div class="s">${(r.countries||[]).slice(0,3).map(c=>`${esc(c.code)} ${c.count}`).join(' · ')}</div></div>
+    </div>
+    <div class="cy2-sec"><span>Most active groups</span><span class="r">tools · ATT&amp;CK</span></div>${gHtml}
+    <div class="cy2-sec"><span>Sectors hit · 7 d</span></div>${sHtml}
+    <div class="cy2-sec"><span>Tape · newest first</span></div><div class="cy2-scroll" style="max-height:260px">${tape}</div>
+    <div class="cy2-note">Leak-site claims collected by <a href="https://www.ransomware.live" target="_blank" rel="noopener noreferrer">ransomware.live</a>. A posting means a group claims a victim; it is not a confirmed breach.</div>
+  </div>`;
+}
+
+function renderIodaPanel(){
+  const io=D.ioda||{};
+  if(io.status!=='live')return offPanel('Internet Disruption','IODA','IODA unreachable this sweep','cy-outages');
+  const rows=(io.countries||[]).slice(0,14).map(c=>`<div class="cy2-out"><span class="sev ${esc(c.severity)}"></span><span class="nm">${esc(c.name)}</span><span class="det">${c.critical?`${c.critical} critical`:'recovering'} · ${esc(c.datasources.join('/'))}${c.maxDropPct?` · ${c.maxDropPct}% below baseline`:''}${c.regions.length?` · ${esc(c.regions.slice(0,3).join(', '))}`:''}</span><span class="n">${cyAgo(c.latest)} ago</span></div>`).join('');
+  return `<div class="g-panel cy-outages"><div class="sec-head"><h3>${shDot('IODA')}Internet Disruption</h3><span class="badge ${io.criticalCount?'warn':''}">${io.criticalCount} CRITICAL · 24 H</span></div>
+    ${rows||'<div class="ds-empty">No country or region alerts in the last 24 h</div>'}
+    <div class="cy2-note">${(io.countries||[]).length} countr${(io.countries||[]).length===1?'y':'ies'} with alerts · ${io.alertCount} alerts. Source: <a href="https://ioda.inetintel.cc.gatech.edu/" target="_blank" rel="noopener noreferrer">IODA</a>, Georgia Tech. Markers also on the attack map above.</div>
+  </div>`;
+}
+
+function renderCyberAttackMapPanel(){
+  const r=D.ransomware||{},io=D.ioda||{};
+  const hit=(r.countries||[]).length,out=(io.countries||[]).filter(c=>c.severity!=='normal').length;
+  return `<div class="g-panel"><div class="sec-head"><h3>${shDot(['Ransomware','IODA'])}Attack Map</h3><span class="badge" style="color:#ff8a80;border-color:rgba(255,138,128,0.35)">${hit} COUNTRIES HIT · ${out} DISRUPTED</span></div>
+    <div class="cya-wrap" id="cyAtkWrap"><svg id="cyAtkSvg"></svg><div class="cya-tip" id="cyAtkTip"></div>
+      <div class="cya-legend"><span>ransomware victims 7 d</span><span class="ramp"></span><span>${r.countries?.[0]?.count||0}</span><span style="margin-left:6px"><i style="border:1.5px solid #ff9800;border-radius:50%"></i>critical outage</span><span><i style="border:1.5px solid #ffd54f;border-radius:50%"></i>degraded</span></div>
+    </div>
+  </div>`;
+}
+let cyAtkWorldP=null;
+function initCyberAttackMap(){
+  const wrap=document.getElementById('cyAtkWrap'),svgEl=document.getElementById('cyAtkSvg');
+  if(!wrap||!svgEl||!window.d3)return;
+  const W=wrap.clientWidth||900,H=wrap.clientHeight||380;
+  const svg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
+  svg.selectAll('*').remove();
+  const proj=d3.geoNaturalEarth1().fitExtent([[6,6],[W-6,H-6]],{type:'Sphere'});
+  const path=d3.geoPath(proj);
+  const root=svg.append('g');
+  const zoom=d3.zoom().scaleExtent([1,8]).on('zoom',ev=>root.attr('transform',ev.transform));
+  svg.call(zoom);
+  root.append('path').datum(d3.geoGraticule().step([15,15])()).attr('class','graticule').attr('d',path);
+  const tip=document.getElementById('cyAtkTip');
+  const show=(ev,html)=>{if(!tip)return;tip.innerHTML=html;tip.style.display='block';const b=wrap.getBoundingClientRect();tip.style.left=Math.min(b.width-270,ev.clientX-b.left+12)+'px';tip.style.top=(ev.clientY-b.top+12)+'px'};
+  const hide=()=>{if(tip)tip.style.display='none'};
+  const rw=new Map((D.ransomware?.countries||[]).filter(c=>c.num).map(c=>[String(c.num).padStart(3,'0'),c]));
+  const io=new Map((D.ioda?.countries||[]).filter(c=>c.num&&c.severity!=='normal').map(c=>[String(c.num).padStart(3,'0'),c]));
+  const max=Math.max(1,...[...rw.values()].map(c=>c.count));
+  const fill=n=>n?`rgba(255,82,82,${(0.14+0.72*Math.log1p(n)/Math.log1p(max)).toFixed(2)})`:null;
+  const nid=d=>String(d.id??'').padStart(3,'0');
+  (cyAtkWorldP||(cyAtkWorldP=ctWorld())).then(world=>{
+    if(!world||!window.topojson||!document.getElementById('cyAtkSvg'))return;
+    const countries=topojson.feature(world,world.objects.countries);
+    root.selectAll('path.land').data(countries.features).enter().append('path')
+      .attr('class',d=>'land'+(rw.has(nid(d))?' hit':'')).attr('d',path)
+      .style('fill',d=>fill(rw.get(nid(d))?.count||0))
+      .on('mousemove',(ev,d)=>{const c=rw.get(nid(d)),o=io.get(nid(d));if(!c&&!o)return hide();show(ev,`<div>${esc(d.properties?.name||'')}</div>${c?`<div><b>${c.count}</b> ransomware victim post${c.count===1?'':'s'} · 7 d</div>`:''}${o?`<div style="color:#ffcc80">${o.critical} critical IODA alert${o.critical===1?'':'s'} · 24 h${o.maxDropPct?` · ${o.maxDropPct}% below baseline`:''}</div>`:''}`)})
+      .on('mouseleave',hide);
+    root.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b)).attr('class','border').attr('d',path);
+    const byId=new Map(countries.features.map(f=>[nid(f),f]));
+    const outs=[...io.entries()].map(([id,c])=>({c,f:byId.get(id)})).filter(x=>x.f);
+    const g=root.append('g');
+    outs.forEach(({c,f})=>{
+      const xy=path.centroid(f);if(!xy||!Number.isFinite(xy[0]))return;
+      const r=c.severity==='critical'?6:4;
+      g.append('circle').attr('class',`cya-out ${c.severity}`).attr('cx',xy[0]).attr('cy',xy[1]).attr('r',r*2.2);
+      g.append('circle').attr('class',`cya-dot ${c.severity}`).attr('cx',xy[0]).attr('cy',xy[1]).attr('r',r*0.55)
+        .on('mousemove',ev=>show(ev,`<div>${esc(c.name)} — internet disruption</div><div style="color:#ffcc80">${c.critical} critical · ${c.alerts} alerts · ${esc(c.datasources.join('/'))}${c.maxDropPct?` · ${c.maxDropPct}% below baseline`:''}</div>${c.regions.length?`<div style="color:var(--dim)">${esc(c.regions.slice(0,4).join(', '))}</div>`:''}`))
+        .on('mouseleave',hide);
+    });
+  });
+}
+
+function renderCyberBriefPanel(){
+  const b=DS.status?.brief;
+  const ck=D.cyberKev||{},r=D.ransomware||{};
+  const vend=(ck.byVendor||[]).slice(0,5).map(v=>esc(v.vendor)).join(', ');
+  const grp=(r.groups||[]).slice(0,4).map(g=>esc(g.name)).join(', ');
+  const tools=[...new Set((r.groups||[]).flatMap(g=>g.tools||[]))].slice(0,8).map(t=>`<span class="cy2-chip tool">${esc(t)}</span>`).join('');
+  if(!vend&&!grp)return offPanel('Exposure Brief',['CyberKEV','Ransomware'],'Waiting for KEV and ransomware data');
+  return `<div class="g-panel"><div class="sec-head"><h3>${shDot(['CyberKEV','Ransomware'])}Exposure Brief</h3><span class="badge off">THIS SWEEP</span></div>
+    <div class="ds-steps" style="grid-template-columns:1fr">
+      <div class="ds-step"><div class="k">1 · Being exploited</div><div class="v">${vend?`CISA added KEV entries for <b>${vend}</b> in the last 30 d`:'KEV unavailable'}${(ck.dueSoon||[]).length?`; ${ck.dueSoon.length} due within ${ck.dueSoonDays||14} d`:''}.</div></div>
+      <div class="ds-step"><div class="k">2 · Who is doing it</div><div class="v">${grp?`Most active leak-site groups: <b>${grp}</b>`:'No ransomware data'}${(r.sectors||[]).length?`; hitting ${esc(r.sectors.slice(0,3).map(x=>x.name).join(', '))}`:''}.</div>${tools?`<div class="cy2-chips">${tools}</div>`:''}</div>
+      <div class="ds-step"><div class="k">3 · Are you exposed</div><div class="v">${DS.status?.configured?'Devin is connected — start a scan in the Devin Security panel below.':'Scan the repos you own for these dependency and configuration classes. Devin Security runs it when connected; until then copy the brief.'}</div>${b?.text?`<div style="margin-top:4px"><button class="ds-btn alt" onclick="devinSecCopyBrief()">Copy brief</button></div>`:''}</div>
+    </div>
+  </div>`;
+}
+
+// --- Devin Security panel (server holds the token; this only talks to /api/devinsec/*)
+const DS={status:null,scans:null,findings:{},open:null,busy:false,msg:null,loading:false,lastAt:0};
+async function devinSecRefresh(force=false){
+  if(DS.loading)return;if(!force&&Date.now()-DS.lastAt<20000){devinSecPaint();return}
+  DS.loading=true;
+  try{
+    const r=await fetch('/api/devinsec/status',{cache:'no-store'});if(!r.ok)throw new Error('status '+r.status);
+    DS.status=await r.json();DS.lastAt=Date.now();
+    if(DS.status.configured){const sr=await fetch('/api/devinsec/scans',{cache:'no-store'});DS.scans=sr.ok?(await sr.json()).scans||[]:[];if(!sr.ok)DS.msg={cls:'err',text:`Could not list scans (${sr.status})`}}
+  }catch(e){DS.status=DS.status||{configured:false,missing:[],repos:[],hint:'status request failed'};DS.msg={cls:'err',text:'Devin status request failed: '+e.message}}
+  finally{DS.loading=false;devinSecPaint()}
+}
+function devinSecPaint(){const el=document.getElementById('devinSecBody');if(el)el.innerHTML=devinSecBodyHtml();const head=document.querySelector('#devinSecPanel .sec-head');if(head){const tmp=document.createElement('div');tmp.innerHTML=renderDevinSecPanel();head.replaceWith(tmp.querySelector('.sec-head'))}if(currentTab==='cyber'&&D)renderLeftRail();}
+function devinSecBodyHtml(){
+  const st=DS.status;
+  if(!st)return '<div class="ds-empty">Checking Devin connection…</div>';
+  const missing=(st.missing||[]);
+  const banner=st.configured
+    ?`<div class="ds-banner ok"><span>●</span><span><b>Connected</b> — org ${esc(st.orgId||'')} · ${st.repos.length} repo${st.repos.length===1?'':'s'} in scope. Scans cost ACUs; each launch asks for confirmation and is logged under <code>runs/devinsec-launches.json</code>.</span></div>`
+    :`<div class="ds-banner"><span>○</span><span><b>Not connected.</b> Set ${missing.map(m=>`<code>${esc(m)}</code>`).join(' ')} on the server (locally in <code>.env</code>, in production <code>fly secrets set …</code>) and restart — no code change needed. Buttons below are disabled until then; the API answers <code>503</code>.</span></div>`;
+  const msg=DS.msg?`<div class="ds-banner ${esc(DS.msg.cls||'')}"><span>${DS.msg.cls==='err'?'✕':'✓'}</span><span>${DS.msg.html||esc(DS.msg.text||'')}</span></div>`:'';
+  const repos=st.repos.length?st.repos:['owner/repo'];
+  const repoRows=repos.map(r=>`<div class="ds-repo"><span class="r">${esc(r)}${st.repos.length?'':' <span class="sub">(example — none configured)</span>'}</span><select class="ds-sel" id="dsEffort-${esc(r.replace(/[^a-zA-Z0-9]/g,'_'))}" ${st.configured?'':'disabled'}><option value="normal">normal</option><option value="deep">deep</option></select><button class="ds-btn" ${st.configured&&!DS.busy?'':'disabled'} title="${st.configured?'Start a Devin security scan on this repository':'Devin API not connected — set '+esc(missing.join(', '))}" onclick="devinSecScan(${JSON.stringify(r).replace(/"/g,'&quot;')})">Scan exposure</button></div>`).join('');
+  const scans=st.configured?(DS.scans===null?'<div class="ds-empty">Loading scans…</div>':DS.scans.length?DS.scans.slice(0,12).map(sc=>`<div class="ds-scan"><span class="r">${esc(sc.repo||'')} <span style="color:var(--dim)">· ${esc(sc.effort||'')} · ${cyAgo(sc.createdAt)} ago</span></span><span class="st ${esc(sc.status||'')}">${esc(String(sc.status||'').replace(/_/g,' '))}</span><span>${sc.url?`<a class="ds-btn alt" style="text-decoration:none" href="${esc(sc.url)}" target="_blank" rel="noopener noreferrer">Open</a> `:''}<button class="ds-btn alt" onclick="devinSecFindings(${JSON.stringify(sc.scanId).replace(/"/g,'&quot;')})" ${sc.status==='completed'||sc.status==='running'?'':'disabled'}>Findings</button></span></div>${DS.open===sc.scanId?devinSecFindingsHtml(sc.scanId):''}`).join(''):'<div class="ds-empty">No scans yet for these repos.</div>'):'<div class="ds-empty">Scan history appears here once Devin is connected.</div>';
+  const launches=(st.recentLaunches||[]).slice(0,5).map(l=>`<div class="ds-scan"><span class="r">${esc(l.kind)} · ${esc(l.repo||l.scanId||'')}</span><span class="st">${cyAgo(l.at)} ago</span><span>${l.url?`<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);font-family:var(--mono);font-size:9px">session \u2197</a>`:''}</span></div>`).join('');
+  return `${banner}${msg}
+    <div class="ds-steps">
+      <div class="ds-step"><div class="k">1 · Scan</div><div class="v">Devin threat-models the repo and investigates for the weakness classes being exploited right now (see brief).</div></div>
+      <div class="ds-step"><div class="k">2 · Findings</div><div class="v">Each finding lands here with file and severity. Dismiss noise in Devin; act on the rest.</div></div>
+      <div class="ds-step"><div class="k">3 · Remediate</div><div class="v">One click starts a Devin session that writes the fix and opens the pull request for review.</div></div>
+    </div>
+    <div class="ds-grid">
+      <div>
+        <div class="cy2-sec"><span>Repositories in scope</span><span class="r">${st.configured?'effort · action':'CRUCIX_SCAN_REPOS'}</span></div>${repoRows}
+        <div class="cy2-sec"><span>Scans</span><span class="r">${st.configured?'<a href="#" onclick="devinSecRefresh(true);return false" style="color:var(--accent2)">refresh</a>':''}</span></div>${scans}
+        ${launches?`<div class="cy2-sec"><span>Launched from CRUCIX</span></div>${launches}`:''}
+      </div>
+      <div>
+        <div class="cy2-sec"><span>Scan brief · from this sweep</span><span class="r"><a href="#" onclick="devinSecCopyBrief();return false" style="color:var(--accent2)">copy</a></span></div>
+        <div class="ds-brief">${esc(st.brief?.text||'Waiting for sweep data…')}</div>
+        <div class="cy2-note">Devin code scans run against repository code: dependencies, base images, auth and input-handling paths, secrets, configuration. KEV entries for network appliances (NetScaler, FortiOS, Ivanti…) are reported as exposure to confirm, never as something a PR can fix. <a href="${esc(st.docs||'#')}" target="_blank" rel="noopener noreferrer">API docs \u2197</a></div>
+      </div>
+    </div>`;
+}
+function devinSecFindingsHtml(scanId){
+  const f=DS.findings[scanId];
+  if(!f)return '<div class="ds-empty">Loading findings…</div>';
+  if(f.error)return `<div class="ds-empty" style="color:#ff8a80">${esc(f.error)}</div>`;
+  if(!f.list.length)return '<div class="ds-empty">No findings reported for this scan.</div>';
+  return f.list.slice(0,40).map(x=>`<div class="ds-find"><div class="t">${x.severity?`<span class="ds-sev ${esc(String(x.severity).toLowerCase())}">${esc(x.severity)}</span> `:''}${esc(x.title||x.findingId)}</div><div class="m"><span>${esc(x.status||'')}</span>${x.file?`<span>${esc(x.file)}</span>`:''}${x.category?`<span>${esc(x.category)}</span>`:''}${x.prUrl?`<a href="${esc(x.prUrl)}" target="_blank" rel="noopener noreferrer">PR \u2197</a>`:''}${x.sessionId?`<a href="https://app.devin.ai/sessions/${esc(String(x.sessionId).replace(/^devin-/,''))}" target="_blank" rel="noopener noreferrer">session \u2197</a>`:''}${x.status==='open'&&!x.sessionId?`<button class="ds-btn" ${DS.busy?'disabled':''} onclick="devinSecRemediate(${JSON.stringify(scanId).replace(/"/g,'&quot;')},${JSON.stringify(x.findingId).replace(/"/g,'&quot;')})">Remediate with Devin</button>`:''}</div>${x.description?`<div class="gd" style="font-size:9px;color:#c8d8d2;margin-top:3px">${esc(x.description)}</div>`:''}</div>`).join('');
+}
+async function devinSecPost(path,body){
+  const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  let j=null;try{j=await r.json()}catch{}
+  if(r.status===503){DS.msg={cls:'err',html:`<b>Devin not connected.</b> ${esc(j?.hint||'Set the Devin environment variables on the server.')}`};devinSecPaint();return null}
+  if(!r.ok){DS.msg={cls:'err',text:`${j?.error||'request failed'}${j?.detail?' — '+j.detail:''} (${r.status})`};devinSecPaint();return null}
+  return j;
+}
+async function devinSecScan(repo){
+  if(!DS.status?.configured)return;
+  const sel=document.getElementById('dsEffort-'+repo.replace(/[^a-zA-Z0-9]/g,'_'));const effort=sel?.value||'normal';
+  if(!confirm(`Start a Devin security scan on ${repo} (effort: ${effort})?\n\nThis launches real Devin sessions and uses ACUs.`))return;
+  DS.busy=true;DS.msg=null;devinSecPaint();
+  const out=await devinSecPost('/api/devinsec/scan',{repo,effort});
+  DS.busy=false;
+  if(out){DS.msg={cls:'ok',html:`Scan <b>${esc(out.scanId||'')}</b> queued on ${esc(repo)} (${esc(out.status||'pending')}).${out.url?` <a href="${esc(out.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">Open in Devin \u2197</a>`:''}`};await devinSecRefresh(true)}
+  else devinSecPaint();
+}
+async function devinSecFindings(scanId){
+  if(DS.open===scanId){DS.open=null;devinSecPaint();return}
+  DS.open=scanId;if(!DS.findings[scanId]){devinSecPaint();
+    try{const r=await fetch('/api/devinsec/findings?scan_id='+encodeURIComponent(scanId),{cache:'no-store'});const j=await r.json().catch(()=>({}));DS.findings[scanId]=r.ok?{list:j.findings||[]}:{error:j.error||('HTTP '+r.status)}}
+    catch(e){DS.findings[scanId]={error:e.message}}}
+  devinSecPaint();
+}
+async function devinSecRemediate(scanId,findingId){
+  if(!DS.status?.configured)return;
+  if(!confirm('Start a Devin remediation session for this finding?\n\nDevin will write the fix and open a pull request. Uses ACUs.'))return;
+  DS.busy=true;DS.msg=null;devinSecPaint();
+  const out=await devinSecPost('/api/devinsec/remediate',{scan_id:scanId,finding_id:findingId});
+  DS.busy=false;
+  if(out){DS.msg={cls:'ok',html:`Remediation session started.${out.sessionUrl?` <a href="${esc(out.sessionUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">Follow it in Devin \u2197</a>`:''}`};delete DS.findings[scanId];await devinSecFindings(scanId);await devinSecFindings(scanId)}
+  else devinSecPaint();
+}
+function devinSecCopyBrief(){const t=DS.status?.brief?.text;if(!t)return;navigator.clipboard?.writeText(t).then(()=>{DS.msg={cls:'ok',text:'Scan brief copied to clipboard.'};devinSecPaint()}).catch(()=>{})}
+function renderDevinSecPanel(){
+  const st=DS.status;
+  const badge=!st?'<span class="badge off">CHECKING</span>':st.configured?'<span class="badge" style="color:#a5d6a7;border-color:rgba(165,214,167,0.4)">CONNECTED</span>':'<span class="badge warn">NOT CONNECTED</span>';
+  return `<div class="g-panel" id="devinSecPanel"><div class="sec-head"><h3><span class="hdot ${st?(st.configured?'live':'no_key'):'off'}" title="Devin Security: ${st?(st.configured?'connected':'no key configured'):'checking'}"></span>Devin Security</h3>${badge}</div><div id="devinSecBody">${devinSecBodyHtml()}</div></div>`;
 }
 
 // === Phase 4: Panel Renderers ===
