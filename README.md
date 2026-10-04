@@ -140,6 +140,7 @@ The **Investigations** tab is a dedicated OSINT workbench: enter any selector �
 | NumVerify | `NUMVERIFY_API_KEY` | carrier, line type, location for phone numbers |
 | OpenCorporates | `OPENCORPORATES_API_TOKEN` | company matches, jurisdiction, status, address |
 | OpenSanctions | `OPENSANCTIONS_API_KEY` | sanctions / PEP screening for wallets and entities |
+| `DEVIN_API_KEY` + `DEVIN_ORG_ID` + `CRUCIX_SCAN_REPOS` | Cyber: Devin Security scan / remediate on your repos | [app.devin.ai](https://app.devin.ai) settings → API keys (code-scan permissions); without them the panel is read-only and actions return 503 |
 
 Keyed sources are skipped (marked "no key" in the panel) when their variable is blank. Results are cached for 15 minutes.
 
@@ -281,6 +282,26 @@ The **CHINA / TAIWAN** tab keeps official counts and OSINT visibly apart. No API
 - **Link-outs** for sources CRUCIX does not poll server-side (PLATracker / CSIS ADIZ sheets are request-based; Japan Joint Staff, INDOPACOM and 7th Fleet sit behind bot challenges), listed so the gap is visible.
 
 Source health per part: `LIVE` · `LIMITED` (the MND bulletin is > 30 h old or a cross-check part failed) · `STALE` (cached copy after an upstream failure) · `EMPTY` · `UNAVAILABLE` · `LINK-OUT`. The compact view (`lib/taiwanview.mjs`) bounds every list and string; all third-party strings are HTML-escaped at render and only validated `http(s)` links survive. A degraded China / Taiwan part never changes CRUCIX's overall `/api/health` status. The Situation strip emits an *elevated* headline only when the MND aircraft count spikes against its 30-day average, and *info* pointers for recent CCG intrusions.
+
+### Cyber (exploited in the wild → are you exposed → Devin Security)
+
+The **CYBER** tab tracks what is actually being exploited and turns it into an action. No API key is needed for the tracking half; the action half needs a Devin token.
+
+- **Attack map + Ransomware Attack Tape** (`apis/sources/ransomware.mjs`) — ransomware.live leak-site postings over the last 7 days (recent feed plus the monthly archive, deduplicated) by group, sector and country, with each group's known tooling and MITRE ATT&CK techniques. Postings are criminal-group **claims**, not confirmed breaches, and are labelled as such.
+- **CISA KEV Delta** (`apis/sources/cyberkev.mjs`) — what CISA added to the Known Exploited Vulnerabilities catalog in the last 7 / 30 days, vendor concentration, BOD 22-01 due dates (`due in N d` / `overdue`), the CISA ransomware flag and an **appliance** flag for network gear a repository scan can only confirm exposure to. KEV carries no CVSS, so no severity label is shown.
+- **Internet Disruption** (`apis/sources/ioda.mjs`) — IODA (Georgia Tech) country and region connectivity alerts over the last 24 h (BGP, active probing, darknet telescope), also plotted on the attack map.
+- **Devin Security** (`lib/devinsec.mjs`, `/api/devinsec/*`) — starts a Devin security code scan on the repositories in `CRUCIX_SCAN_REPOS`, lists scans and findings, and launches a Devin remediation session that opens the fix PR (Devin v3 code-scan API). An **Exposure Brief** generated from the live KEV + ransomware data is shown alongside and can be copied into a Devin session by hand.
+
+Configuration (all three are required to enable the action side):
+
+```bash
+DEVIN_API_KEY=            # Devin PAT or service-user token with code-scan permissions
+DEVIN_ORG_ID=             # org id from the Devin settings page
+CRUCIX_SCAN_REPOS=        # comma-separated owner/repo allow-list that Scan may target
+# DEVIN_API_BASE=https://api.devin.ai
+```
+
+Until they are set the panel shows **Not connected** with the variables to set, the Scan / Remediate buttons are disabled, and `POST /api/devinsec/scan` and `/remediate` answer `503` with the missing names. The token never reaches the browser; each launch asks for confirmation (scans consume ACUs) and is appended to `runs/devinsec-launches.json`.
 
 ## Border Watch Ingestion (Python)
 
@@ -713,6 +734,9 @@ When running `npm run dev`:
 | `GET /api/investigate?target=<domain\|ip\|hash>` | On-demand OSINT dossier (`&type=company` for registry search) |
 | `GET /api/investigate/status` | Which keyed enrichment sources are configured |
 | `GET /api/typosquat` | Registered look-alike domains for the watchlist |
+| `GET /api/cyber/kev` · `/api/cyber/ransomware` · `/api/cyber/outages` | Cyber tab sources: KEV delta, ransomware attack tape, IODA disruptions |
+| `GET /api/devinsec/status` | Whether Devin Security is configured (never the token), repos in scope, generated scan brief |
+| `POST /api/devinsec/scan` · `GET /api/devinsec/scans` · `GET /api/devinsec/findings` · `POST /api/devinsec/remediate` | Devin code-scan bridge; `503` with `missing: [...]` until the Devin env vars are set |
 | `GET /api/cartels` | Current cartel-map summary (status, counts, organizations, wars, recent entries, disclaimer) |
 | `GET /api/cartels/geo` | Cartel-map geometry (polygons, points, lines) for the CARTELS tab; 404 until the first successful fetch |
 | `GET /api/narco/graph` | CJNG knowledge graph (nodes, edges with evidence, article index); optional `type`, `rel`, `min` filters |
