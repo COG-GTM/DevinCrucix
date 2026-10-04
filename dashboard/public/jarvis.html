@@ -286,6 +286,35 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 #cyMapSvg .cy-unit.focus{stroke:#64f0c8;stroke-width:1.1}
 #cyMapSvg .cy-pin{cursor:pointer;vector-effect:non-scaling-stroke}
 #cyMapSvg .cy-lbl{font-family:var(--mono);fill:#c8d8d2;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2.5px;letter-spacing:0.06em}
+/* Colombia country map · MapLibre "intel-terminal" test case (other maps stay on D3) */
+.ct-map.cy-gl{background:#0b1116}
+.cy-gl .maplibregl-canvas{outline:none}
+.cy-gl .maplibregl-ctrl-attrib{font:8px var(--mono)!important;letter-spacing:0.04em;background:rgba(0,0,0,0.65)!important;color:#7f948f;padding:2px 6px}
+.cy-gl .maplibregl-ctrl-attrib a{color:#9fb3b0!important;text-decoration:none}
+.cy-gl .maplibregl-ctrl-scale{background:rgba(0,0,0,0.55)!important;color:var(--accent)!important;border-color:var(--accent)!important;font:8px var(--mono)!important;letter-spacing:0.06em}
+.cy-gl .maplibregl-ctrl-bottom-right{bottom:0}
+.cy-gl .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib{max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy-gl .maplibregl-ctrl-bottom-left{display:none}
+.cy-gl .cy-hud{position:absolute;z-index:5;font-family:var(--mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);background:rgba(0,0,0,0.65);border:1px solid var(--border);padding:4px 8px;pointer-events:none}
+.cy-gl .cy-readout{left:8px;top:8px;color:var(--accent);font-size:9px;min-width:190px}
+.cy-gl .cy-readout .d{color:var(--dim);font-size:8px}
+.cy-gl .cy-legend{left:8px;bottom:8px;min-width:230px;pointer-events:auto;text-transform:none;letter-spacing:0.05em;font-size:9px}
+.cy-gl .cy-legend h5{margin:0 0 3px;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:0.12em;font-weight:500}
+.cy-gl .cy-legend .row{display:flex;align-items:center;gap:7px;margin:1px 0;color:#bcd;cursor:pointer}
+.cy-gl .cy-legend .row.off{opacity:0.35}
+.cy-gl .cy-legend .row b{margin-left:auto;color:var(--accent);font-weight:500}
+.cy-gl .cy-legend .row .g{width:12px;display:inline-flex;justify-content:center;font-size:11px;line-height:1}
+.cy-gl .cy-legend .enc{color:var(--dim);font-size:8px;margin-top:4px;line-height:1.5}
+.cy-gl .cy-feed{right:8px;top:8px;width:270px;max-height:60%;overflow:auto;pointer-events:auto;text-transform:none;letter-spacing:0.04em;font-size:9px}
+.cy-gl .cy-feed .it{padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.cy-gl .cy-feed .it .t{color:#dfe}
+.cy-gl .cy-feed .it .m{color:var(--dim);font-size:8px}
+.cy-gl .cy-feed .x{position:absolute;right:6px;top:3px;cursor:pointer;color:var(--dim)}
+.cy-gl .cy-box{position:absolute;border:1px dashed var(--accent);background:rgba(100,240,200,0.08);pointer-events:none;z-index:6}
+.cy-gl.measuring .maplibregl-canvas,.cy-gl.boxing .maplibregl-canvas{cursor:crosshair!important}
+.cy-gl .ct-hint{top:auto;bottom:auto;right:8px;top:8px}
+.cy-gl.has-feed .ct-hint{display:none}
+.lchip.tool.on{border-color:var(--accent);color:var(--accent);background:rgba(100,240,200,0.1)}
 .cy-kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 #cyMapSvg .cy-unit.cy-loc{stroke:rgba(206,147,216,0.85);stroke-width:0.5}
 .cy-actor .k a{color:#e6f2ee}
@@ -5530,20 +5559,276 @@ function cyPopup(ev,head,html,meta){
   placePopup(popup,rect,left,top);
 }
 function cyFocusAt(lat,lon,k){
+  if(cyGlFor(cyMapCc)){cyGlFly(lat,lon,k>=6?10:8);return;}
   if(!cySvg||!cyProj||!Number.isFinite(lat)||!Number.isFinite(lon))return;
   const [x,y]=cyProj([lon,lat]);const z=k||5;
   cySvg.transition().duration(500).call(cyZoom.transform,d3.zoomIdentity.translate(cyW/2-x*z,cyH/2-y*z).scale(z));
   document.getElementById('cyMapWrap')?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function cyResetView(){if(cySvg)cySvg.transition().duration(400).call(cyZoom.transform,d3.zoomIdentity)}
+function cyResetView(){if(cyGlFor(cyMapCc)){cyGlReset();return;}if(cySvg)cySvg.transition().duration(400).call(cyZoom.transform,d3.zoomIdentity)}
 function cyScale(k){
   if(!cyLayersG)return;
   cyLayersG.selectAll('circle.cy-pin').attr('r',function(){return +this.dataset.r/Math.sqrt(k)});
   cyLayersG.selectAll('rect.cy-pin').attr('transform',function(){const r=+this.dataset.r,x=+this.getAttribute('x')+r,y=+this.getAttribute('y')+r;return `rotate(45 ${x} ${y}) translate(${x} ${y}) scale(${1/Math.sqrt(k)}) translate(${-x} ${-y})`});
   cyLayersG.selectAll('.cy-lbl').style('font-size',function(){return (+this.dataset.fs||7)/k+'px'});
 }
+// ---- cy-gl:start — Colombia only: MapLibre GL "intel-terminal" map (test case). Venezuela keeps the D3 map.
+// MapLibre style specs below use type:'fill' / 'line' / 'symbol' etc.; test/maplayers.test.mjs skips this block.
+// Key-free sources: OpenFreeMap vector tiles (OSM/OpenMapTiles), AWS/Mapzen Terrarium DEM for hillshade,
+// NASA GIBS VIIRS Black Marble night lights, Natural Earth populated places (ranked labels, bundled),
+// geoBoundaries ADM2 municipios (bundled, simplified). Scripts are loaded lazily on first use.
+const CY_GL_CC={co:true};
+const CY_GL_STORE='crucix_cy_gl';
+const CY_GL_LIB={css:'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css',js:'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js',mgrs:'https://unpkg.com/mgrs@2.1.0/dist/mgrs.js'};
+const CY_GL_SRC={
+  style:'https://tiles.openfreemap.org/styles/dark',
+  dem:'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+  night:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png',
+  adm2:'/geo/col-adm2.geojson',places:'/geo/col-places.geojson'
+};
+// Topic -> glyph. Confidence/tier -> ring, recency -> brightness (see cyGlPlaceFeatures).
+const CY_GL_TOPIC={
+  security:{glyph:'\u25A0',label:'Security / public order',color:'#ef5350'},
+  conflict:{glyph:'\u25B2',label:'Armed conflict / groups',color:'#ff5252'},
+  humanitarian:{glyph:'\u25B2',label:'Humanitarian / displacement',color:'#aed581'},
+  politics:{glyph:'\u25CF',label:'Politics / governance',color:'#ffb74d'},
+  services:{glyph:'\u271A',label:'Services / infrastructure',color:'#64f0c8'},
+  economy:{glyph:'\u25C6',label:'Economy / markets',color:'#ce93d8'},
+  crime:{glyph:'\u25A0',label:'Crime',color:'#ef5350'},
+  other:{glyph:'\u25CB',label:'Other / untagged mention',color:'#9fb3b0'},
+};
+const CY_GL_TIER={official:1,investigative:1,'national-daily':2,regional:2,ngo:2,wire:2,social:3,blog:3};
+const CY_GL_WINDOWS=[['24',24],['72',72],['7D',168],['ALL',0]];
+let cyGlMap=null,cyGlCc=null,cyGlReady=false,cyGlLibP=null,cyGlView=null,cyGlWindowH=168,cyGlHidden=new Set(),cyGlMode=null,cyGlMeasurePts=[],cyGlBox=null,cyGlFeedSel=null;
+let cyGlOn=(()=>{try{const v=JSON.parse(localStorage.getItem(CY_GL_STORE));if(v&&Array.isArray(v.on))return new Set(v.on)}catch{}return new Set(['terrain','adm2','labels','grat'])})();
+function cyGlFor(cc){return !!CY_GL_CC[cc]}
+function cyGlSave(){try{localStorage.setItem(CY_GL_STORE,JSON.stringify({on:[...cyGlOn]}))}catch{}}
+function cyGlLoadLib(){
+  if(window.maplibregl&&window.mgrs)return Promise.resolve(true);
+  if(cyGlLibP)return cyGlLibP;
+  const add=(tag,attrs)=>new Promise((ok,bad)=>{const el=document.createElement(tag);Object.assign(el,attrs);el.onload=()=>ok(true);el.onerror=()=>bad(new Error('load '+(attrs.src||attrs.href)));document.head.appendChild(el)});
+  cyGlLibP=Promise.all([add('link',{rel:'stylesheet',href:CY_GL_LIB.css}),add('script',{src:CY_GL_LIB.js}),add('script',{src:CY_GL_LIB.mgrs})]).then(()=>true).catch(e=>{cyGlLibP=null;throw e});
+  return cyGlLibP;
+}
+function cyGlAgeH(iso){const t=Date.parse(iso||'');return Number.isFinite(t)?Math.max(0,(Date.now()-t)/36e5):null}
+function cyGlRecency(ageH){return ageH==null?0.45:ageH<=24?1:ageH<=72?1-(ageH-24)/48*0.35:ageH<=168?0.65-(ageH-72)/96*0.3:0.3}
+function cyGlItems(c){const all=c.news?.items||[];return cyGlWindowH?all.filter(i=>{const a=cyGlAgeH(i.published);return a!=null&&a<=cyGlWindowH}):all}
+// One feature per configured place: dominant topic -> glyph, best outlet tier -> ring, newest mention -> brightness.
+function cyGlPlaceFeatures(c,g){
+  const items=cyGlItems(c);
+  const pls=(g?.places)||(c.places||[]);
+  const focusKey='bogota';
+  const feats=[];
+  pls.forEach(p=>{
+    if(!Number.isFinite(p.lon)||!Number.isFinite(p.lat))return;
+    const mine=items.filter(i=>(i.places||[]).some(q=>q.key===p.key));
+    const topics={};mine.forEach(i=>(i.topics||[]).forEach(t=>{topics[t]=(topics[t]||0)+1}));
+    const top=Object.entries(topics).sort((a,b)=>b[1]-a[1])[0];
+    const topic=top&&CY_GL_TOPIC[top[0]]?top[0]:(mine.length?'other':'none');
+    const ages=mine.map(i=>cyGlAgeH(i.published)).filter(a=>a!=null);
+    const ageH=ages.length?Math.min(...ages):null;
+    const tier=mine.length?Math.min(...mine.map(i=>CY_GL_TIER[i.tier]||2)):0;
+    const focus=p.key===focusKey;
+    const t=CY_GL_TOPIC[topic]||CY_GL_TOPIC.other;
+    feats.push({type:'Feature',properties:{key:p.key,name:p.name,level:p.level||'',mentions:mine.length,topic,glyph:mine.length?t.glyph:'\u25CB',color:mine.length?t.color:'#5f7a73',rec:mine.length?cyGlRecency(ageH):0.35,ageH:ageH==null?-1:Math.round(ageH),tier,focus:focus?1:0,
+      size:focus?15:mine.length?Math.min(19,11+Math.sqrt(mine.length)*2.2):9,minz:p.level==='localidad'?8.5:0},geometry:{type:'Point',coordinates:[p.lon,p.lat]}});
+  });
+  return {type:'FeatureCollection',features:feats};
+}
+function cyGlAdm1Features(c,g){
+  const vals=g?.values?.byIso||{};const nums=Object.values(vals).filter(Number.isFinite);const max=Math.max(1,...nums);
+  return {type:'FeatureCollection',features:(g?.adm1?.units||[]).map(u=>{
+    const polys=(u.rings||[]).filter(r=>Array.isArray(r)&&r.length>=4).map(r=>[r]);
+    if(!polys.length)return null;
+    const v=vals[u.iso];
+    return {type:'Feature',properties:{iso:u.iso||'',name:u.name||'',value:Number.isFinite(v)?v:-1,alpha:Number.isFinite(v)?0.04+0.3*Math.sqrt(v/max):0.02,focus:u.iso&&u.iso===c.focusCity?.adm1Iso?1:0},geometry:{type:'MultiPolygon',coordinates:polys}};
+  }).filter(Boolean)};
+}
+function cyGlGraticule(step){const f=[];for(let lon=-180;lon<=180;lon+=step)f.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[[lon,-85],[lon,85]]}});for(let lat=-80;lat<=80;lat+=step)f.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[[-180,lat],[180,lat]]}});return {type:'FeatureCollection',features:f}}
+function cyGlMgrs(lng,lat){try{return window.mgrs?mgrs.forward([lng,lat],4):''}catch{return ''}}
+function cyGlFmt(lng,lat){return `${Math.abs(lat).toFixed(4)}\u00b0${lat<0?'S':'N'}  ${Math.abs(lng).toFixed(4)}\u00b0${lng<0?'W':'E'}`}
+function cyGlKm(a,b){const R=6371,dl=(b[1]-a[1])*Math.PI/180,dn=(b[0]-a[0])*Math.PI/180,p1=a[1]*Math.PI/180,p2=b[1]*Math.PI/180;const h=Math.sin(dl/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function initCyGl(cc){
+  const c=cyD(cc),wrap=document.getElementById('cyMapWrap');
+  if(!wrap)return;
+  cyMapCc=cc;cySvg=null;cyLayersG=null;cyProj=null;
+  if(cyGlMap){try{cyGlView={center:cyGlMap.getCenter(),zoom:cyGlMap.getZoom()}}catch{}try{cyGlMap.remove()}catch{}cyGlMap=null;cyGlReady=false}
+  const note=document.getElementById('cyMapNote');
+  cyGlLoadLib().then(()=>{
+    if(cyMapCc!==cc||!document.getElementById('cyGlCanvas'))return;
+    const bb=Array.isArray(c.viewport?.bbox)&&c.viewport.bbox.length===4?c.viewport.bbox:[-80,-5,-66,13];
+    const map=new maplibregl.Map({container:'cyGlCanvas',style:CY_GL_SRC.style,bounds:[[bb[0],bb[1]],[bb[2],bb[3]]],fitBoundsOptions:{padding:16},attributionControl:{compact:false},boxZoom:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,maxZoom:15,minZoom:3});
+    map.touchZoomRotate.disableRotation();
+    cyGlMap=map;cyGlCc=cc;
+    if(cyGlView)map.jumpTo(cyGlView);
+    map.addControl(new maplibregl.ScaleControl({maxWidth:110,unit:'metric'}),'bottom-right');
+    map.on('error',e=>{const m=e?.error?.message||'';if(note&&/style|tiles\.openfreemap/i.test(m))note.textContent='BASEMAP UNAVAILABLE \u2014 '+m});
+    map.on('load',()=>{cyGlStyle(map);cyGlReady=true;cyGlDraw();});
+    map.on('mousemove',e=>{const r=document.getElementById('cyGlLL'),m=document.getElementById('cyGlMgrs');if(r)r.textContent=cyGlFmt(e.lngLat.lng,e.lngLat.lat);if(m)m.textContent='MGRS '+(cyGlMgrs(e.lngLat.lng,e.lngLat.lat)||'\u2014')});
+    map.on('move',()=>{const z=document.getElementById('cyGlZ');if(z)z.textContent=`Z ${map.getZoom().toFixed(1)}`});
+    map.on('click',e=>{if(cyGlMode==='measure'){cyGlMeasureClick(e);return;}if(!cyGlMode)cyClosePopup()});
+    cyGlBindBox(map,wrap);
+  }).catch(err=>{if(note)note.textContent='MAP LIBRARY UNAVAILABLE \u2014 '+(err?.message||err)+' \u00b7 the D3 map is used for other countries';});
+}
+// Restyle the OSM basemap into the terminal palette and add the key-free context layers once per map.
+function cyGlStyle(map){
+  for(const l of map.getStyle().layers){
+    const sl=l['source-layer'];
+    if(l.type==='symbol'&&(sl==='place'||/highway_name|road_oneway|water_name|poi/.test(l.id)))map.setLayoutProperty(l.id,'visibility','none');
+    if(l.type==='line'&&sl==='transportation')map.setPaintProperty(l.id,'line-opacity',['interpolate',['linear'],['zoom'],6,0,9,0.5]);
+    if(l.id==='water')map.setPaintProperty(l.id,'fill-color','#070e16');
+    if(l.id==='waterway')map.setPaintProperty(l.id,'line-color','#13263a');
+    if(l.id==='background')map.setPaintProperty(l.id,'background-color','#0b1116');
+    if(/landuse|landcover|building/.test(l.id)&&l.type==='fill')map.setPaintProperty(l.id,'fill-opacity',0.3);
+    if(l.id==='boundary_state')map.setLayoutProperty(l.id,'visibility','none');
+    if(/boundary_country/.test(l.id)){map.setPaintProperty(l.id,'line-color','#9fb3b0');map.setPaintProperty(l.id,'line-width',1.1);map.setPaintProperty(l.id,'line-opacity',0.9);if(l.paint&&l.paint['line-dasharray'])map.setPaintProperty(l.id,'line-dasharray',[1,0]);}
+  }
+  const below=map.getStyle().layers.find(l=>l.type==='symbol')?.id;
+  map.addSource('cy-dem',{type:'raster-dem',tiles:[CY_GL_SRC.dem],encoding:'terrarium',tileSize:256,maxzoom:15,attribution:'Terrain: Mapzen/AWS Terrain Tiles'});
+  map.addLayer({id:'cy-hs',type:'hillshade',source:'cy-dem',paint:{'hillshade-exaggeration':0.55,'hillshade-shadow-color':'#000000','hillshade-highlight-color':'#55656c','hillshade-accent-color':'#15232a'}},'water');
+  map.addSource('cy-night',{type:'raster',tiles:[CY_GL_SRC.night],tileSize:256,maxzoom:8,attribution:'Night lights: NASA GIBS VIIRS Black Marble'});
+  map.addLayer({id:'cy-night',type:'raster',source:'cy-night',paint:{'raster-opacity':0.75,'raster-contrast':0.25,'raster-saturation':-0.6}},'water');
+  map.addSource('cy-grat',{type:'geojson',data:cyGlGraticule(2)});
+  map.addLayer({id:'cy-grat',type:'line',source:'cy-grat',paint:{'line-color':'#64f0c8','line-opacity':0.07,'line-width':0.5}},below);
+  map.addSource('cy-adm2',{type:'geojson',data:CY_GL_SRC.adm2,attribution:'ADM1/ADM2: geoBoundaries (CC BY 4.0)'});
+  map.addLayer({id:'cy-adm2',type:'line',source:'cy-adm2',minzoom:6.5,paint:{'line-color':'#ffb74d','line-opacity':['interpolate',['linear'],['zoom'],6.5,0,8,0.22],'line-width':0.5}},below);
+  map.addLayer({id:'cy-adm2-lbl',type:'symbol',source:'cy-adm2',minzoom:8.5,layout:{'symbol-placement':'point','text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-size':8,'text-transform':'uppercase','text-letter-spacing':0.15},paint:{'text-color':'rgba(255,183,77,0.4)','text-halo-color':'#05080c','text-halo-width':1}});
+  map.addSource('cy-adm1',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+  map.addLayer({id:'cy-adm1-fill',type:'fill',source:'cy-adm1',paint:{'fill-color':'#ffb74d','fill-opacity':['get','alpha']}},below);
+  map.addLayer({id:'cy-adm1',type:'line',source:'cy-adm1',paint:{'line-color':['case',['==',['get','focus'],1],'#64f0c8','#ffb74d'],'line-opacity':['case',['==',['get','focus'],1],0.9,0.55],'line-width':['case',['==',['get','focus'],1],1.1,0.8],'line-dasharray':[3,2]}},below);
+  map.addLayer({id:'cy-adm1-hover',type:'line',source:'cy-adm1',filter:['==',['get','iso'],''],paint:{'line-color':'#ffffff','line-width':1.2}},below);
+  map.addLayer({id:'cy-adm1-lbl',type:'symbol',source:'cy-adm1',minzoom:5.5,maxzoom:9,layout:{'symbol-placement':'point','text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-size':9,'text-transform':'uppercase','text-letter-spacing':0.25},paint:{'text-color':'rgba(255,183,77,0.45)','text-halo-color':'#05080c','text-halo-width':1}});
+  map.addSource('cy-places',{type:'geojson',data:CY_GL_SRC.places,attribution:'Places: Natural Earth'});
+  map.addLayer({id:'cy-ne-dot',type:'circle',source:'cy-places',filter:['<=',['get','scalerank'],6],paint:{'circle-radius':['step',['get','scalerank'],3.5,2,2.5,4,1.6],'circle-color':'#0b1116','circle-stroke-color':'#9fb3b0','circle-stroke-width':1}});
+  map.addLayer({id:'cy-ne-lbl',type:'symbol',source:'cy-places',filter:['<=',['get','scalerank'],['step',['zoom'],1,4,3,5.5,6,7,8,8.5,10]],layout:{'text-field':['get','name'],'text-font':['Noto Sans Regular'],'text-transform':'uppercase','text-letter-spacing':0.18,'text-size':['step',['get','scalerank'],11,2,9.5,4,8.5,7,8],'text-anchor':'left','text-offset':[0.7,0],'text-optional':true,'symbol-sort-key':['get','scalerank']},paint:{'text-color':['step',['get','scalerank'],'#e6f2ee',2,'#c8d8d2',4,'#9fb3b0',7,'#7f948f'],'text-halo-color':'#05080c','text-halo-width':1.4}});
+  map.addSource('cy-ev',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+  const rec=['get','rec'];
+  map.addLayer({id:'cy-ev-ring1',type:'circle',source:'cy-ev',filter:['==',['get','tier'],1],paint:{'circle-radius':['+',['/',['get','size'],2],5],'circle-color':'rgba(0,0,0,0)','circle-stroke-color':'#ffd54f','circle-stroke-width':1,'circle-stroke-opacity':['*',0.9,rec]}});
+  map.addLayer({id:'cy-ev-ring3',type:'circle',source:'cy-ev',filter:['==',['get','tier'],3],paint:{'circle-radius':['+',['/',['get','size'],2],4],'circle-color':'rgba(0,0,0,0)','circle-stroke-color':'#b0bec5','circle-stroke-width':0.6,'circle-stroke-opacity':['*',0.5,rec]}});
+  map.addLayer({id:'cy-ev-focus',type:'circle',source:'cy-ev',filter:['==',['get','focus'],1],paint:{'circle-radius':['+',['/',['get','size'],2],7],'circle-color':'rgba(0,0,0,0)','circle-stroke-color':'#64f0c8','circle-stroke-width':1,'circle-stroke-opacity':0.8}});
+  map.addLayer({id:'cy-ev-halo',type:'circle',source:'cy-ev',filter:['>',['get','mentions'],0],paint:{'circle-radius':['/',['get','size'],1.6],'circle-color':['get','color'],'circle-opacity':['*',0.18,rec],'circle-blur':0.6}});
+  map.addLayer({id:'cy-ev-glyph',type:'symbol',source:'cy-ev',layout:{'text-field':['get','glyph'],'text-font':['Noto Sans Regular'],'text-size':['get','size'],'text-allow-overlap':true,'text-ignore-placement':true},paint:{'text-color':['get','color'],'text-opacity':rec,'text-halo-color':'#05080c','text-halo-width':1}});
+  map.addLayer({id:'cy-ev-lbl',type:'symbol',source:'cy-ev',filter:['any',['==',['get','focus'],1],['>',['get','mentions'],0]],layout:{'text-field':['concat',['upcase',['get','name']],['case',['>',['get','mentions'],0],['concat',' \u00b7 ',['to-string',['get','mentions']]],'']],'text-font':['Noto Sans Regular'],'text-size':8.5,'text-anchor':'left','text-offset':[1.2,0],'text-letter-spacing':0.1,'text-optional':true},paint:{'text-color':'#c8d8d2','text-opacity':['max',0.55,rec],'text-halo-color':'#05080c','text-halo-width':1.2}});
+  map.on('mouseenter','cy-ev-glyph',()=>{if(!cyGlMode)map.getCanvas().style.cursor='pointer'});
+  map.on('mouseleave','cy-ev-glyph',()=>{map.getCanvas().style.cursor=''});
+  map.on('mousemove','cy-adm1-fill',e=>{const f=e.features?.[0];map.setFilter('cy-adm1-hover',['==',['get','iso'],f?.properties?.iso||''])});
+  map.on('mouseleave','cy-adm1-fill',()=>map.setFilter('cy-adm1-hover',['==',['get','iso'],'']));
+  map.on('click','cy-ev-glyph',e=>{if(cyGlMode)return;e.originalEvent.stopPropagation();const p=e.features[0].properties;cyGlPlacePopup(e.originalEvent,p)});
+  map.on('click','cy-adm1-fill',e=>{if(cyGlMode)return;if(map.queryRenderedFeatures(e.point,{layers:['cy-ev-glyph']}).length)return;const p=e.features[0].properties;cyGlAdm1Popup(e.originalEvent,p)});
+}
+function cyGlPlacePopup(ev,p){
+  const c=cyD(cyGlCc);
+  const items=cyGlItems(c).filter(i=>(i.places||[]).some(q=>q.key===p.key)).sort((a,b)=>Date.parse(b.published||0)-Date.parse(a.published||0)).slice(0,6);
+  const t=CY_GL_TOPIC[p.topic];
+  const head=`${p.name} \u00b7 ${String(p.level||'').toUpperCase()}${p.focus==1?' \u00b7 FOCUS CITY':''}`;
+  const body=`<b>${items.length}</b> wire mention${items.length===1?'':'s'}${cyGlWindowH?` in the last ${cyGlWindowH} h`:' this sweep'} (configured alias match, not geocoding)${t&&p.mentions>0?` \u00b7 dominant topic <span style="color:${t.color}">${t.glyph} ${esc(t.label)}</span>`:''}${p.tier>0?` \u00b7 best source tier <b>T${p.tier}</b>`:''}${p.ageH>=0?` \u00b7 newest ${p.ageH} h ago`:''}`
+    +(items.length?'<br>'+items.map(i=>`\u00b7 ${twLink(i.url,i.title)} <span style="color:var(--dim)">${esc(i.outlet||'')} \u00b7 ${esc(i.tier||'')} \u00b7 ${Math.round(cyGlAgeH(i.published)||0)} h</span>`).join('<br>'):'')
+    +`<br><span style="color:var(--dim)">${esc(cyGlFmt(+ev_lng(p),+ev_lat(p)))} \u00b7 MGRS ${esc(cyGlMgrs(+ev_lng(p),+ev_lat(p))||'\u2014')}</span>`;
+  cyPopup(ev,head,body,'Place anchor from config/countries \u00b7 glyph = dominant topic \u00b7 brightness = recency \u00b7 ring = source tier');
+  function ev_lng(q){return (c.places||[]).find(x=>x.key===q.key)?.lon}
+  function ev_lat(q){return (c.places||[]).find(x=>x.key===q.key)?.lat}
+}
+function cyGlAdm1Popup(ev,p){
+  const c=cyD(cyGlCc),g=cyGeo[cyGlCc]?.data;if(!g)return;
+  const v=p.value>=0?p.value:null;
+  const body=g.values
+    ?`<b style="color:#ffb74d">${cyN(v)}</b> ${esc(g.values.label||'')} \u00b7 ${esc(g.values.month||'')}<br><span style="color:var(--dim)">OFFICIAL \u00b7 ${esc(g.values.attribution||'')} \u00b7 municipio-level reports summed to the ${esc(g.adm1.unit||'unit')}.</span>`
+    :`<span style="color:var(--dim)">No official per-${esc(g.adm1.unit||'unit')} dataset is polled for ${esc(c.name||'this country')}; outline only.</span>`;
+  cyPopup(ev,`${p.name} \u00b7 ${p.iso||''}`,body,`${g.adm1.level||'ADM1'} \u00b7 ${g.adm1.source||''} ${g.adm1.vintage||''} \u00b7 ${g.adm1.license||''}`);
+}
+// Re-feeds data sources after each sweep / filter change (no map rebuild).
+function cyGlDraw(){
+  const cc=cyGlCc||cyMapCc,c=cyD(cc),g=cyGeoNow(cc);
+  const note=document.getElementById('cyMapNote');
+  if(!cyGlMap||!cyGlReady){if(note)note.textContent='LOADING MAP\u2026';return;}
+  const map=cyGlMap,on=x=>cyActive.on.has(x),gl=x=>cyGlOn.has(x);
+  const vis=(id,v)=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',v?'visible':'none')};
+  const adm1=cyGlAdm1Features(c,g);map.getSource('cy-adm1').setData(adm1);
+  ['cy-adm1-fill','cy-adm1','cy-adm1-hover','cy-adm1-lbl'].forEach(id=>vis(id,on('adm1')));
+  const ev=cyGlPlaceFeatures(c,g);map.getSource('cy-ev').setData(ev);
+  const hiddenF=['!',['in',['get','topic'],['literal',[...cyGlHidden]]]];
+  const zF=['<=',['get','minz'],['zoom']];
+  map.setFilter('cy-ev-glyph',['all',hiddenF,zF]);map.setFilter('cy-ev-lbl',['all',['any',['==',['get','focus'],1],['>',['get','mentions'],0]],hiddenF,zF]);
+  map.setFilter('cy-ev-halo',['all',['>',['get','mentions'],0],hiddenF,zF]);map.setFilter('cy-ev-ring1',['all',['==',['get','tier'],1],hiddenF,zF]);map.setFilter('cy-ev-ring3',['all',['==',['get','tier'],3],hiddenF,zF]);
+  ['cy-ev-glyph','cy-ev-lbl','cy-ev-halo','cy-ev-ring1','cy-ev-ring3','cy-ev-focus'].forEach(id=>vis(id,on('places')));
+  vis('cy-hs',gl('terrain'));vis('cy-night',gl('night'));vis('cy-adm2',gl('adm2'));vis('cy-adm2-lbl',gl('adm2'));vis('cy-grat',gl('grat'));vis('cy-ne-dot',gl('labels'));vis('cy-ne-lbl',gl('labels'));
+  const counts={adm1:adm1.features.length,places:ev.features.length,hist:0};
+  cyLastCounts=counts;
+  cyGlLegend(c,ev);
+  if(cyGlFeedSel)cyGlFeed(cyGlFeedSel);
+  if(note)note.textContent=g?`${counts.adm1} ${g.adm1.unit||'unit'}s drawn${g.values?` \u00b7 shaded by ${g.values.label} \u00b7 ${g.values.month} (official)`:''} \u00b7 ${counts.places} places \u00b7 ${cyGlItems(c).length} wire items in window \u00b7 basemap OpenFreeMap (OSM) \u00b7 terrain Mapzen/AWS \u00b7 night lights NASA GIBS \u00b7 ADM2 geoBoundaries \u00b7 labels Natural Earth`:cyGeo[cc]?.failed?'GEOMETRY UNAVAILABLE \u2014 place anchors still drawn':'LOADING GEOMETRY\u2026';
+}
+function cyGlLegend(c,ev){
+  const el=document.getElementById('cyGlLegend');if(!el)return;
+  const feats=ev.features.filter(f=>f.properties.mentions>0);
+  const byTopic={};feats.forEach(f=>{byTopic[f.properties.topic]=(byTopic[f.properties.topic]||0)+1});
+  const keys=Object.keys(CY_GL_TOPIC).filter(k=>byTopic[k]||(k!=='other'&&['security','politics','services','humanitarian'].includes(k)));
+  el.innerHTML=`<h5>Places \u00b7 ${feats.length}/${ev.features.length} with mentions${cyGlWindowH?` \u00b7 \u2264 ${cyGlWindowH} h`:''}</h5>`
+    +keys.map(k=>{const t=CY_GL_TOPIC[k];return `<div class="row ${cyGlHidden.has(k)?'off':''}" onclick="cyGlHideTopic('${k}')" title="Click to hide / show"><span class="g" style="color:${t.color}">${t.glyph}</span>${esc(t.label)}<b>${byTopic[k]||0}</b></div>`}).join('')
+    +`<div class="enc"><span style="color:#ffd54f">\u25EF</span> ring = T1 official / investigative source \u00b7 <span style="color:#b0bec5">\u25CC</span> faint ring = T3 social<br>faded = older mention (brightness = recency) \u00b7 size = mentions<br>ADM0 solid \u00b7 ADM1 dashed (shade = official theft reports) \u00b7 ADM2 faint from z7</div>`;
+}
+function cyGlHideTopic(k){if(cyGlHidden.has(k))cyGlHidden.delete(k);else cyGlHidden.add(k);cyGlDraw()}
+function cyGlToggle(k){if(cyGlOn.has(k))cyGlOn.delete(k);else cyGlOn.add(k);cyGlSave();renderCyChips();cyGlDraw()}
+function cyGlWindow(h){cyGlWindowH=h;renderCyChips();cyGlDraw()}
+function cyGlFly(lat,lon,z){if(!cyGlMap||!Number.isFinite(lat)||!Number.isFinite(lon))return;cyGlMap.flyTo({center:[lon,lat],zoom:z,duration:700});document.getElementById('cyMapWrap')?.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function cyGlReset(){const c=cyD(cyGlCc);const bb=c.viewport?.bbox;if(cyGlMap&&bb)cyGlMap.fitBounds([[bb[0],bb[1]],[bb[2],bb[3]]],{padding:16,duration:700})}
+function cyGlSetMode(m){
+  cyGlMode=cyGlMode===m?null:m;cyGlMeasurePts=[];
+  const wrap=document.getElementById('cyMapWrap');if(wrap){wrap.classList.toggle('measuring',cyGlMode==='measure');wrap.classList.toggle('boxing',cyGlMode==='box')}
+  if(cyGlMap){cyGlMap.dragPan[cyGlMode==='box'?'disable':'enable']();if(cyGlMode!=='measure')cyGlClearMeasure();}
+  if(cyGlMode!=='box')cyGlFeedClose();
+  renderCyChips();
+}
+function cyGlClearMeasure(){const m=cyGlMap;if(!m)return;['cy-mline','cy-mlbl'].forEach(id=>{if(m.getLayer(id))m.removeLayer(id)});if(m.getSource('cy-m'))m.removeSource('cy-m')}
+function cyGlMeasureClick(e){
+  if(!cyGlMap||!cyGlReady)return;
+  cyGlMeasurePts.push([e.lngLat.lng,e.lngLat.lat]);
+  if(cyGlMeasurePts.length<2)return;
+  const m=cyGlMap,[a,b]=cyGlMeasurePts,d=cyGlKm(a,b);cyGlClearMeasure();
+  const lbl=`${d.toFixed(1)} km \u00b7 ${(d*0.5399568).toFixed(1)} nm`;
+  m.addSource('cy-m',{type:'geojson',data:{type:'FeatureCollection',features:[{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[a,b]}},{type:'Feature',properties:{d:lbl},geometry:{type:'Point',coordinates:[(a[0]+b[0])/2,(a[1]+b[1])/2]}}]}});
+  m.addLayer({id:'cy-mline',type:'line',source:'cy-m',filter:['==',['geometry-type'],'LineString'],paint:{'line-color':'#64f0c8','line-width':1.2,'line-dasharray':[2,2]}});
+  m.addLayer({id:'cy-mlbl',type:'symbol',source:'cy-m',filter:['==',['geometry-type'],'Point'],layout:{'text-field':['get','d'],'text-font':['Noto Sans Regular'],'text-size':10,'text-offset':[0,-1],'text-allow-overlap':true},paint:{'text-color':'#64f0c8','text-halo-color':'#05080c','text-halo-width':1.5}});
+  cyGlMeasurePts=[];
+}
+// BBox select: drag a rectangle in BBOX mode -> places inside it -> filtered wire feed inside the map.
+function cyGlBindBox(map,wrap){
+  const cv=map.getCanvasContainer();let start=null,el=null;
+  const rel=(ev)=>{const r=wrap.getBoundingClientRect();return [ev.clientX-r.left,ev.clientY-r.top]};
+  cv.addEventListener('mousedown',ev=>{if(cyGlMode!=='box')return;ev.preventDefault();start=rel(ev);el=document.createElement('div');el.className='cy-box';wrap.appendChild(el)});
+  const move=ev=>{if(!start||!el)return;const p=rel(ev);Object.assign(el.style,{left:Math.min(start[0],p[0])+'px',top:Math.min(start[1],p[1])+'px',width:Math.abs(p[0]-start[0])+'px',height:Math.abs(p[1]-start[1])+'px'})};
+  const up=ev=>{if(!start)return;const p=rel(ev);const a=map.unproject(start),b=map.unproject(p);start=null;el?.remove();el=null;if(Math.abs(p[0])<0)return;cyGlFeed([Math.min(a.lng,b.lng),Math.min(a.lat,b.lat),Math.max(a.lng,b.lng),Math.max(a.lat,b.lat)])};
+  window.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
+  map.once('remove',()=>{window.removeEventListener('mousemove',move);window.removeEventListener('mouseup',up)});
+}
+function cyGlFeed(bb){
+  cyGlFeedSel=bb;const c=cyD(cyGlCc),wrap=document.getElementById('cyMapWrap'),m=cyGlMap;if(!wrap||!m||!cyGlReady)return;
+  const keys=new Set((c.places||[]).filter(p=>p.lon>=bb[0]&&p.lon<=bb[2]&&p.lat>=bb[1]&&p.lat<=bb[3]).map(p=>p.key));
+  const items=cyGlItems(c).filter(i=>(i.places||[]).some(q=>keys.has(q.key))).sort((a,b)=>Date.parse(b.published||0)-Date.parse(a.published||0)).slice(0,40);
+  const poly={type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[bb[0],bb[1]],[bb[2],bb[1]],[bb[2],bb[3]],[bb[0],bb[3]],[bb[0],bb[1]]]]}};
+  if(m.getSource('cy-bbox'))m.getSource('cy-bbox').setData(poly);else{m.addSource('cy-bbox',{type:'geojson',data:poly});m.addLayer({id:'cy-bbox',type:'line',source:'cy-bbox',paint:{'line-color':'#64f0c8','line-dasharray':[2,2],'line-width':1}})}
+  let f=document.getElementById('cyGlFeed');if(!f){f=document.createElement('div');f.id='cyGlFeed';f.className='cy-hud cy-feed';wrap.appendChild(f)}
+  wrap.classList.add('has-feed');
+  f.innerHTML=`<span class="x" onclick="cyGlFeedClose()">\u2715</span><h5 style="margin:0 0 4px;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:0.12em;font-weight:500">BBox feed \u00b7 ${items.length} items \u00b7 ${keys.size} place${keys.size===1?'':'s'} \u00b7 ${bb.map(v=>v.toFixed(2)).join(', ')}</h5>`
+    +(items.length?items.map(i=>{const t=CY_GL_TOPIC[(i.topics||[])[0]]||CY_GL_TOPIC.other;return `<div class="it"><div class="t"><span style="color:${t.color}">${t.glyph}</span> ${twLink(i.url,i.title)}</div><div class="m">${Math.round(cyGlAgeH(i.published)||0)} h \u00b7 ${esc(i.outlet||'')} \u00b7 T${CY_GL_TIER[i.tier]||2} ${esc(i.tier||'')} \u00b7 ${(i.places||[]).map(q=>esc(q.name)).join(', ')}</div></div>`}).join(''):'<div class="it" style="color:var(--dim)">No wire items mention a configured place inside this box in the current window.</div>');
+}
+function cyGlFeedClose(){cyGlFeedSel=null;document.getElementById('cyGlFeed')?.remove();document.getElementById('cyMapWrap')?.classList.remove('has-feed');const m=cyGlMap;if(m&&m.getLayer('cy-bbox')){m.removeLayer('cy-bbox');m.removeSource('cy-bbox')}}
+function renderCyGlChips(c){
+  const chip=(k,label,on,fn,cls='')=>`<button type="button" class="lchip ${cls} ${on?'on':'off'}" style="--lc:#64f0c8" onclick="${fn}"><span class="ldot"></span>${label}</button>`;
+  const ctx=[['terrain','TERRAIN \u00b7 HILLSHADE'],['night','NIGHT LIGHTS'],['adm2','ADM2 MUNICIPIOS'],['labels','RANKED LABELS'],['grat','GRATICULE']].map(([k,l])=>chip(k,l,cyGlOn.has(k),`cyGlToggle('${k}')`)).join('');
+  const win=CY_GL_WINDOWS.map(([l,h])=>`<button type="button" class="lchip tool ${cyGlWindowH===h?'on':'off'}" onclick="cyGlWindow(${h})">${l}</button>`).join('');
+  const tools=`<button type="button" class="lchip tool ${cyGlMode==='measure'?'on':'off'}" onclick="cyGlSetMode('measure')" title="Click two points for great-circle distance">MEASURE</button><button type="button" class="lchip tool ${cyGlMode==='box'?'on':'off'}" onclick="cyGlSetMode('box')" title="Drag a box: places inside it feed the wire list">BBOX \u2192 FEED</button>`;
+  const f=c.focusCity||{};
+  const bms=[['COUNTRY','cyGlReset()']].concat(Number.isFinite(f.lat)?[[`FOCUS \u00b7 ${esc(String(f.name||'').toUpperCase())}`,`cyGlFly(${Number(f.lat)},${Number(f.lon)},10)`]]:[])
+    .concat((c.places||[]).filter(p=>['city','region'].includes(p.level)&&p.key!=='bogota').slice(0,7).map(p=>[esc(String(p.name).toUpperCase()),`cyGlFly(${p.lat},${p.lon},${p.level==='region'?7.5:9.5})`]));
+  return `<div class="ct-chiprow"><span class="lchip-head">VIEW</span>${bms.map(([l,fn])=>`<button type="button" class="lchip preset off" onclick="${fn}">${l}</button>`).join('')}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">CONTEXT</span>${ctx}</div>`
+    +`<div class="ct-chiprow"><span class="lchip-head">WINDOW</span>${win}<span class="lchip-head" style="margin-left:6px">TOOLS</span>${tools}</div>`;
+}
+// ---- cy-gl:end
 function initCyMap(){
   const cc=cyCc(),c=cyD(cc);
+  if(cyGlFor(cc)){initCyGl(cc);return;}
   const wrap=document.getElementById('cyMapWrap'),svgEl=document.getElementById('cyMapSvg');
   if(!wrap||!svgEl||!window.d3)return;
   cyMapCc=cc;
@@ -5585,6 +5870,7 @@ function cyUnitGeom(u){
   return polys.length?{type:'MultiPolygon',coordinates:polys}:null;
 }
 function cyDraw(){
+  if(cyGlFor(cyMapCc||cyCc())){cyGlDraw();return;}
   if(!cyLayersG||!cyProj)return;
   cyClosePopup();
   cyLayersG.selectAll('*').remove();
@@ -5686,6 +5972,7 @@ function renderCyChips(){
   const keys=cc==='co'?['adm1','loc','sat','mass','places']:['adm1','places','hist'];
   const chip=(k)=>{const v=CY_LAYERS[k],cnt=n[k],none=!cnt,on=cyActive.on.has(k);return `<button type="button" class="lchip ${none?'none':on?'on':'off'}" style="--lc:${v.color}" title="${esc(none?`${v.label}: ${why[k]}`:`${v.label}: ${cnt}. Click to ${on?'hide':'show'}.`)}" ${none?'disabled':`onclick="cyToggle('${k}')"`}><span class="ldot"></span>${esc(v.label)}${none?'':` <b>${cnt}</b>`}</button>`};
   const f=c.focusCity||{};
+  if(cyGlFor(cc)){el.innerHTML=renderCyGlChips(c)+`<div class="ct-chiprow"><span class="lchip-head">LAYERS</span>${keys.map(chip).join('')}</div>`;return;}
   el.innerHTML=`<div class="ct-chiprow"><span class="lchip-head">VIEW</span><button type="button" class="lchip preset off" onclick="cyResetView()">COUNTRY</button>${Number.isFinite(f.lat)?`<button type="button" class="lchip preset off" onclick="cyFocusAt(${Number(f.lat)},${Number(f.lon)},6)">FOCUS \u00b7 ${esc(String(f.name||'').toUpperCase())}</button>`:''}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">LAYERS</span>${keys.map(chip).join('')}</div>`;
 }
@@ -5703,14 +5990,14 @@ function renderCyMapPanel(){
       <div class="ct-org-sub" style="margin-bottom:4px">${esc(c.subtitle||'')}</div>
       ${cyHeroTiles(c)}
       <div id="cyChips" class="ct-chips"></div>
-      <div class="ct-map" id="cyMapWrap">
-        <svg id="cyMapSvg"></svg>
+      <div class="ct-map${cyGlFor(cc)?' cy-gl':''}" id="cyMapWrap">
+        ${cyGlFor(cc)?`<div id="cyGlCanvas" style="position:absolute;inset:0"></div><div class="cy-hud cy-legend" id="cyGlLegend"><h5>Loading map\u2026</h5></div><div class="cy-hud cy-readout"><div id="cyGlLL">\u2014</div><div class="d" id="cyGlMgrs">MGRS \u2014</div><div class="d" id="cyGlZ"></div></div>`:'<svg id="cyMapSvg"></svg>'}
         <div class="ct-hint">SCROLL TO ZOOM \u00b7 DRAG TO PAN \u00b7 CLICK A UNIT OR PLACE</div>
-        <div class="ct-key"><span><i style="width:14px;height:8px;border:1px solid #ffb74d;background:rgba(255,183,77,0.5);border-radius:2px"></i>${cc==='co'?'DEPARTAMENTO \u00b7 SHADE = OFFICIAL THEFT REPORTS':'ESTADO \u00b7 SHADE = OVCS PROTESTS (STATES NAMED ONLY)'}</span>${cc==='co'?'<span><i style="width:14px;height:8px;border:1px solid #ce93d8;background:rgba(206,147,216,0.35);border-radius:2px"></i>LOCALIDAD (OFFICIAL POLYGON) \u00b7 SHADE = WIRE MENTIONS</span><span><i style="width:8px;height:8px;border:1px solid #ff8a65;background:rgba(255,138,101,0.6);transform:rotate(45deg)"></i>SAT ALERT (IMMINENCE RED \u00b7 STRUCTURAL AMBER)</span><span><i style="border-radius:50%;border-color:#ef5350;background:rgba(239,83,80,0.55);height:8px;width:8px"></i>MASSACRE \u00b7 SIZE = VICTIMS</span>':''}<span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(100,240,200,0.75);height:8px;width:8px"></i>PLACE \u00b7 SIZE = WIRE MENTIONS</span>${cc==='ve'?'<span><i style="border-radius:50%;border:1px solid rgba(158,158,158,0.8);background:rgba(158,158,158,0.25);height:7px;width:7px"></i>HISTORICAL 2017 (OVCS SIGCO)</span>':''}</div>
+        ${cyGlFor(cc)?'':`<div class="ct-key"><span><i style="width:14px;height:8px;border:1px solid #ffb74d;background:rgba(255,183,77,0.5);border-radius:2px"></i>${cc==='co'?'DEPARTAMENTO \u00b7 SHADE = OFFICIAL THEFT REPORTS':'ESTADO \u00b7 SHADE = OVCS PROTESTS (STATES NAMED ONLY)'}</span>${cc==='co'?'<span><i style="width:14px;height:8px;border:1px solid #ce93d8;background:rgba(206,147,216,0.35);border-radius:2px"></i>LOCALIDAD (OFFICIAL POLYGON) \u00b7 SHADE = WIRE MENTIONS</span><span><i style="width:8px;height:8px;border:1px solid #ff8a65;background:rgba(255,138,101,0.6);transform:rotate(45deg)"></i>SAT ALERT (IMMINENCE RED \u00b7 STRUCTURAL AMBER)</span><span><i style="border-radius:50%;border-color:#ef5350;background:rgba(239,83,80,0.55);height:8px;width:8px"></i>MASSACRE \u00b7 SIZE = VICTIMS</span>':''}<span><i style="border-radius:50%;border-color:#64f0c8;background:rgba(100,240,200,0.75);height:8px;width:8px"></i>PLACE \u00b7 SIZE = WIRE MENTIONS</span>${cc==='ve'?'<span><i style="border-radius:50%;border:1px solid rgba(158,158,158,0.8);background:rgba(158,158,158,0.25);height:7px;width:7px"></i>HISTORICAL 2017 (OVCS SIGCO)</span>':''}</div>`}
         <div class="map-popup" id="cyPopup"><div class="pp-close" onclick="cyClosePopup()">\u2715</div><div class="pp-head"></div><div class="pp-text"></div><div class="pp-meta"></div></div>
       </div>
       <div class="sh-note" id="cyMapNote"></div>
-      <div class="ct-disc"><b>Read before use:</b> ${(c.notes||[]).map(esc).join(' ')}${geo?` Polygons: ${esc(geo.source||'')} ${esc(geo.vintage||'')} via geoBoundaries, ${esc(geo.license||'')}, simplified for display \u2014 not authoritative boundaries.`:''}${geo?.localidades?.units?` Localidades: ${esc(geo.localidades.source||'')}, ${esc(geo.localidades.license||'')}, simplified.`:geo?.localidades?.unavailable?` Localidad polygons unavailable (${esc(geo.localidades.unavailable)}).`:''}</div>
+      <div class="ct-disc"><b>Read before use:</b> ${(c.notes||[]).map(esc).join(' ')}${geo?` Polygons: ${esc(geo.source||'')} ${esc(geo.vintage||'')} via geoBoundaries, ${esc(geo.license||'')}, simplified for display \u2014 not authoritative boundaries.`:''}${geo?.localidades?.units?` Localidades: ${esc(geo.localidades.source||'')}, ${esc(geo.localidades.license||'')}, simplified.`:geo?.localidades?.unavailable?` Localidad polygons unavailable (${esc(geo.localidades.unavailable)}).`:''}${cyGlFor(cc)?' Basemap \u00a9 OpenFreeMap / OpenMapTiles, data \u00a9 OpenStreetMap contributors (ODbL); terrain Mapzen / AWS Terrain Tiles; night lights NASA GIBS VIIRS Black Marble (2016, imagery courtesy NASA EOSDIS); municipios geoBoundaries gbOpen 2020 (CC BY 4.0); place labels Natural Earth (public domain). Tiles are fetched by the browser from those hosts.':''}</div>
     </div>`;
 }
 // Tiny SVG bars: one bar per month, value in the tooltip; first / last month and max labelled.
