@@ -13,6 +13,9 @@ import config from '../crucix.config.mjs';
 import { createLLMProvider } from '../lib/llm/index.mjs';
 import { generateLLMIdeas } from '../lib/llm/ideas.mjs';
 import { buildSourceHealth } from '../lib/sourcehealth.mjs';
+
+const ISO_CODES = (() => { try { return JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'config', 'geo', 'iso-codes.json'), 'utf8')); } catch { return {}; } })();
+const isoNum = (code) => ISO_CODES[String(code || '').toUpperCase()]?.num || null;
 import { buildCartelsView } from '../lib/cartelview.mjs';
 import { buildIranWarView } from '../lib/iranwarview.mjs';
 import { buildTaiwanView } from '../lib/taiwanview.mjs';
@@ -1024,28 +1027,65 @@ export async function synthesize(data) {
         signals: piData.signals || [],
       };
     })(),
-    // Phase 5: CISA KEV Cyber Threat Layer
+    // Phase 5: CISA KEV as a delta (7/30-day additions, due dates, vendor concentration)
     cyberKev: (() => {
       const ckData = data.sources.CyberKEV || {};
+      const row = v => ({
+        cveID: (v.cveID || '').substring(0, 20), vendor: (v.vendor || '').substring(0, 40), product: (v.product || '').substring(0, 60),
+        name: (v.name || '').substring(0, 120),
+        dateAdded: v.dateAdded, dueDate: v.dueDate, ageDays: v.ageDays ?? null, dueInDays: v.dueInDays ?? null,
+        description: (v.description || '').substring(0, 200),
+        requiredAction: (v.requiredAction || '').substring(0, 160),
+        ransomware: !!v.ransomware, appliance: !!v.appliance, categories: v.categories || [],
+        prcRelevant: !!v.prcRelevant, cwes: v.cwes || [],
+        lat: v.lat, lng: v.lng, vendorCountry: v.vendorCountry,
+        nvdUrl: v.nvdUrl,
+      });
       return {
         status: ckData.status || 'unavailable',
+        catalogVersion: ckData.catalogVersion || null,
         totalVulnerabilities: ckData.totalVulnerabilities || 0,
+        deltaDays: ckData.deltaDays || 30, dueSoonDays: ckData.dueSoonDays || 14,
+        added7d: ckData.added7d || 0, added30d: ckData.added30d || 0,
         recentCount: ckData.recentCount || 0,
-        vulnerabilities: (ckData.vulnerabilities || []).slice(0, 50).map(v => ({
-          cveID: (v.cveID || '').substring(0, 20), vendor: (v.vendor || '').substring(0, 40), product: (v.product || '').substring(0, 60),
-          name: (v.name || '').substring(0, 120),
-          dateAdded: v.dateAdded, dueDate: v.dueDate,
-          description: (v.description || '').substring(0, 200),
-          ransomware: v.ransomware, categories: v.categories || [],
-          severity: v.severity, prcRelevant: v.prcRelevant,
-          lat: v.lat, lng: v.lng, vendorCountry: v.vendorCountry,
-          nvdUrl: v.nvdUrl,
-        })),
+        applianceCount: ckData.applianceCount || 0,
+        vulnerabilities: (ckData.vulnerabilities || []).slice(0, 60).map(row),
+        dueSoon: (ckData.dueSoon || []).slice(0, 25).map(row),
+        byVendor: (ckData.byVendor || []).slice(0, 20).map(v => ({ vendor: String(v.vendor || '').substring(0, 40), count: v.count || 0, ransomware: v.ransomware || 0, appliance: v.appliance || 0, products: (v.products || []).slice(0, 6).map(p => String(p).substring(0, 60)) })),
         globeMarkers: ckData.globeMarkers || [],
         categoryBreakdown: ckData.categoryBreakdown || {},
         prcRelevantCount: ckData.prcRelevantCount || 0,
         ransomwareCount: ckData.ransomwareCount || 0,
         signals: ckData.signals || [],
+      };
+    })(),
+    // Ransomware attack tape (ransomware.live leak-site claims, last 7 days)
+    ransomware: (() => {
+      const rw = data.sources.Ransomware || {};
+      const t = (s, n) => String(s || '').substring(0, n);
+      return {
+        status: rw.status || 'unavailable', error: rw.error || null,
+        attribution: rw.attribution || null,
+        windowDays: rw.windowDays || 7, total: rw.total || 0, last24h: rw.last24h || 0, feedCovered: !!rw.feedCovered,
+        groups: (rw.groups || []).slice(0, 20).map(g => ({ name: t(g.name, 40), count: g.count || 0, sectors: (g.sectors || []).slice(0, 3).map(x => t(x, 40)), tools: (g.tools || []).slice(0, 12).map(x => t(x, 40)), ttps: (g.ttps || []).slice(0, 10).map(x => t(x, 60)), description: g.description ? t(g.description, 240) : null, firstSeen: g.firstSeen || null })),
+        sectors: (rw.sectors || []).slice(0, 15).map(x => ({ name: t(x.name, 40), count: x.count || 0 })),
+        countries: (rw.countries || []).slice(0, 60).map(x => ({ code: t(x.code, 2), num: isoNum(x.code), count: x.count || 0 })),
+        victims: (rw.victims || []).slice(0, 60).map(v => ({ victim: t(v.victim, 80), domain: t(v.domain, 120), group: t(v.group, 40), sector: t(v.sector, 40), country: v.country ? t(v.country, 2) : null, discovered: v.discovered, ageHours: v.ageHours ?? null, url: v.url || null })),
+        signals: rw.signals || [],
+      };
+    })(),
+    // Internet disruption (IODA country/region outage alerts, last 24h)
+    ioda: (() => {
+      const io = data.sources.IODA || {};
+      const t = (s, n) => String(s || '').substring(0, n);
+      return {
+        status: io.status || 'unavailable', error: io.error || null,
+        attribution: io.attribution || null,
+        windowHours: io.windowHours || 24, asOf: io.asOf || null,
+        alertCount: io.alertCount || 0, criticalCount: io.criticalCount || 0,
+        countries: (io.countries || []).slice(0, 40).map(c => ({ code: t(c.code, 2), num: isoNum(c.code), name: t(c.name, 60), alerts: c.alerts || 0, critical: c.critical || 0, regions: (c.regions || []).slice(0, 6).map(x => t(x, 60)), datasources: (c.datasources || []).slice(0, 4), latest: c.latest || null, maxDropPct: c.maxDropPct || 0, severity: c.severity || 'normal', countryLevel: !!c.countryLevel })),
+        alerts: (io.alerts || []).slice(0, 40).map(a => ({ type: a.type, countryCode: t(a.countryCode, 2), countryName: t(a.countryName, 60), entityName: t(a.entityName, 60), datasource: t(a.datasource, 24), level: a.level, time: a.time, dropPct: a.dropPct ?? null })),
+        signals: io.signals || [],
       };
     })(),
     // Phase 7: Typosquat Watch (look-alike domains against the watchlist)
