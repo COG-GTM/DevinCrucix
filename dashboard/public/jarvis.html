@@ -3913,7 +3913,8 @@ function crBuild(){
   crSvg=d3.select(svgEl).attr('viewBox',`0 0 ${W} ${H}`).attr('preserveAspectRatio','xMidYMid meet');
   crSvg.selectAll('*').remove();
   const b=CR.data?.box||{lamin:44,lomin:22,lamax:53,lomax:41};
-  const bbox={type:'Polygon',coordinates:[[[b.lomin,b.lamin],[b.lomax,b.lamin],[b.lomax,b.lamax],[b.lomin,b.lamax],[b.lomin,b.lamin]]]};
+  // d3 geo uses spherical winding: the exterior ring must be clockwise or the polygon is the whole globe minus the box
+  const bbox={type:'Polygon',coordinates:[[[b.lomin,b.lamin],[b.lomin,b.lamax],[b.lomax,b.lamax],[b.lomax,b.lamin],[b.lomin,b.lamin]]]};
   crProj=d3.geoMercator().fitExtent([[14,14],[W-14,H-14]],bbox);
   const path=d3.geoPath(crProj);
   crBase=crSvg.append('g');crLayers=crSvg.append('g');
