@@ -67,6 +67,8 @@ import { briefing as summarizer } from './sources/summarizer.mjs';
 // === Tier 11: Phase 5 Features ===
 import { briefing as pizzaindex } from './sources/pizzaindex.mjs';
 import { briefing as cyberkev } from './sources/cyberkev.mjs';
+import { briefing as ransomware } from './sources/ransomware.mjs';
+import { briefing as ioda } from './sources/ioda.mjs';
 import { briefing as telegramlive } from './sources/telegramlive.mjs';
 import { briefing as polymarket } from './sources/polymarket.mjs';
 import { briefing as defcon } from './sources/defcon.mjs';
@@ -202,6 +204,8 @@ export async function fullBriefing() {
     // Tier 11: Phase 5 Features
     runSource('PizzaIndex', pizzaindex),
     runSource('CyberKEV', cyberkev),
+    runSource('Ransomware', ransomware),
+    runSource('IODA', ioda),
     runSource('TelegramLive', telegramlive),
     runSource('Polymarket', polymarket),
     runSource('DEFCON', defcon),

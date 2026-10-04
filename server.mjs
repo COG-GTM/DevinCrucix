@@ -66,6 +66,7 @@ import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './l
 import { buildSourceContext } from './lib/targeting/sources.mjs';
 import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
+import { DevinSecurity, DevinNotConfigured, DevinApiError, publicStatus as devinPublicStatus, buildScanBrief, EFFORTS as DEVIN_EFFORTS } from './lib/devinsec.mjs';
 import { buildGraph as buildInsightGraph, loadProfileGraph, saveGraph as saveInsightGraph, summarizeGraph as summarizeInsightGraph, filterGraph as filterInsightGraph, NODE_TYPES as KG_NODE_TYPES, RELATIONS as KG_RELATIONS } from './lib/cjng/graph.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -467,6 +468,16 @@ app.get('/api/pizza-index', (req, res) => {
 app.get('/api/cyber/kev', (req, res) => {
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
   res.json(currentData.cyberKev || { totalVulnerabilities: 0, vulnerabilities: [] });
+});
+
+// API: Ransomware attack tape (ransomware.live) and internet disruption (IODA)
+app.get('/api/cyber/ransomware', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.ransomware || { status: 'unavailable', total: 0, groups: [], victims: [] });
+});
+app.get('/api/cyber/outages', (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  res.json(currentData.ioda || { status: 'unavailable', alertCount: 0, countries: [] });
 });
 
 // API: Telegram OSINT Live Feed
@@ -1149,6 +1160,73 @@ app.get('/api/history/series', validateQuery({
 // === end standing requirements ===
 
 // === Ask CRUCIX ===
+// === Devin Security — scan the configured repos for what KEV / ransomware data says is being exploited ===
+// Token stays server-side. Unconfigured → 503 with the env vars to set (the panel renders "Not connected").
+const devinSec = new DevinSecurity();
+const DEVIN_LAUNCH_LOG = join(RUNS_DIR, 'devinsec-launches.json');
+const _devinBuckets = new Map();
+function devinRateLimited(ip, max = 6) {
+  const now = Date.now();
+  const b = _devinBuckets.get(ip) || { start: now, n: 0 };
+  if (now - b.start > 60_000) { b.start = now; b.n = 0; }
+  b.n++;
+  _devinBuckets.set(ip, b);
+  return b.n > max;
+}
+function devinLog(entry) {
+  try {
+    const log = existsSync(DEVIN_LAUNCH_LOG) ? JSON.parse(readFileSync(DEVIN_LAUNCH_LOG, 'utf8')) : [];
+    log.unshift({ at: new Date().toISOString(), ...entry });
+    writeFileSync(DEVIN_LAUNCH_LOG, JSON.stringify(log.slice(0, 200), null, 2));
+  } catch (e) { console.error('[DevinSec] log write failed:', e.message); }
+}
+function devinRecentLaunches(n = 10) {
+  try { return existsSync(DEVIN_LAUNCH_LOG) ? JSON.parse(readFileSync(DEVIN_LAUNCH_LOG, 'utf8')).slice(0, n) : []; } catch { return []; }
+}
+function devinError(res, e) {
+  if (e instanceof DevinNotConfigured) return res.status(503).json({ error: 'devin not connected', missing: e.missing, hint: devinPublicStatus().hint });
+  if (e instanceof DevinApiError) return res.status(e.status >= 500 ? 502 : e.status === 401 || e.status === 403 ? 502 : e.status).json({ error: 'devin api error', status: e.status, detail: e.detail || null });
+  if (e?.status === 400) return res.status(400).json({ error: e.message });
+  console.error('[DevinSec]', e);
+  return res.status(500).json({ error: 'devin request failed' });
+}
+
+// GET /api/devinsec/status — connection state + what a scan would be told to look for (works without a key)
+app.get('/api/devinsec/status', (req, res) => {
+  res.json({ ...devinPublicStatus(), brief: buildScanBrief(currentData || {}), recentLaunches: devinRecentLaunches(), efforts: DEVIN_EFFORTS, hasData: !!currentData });
+});
+
+// POST /api/devinsec/scan { repo, effort? } → 201 scan record | 503 not connected
+app.post('/api/devinsec/scan', validateBody({ repo: (v) => str(v, { max: 200, required: true, pattern: /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/ }), effort: (v) => oneOf(v, DEVIN_EFFORTS) }), async (req, res) => {
+  if (devinRateLimited(req.ip)) return res.status(429).json({ error: 'rate limited', retryAfterSec: 60 });
+  try {
+    const scan = await devinSec.startScan({ repo: req.body.repo, effort: req.body.effort || 'normal' });
+    devinLog({ kind: 'scan', repo: req.body.repo, effort: req.body.effort || 'normal', scanId: scan.scanId, url: scan.url, brief: buildScanBrief(currentData || {}).text.slice(0, 1200) });
+    console.log(`[DevinSec] scan started ${scan.scanId} on ${req.body.repo}`);
+    res.status(201).json(scan);
+  } catch (e) { devinError(res, e); }
+});
+
+// GET /api/devinsec/scans?repo= — newest first
+app.get('/api/devinsec/scans', validateQuery({ repo: (v) => str(v, { max: 200, pattern: /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/ }) }), async (req, res) => {
+  try { res.json({ scans: await devinSec.listScans({ repo: req.query.repo }) }); } catch (e) { devinError(res, e); }
+});
+
+// GET /api/devinsec/findings?scan_id=&status=
+app.get('/api/devinsec/findings', validateQuery({ scan_id: (v) => str(v, { max: 80, required: true, pattern: /^[A-Za-z0-9_-]+$/ }), status: (v) => oneOf(v, ['open', 'dismissed', 'resolved']) }), async (req, res) => {
+  try { res.json({ findings: await devinSec.listFindings({ scanId: req.query.scan_id, status: req.query.status }) }); } catch (e) { devinError(res, e); }
+});
+
+// POST /api/devinsec/remediate { scan_id, finding_id } → Devin session that opens the fix PR
+app.post('/api/devinsec/remediate', validateBody({ scan_id: (v) => str(v, { max: 80, required: true, pattern: /^[A-Za-z0-9_-]+$/ }), finding_id: (v) => str(v, { max: 80, required: true, pattern: /^[A-Za-z0-9_-]+$/ }) }), async (req, res) => {
+  if (devinRateLimited(req.ip)) return res.status(429).json({ error: 'rate limited', retryAfterSec: 60 });
+  try {
+    const out = await devinSec.remediate({ scanId: req.body.scan_id, findingId: req.body.finding_id });
+    devinLog({ kind: 'remediate', scanId: req.body.scan_id, findingId: req.body.finding_id, sessionId: out.sessionId, url: out.sessionUrl });
+    res.status(201).json(out);
+  } catch (e) { devinError(res, e); }
+});
+
 // Read-only Q&A drawer. Grounded mode answers from a bounded pack of the live state and cites
 // section ids; external mode (explicit analyst confirm) uses provider web search and is labelled
 // unverified. On-click only — nothing here runs during a sweep.
