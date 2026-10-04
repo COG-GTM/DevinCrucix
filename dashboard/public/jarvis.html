@@ -927,6 +927,25 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 .pm-change.down{color:var(--danger)}
 
 /* Phase 5: Telegram Live Feed */
+/* Text intelligence: IOC indicators, Telegram influence graph, name variants */
+.ioc-kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin:4px 0 6px}
+.ioc-kpi{border:1px solid var(--border);padding:4px 6px;background:rgba(255,255,255,.015);cursor:pointer;text-align:center}
+.ioc-kpi.on{border-color:#44ccff;background:rgba(68,204,255,.08)}.ioc-kpi .k{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}.ioc-kpi .v{font-family:var(--mono);font-size:14px;color:#e8f3ef}
+.ioc-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:start;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.ioc-row:hover{background:rgba(255,255,255,.02)}.ioc-val{font-family:var(--mono);font-size:11px;word-break:break-all;color:#e8f3ef}.ioc-raw{color:var(--dim);font-size:9px;font-family:var(--mono)}
+.ioc-meta{font-size:9px;color:var(--dim);margin-top:2px}.ioc-ctx{font-size:10px;color:#9fb3ac;margin-top:2px;line-height:1.3}
+.ioc-new{font-family:var(--mono);font-size:8px;padding:0 4px;border:1px solid #ffd54f;color:#ffd54f;margin-left:4px}
+.ioc-scroll{max-height:380px;overflow-y:auto}.ioc-act{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+.tgg-wrap{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr);gap:8px;margin-top:6px}
+.tgg-canvas{position:relative;height:360px;border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(0,188,212,.05),transparent 70%)}
+.tgg-canvas svg{width:100%;height:100%;display:block}.tgg-link{fill:none;stroke-opacity:.5}.tgg-link.forward{stroke:#64f0c8}.tgg-link.mention{stroke:#ffd54f;stroke-dasharray:3 2}.tgg-link.link{stroke:#82aaff;stroke-opacity:.3}
+.tgg-node circle{stroke:rgba(0,0,0,.75);stroke-width:1px;cursor:pointer}.tgg-node text{font-family:var(--mono);font-size:8px;fill:#c8d8d2;pointer-events:none}
+.tgg-side{max-height:360px;overflow-y:auto;font-size:11px}.tgg-row{padding:4px 6px;border-bottom:1px solid rgba(255,255,255,.04)}
+.tgg-bar{height:3px;background:#00bcd4;margin-top:2px;opacity:.7}.tgg-cl{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.04)}
+.tgg-cl.hot{border-left:2px solid #ff5252}.tgg-cl.dup{border-left:2px solid rgba(255,255,255,.12)}.tgg-cl-ch{font-family:var(--mono);font-size:9px;color:#00bcd4}.tgg-cl-txt{font-size:10px;color:#9fb3ac;margin-top:2px;line-height:1.3}
+.tgg-legend{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:4px}.tgg-legend i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;margin-right:3px}
+.tgt-variants{margin:4px 0 6px}.tgt-var-chip{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px dashed rgba(255,213,79,.5);color:#ffd54f;background:rgba(255,213,79,.05);cursor:pointer;margin:2px 3px 0 0;display:inline-block}
+.tgt-var-chip:hover{background:rgba(255,213,79,.15)}.tgt-var-chip small{color:var(--dim);margin-left:3px}.tgt-var-chip.added{opacity:.4;cursor:default;text-decoration:line-through}
 .tg-live-msg{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;line-height:1.35}
 .tg-live-ch{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--accent2);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px;display:flex;justify-content:space-between}
 .tg-live-time{font-family:var(--mono);font-size:9px;color:var(--dim);font-weight:400}
@@ -2005,6 +2024,8 @@ document.addEventListener('keydown',e=>{
 // One line under each panel title: what it shows, where it comes from, what it does not establish.
 // Keyed by the panel title text (i18n-independent English fallback titles).
 const PANEL_CAPTIONS={
+  'indicators in the feeds':'IPs, domains, URLs, e-mails, hashes, CVEs and crypto wallets found <b>literally</b> in this sweep\u2019s headlines, Telegram posts and article text (defanged spellings are refanged). Media/social hosts, private ranges and version numbers are dropped. A hit is a string someone published, not a verdict \u2014 pivot into Investigations to enrich it.',
+  'telegram influence & coordination':'Who forwards whom among the monitored public channels, which channels and external sites they point to, and PageRank influence over that graph. <b>Coordination</b> flags the same text or link posted by \u22652 channels within 30 min \u2014 a timing pattern in public posts, not proof of a shared operator.',
   'target nomination':'Nominate a public-source target with a logged basis (knowledge-graph node, OFAC SDN id, DOJ release or a source URL) and the requirement it must answer. Persons, organizations, facilities, vehicles, vessels, aircraft already named in public reporting only.',
   'target deck':'Every nominated target with status and pending review count. Select one to open its package; closed targets stay for the record.',
   'source coverage':'Which local stores the package was built from, how many hit, and whether an OpenAI / Anthropic model adjudicated. <b>Not available</b> means the store was empty this sweep, not that the target is absent from it.',
@@ -3848,7 +3869,7 @@ function renderLower(){
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
     military:[wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
-    cyber:[wrap(renderCyberAttackMapPanel(),'lp-wide'),wrap(renderRansomwarePanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderDevinSecPanel(),'lp-wide'),wrap(renderIodaPanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half')],
+    cyber:[wrap(renderCyberAttackMapPanel(),'lp-wide'),wrap(renderRansomwarePanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderIocPanel(),'lp-wide'),wrap(renderTelegramGraphPanel(),'lp-wide'),wrap(renderDevinSecPanel(),'lp-wide'),wrap(renderIodaPanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
     ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
@@ -3859,7 +3880,7 @@ function renderLower(){
     taiwan:[wrap(renderTwMapPanel(),'lp-wide'),wrap(renderTwMndPanel(),'lp-half'),wrap(renderTwCgaPanel(),'lp-half'),wrap(renderTwNewsPanel(),'lp-half'),wrap(renderTwGcaPanel(),'lp-half'),wrap(renderTwTheaterPanel(),'lp-half'),wrap(renderTwLinkOutsPanel(),'lp-half')],
     colombia:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCySatPanel(),'lp-half'),wrap(renderCyIndepazPanel(),'lp-half'),wrap(renderCyOfficialPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderCyActorsPanel(),'lp-wide'),wrap(renderKgPanel('co'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
     venezuela:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCyProtestPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderCyActorsPanel(),'lp-wide'),wrap(renderKgPanel('ve'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
-    investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
+    investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderIocPanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
     targeting:tgtLowerPanels(wrap),
     sources:[renderSourceHealthFullPanel()],
   };
@@ -3869,7 +3890,7 @@ function renderLower(){
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
   if(currentTab==='cartels')kgMount('cjng');
   if(currentTab==='iranwar')requestAnimationFrame(initIwMap);
-  if(currentTab==='cyber'){requestAnimationFrame(initCyberAttackMap);devinSecRefresh();}
+  if(currentTab==='cyber'){requestAnimationFrame(initCyberAttackMap);devinSecRefresh();tggRefresh();if(TGG.data)requestAnimationFrame(tggMount);}
   if(currentTab==='ukraine')requestAnimationFrame(initUaMap);
   if(currentTab==='taiwan')requestAnimationFrame(initTwMap);
   if(CY_TAB[currentTab]){requestAnimationFrame(initCyMap);kgMount(CY_TAB[currentTab])}
@@ -7235,6 +7256,106 @@ function renderTelegramLivePanel(){
   return `<div class="g-panel right-telegram"><div class="sec-head"><h3>${shDot('TelegramLive')}Telegram OSINT</h3><span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${tl.totalMessages||0} MSGS</span></div><div class="tg-live-scroll">${msgs}</div></div>`;
 }
 
+// === Text intelligence: IOC indicators (ThreatIngestor pattern) + Telegram influence graph (Pulpit model) ===
+const IOC_TYPE_META={ip:{label:'IP',color:'#64f0c8',hint:'ip'},domain:{label:'Domain',color:'#44ccff',hint:'domain'},url:{label:'URL',color:'#82aaff',hint:'url'},email:{label:'E-mail',color:'#ffb84c',hint:'email'},hash:{label:'Hash',color:'#ff5f63',hint:'hash'},cve:{label:'CVE',color:'#ff9100',hint:null},btc:{label:'BTC',color:'#f9d71c',hint:'btc'},eth:{label:'ETH',color:'#b39ddb',hint:'eth'}};
+const IOC={filter:null,showAll:false};
+function iocSetFilter(t){IOC.filter=IOC.filter===t?null:t;IOC.showAll=false;renderLower()}
+function iocToggleAll(){IOC.showAll=!IOC.showAll;renderLower()}
+function iocTypeTag(t){const m=IOC_TYPE_META[t]||{label:t,color:'#c8d8d2'};return `<span class="inv-chip" style="color:${m.color};border-color:currentColor">${esc(m.label)}</span>`}
+function iocPivot(i){
+  const m=IOC_TYPE_META[i.type];
+  if(i.type==='cve')return `<a class="inv-link ext" href="https://nvd.nist.gov/vuln/detail/${esc(i.value)}" target="_blank" rel="noopener noreferrer">NVD</a>`;
+  if(m&&m.hint&&INV_PIVOTABLE.has(m.hint))return `<a class="inv-link" data-inv="${esc(i.value)}" data-hint="${esc(m.hint)}" title="Open in Investigations">Investigate \u2192</a>`;
+  return '';
+}
+function renderIocPanel(){
+  const x=D.iocs;
+  const head=(body,badge)=>`<div class="g-panel ioc-panel"><div class="sec-head"><h3>Indicators In The Feeds</h3><div style="display:flex;gap:6px;align-items:center">${badge||''}<span class="badge">LITERAL MATCHES \u00b7 NOT VERDICTS</span></div></div>${body}</div>`;
+  if(!x)return head('<div class="inv-hint">No sweep yet \u2014 indicators are extracted from headlines, Telegram posts and article text each sweep.</div>');
+  const by=x.byType||{};
+  const kpis=`<div class="ioc-kpis">${Object.keys(IOC_TYPE_META).map(t=>`<div class="ioc-kpi ${IOC.filter===t?'on':''}" onclick="iocSetFilter('${t}')" title="${IOC.filter===t?'clear filter':'show only '+IOC_TYPE_META[t].label}"><span class="k" style="color:${IOC_TYPE_META[t].color}">${esc(IOC_TYPE_META[t].label)}</span><span class="v">${esc(String(by[t]||0))}</span></div>`).join('')}</div>`;
+  let list=(x.indicators||[]).filter(i=>!IOC.filter||i.type===IOC.filter);
+  const total=list.length;const limit=IOC.showAll?200:25;list=list.slice(0,limit);
+  const rows=list.length?list.map(i=>{
+    const c=(i.contexts||[])[0];
+    return `<div class="ioc-row"><div>${iocTypeTag(i.type)}</div><div><span class="ioc-val">${esc(i.value)}</span>${i.isNew?'<span class="ioc-new">NEW</span>':''}${i.raw&&i.raw!==i.value?`<div class="ioc-raw">as written: ${esc(i.raw)}</div>`:''}
+      <div class="ioc-meta">${esc(String(i.count))}\u00d7 in ${esc((i.sources||[]).slice(0,3).join(', '))}${(i.sources||[]).length>3?` +${i.sources.length-3}`:''}${i.lastTs?' \u00b7 '+getAge(i.lastTs):''}${i.sweepsSeen>1?` \u00b7 seen in ${esc(String(i.sweepsSeen))} sweeps`:''}</div>
+      ${c?`<div class="ioc-ctx">\u201c${esc(c.snippet||'')}\u201d${c.url?' \u00b7 '+invExt(c.url,'source'):''}</div>`:''}</div>
+      <div class="ioc-act">${iocPivot(i)}</div></div>`;
+  }).join(''):`<div class="inv-hint">No ${IOC.filter?esc(IOC_TYPE_META[IOC.filter].label)+' ':''}indicators in the ${esc(String(x.documents||0))} documents scanned this sweep.</div>`;
+  const more=total>list.length?`<div class="sh-note" style="text-align:center"><a class="inv-link" onclick="iocToggleAll()">show ${total-list.length} more</a></div>`:IOC.showAll&&total>25?`<div class="sh-note" style="text-align:center"><a class="inv-link" onclick="iocToggleAll()">show fewer</a></div>`:'';
+  const badge=`<span class="badge" style="background:rgba(68,204,255,0.1);color:#44ccff;border-color:rgba(68,204,255,0.3)">${esc(String(x.total||0))} IN ${esc(String(x.documents||0))} DOCS${x.newThisSweep?` \u00b7 ${esc(String(x.newThisSweep))} NEW`:''}</span>`;
+  return head(`${kpis}<div class="ioc-scroll">${rows}</div>${more}<div class="sh-note">${esc(x.rule||'')}${x.ledger?` First-seen ledger: ${esc(String(x.ledger.tracked))} indicators over ${esc(String(x.ledger.retentionHours/24))} days.`:''}</div>`,badge);
+}
+
+const TGG={data:null,loading:false,error:null,at:0,sel:null,sim:null};
+async function tggRefresh(force=false){
+  if(TGG.loading)return;
+  if(!force&&TGG.data&&Date.now()-TGG.at<120000)return;
+  TGG.loading=true;
+  try{const r=await fetch('/api/telegram/graph');if(!r.ok)throw new Error('HTTP '+r.status);TGG.data=await r.json();TGG.error=null;TGG.at=Date.now()}
+  catch(e){TGG.error='Graph unavailable';}
+  TGG.loading=false;
+  if(currentTab==='cyber'&&D){renderLower();requestAnimationFrame(tggMount)}
+}
+function tggSelect(id){TGG.sel=TGG.sel===id?null:id;const side=document.getElementById('tggSide');if(side)side.innerHTML=tggSideHtml();tggHighlight()}
+function tggHighlight(){
+  const svg=document.getElementById('tggSvg');if(!svg)return;
+  const sel=TGG.sel;
+  svg.querySelectorAll('.tgg-node').forEach(n=>{n.style.opacity=!sel||n.dataset.id===sel||n.dataset.adj.split('|').includes(sel)?1:.25});
+  svg.querySelectorAll('.tgg-link').forEach(l=>{l.style.strokeOpacity=!sel?'':(l.dataset.from===sel||l.dataset.to===sel?.95:.06)});
+}
+function tggSideHtml(){
+  const g=TGG.data;if(!g)return '';
+  const chans=g.nodes.filter(n=>n.kind==='channel');
+  if(TGG.sel){
+    const n=g.nodes.find(x=>x.id===TGG.sel);if(!n)return '';
+    const out=g.edges.filter(e=>e.from===n.id),inn=g.edges.filter(e=>e.to===n.id);
+    const lbl=id=>esc((g.nodes.find(x=>x.id===id)||{label:id}).label);
+    const li=(arr,dir)=>arr.length?arr.slice(0,10).map(e=>`<div class="tgg-row">${dir==='out'?'\u2192':'\u2190'} <b>${lbl(dir==='out'?e.to:e.from)}</b> <span style="color:var(--dim)">${esc(e.type)} \u00d7${esc(String(e.count))}</span></div>`).join(''):'<div class="tgg-row" style="color:var(--dim)">none</div>';
+    return `<div class="inv-sec-title"><span>${n.kind==='domain'?'External site':'Channel'}</span><a class="inv-link" onclick="tggSelect(null)">back</a></div>
+      <div class="tgg-row"><b>${esc(n.label)}</b>${n.kind==='channel'?` ${n.monitored?'<span class="inv-chip" style="color:#00bcd4;border-color:currentColor">monitored</span>':'<span class="inv-chip">referenced only</span>'}<div class="ioc-meta">${esc(String(n.posts||0))} posts in buffer \u00b7 influence ${esc(String(n.influence))} \u00b7 ${esc(String(n.forwardsIn))} fwd in / ${esc(String(n.forwardsOut))} fwd out \u00b7 ${esc(String(n.mentionsIn))} mentions in</div>${n.monitored||n.posts?'':'<div class="ioc-meta">Seen only as a forward source / link target; not scraped.</div>'}${invExt('https://t.me/s/'+n.label,'open channel')}`:`<div class="ioc-meta">linked ${esc(String(n.count))}\u00d7 by ${esc(String(n.channels))} channel${n.channels===1?'':'s'}</div>${invLink(n.label,'domain')}`}</div>
+      <div class="inv-sec-title"><span>Outgoing</span></div>${li(out,'out')}<div class="inv-sec-title"><span>Incoming</span></div>${li(inn,'in')}`;
+  }
+  const top=chans.slice(0,8).map(n=>`<div class="tgg-row" style="cursor:pointer" onclick="tggSelect('${esc(n.id)}')"><div style="display:flex;justify-content:space-between"><b>${esc(n.label)}</b><span style="color:var(--dim)">${esc(String(n.posts))} posts \u00b7 ${esc(String(n.forwardsIn+n.mentionsIn))} in</span></div><div class="tgg-bar" style="width:${Math.max(2,Math.round(n.influence*100))}%"></div></div>`).join('');
+  const cl=(g.clusters||[]).slice(0,12).map(c=>`<div class="tgg-cl ${c.withinWindow?'hot':'dup'}"><div class="tgg-cl-ch">${c.channels.map(x=>esc(x.channel)).join(' + ')} \u00b7 ${c.withinWindow?`<b style="color:#ff5252">within ${esc(String(c.tightestMin))} min</b>`:`${esc(String(c.spanMin))} min apart`} \u00b7 ${c.kind==='url'?'same link':'same text'}</div><div class="tgg-cl-txt">${c.kind==='url'?`<span class="ioc-val">${esc(c.key)}</span>`:'\u201c'+esc((c.sample||'').slice(0,160))+'\u201d'}${c.posts&&c.posts[0]?.url?' \u00b7 '+invExt(c.posts[0].url,'post'):''}</div></div>`).join('');
+  return `<div class="inv-sec-title"><span>Influence (PageRank)</span></div>${top||'<div class="tgg-row" style="color:var(--dim)">no channel edges yet</div>'}
+    <div class="inv-sec-title" style="margin-top:6px"><span>Coordination</span><span class="badge ${g.summary.coordinatedClusters?'warn':''}">${esc(String(g.summary.coordinatedClusters))} WITHIN 30 MIN</span></div>${cl||'<div class="tgg-row" style="color:var(--dim)">no duplicated text or links across channels in the buffer</div>'}`;
+}
+function renderTelegramGraphPanel(){
+  const g=TGG.data;
+  const head=(body,badge)=>`<div class="g-panel tgg-panel"><div class="sec-head"><h3>Telegram Influence &amp; Coordination</h3><div style="display:flex;gap:6px;align-items:center">${badge||''}<span class="badge">PUBLIC CHANNEL GRAPH</span></div></div>${body}</div>`;
+  if(!g)return head(`<div class="inv-hint">${TGG.error?esc(TGG.error):'Building the forward / link graph from the live Telegram buffer\u2026'}</div>`);
+  const sm=g.summary||{};
+  if(!g.messages)return head('<div class="inv-hint">Telegram buffer is empty \u2014 the graph fills as the scraper polls the monitored channels.</div>');
+  const badge=`<span class="badge" style="background:rgba(0,188,212,0.1);color:#00bcd4;border-color:rgba(0,188,212,0.3)">${esc(String(sm.channels||0))} CH \u00b7 ${esc(String(sm.forwards||0))} FWD \u00b7 ${esc(String(sm.mentions||0))} MENTIONS</span>`;
+  return head(`<div class="tgg-wrap"><div class="tgg-canvas" id="tggCanvas"><svg id="tggSvg"></svg></div><div class="tgg-side" id="tggSide">${tggSideHtml()}</div></div>
+    <div class="tgg-legend"><span><i style="border-color:#64f0c8"></i>forward</span><span><i style="border-color:#ffd54f;border-top-style:dashed"></i>t.me mention</span><span><i style="border-color:#82aaff"></i>external link</span><span style="color:#00bcd4">\u25cf monitored</span><span>\u25cb referenced</span><span style="color:#82aaff">\u25a0 site</span><span style="margin-left:auto">${esc(String(g.messages))} posts \u00b7 ${esc(String(sm.postsWithForward||0))} forwards \u00b7 ${esc(String(sm.domains||0))} sites \u00b7 <a class="inv-link" onclick="tggRefresh(true)">refresh</a></span></div>
+    <div class="sh-note">${esc(g.rule||'')}</div>`,badge);
+}
+function tggMount(){
+  const g=TGG.data;const el=document.getElementById('tggCanvas');const svg=document.getElementById('tggSvg');
+  if(!g||!el||!svg||typeof d3==='undefined')return;
+  if(TGG.sim){TGG.sim.stop();TGG.sim=null}
+  const W=el.clientWidth||600,H=el.clientHeight||360;
+  const nodes=g.nodes.map(n=>({...n}));const idx=new Map(nodes.map(n=>[n.id,n]));
+  const links=g.edges.filter(e=>idx.has(e.from)&&idx.has(e.to)).map(e=>({source:e.from,target:e.to,type:e.type,count:e.count}));
+  const adj=new Map(nodes.map(n=>[n.id,new Set()]));for(const l of links){adj.get(l.source).add(l.target);adj.get(l.target).add(l.source)}
+  const r=n=>n.kind==='domain'?4:5+Math.round((n.influence||0)*9);
+  const sv=d3.select(svg);sv.selectAll('*').remove();sv.attr('viewBox',`0 0 ${W} ${H}`);
+  const link=sv.append('g').selectAll('line').data(links).join('line').attr('class',l=>'tgg-link '+l.type).attr('data-from',l=>l.source).attr('data-to',l=>l.target).attr('stroke-width',l=>Math.min(4,1+Math.log2(l.count||1)));
+  const node=sv.append('g').selectAll('g').data(nodes).join('g').attr('class','tgg-node').attr('data-id',n=>n.id).attr('data-adj',n=>[...adj.get(n.id)].join('|')).on('click',(ev,n)=>{ev.stopPropagation();tggSelect(n.id)});
+  node.append(n=>document.createElementNS('http://www.w3.org/2000/svg',n.kind==='domain'?'rect':'circle'));
+  node.select('circle').attr('r',r).attr('fill',n=>n.monitored?'#00bcd4':'rgba(0,0,0,0.2)').attr('stroke',n=>n.monitored?'rgba(0,0,0,.75)':'#8fb8c0');
+  node.select('rect').attr('width',8).attr('height',8).attr('x',-4).attr('y',-4).attr('fill','#82aaff').attr('stroke','rgba(0,0,0,.75)').style('cursor','pointer');
+  node.append('text').attr('dx',n=>r(n)+3).attr('dy',3).text(n=>n.label.length>18?n.label.slice(0,17)+'\u2026':n.label);
+  node.append('title').text(n=>n.kind==='domain'?`${n.label} \u00b7 linked ${n.count}\u00d7`:`${n.label} \u00b7 ${n.posts} posts \u00b7 influence ${n.influence}`);
+  TGG.sim=d3.forceSimulation(nodes).force('link',d3.forceLink(links).id(n=>n.id).distance(l=>l.type==='link'?45:70).strength(.4)).force('charge',d3.forceManyBody().strength(-120)).force('center',d3.forceCenter(W/2,H/2)).force('collide',d3.forceCollide(n=>r(n)+10)).alphaDecay(.05)
+    .on('tick',()=>{for(const n of nodes){n.x=Math.max(10,Math.min(W-10,n.x));n.y=Math.max(10,Math.min(H-10,n.y))}link.attr('x1',l=>l.source.x).attr('y1',l=>l.source.y).attr('x2',l=>l.target.x).attr('y2',l=>l.target.y);node.attr('transform',n=>`translate(${n.x},${n.y})`)});
+  sv.on('click',()=>tggSelect(null));
+  tggHighlight();
+}
+
 // === Phase 7: Investigations workbench (on-demand OSINT: selector → dossier → case graph → report) ===
 // Every string rendered below is either analyst input or third-party derived → esc() before insertion.
 const INV_TYPE_META = {
@@ -8322,6 +8443,29 @@ function tgtLowerPanels(wrap){
   if(!TGT.sel)return [wrap(renderTgtNominateHero(),'lp-wide')];
   return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
 }
+async function tgtSuggestVariants(){
+  const f=TGT.form;const label=(f.label||'').trim();if(!label||TGT.varBusy)return;
+  TGT.varBusy=true;tgtFormRerender();
+  const r=await tgtApi('GET',`/api/targeting/variants?label=${encodeURIComponent(label)}&type=${encodeURIComponent(f.entityType||'person')}&aliases=${encodeURIComponent((f.aliases||'').split(',').map(s=>s.trim()).filter(Boolean).join(';'))}`);
+  TGT.varBusy=false;
+  TGT.variants=r.ok&&r.body?{label,list:r.body.variants||[],rule:r.body.rule||''}:{label,list:[],error:'Could not generate variants'};
+  tgtFormRerender();
+}
+function tgtAddVariant(v){
+  const cur=(TGT.form.aliases||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(cur.some(a=>a.toLowerCase()===v.toLowerCase()))return;
+  if(cur.length>=12)return;
+  TGT.form.aliases=[...cur,v].join(', ');tgtFormRerender();
+}
+function tgtVariantsHtml(){
+  const v=TGT.variants;if(!v||v.label!==(TGT.form.label||'').trim())return '';
+  if(v.error)return `<div class="inv-err" style="margin:4px 0 6px">${esc(v.error)}</div>`;
+  const have=new Set((TGT.form.aliases||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean));
+  if(!v.list.length)return `<div class="sh-note" style="margin:0 0 6px">No spelling variants generated for \u201c${esc(v.label)}\u201d.</div>`;
+  return `<div class="tgt-variants"><div class="inv-sec-title"><span>Search variants \u00b7 ${esc(String(v.list.length))}</span><span class="badge warn">NOT A.K.A. \u2014 ANALYST DECIDES</span></div>
+    ${v.list.map((x,i)=>`<span class="tgt-var-chip ${have.has(x.variant.toLowerCase())?'added':''}" onclick="tgtAddVariant(TGT.variants.list[${i}].variant)" title="${esc(x.kind)} variant of ${esc(x.from)} \u2014 click to add as an alias (only if a source confirms it)">${esc(x.variant)}<small>${esc(x.kind)}</small></span>`).join('')}
+    <div class="sh-note" style="margin-top:4px">${esc(v.rule)} Development already searches these variants automatically; matches they produce are flagged <b>generated</b> and weak.</div></div>`;
+}
 async function tgtNominate(){
   const f=TGT.form;
   const aliases=f.aliases.split(',').map(s=>s.trim()).filter(Boolean);
@@ -8408,7 +8552,9 @@ function renderTgtNominateHero(){
           <select class="inv-btn" name="tgt-type" onchange="tgtFormSet('entityType',this.value)">${types.map(v=>`<option value="${esc(v)}" ${f.entityType===v?'selected':''}>${esc(TGT_TYPE_LABEL[v]||v.toUpperCase())}</option>`).join('')}</select>
           <select class="inv-btn" name="tgt-priority" onchange="tgtFormSet('priority',this.value)" title="Priority 1 = highest">${['1','2','3'].map(p=>`<option value="${p}" ${f.priority===p?'selected':''}>PRI ${p}</option>`).join('')}</select>
           <input class="inv-input" name="tgt-aliases" maxlength="400" autocomplete="off" spellcheck="false" placeholder="Aliases, comma-separated (published a.k.a. only)" value="${esc(f.aliases)}" oninput="tgtFormSet('aliases',this.value)">
+          <button class="inv-btn ghost" type="button" onclick="tgtSuggestVariants()" ${TGT.varBusy||!(f.label||'').trim()?'disabled':''} title="Deterministic spelling / transliteration variants to search for \u2014 not published a.k.a.s">${TGT.varBusy?'\u2026':'Suggest spellings'}</button>
         </div>
+        ${tgtVariantsHtml()}
         <div class="tgt-form-row">
           <select class="inv-btn" name="tgt-basis" onchange="tgtFormSet('basisKind',this.value)">${kinds.map(k=>`<option value="${esc(k)}" ${f.basisKind===k?'selected':''}>${esc((TGT_BASIS_META[k]||{label:k}).label)}</option>`).join('')}</select>
           <input class="inv-input" name="tgt-basis-ref" maxlength="512" autocomplete="off" spellcheck="false" placeholder="${esc(bm.ph)}" value="${esc(f.basisRef)}" oninput="tgtFormSet('basisRef',this.value)">
@@ -8517,7 +8663,9 @@ function renderTgtPackagePanel(){
       ${kpi('Graph proposals',`${st.proposals||0}<small> \u00b7 ${st.acceptedProposals||0} accepted</small>`)}
       ${kpi('Located',st.observations||0,'gazetteer-resolved place mentions')}
       ${kpi('Span',st.span?.first?`${esc(st.span.first)} \u2192 ${esc(st.span.last)}`:'—')}
+      ${p.variants?kpi('Spelling variants',`${esc(String(p.variants.searched||0))}<small> \u00b7 ${esc(String((p.variants.hit||[]).length))} hit</small>`,'generated transliteration / spelling variants searched alongside the label and published aliases; a hit is flagged generated + weak'):''}
     </div>
+    ${p.variants?.hit?.length?`<div class="sh-note" style="margin-top:4px">Generated spellings that matched: ${p.variants.hit.slice(0,8).map(h=>`<span class="tgt-var-chip" style="cursor:default">${esc(h)}</span>`).join(' ')} \u2014 search-term matches, not published a.k.a.s.</div>`:''}
     ${llmLine}
     ${flags.length?`<div class="tgt-flags">${flags.map(f=>`<div class="bw-spike tgt-flag ${flagCls[f.kind]||''}"><b>${esc(f.kind.replace('-',' '))}</b> \u00b7 ${esc(f.text)}${f.url?' \u00b7 '+invExt(f.url,'source'):''}</div>`).join('')}</div>`:`<div class="sh-note" style="margin-top:6px">No deviation from this target's own reporting baseline in the current window.</div>`}
     ${p.fix?.lastKnown?`<div class="tgt-lk"><span class="inv-sec-title" style="display:inline;margin-right:6px">Last known public-record location</span><b>${esc(p.fix.lastKnown.place)}</b> \u00b7 ${esc(p.fix.lastKnown.date)} (${esc(String(p.fix.lastKnown.ageDays))} d ago) \u00b7 \u00b1${esc(String(p.fix.lastKnown.radiusKm))} km ${esc(p.fix.lastKnown.precision)} \u00b7 ${esc(p.fix.lastKnown.basis)} \u00b7 ${esc(p.fix.lastKnown.confidence)} confidence \u00b7 ${tgtSrcTag(p.fix.lastKnown.source)}${p.fix.lastKnown.url?' '+invExt(p.fix.lastKnown.url,'source'):''}<div class="tgt-ev">&ldquo;${esc(p.fix.lastKnown.sentence)}&rdquo;</div>${p.fix.lastKnown.caveat?`<div class="sh-note" style="margin:2px 0 0">${esc(p.fix.lastKnown.caveat)}</div>`:''}</div>`:''}`

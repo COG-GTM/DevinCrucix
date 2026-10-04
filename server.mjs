@@ -35,7 +35,10 @@ import { generateWorldBrief, generateCountryBrief } from './apis/sources/summari
 import { classifyAll } from './apis/sources/threatclassifier.mjs';
 
 // Phase 5: New Features
-import { startTelegramLive, getTelegramFeed, getTelegramChannels, setTelegramChannels, TELEGRAM_CHANNEL_RE } from './apis/sources/telegramlive.mjs';
+import { startTelegramLive, getTelegramFeed, getTelegramChannels, setTelegramChannels, getTelegramMessages, TELEGRAM_CHANNEL_RE } from './apis/sources/telegramlive.mjs';
+import { IocLedger, collectDocuments, extractFromDocuments } from './lib/text/ioc.mjs';
+import { buildTelegramGraph } from './lib/telegram/graph.mjs';
+import { nameVariants, MAX_VARIANTS as TGT_MAX_VARIANTS } from './lib/targeting/variants.mjs';
 import { computeDefcon } from './apis/sources/defcon.mjs';
 
 // Phase 6: Osiris-Ported Features
@@ -70,6 +73,9 @@ import { buildGraph as buildInsightGraph, loadProfileGraph, saveGraph as saveIns
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const RUNS_DIR = join(ROOT, 'runs');
+const iocLedger = new IocLedger(RUNS_DIR);
+let latestIocs = null;
+
 const MEMORY_DIR = join(RUNS_DIR, 'memory');
 
 // Ensure directories exist
@@ -483,6 +489,25 @@ app.get('/api/telegram/feed', (req, res) => {
   res.json(getTelegramFeed());
 });
 
+// API: Telegram forward / link graph + coordination clusters (built from the live buffer on request)
+app.get('/api/telegram/graph', (req, res) => {
+  try {
+    res.json(buildTelegramGraph(getTelegramMessages(), getTelegramChannels().channels || []));
+  } catch (err) {
+    console.error('[Telegram] graph failed:', err.message);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// API: Indicators extracted from the current sweep's text feeds
+app.get('/api/iocs', validateQuery({
+  type: (v) => oneOf(v, ['ip', 'domain', 'url', 'email', 'hash', 'cve', 'btc', 'eth']),
+}), (req, res) => {
+  if (!latestIocs) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  const { type } = req.validated.query;
+  res.json(type ? { ...latestIocs, indicators: latestIocs.indicators.filter(i => i.type === type) } : latestIocs);
+});
+
 // API: Telegram channels list
 app.get('/api/telegram/channels', (req, res) => {
   res.json(getTelegramChannels());
@@ -699,6 +724,18 @@ app.get('/api/narco/sanctions', (req, res) => {
 const targetStore = new TargetStore(process.env.TARGETING_DATA_DIR ? { dataDir: process.env.TARGETING_DATA_DIR } : {});
 const targetDevelopInFlight = new Set();
 const TGT_ID = (v) => str(v, { max: 16, pattern: TARGET_ID_RE, required: true });
+
+// API: name-variant suggestions for a nomination (deterministic rules, nothing fetched)
+app.get('/api/targeting/variants', validateQuery({
+  label: (v) => str(v, { max: 80, pattern: /^[^<>]{2,80}$/, required: true }),
+  type: (v) => oneOf(v, TGT_TYPES),
+  aliases: (v) => str(v, { max: 400, pattern: /^[^<>]*$/ }),
+}), (req, res) => {
+  const { label, type = 'person', aliases = '' } = req.validated.query;
+  const aliasList = aliases.split(/[;,|]/).map(a => a.trim()).filter(Boolean).slice(0, 12);
+  const variants = nameVariants(label, aliasList, { type });
+  res.json({ label, type, aliases: aliasList, variants, max: TGT_MAX_VARIANTS, rule: 'Suggested spellings/transliterations to search. They are search terms, not published a.k.a.s — add one as an alias only when a source confirms it.' });
+});
 function targetAudit(event, req, details = {}) {
   console.log(JSON.stringify({ timestamp: new Date().toISOString(), event, ip: req.ip, ...details }));
 }
@@ -1411,6 +1448,16 @@ async function runSweepCycle() {
     // 3. Synthesize into dashboard format
     console.log('[Crucix] Synthesizing dashboard data...');
     const synthesized = await synthesize(rawData);
+
+    // 3a. IOC extraction over this sweep's text (ThreatIngestor pattern) — literal hits only, pivots into Investigations
+    try {
+      const docs = collectDocuments(rawData.sources || {}, synthesized, getTelegramMessages());
+      latestIocs = extractFromDocuments(docs, { ledger: iocLedger });
+      synthesized.iocs = { ...latestIocs, indicators: latestIocs.indicators.slice(0, 120) };
+      console.log(`[Crucix] IOCs: ${latestIocs.total} indicators in ${latestIocs.documents} documents (${latestIocs.newThisSweep} new)`);
+    } catch (iocErr) {
+      console.error('[Crucix] IOC extraction failed (non-fatal):', iocErr.message);
+    }
 
     // 3b. Phase 4: Compute analytical features post-sweep
     try {

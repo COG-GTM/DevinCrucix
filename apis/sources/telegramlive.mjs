@@ -64,7 +64,7 @@ async function fetchHTML(url, timeoutMs = 15000) {
 }
 
 // Parse messages from Telegram web preview HTML
-function parseWebPreview(html, channel) {
+export function parseWebPreview(html, channel) {
   if (!html) return [];
 
   const messages = [];
@@ -107,6 +107,24 @@ function parseWebPreview(html, channel) {
     // Check for media
     const hasMedia = /tgme_widget_message_photo|tgme_widget_message_video/i.test(block);
 
+    // Forwarded-from channel (public username only; private/anonymous forwards carry no username)
+    const fwdMatch = block.match(/tgme_widget_message_forwarded_from_name"[^>]*href="https?:\/\/t\.me\/(?:s\/)?([A-Za-z0-9_]{5,32})/i);
+    const fwdFrom = fwdMatch ? fwdMatch[1] : null;
+
+    // Links and hashtags inside the message body (not the post permalink / view counter chrome)
+    const links = [];
+    const hashtags = [];
+    if (textMatch) {
+      for (const a of textMatch[1].matchAll(/href="([^"]+)"/gi)) {
+        const href = a[1].replace(/&amp;/g, '&');
+        let decoded = href;
+        try { decoded = decodeURIComponent(href); } catch { /* keep raw */ }
+        const tag = decoded.match(/^\?q=#([\p{L}\p{N}_]+)/u);
+        if (tag) { if (hashtags.length < 10 && !hashtags.includes(tag[1])) hashtags.push(tag[1]); continue; }
+        if (/^https?:\/\//i.test(href) && links.length < 10 && !links.includes(href)) links.push(href.slice(0, 300));
+      }
+    }
+
     // Extract view count
     const viewsMatch = block.match(/class="tgme_widget_message_views"[^>]*>([\s\S]*?)<\/span>/i);
     let views = 0;
@@ -128,6 +146,9 @@ function parseWebPreview(html, channel) {
         timestamp,
         hasMedia,
         views,
+        fwdFrom,
+        links,
+        hashtags,
       });
     }
   }
@@ -257,6 +278,11 @@ export function getTelegramFeed() {
 }
 
 // Get channel list
+/** Full in-memory message buffer (bounded by MAX_MESSAGES) for server-side analysis — not sanitized for the browser. */
+export function getTelegramMessages() {
+  return _messages.slice(0, MAX_MESSAGES);
+}
+
 export function getTelegramChannels() {
   return { channels: _channels };
 }
@@ -291,6 +317,7 @@ export async function briefing() {
       views: m.views,
       hasMedia: m.hasMedia,
       url: m.url,
+      fwdFrom: m.fwdFrom || null,
     })),
   };
 }
