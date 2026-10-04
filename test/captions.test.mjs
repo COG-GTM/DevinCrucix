@@ -60,7 +60,13 @@ test('every caption key matches a rendered panel title', () => {
 
 test('control total: the panel set is what we expect', () => {
   const titles = renderedTitles();
+<<<<<<< HEAD
   assert.equal(titles.size, 115, [...titles].sort().join(' | '));
+||||||| d982bc8
+  assert.equal(titles.size, 113, [...titles].sort().join(' | '));
+=======
+  assert.equal(titles.size, 120, [...titles].sort().join(' | '));
+>>>>>>> origin/master
 });
 
 test('map legend is derived from the layer registry, not a hand-typed list', () => {

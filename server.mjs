@@ -50,7 +50,7 @@ import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_
 // Phase 7: Seismic Event Monitor
 import { collectSeismic } from './apis/sources/seismic.mjs';
 import { ingestGet, PROXY_PARAM_RE } from './apis/sources/borderingest.mjs';
-import { str, num, oneOf, strArray, bounded, validateQuery, validateBody, validateParams } from './lib/validate.mjs';
+import { str, num, bool, oneOf, strArray, bounded, validateQuery, validateBody, validateParams } from './lib/validate.mjs';
 import { computeNarcoEvents, loadNarcoEvents } from './lib/narco/pipeline.mjs';
 import { buildNarcoView, compactCluster } from './lib/narco/view.mjs';
 import { queryReleases as dojReleases, DISTRICTS as DOJ_DISTRICTS, CATEGORY_IDS as DOJ_CATEGORIES } from './apis/sources/doj.mjs';
@@ -63,6 +63,8 @@ import { buildActorCards } from './lib/cjng/actors.mjs';
 import { loadGroups } from './lib/narco/groups.mjs';
 import { TargetStore, validateNomination, validateAccount, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE, ACCOUNT_ID_RE } from './lib/targeting/store.mjs';
 import { manifestInfo as sherlockManifestInfo } from './lib/sherlock.mjs';
+import { FinanceService, CLAIM_STATES as FIN_CLAIM_STATES } from './lib/finance/index.mjs';
+import { validateTrail, TRAIL_ID_RE, LINK_ID_RE as TRL_LINK_ID_RE, RECORD_ID_RE as TRL_RECORD_ID_RE, DECISIONS as TRL_DECISIONS } from './lib/finance/trails.mjs';
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
 import { buildSourceContext } from './lib/targeting/sources.mjs';
 import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
@@ -1481,6 +1483,160 @@ app.post('/api/ask', async (req, res) => {
   }
 });
 // === end Ask CRUCIX ===
+
+// === Follow the Money (offshore leaks · sanctions · registries · money trail) ===
+// One query fans out to the local ICIJ Offshore Leaks index (SQLite/FTS5), the local full OFAC SDN index and
+// the live registries (OpenSanctions / OpenCorporates keyed, GLEIF keyless). Records stay per-source and
+// FtM-shaped; cross-source identity is only ever a scored, analyst-adjudicated proposal inside a trail.
+const finance = new FinanceService({
+  ...(process.env.FINANCE_INDEX_FILE ? { indexFile: process.env.FINANCE_INDEX_FILE } : {}),
+  ...(process.env.FINANCE_DATA_DIR ? { trailsDir: join(process.env.FINANCE_DATA_DIR, 'trails'), ofacFile: join(process.env.FINANCE_DATA_DIR, 'ofac-sdn.json'), overlapsFile: join(process.env.FINANCE_DATA_DIR, 'overlaps.json'), snapshotFile: join(process.env.FINANCE_DATA_DIR, 'offshoreleaks-demo.sqlite') } : {}),
+});
+if (process.env.NODE_ENV !== 'test' && process.env.FINANCE_OFAC_REFRESH !== '0') {
+  finance.ready.then(() => finance.ofac.ensureFresh()).then(() => finance.computeOverlaps()).catch(err => console.warn('[finance] OFAC refresh failed:', err.message));
+  setInterval(() => finance.ofac.ensureFresh().then(() => finance.computeOverlaps({ force: true })).catch(() => {}), 6 * 3600_000).unref();
+}
+const FIN_RATE = { windowMs: 60_000, max: 90 };
+const _finBuckets = new Map();
+function financeRateLimited(ip) {
+  const now = Date.now();
+  const b = _finBuckets.get(ip) || { start: now, n: 0 };
+  if (now - b.start > FIN_RATE.windowMs) { b.start = now; b.n = 0; }
+  b.n++;
+  _finBuckets.set(ip, b);
+  if (_finBuckets.size > 5000) for (const [k, v] of _finBuckets) if (now - v.start > FIN_RATE.windowMs) _finBuckets.delete(k);
+  return b.n > FIN_RATE.max;
+}
+const finAudit = (event, req, details = {}) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), event, ip: req.ip, ...details }));
+const FIN_NAME = (v) => str(v, { max: 160, min: 2, required: true });
+const FIN_REF = (v) => str(v, { max: 24, pattern: /^icij:\d{1,12}$/, required: true });
+const FIN_TRAIL_ID = (v) => str(v, { max: 16, pattern: TRAIL_ID_RE, required: true });
+const FIN_LINK_ID = (v) => str(v, { max: 16, pattern: TRL_LINK_ID_RE, required: true });
+const FIN_COUNTRIES = (v) => v === undefined ? undefined : str(v, { max: 200, pattern: /^[A-Za-z ;,.'-]+$/ });
+const FIN_SCHEMA = (v) => oneOf(v, ['Person', 'Company', 'LegalEntity']);
+const finCountries = s => String(s || '').split(/[;,]/).map(x => x.trim()).filter(Boolean).slice(0, 10);
+
+app.get('/api/finance/status', (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  res.json(finance.status());
+});
+app.get('/api/finance/overlaps', validateQuery({ limit: (v) => num(v, { min: 1, max: 500, int: true }) }), async (req, res) => {
+  const ov = await finance.computeOverlaps();
+  if (!ov) return res.status(503).json({ error: 'indexes not ready', leads: [] });
+  res.json({ ...ov, leads: ov.leads.slice(0, req.validated.query.limit || 100) });
+});
+app.get('/api/finance/search', validateQuery({
+  q: FIN_NAME, kind: (v) => oneOf(v, ['entity', 'officer', 'intermediary', 'address', 'other']), juris: (v) => str(v, { max: 8, pattern: /^[A-Za-z]{2,8}$/ }),
+  dataset: (v) => str(v, { max: 60, pattern: /^[A-Za-z0-9 .'-]+$/ }), status: (v) => str(v, { max: 40, pattern: /^[A-Za-z /-]+$/ }),
+  limit: (v) => num(v, { min: 1, max: 50, int: true }), live: (v) => bool(v),
+}), async (req, res) => {
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { q, kind, juris, dataset, status, limit, live } = req.validated.query;
+  try {
+    const out = await finance.search(q, { kind, juris, dataset, status, limit: limit || 25, live: live !== false });
+    finAudit('finance_search', req, { q, kind: kind || null, offshore: out.offshore.total, ofac: out.sanctions.ofac.hits?.length || 0 });
+    res.json(out);
+  } catch (err) { console.error('[finance] search error:', err); res.status(500).json({ error: 'search failed' }); }
+});
+app.get('/api/finance/entity/:ref', validateParams({ ref: FIN_REF }), async (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const e = await finance.entity(req.validated.params.ref);
+  if (!e) return res.status(404).json({ error: 'Entity not found' });
+  finAudit('finance_entity', req, { ref: req.validated.params.ref });
+  res.json(e);
+});
+app.get('/api/finance/entity/:ref/graph', validateParams({ ref: FIN_REF }), validateQuery({ depth: (v) => num(v, { min: 1, max: 2, int: true }), fan: (v) => num(v, { min: 3, max: 60, int: true }), identity: (v) => bool(v) }), (req, res) => {
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { depth, fan, identity } = req.validated.query;
+  const g = finance.graph(req.validated.params.ref, { depth: depth || 2, fan: fan || 25, identity: identity === true });
+  if (!g) return res.status(404).json({ error: 'Entity not found' });
+  res.json(g);
+});
+app.get('/api/finance/screen', validateQuery({ name: FIN_NAME, countries: FIN_COUNTRIES, schema: FIN_SCHEMA }), async (req, res) => {
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { name, countries, schema } = req.validated.query;
+  const out = await finance.screen(name, { countries: finCountries(countries), schema: schema || null });
+  finAudit('finance_screen', req, { name, ofac: out.ofac.hits?.length || 0, opensanctions: out.opensanctions.status });
+  res.json(out);
+});
+app.get('/api/finance/registry', validateQuery({ name: FIN_NAME, juris: (v) => str(v, { max: 8, pattern: /^[a-z_]{2,8}$/ }) }), async (req, res) => {
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const { name, juris } = req.validated.query;
+  const out = await finance.registry(name, { jurisdiction: juris || null });
+  finAudit('finance_registry', req, { name, opencorporates: out.opencorporates.status, gleif: out.gleif.status });
+  res.json(out);
+});
+app.get('/api/finance/trails', (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const trails = finance.trails.list();
+  res.json({ count: trails.length, trails, claimStates: FIN_CLAIM_STATES });
+});
+app.post('/api/finance/trails', (req, res) => {
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const v = validateTrail(req.body);
+  if (v.ok) v.value.links = finance.verifyReported(v.value.links);
+  if (!v.ok) { finAudit('finance_validation_failure', req, { field: v.field }); return res.status(400).json({ error: 'invalid request', field: v.field }); }
+  const r = finance.trails.create(v.value, { ip: req.ip });
+  if (!r.ok) return res.status(409).json({ error: r.error });
+  finAudit('finance_trail_create', req, { id: r.trail.id, nodes: r.trail.nodes.length, links: r.trail.links.length });
+  res.status(201).json({ trail: r.trail });
+});
+app.get('/api/finance/trails/:id', validateParams({ id: FIN_TRAIL_ID }), (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const t = finance.trails.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Trail not found' });
+  res.json({ trail: t });
+});
+app.put('/api/finance/trails/:id', validateParams({ id: FIN_TRAIL_ID }), (req, res) => {
+  if (financeRateLimited(req.ip)) return res.status(429).json({ error: 'Too many requests; wait a minute' });
+  const v = validateTrail(req.body);
+  if (v.ok) v.value.links = finance.verifyReported(v.value.links);
+  if (!v.ok) { finAudit('finance_validation_failure', req, { field: v.field }); return res.status(400).json({ error: 'invalid request', field: v.field }); }
+  const r = finance.trails.replace(req.validated.params.id, v.value, { ip: req.ip });
+  if (!r.ok) return res.status(404).json({ error: 'Trail not found' });
+  finAudit('finance_trail_update', req, { id: r.trail.id, nodes: r.trail.nodes.length, links: r.trail.links.length });
+  res.json({ trail: r.trail });
+});
+app.delete('/api/finance/trails/:id', validateParams({ id: FIN_TRAIL_ID }), (req, res) => {
+  const r = finance.trails.remove(req.validated.params.id, { ip: req.ip });
+  if (!r.ok) return res.status(404).json({ error: 'Trail not found' });
+  finAudit('finance_trail_delete', req, { id: req.validated.params.id });
+  res.status(204).end();
+});
+app.post('/api/finance/trails/:id/links/:linkId', validateParams({ id: FIN_TRAIL_ID, linkId: FIN_LINK_ID }), validateBody({ decision: (v) => oneOf(v, TRL_DECISIONS, { required: true }) }), (req, res) => {
+  const { id, linkId } = req.validated.params;
+  const r = finance.trails.decide(id, linkId, req.validated.body.decision, { ip: req.ip });
+  if (!r.ok) return res.status(r.error === 'not found' || r.error === 'link not found' ? 404 : 409).json({ error: r.error });
+  finAudit('finance_trail_decision', req, { id, linkId, decision: req.validated.body.decision });
+  res.json({ link: r.link, trail: r.trail });
+});
+app.post('/api/finance/trails/:id/nominate', validateParams({ id: FIN_TRAIL_ID }), validateBody({ nodeId: (v) => str(v, { max: 140, pattern: TRL_RECORD_ID_RE, required: true }), requirement: (v) => str(v, { max: 400, min: 10, required: true }), priority: (v) => num(v, { min: 1, max: 3, int: true }) }), (req, res) => {
+  const t = finance.trails.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Trail not found' });
+  const node = t.nodes.find(n => n.id === req.validated.body.nodeId);
+  if (!node) return res.status(404).json({ error: 'Node not in trail' });
+  const type = node.schema === 'Person' ? 'person' : node.schema === 'Vessel' ? 'vessel' : node.schema === 'Airplane' ? 'aircraft' : 'org';
+  const basis = node.id.startsWith('ofac:') ? { kind: 'ofac-uid', ref: node.id.slice(5) } : { kind: 'source-url', ref: node.source?.url || 'https://offshoreleaks.icij.org/' };
+  const aliases = (node.properties?.alias || []).slice(0, 6);
+  const v = validateNomination({ label: node.caption.slice(0, 80), type, aliases, basis, requirement: req.validated.body.requirement, priority: req.validated.body.priority || 2 });
+  if (!v.ok) return res.status(400).json({ error: 'invalid request', field: v.field, hint: 'record label or alias is not a valid target label' });
+  const r = targetStore.nominate(v.value);
+  if (r.error === 'capacity') return res.status(409).json({ error: 'Target capacity reached; close a target first' });
+  if (r.error === 'duplicate') { finance.trails.setNominated(t.id, { id: r.target.id, label: r.target.label, nodeId: node.id }, { ip: req.ip }); return res.status(200).json({ target: summarizeTarget(r.target), duplicate: true }); }
+  finance.trails.setNominated(t.id, { id: r.target.id, label: r.target.label, nodeId: node.id }, { ip: req.ip });
+  finAudit('finance_trail_nominate', req, { id: t.id, target: r.target.id, nodeId: node.id });
+  targetAudit('targeting_nominate', req, { id: r.target.id, type: r.target.type, basis: r.target.basis.kind, via: 'finance-trail' });
+  res.status(201).json({ target: summarizeTarget(r.target) });
+});
+app.get('/api/finance/trails/:id/export.json', validateParams({ id: FIN_TRAIL_ID }), (req, res) => {
+  const out = finance.trails.exportJson(req.validated.params.id, { ip: req.ip });
+  if (!out) return res.status(404).json({ error: 'Trail not found' });
+  finAudit('finance_trail_export', req, { id: req.validated.params.id });
+  res.setHeader('content-disposition', `attachment; filename="crucix-trail-${req.validated.params.id}.json"`);
+  res.json(out);
+});
+// === end Follow the Money ===
 
 // API: health check. Always HTTP 200 (Fly health checks kill the machine on 503). The endpoint is
 // public, so unauthenticated callers only get the minimal body; configuration detail requires a session.

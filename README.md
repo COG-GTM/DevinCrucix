@@ -240,11 +240,26 @@ The **Target Development** tab turns the stores CRUCIX already holds into an ana
 
 Routes live under `/api/targeting` (list, nominate, get, develop, link / proposal decisions, close, delete, dossier, overlay); ids, enums and body fields are whitelisted and unexpected fields are a 400.
 
+<<<<<<< HEAD
 ### Country map: OSM proximity and VIIRS night-lights change
 
 - **Nearby · OSM** (`lib/geo/overpass.mjs`) — the `NEARBY · OSM` tool on the Colombia GL map: click a point and the hospitals / clinics, police, military sites and airfields within 3 km are fetched from OpenStreetMap through the public Overpass API, drawn with glyphs and listed with distance, bearing and the OSM link; features of different kinds within 500 m of each other are called out as co-located pairs. Queries are literal and bounded (≤ 4 kinds, 250 m – 20 km, ≤ 60 features per kind, 20 s Overpass timeout), serialised with a 2 s gap, cached 6 h in `runs/osm-cache.json`; a 429 / 504 from Overpass is reported as unavailable, not retried in a loop. `GET /api/geo/nearby?lat&lon&radius&kinds=hospital,police&within=500`, kinds at `GET /api/geo/nearby/kinds`. Absence in OSM is not absence on the ground.
 - **Night Δ · VIIRS 30 d** (`lib/geo/nightlights.mjs`) — a change layer, not a picture: for the country viewport CRUCIX fetches NASA GIBS' daily *Black Marble gap-filled, BRDF / moonlight-corrected DNB radiance* tiles (the VNP46A2 product, ~500 m, key-free PNG) for the most recent available night and for two nights each ~30 and ~60 days earlier, decodes them with `node:zlib` (no image dependency), reduces each 256 px tile to 4 × 4 px (~10 km) cells and keeps the cells whose rendered brightness moved by ≥ 25 grey levels **and** ≥ 50 % against the brighter baseline. Cells are drawn orange (dimmed) / yellow (brightened) with the nearest configured place; the legend carries the dates and counts. Results persist in `runs/nightlights/<cc>.json` and refresh every 6 h (≈ 80 tiles per country); the first request returns `202 computing`. Gap-filling, residual cloud, snow, fires, flaring and sensor angle all move the value — a cell is a place to check against ground reporting, never an outage or settlement call. `GET /api/country/:cc/nightlights`.
 
+||||||| d982bc8
+=======
+### Follow the Money (offshore leaks · sanctions · registries · money trail)
+
+The **Follow the Money** tab is an investigative-finance demo workbench (`lib/finance/`): search an offshore name, unpack the shell company around it, and follow the trail across sources — *leads, not verdicts*.
+
+- **Search** — one query fans out to the local [ICIJ Offshore Leaks](https://offshoreleaks.icij.org/) index (Panama, Paradise and Pandora Papers, Bahamas Leaks, Offshore Leaks; ~2 M nodes / 3.3 M links in SQLite + FTS5 via Node's built-in `node:sqlite`, zero new dependencies), the full OFAC SDN list (local, refreshed every `OFAC_REFRESH_HOURS`), and live registries: OpenSanctions and OpenCorporates when keyed, GLEIF LEI keyless. Results stay per source, each tagged with dataset, license and freshness.
+- **Unpack** — a record shows officers / shareholders / beneficiaries / nominees (ownership vs control), the intermediary that set it up, registered addresses and every other entity at the same address (the shell pivot), an inline OFAC name screen, and a bounded 1–2 hop D3 structure graph.
+- **Follow** — cross-source hits are *possible same* proposals with a transparent score and matched fields (folded name, legal-form-stripped core, token overlap, country, type); nothing is merged. Analysts collect records into a **trail** (`runs/finance/trails/`), accept / reject each proposed link (`reported / proposed / accepted / rejected`, same claim states as Target Development), push it into the Investigations case graph, nominate a record to Target Development, or export JSON — ICIJ (ODbL), OFAC and GLEIF records in full, OpenSanctions (CC BY-NC) / OpenCorporates nodes as references only.
+- **SDN ∩ Offshore Leaks** — exact folded-name overlaps between the SDN list and ICIJ nodes are precomputed as a lead list (same spelling, never "same entity").
+
+Data: the committed `config/offshoreleaks-demo-snapshot.sqlite.gz` (seeds in `config/finance-seeds.json`, ~0.5 MB) serves cold starts; build the full index once with `node scripts/build-offshoreleaks.mjs --download` (official ICIJ bulk CSV, ~700 MB download, ~30 s build) or set `FINANCE_BUILD_ON_BOOT=1`. Attribution: *International Consortium of Investigative Journalists (ICIJ) Offshore Leaks Database, ODbL*; the ICIJ disclaimer is shown on the tab. Routes live under `/api/finance` (status, overlaps, search, entity, graph, screen, registry, trails + link decisions / nominate / export); query, params and body fields are whitelisted.
+
+>>>>>>> origin/master
 ### Contact provenance & replay (Military tab)
 
 Ported from the [Velocity](https://github.com/AndrewCTF/velocity) model: an air contact is only as good as the number of independent feeds that agree on it and the age of its newest fix. Each sweep `lib/contacts/provenance.mjs` cross-references the OpenSky hotspot tracks with the keyless adsb.fi military feed by ICAO24 and tags every track with `prov` — the feeds that saw it, whether they agree (within 25 km), the fix age in seconds (observation age, not response age) and a documented confidence: **corroborated** (2+ feeds agree), **single** (one feed, fix ≤ 120 s), **stale** (one feed, older fix) or **conflict** (feeds disagree), with a 0–100 score that falls 3 pts per minute of fix age. Military airframes adsb.fi carries inside a hotspot box that OpenSky did not list are surfaced with their own single-source provenance. Nothing here is an intent assessment; the rule is printed in the panel and returned by the API.
@@ -495,11 +510,11 @@ These three unlock the most valuable economic and satellite data. Each takes abo
 | `ADSB_API_KEY` | Unfiltered flight tracking | [RapidAPI](https://rapidapi.com/adsbexchange/api/adsbexchange-com1) — ~$10/mo |
 | `VIRUSTOTAL_API_KEY` | Investigate: domain/IP/hash reputation | [virustotal.com](https://www.virustotal.com/gui/join-us) — free |
 | `SHODAN_API_KEY` | Investigate: full host/service data | [account.shodan.io](https://account.shodan.io/) — free tier |
-| `OPENCORPORATES_API_TOKEN` | Investigate: company registry | [opencorporates.com](https://opencorporates.com/api_accounts/new) — free for non-commercial |
+| `OPENCORPORATES_API_TOKEN` | Investigate + Follow the Money: company registry hops | [opencorporates.com](https://opencorporates.com/api_accounts/new) — free for non-commercial |
 | `HIBP_API_KEY` | Investigate: breach exposure per email | [haveibeenpwned.com/API/Key](https://haveibeenpwned.com/API/Key) — paid |
 | `NUMVERIFY_API_KEY` | Investigate: phone carrier / line type | [numverify.com](https://numverify.com/) — free tier |
 | `GITHUB_TOKEN` | Investigate: higher GitHub API rate limit for handle lookups | [github.com/settings/tokens](https://github.com/settings/tokens) — free, no scopes |
-| `OPENSANCTIONS_API_KEY` | Investigate: wallet + entity sanctions screening | [opensanctions.org/api](https://www.opensanctions.org/api/) — free for non-commercial |
+| `OPENSANCTIONS_API_KEY` | Investigate + Follow the Money: wallet / entity sanctions + PEP screening | [opensanctions.org/api](https://www.opensanctions.org/api/) — free for non-commercial |
 
 ### LLM Provider (optional, for AI-enhanced ideas)
 

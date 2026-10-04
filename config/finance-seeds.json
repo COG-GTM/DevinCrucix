@@ -1,0 +1,13 @@
+{
+  "note": "Demo seeds for the Follow the Money tab. Every seed is a name that appears in the ICIJ Offshore Leaks Database AND in public reporting or an official sanctions list; the dashboard still presents every hit as a lead, not a verdict.",
+  "seeds": [
+    { "names": ["Sequoia Treuhand Trust Reg"], "ids": [11012945], "why": "Liechtenstein trust company: ICIJ intermediary with 200+ client entities; also on the OFAC SDN list (RUSSIA-EO14024)." },
+    { "names": ["Christodoulos G. Vassiliades & Co. LLC"], "ids": [298340], "why": "Cyprus law firm: ICIJ intermediary; OFAC-designated (RUSSIA-EO14024) with Malta affiliates in the Paradise Papers registry data." },
+    { "names": ["Gordon Debono", "Darren Debono"], "ids": [56027574, 56047296], "why": "Malta fuel-smuggling network: officers across dozens of Paradise Papers (Malta registry) companies; both on the OFAC SDN list (LIBYA3)." },
+    { "names": ["Rami Makhlouf"], "ids": [12034565, 12174473], "why": "Panama Papers officer of Drex Technologies and others; OFAC-designated (Syria) under the spelling MAKHLUF — a name-variant screening lead." },
+    { "names": ["Drex Technologies S.A."], "ids": [10090000], "why": "BVI company from the Panama Papers reporting on the Syrian regime's finances." },
+    { "names": ["Blairmore Holdings, Inc."], "ids": [10034912], "why": "Panama-registered, Bahamas-administered fund from the Panama Papers reporting — the classic 'what is an offshore structure' example." },
+    { "names": ["Mossack Fonseca & Co."], "ids": [11011863], "why": "The Panama Papers law firm itself as an intermediary hub — shows why graph walks must be bounded." },
+    { "names": ["Petropars Limited"], "ids": [10080404], "why": "Iranian oil company subsidiary in the Offshore Leaks data; OFAC SDN (IRAN)." }
+  ]
+}

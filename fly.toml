@@ -11,6 +11,12 @@ primary_region = "iad"
   PORT = "3117"
   REFRESH_INTERVAL_MINUTES = "15"
 
+# Persistent data (ICIJ Offshore Leaks full index, OFAC SDN index, trails, targeting, ingest DB).
+# Create once:  fly volumes create crucix_data --region iad --size 3 -a crucix
+[mounts]
+  source = "crucix_data"
+  destination = "/app/runs"
+
 [http_service]
   internal_port = 3117
   force_https = true

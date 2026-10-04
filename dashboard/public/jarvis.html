@@ -1599,6 +1599,7 @@ const TAB_DEFS=[
   {id:'venezuela',label:'Venezuela / Caracas',hint:'Independent Venezuelan wires \u00b7 OVCS protest monitor \u00b7 CII \u00b7 state outlines \u00b7 InSight Crime group profiles \u00b7 monitoring under censorship: observational, attributed, no official crime feed'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
   {id:'targeting',label:'Target Development',hint:'Public-source find / fix workbench · nominate → develop → review links & graph proposals → pattern of activity → sourced dossier'},
+  {id:'finance',label:'Follow the Money',hint:'Offshore leaks · sanctions · registries · shell structure graph · money trail — leads, not verdicts'},
   {id:'requirements',label:'Requirements',hint:'Standing requirements · what to watch, vs 24h / 7d / 30d / 90d'},
   {id:'sources',label:'Sources',hint:'What is reporting and why not'}
 ];
@@ -1992,6 +1993,237 @@ const _rqApplyPayloadHook=()=>{const as=D?.requirements?.asOf;if(as&&RQ.data&&as
 setInterval(_rqApplyPayloadHook,5000);
 rqLoad();
 
+// === FOLLOW THE MONEY (ICIJ Offshore Leaks · OFAC / OpenSanctions · OpenCorporates / GLEIF · structure graph · money trail) ===
+// Every string below is analyst input or third-party derived → esc() before insertion; external links go through invExt()
+// (http/https only). Records stay per-source; cross-source identity is a scored "possible same" proposal the analyst
+// accepts or rejects inside a trail — leads, not verdicts.
+(function(){const css=document.createElement('style');css.textContent=`
+.fm-form{display:flex;gap:4px;margin-bottom:6px}.fm-form input{flex:1}
+.fm-chips{display:flex;flex-wrap:wrap;gap:3px;margin:4px 0 6px}
+.fm-chip{font-family:var(--mono);font-size:8px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--dim);background:transparent;cursor:pointer}
+.fm-chip.on,.fm-chip:hover{border-color:var(--accent);color:var(--accent)}
+.fm-seed{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px dashed var(--border);color:var(--text);background:transparent;cursor:pointer}.fm-seed:hover{border-color:var(--accent2);color:var(--accent2)}
+.fm-row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:5px 6px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.015);margin-bottom:3px;cursor:pointer;font-size:10px;line-height:1.35}
+.fm-row:hover,.fm-row.sel{border-color:var(--accent);background:rgba(100,240,200,.04)}
+.fm-row .fm-cap{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-row .fm-sub{grid-column:1/-1;color:var(--dim);font-family:var(--mono);font-size:8.5px;letter-spacing:.03em}
+.fm-k{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;padding:1px 5px;border:1px solid;border-radius:2px;white-space:nowrap}
+.fm-k.entity{color:#ff8a65;border-color:#ff8a65}.fm-k.officer{color:#64f0c8;border-color:#64f0c8}.fm-k.intermediary{color:#ce93d8;border-color:#ce93d8}.fm-k.address{color:#64b5f6;border-color:#64b5f6}.fm-k.other{color:#90a4ae;border-color:#90a4ae}
+.fm-k.ofac,.fm-k.opensanctions{color:#ff5f63;border-color:#ff5f63}.fm-k.gleif,.fm-k.opencorporates{color:#89ddff;border-color:#89ddff}.fm-k.analyst{color:var(--accent2);border-color:var(--accent2)}
+.fm-score{font-family:var(--mono);font-size:9px}.fm-score.strong{color:#ff5f63}.fm-score.possible{color:#ffb74d}.fm-score.weak{color:var(--dim)}
+.fm-sdn{color:#ff5f63;font-family:var(--mono);font-size:8px;letter-spacing:.08em}
+.fm-sec{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);margin:10px 0 4px;display:flex;justify-content:space-between;align-items:center}
+.fm-sec:first-child{margin-top:0}
+.fm-src{display:grid;grid-template-columns:8px 1fr auto;gap:4px 8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}
+.fm-src .nv-sub{grid-column:2/-1}
+.fm-dot{width:6px;height:6px;border-radius:50%;background:var(--dim)}.fm-dot.live{background:#64f0c8;box-shadow:0 0 6px #64f0c8}.fm-dot.snapshot,.fm-dot.stale,.fm-dot.building{background:#ffb74d}.fm-dot.no_key,.fm-dot.off{background:#555}
+.fm-disc{font-size:9.5px;color:#b8ccc4;line-height:1.5;border-left:2px solid var(--accent2);padding:4px 8px;margin:8px 0;background:rgba(255,255,255,.015)}
+.fm-ev{font-family:var(--mono);font-size:8.5px;color:var(--dim);line-height:1.6}
+.fm-acts{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.fm-rel{display:grid;grid-template-columns:1fr auto auto;gap:2px 6px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}
+.fm-rel .fm-cap{cursor:pointer;color:var(--text)}.fm-rel .fm-cap:hover{color:var(--accent)}
+.fm-rel .fm-lbl{font-family:var(--mono);font-size:8.5px;color:var(--dim)}
+.fm-mini{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid var(--border);color:var(--dim);background:transparent;cursor:pointer}.fm-mini:hover{color:var(--accent);border-color:var(--accent)}
+.fm-mini.acc{color:#64f0c8;border-color:#64f0c8}.fm-mini.rej{color:#ff5f63;border-color:#ff5f63}
+.fm-canvas{position:relative;height:clamp(380px,50vh,560px);border:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(4,12,20,1),rgba(2,4,8,1));overflow:hidden}
+.fm-canvas svg{width:100%;height:100%;display:block}
+.fm-legend{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:4px;letter-spacing:.05em}
+.fm-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:3px}
+.fm-link{stroke-opacity:.55}.fm-link.ownership{stroke:#ff8a65}.fm-link.control{stroke:#64f0c8}.fm-link.service{stroke:#ce93d8}.fm-link.address{stroke:#64b5f6}.fm-link.identity{stroke:#90a4ae;stroke-dasharray:3 2}.fm-link.other{stroke:#607d8b}
+.fm-node{cursor:pointer}.fm-node circle{stroke:rgba(0,0,0,.6);stroke-width:1}.fm-node.root circle{stroke:#fff;stroke-width:2}.fm-node.sdn circle{stroke:#ff5f63;stroke-width:2.5}
+.fm-node text{font-family:var(--mono);font-size:8px;fill:#cfe3dc;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,.85);stroke-width:2.5px}
+.fm-state{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;padding:1px 4px;border:1px solid}
+.fm-state.reported{color:#90a4ae;border-color:#90a4ae}.fm-state.proposed{color:#ffb74d;border-color:#ffb74d}.fm-state.accepted{color:#64f0c8;border-color:#64f0c8}.fm-state.rejected{color:#ff5f63;border-color:#ff5f63;text-decoration:line-through}
+.fm-tnode{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}
+.fm-tlink{display:grid;grid-template-columns:1fr auto;gap:2px 6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px}
+.fm-tlink .fm-ev{grid-column:1/-1}
+.fm-trail-in{display:grid;grid-template-columns:1fr;gap:4px;margin-bottom:6px}
+.fm-beats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:8px}
+.fm-beat{border:1px solid var(--border);padding:8px;font-size:10px;line-height:1.5}.fm-beat b{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+`;document.head.appendChild(css);})();
+
+const FM={q:'',kind:'',status:null,statusAt:0,search:null,searching:false,error:null,ref:null,profile:null,profileLoading:false,graph:null,graphDepth:2,graphIdentity:false,follow:null,followLoading:false,trail:fmNewTrail(),trails:[],overlaps:null,nominateNode:null,sim:null};
+function fmNewTrail(){return {id:null,title:'Untitled trail',notes:'',nodes:[],links:[],nominated:null}}
+async function fmFetch(url,opts={}){const r=await fetch(url,{...opts,headers:{'content-type':'application/json',...(opts.headers||{})}});if(r.status===204)return null;const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error?`${j.error}${j.field?` (${j.field})`:''}`:`HTTP ${r.status}`);return j}
+const fmKind=r=>r?.properties?.kind?.[0]||(r?.id?.startsWith('ofac:')?'ofac':r?.id?.startsWith('os:')?'opensanctions':r?.id?.startsWith('lei:')?'gleif':r?.id?.startsWith('oc:')?'opencorporates':'other');
+const fmBand=s=>s>=0.9?'strong':s>=0.7?'possible':'weak';
+const FM_SRC_LABEL={ofac:'OFAC SDN',opensanctions:'OpenSanctions',gleif:'GLEIF LEI',opencorporates:'OpenCorporates',icij:'ICIJ'};
+const fmActive=()=>currentTab==='finance';
+function fmExtBtn(url,label){const u=String(url||'');return /^https?:\/\//i.test(u)?`<a class="inv-btn ghost" style="text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`:''}
+function fmRecordCountries(r){const p=r?.properties||{};return [...(p.country||[]),...(p.jurisdiction||[])].filter(Boolean).slice(0,3).join(', ')}
+function fmCompact(rec){const props={};for(const [k,v] of Object.entries(rec.properties||{}).slice(0,12)){if(Array.isArray(v))props[k]=v.slice(0,6).map(x=>String(x).slice(0,160));else if(v!=null)props[k]=[String(v).slice(0,160)]}return {id:rec.id,caption:String(rec.caption||'').slice(0,160),schema:rec.schema||'LegalEntity',properties:props,source:{key:rec.source?.key,tier:rec.source?.tier,dataset:rec.source?.dataset||null,url:rec.source?.url||null,license:rec.source?.license||null,retrievedAt:rec.source?.retrievedAt||rec.source?.builtAt||null}}}
+function fmSdnFor(rec){const s=FM.profile&&FM.profile.record.id===rec.id?FM.profile.screening?.ofac?.hits:null;if(s)return s;return FM.overlaps?.byIcij?.[rec.id]||null}
+
+// --- data loads ---
+async function fmLoadStatus(force){if(!force&&FM.status&&Date.now()-FM.statusAt<60000)return;try{FM.status=await fmFetch('/api/finance/status');FM.statusAt=Date.now();FM.error=null;}catch(e){FM.error=e.message}if(!FM.overlaps||FM.overlaps.error||(FM.status?.overlaps?.computedAt&&FM.overlaps.computedAt!==FM.status.overlaps.computedAt))fmLoadOverlaps();if(fmActive())renderLeftRail()}
+async function fmLoadOverlaps(){try{const o=await fmFetch('/api/finance/overlaps?limit=400');const byIcij={};for(const l of o.leads||[])(byIcij[l.icij.id]||=[]).push({score:l.score,band:'strong',matched:l.matched,record:{id:l.ofac.id,caption:l.ofac.name,schema:l.ofac.type==='Individual'?'Person':'LegalEntity',properties:{program:l.ofac.programs||[]},source:{key:'ofac',url:'https://sanctionssearch.ofac.treas.gov/Details.aspx?id='+String(l.ofac.id).replace('ofac:','')}}});FM.overlaps={...o,byIcij};if(fmActive()){renderLeftRail();fmRenderProfile();}}catch(e){FM.overlaps={leads:[],byIcij:{},error:e.message}}}
+async function fmLoadTrails(){try{const t=await fmFetch('/api/finance/trails');FM.trails=t.trails||[];fmRenderTrail();}catch(e){console.warn('[finance] trails',e)}}
+async function fmSearch(q,kind=FM.kind){q=String(q||'').trim();if(q.length<2)return;FM.q=q;FM.kind=kind||'';FM.searching=true;FM.search=null;renderLeftRail();try{const p=new URLSearchParams({q,limit:'30'});if(FM.kind)p.set('kind',FM.kind);FM.search=await fmFetch('/api/finance/search?'+p);FM.error=null}catch(e){FM.error=e.message}FM.searching=false;if(fmActive())renderLeftRail()}
+function fmSubmit(ev){ev.preventDefault();const v=document.getElementById('fmQ')?.value;fmSearch(v);return false}
+async function fmOpen(ref){if(!/^icij:\d+$/.test(ref))return;FM.ref=ref;FM.profile=null;FM.graph=null;FM.follow=null;FM.profileLoading=true;if(fmActive()){renderLower();renderLeftRail();}try{FM.profile=await fmFetch('/api/finance/entity/'+encodeURIComponent(ref));FM.error=null}catch(e){FM.error=e.message}FM.profileLoading=false;if(fmActive()){renderLower();}fmLoadGraph();fmFollow()}
+async function fmLoadGraph(){if(!FM.ref)return;try{FM.graph=await fmFetch(`/api/finance/entity/${encodeURIComponent(FM.ref)}/graph?depth=${FM.graphDepth}&fan=25${FM.graphIdentity?'&identity=true':''}`)}catch(e){FM.graph={error:e.message,nodes:[],links:[]}}if(fmActive())fmRenderGraph()}
+async function fmFollow(){const rec=FM.profile?.record;if(!rec)return;FM.followLoading=true;fmRenderFollow();const name=rec.caption;const countries=[...(rec.properties?.country||[]),...(rec.properties?.jurisdiction||[])].slice(0,4).join(';');const schema=rec.schema==='Person'?'Person':rec.schema==='Company'?'Company':null;try{const [screen,registry]=await Promise.all([fmFetch(`/api/finance/screen?${new URLSearchParams({name,...(schema?{schema}:{}),...(countries?{countries}:{})})}`),rec.schema==='Person'?Promise.resolve(null):fmFetch(`/api/finance/registry?${new URLSearchParams({name})}`)]);FM.follow={screen,registry,for:rec.id}}catch(e){FM.follow={error:e.message,for:rec.id}}FM.followLoading=false;if(fmActive())fmRenderFollow()}
+
+// --- trail builder ---
+function fmTrailAddNode(rec){const t=FM.trail;if(t.nodes.find(n=>n.id===rec.id))return false;if(t.nodes.length>=80){invToast('Trail is full (80 records)');return false}t.nodes.push(fmCompact(rec));return true}
+function fmTrailAddLink(l){const t=FM.trail;if(t.links.find(x=>x.from===l.from&&x.to===l.to&&x.label===l.label))return;t.links.push({from:l.from,to:l.to,label:l.label,role:l.role||'other',state:l.state||'proposed',score:l.score??null,matched:l.matched||[],source:l.source||{key:'analyst'},note:l.note||null,id:l.id&&/^tl_/.test(l.id)?l.id:undefined})}
+function fmAddSubject(){const r=FM.profile?.record;if(!r)return;fmTrailAddNode(r);invToast(`${r.caption} added to trail`);fmRenderTrail();fmRenderProfile()}
+function fmAddNeighbor(ref){const p=FM.profile;if(!p)return;const n=p.relationships.nodes.find(x=>x.id===ref);if(!n)return;fmTrailAddNode(p.record);fmTrailAddNode(n);for(const l of p.relationships.links)if((l.from===ref&&l.to===p.record.id)||(l.to===ref&&l.from===p.record.id))fmTrailAddLink({...l,state:'reported'});invToast(`${n.caption} + reported link added to trail`);fmRenderTrail();fmRenderProfile()}
+function fmAddSameAddress(ref){const p=FM.profile;const s=(p?.sameAddress||[]).find(x=>x.record.id===ref);if(!s)return;fmTrailAddNode(p.record);fmTrailAddNode(s.record);fmTrailAddLink({from:p.record.id,to:s.record.id,label:'shares registered address',role:'address',state:'reported',source:{key:'icij',dataset:p.record.source?.dataset||null},note:`via ${s.via}`});invToast(`${s.record.caption} added (same address)`);fmRenderTrail();fmRenderProfile()}
+function fmAddHit(src,i){const p=FM.profile;if(!p)return;const hit=fmHits(src)[i];if(!hit)return;fmTrailAddNode(p.record);fmTrailAddNode(hit.record);fmTrailAddLink({from:p.record.id,to:hit.record.id,label:'possible same',role:'identity',state:'proposed',score:hit.score,matched:hit.matched||[],source:{key:'analyst',dataset:`score vs ${src}`}});invToast(`Possible-same proposal added · ${Math.round(hit.score*100)}% — accept or reject in the trail`);fmRenderTrail();fmRenderFollow()}
+function fmHits(src){if(src==='ofac')return FM.profile?.screening?.ofac?.hits||FM.follow?.screen?.ofac?.hits||[];if(src==='opensanctions')return FM.follow?.screen?.opensanctions?.hits||[];if(src==='gleif')return FM.follow?.registry?.gleif?.results||[];if(src==='opencorporates')return FM.follow?.registry?.opencorporates?.results||[];return []}
+function fmRemoveNode(id){const t=FM.trail;t.nodes=t.nodes.filter(n=>n.id!==id);t.links=t.links.filter(l=>l.from!==id&&l.to!==id);fmRenderTrail()}
+async function fmDecide(linkId,decision){const t=FM.trail;const l=t.links.find(x=>x.id===linkId||x._tmp===linkId);if(!l)return;if(l.state==='reported'){invToast('Source-reported links are not adjudicated');return}if(t.id&&/^tl_/.test(l.id||'')){try{const r=await fmFetch(`/api/finance/trails/${t.id}/links/${l.id}`,{method:'POST',body:JSON.stringify({decision})});Object.assign(l,r.link);fmLoadTrails()}catch(e){invToast(e.message)}}else{l.state=decision==='accept'?'accepted':decision==='reject'?'rejected':'proposed'}fmRenderTrail()}
+async function fmSaveTrail(){const t=FM.trail;if(!t.nodes.length){invToast('Add at least one record to the trail');return}const title=document.getElementById('fmTitle')?.value||t.title;const notes=document.getElementById('fmNotes')?.value||'';const body={title,notes,nodes:t.nodes,links:t.links.map(({_tmp,...l})=>l)};try{const r=t.id?await fmFetch(`/api/finance/trails/${t.id}`,{method:'PUT',body:JSON.stringify(body)}):await fmFetch('/api/finance/trails',{method:'POST',body:JSON.stringify(body)});FM.trail={...r.trail};invToast(`Trail saved · ${r.trail.id}`);fmLoadTrails()}catch(e){invToast('Save failed: '+e.message)}fmRenderTrail()}
+async function fmLoadTrail(id){try{const r=await fmFetch('/api/finance/trails/'+encodeURIComponent(id));FM.trail={...r.trail};fmRenderTrail()}catch(e){invToast(e.message)}}
+async function fmDeleteTrail(id){try{await fmFetch('/api/finance/trails/'+encodeURIComponent(id),{method:'DELETE'});if(FM.trail.id===id)FM.trail=fmNewTrail();fmLoadTrails();invToast('Trail deleted')}catch(e){invToast(e.message)}}
+function fmExportTrail(){if(!FM.trail.id){invToast('Save the trail first — export is license-aware per source');return}window.open(`/api/finance/trails/${encodeURIComponent(FM.trail.id)}/export.json`,'_blank','noopener')}
+function fmTrailToCase(){const t=FM.trail;if(!t.nodes.length){invToast('Trail is empty');return}const typeOf=n=>n.schema==='Person'?'person':n.schema==='Address'?'location':'company';let added=0;const keys={};for(const n of t.nodes){const k=invAddEntity(typeOf(n),n.caption,{source:`${n.source?.key||'finance'}${n.source?.dataset?` · ${n.source.dataset}`:''}`,ref:n.id,url:n.source?.url||null});if(k){keys[n.id]=k;added++}}for(const l of t.links){if(l.state==='rejected')continue;if(keys[l.from]&&keys[l.to])invAddEdge(keys[l.from],keys[l.to],`${l.label}${l.state==='proposed'?' (proposed)':l.state==='accepted'?' (accepted)':''}`)}invSaveCase();invToast(`${added} record${added===1?'':'s'} + ${t.links.filter(l=>l.state!=='rejected').length} links added to the Investigations case graph`)}
+async function fmNominate(nodeId){const t=FM.trail;if(!t.id){invToast('Save the trail first, then nominate');return}const node=t.nodes.find(n=>n.id===nodeId);if(!node)return;const requirement=prompt(`Nominate "${node.caption}" to Target Development.\nWhy does this record matter? (standing requirement, 10–400 chars)`,`Offshore structure / sanctions lead from Follow the Money trail ${t.id}`);if(!requirement)return;try{const r=await fmFetch(`/api/finance/trails/${t.id}/nominate`,{method:'POST',body:JSON.stringify({nodeId,requirement:requirement.slice(0,400),priority:2})});FM.trail.nominated={id:r.target.id,label:r.target.label,nodeId};invToast(`${r.duplicate?'Already nominated':'Nominated'} → Target Development ${r.target.id}`);fmRenderTrail();if(typeof tgtLoad==='function')tgtLoad().catch(()=>{})}catch(e){invToast('Nominate failed: '+e.message)}}
+
+// --- left rail ---
+function fmRailSearch(){
+  const st=FM.status;const seeds=(st?.seeds||[]).slice(0,9);
+  const kinds=[['','All'],['entity','Entities'],['officer','Officers'],['intermediary','Intermediaries'],['address','Addresses']];
+  const idx=st?.icij;const idxLine=idx?.ok===false||!idx?'Offshore Leaks index not loaded':`${idx.mode==='full'?'Full':'Demo snapshot of the'} ICIJ Offshore Leaks index · ${Number(idx.nodes||0).toLocaleString()} nodes · ${Number(idx.edges||0).toLocaleString()} links · release ${esc(idx.release||'?')}${idx.build?.status==='running'?' · full index building in background':''}`;
+  let body='';
+  if(FM.searching)body='<div class="inv-hint">Searching Offshore Leaks, OFAC SDN and live registries…</div>';
+  else if(FM.search){
+    const s=FM.search;const off=s.offshore;
+    body+=`<div class="fm-sec"><span>Offshore Leaks · local</span><span>${off.total}${off.truncated?'+':''} hit${off.total===1?'':'s'}</span></div>`;
+    body+=off.results.length?off.results.map(r=>fmResultRow(r)).join(''):'<div class="inv-hint">No Offshore Leaks record matches. Try a shorter name, a surname, or an address fragment.</div>';
+    const ofac=s.sanctions?.ofac;const os=s.sanctions?.opensanctions;
+    body+=`<div class="fm-sec"><span>Sanctions screening</span><span>OFAC ${esc(ofac?.status||'off')} · OpenSanctions ${esc(os?.status||'off')}</span></div>`;
+    body+=(ofac?.hits||[]).map(h=>fmHitRow(h,'ofac')).join('')||'<div class="inv-hint">No OFAC SDN name match ≥ 50%.</div>';
+    if(os?.status==='ok')body+=(os.results||[]).map(r=>fmHitRow({record:r},'opensanctions')).join('');else if(os?.status==='no_key')body+=`<div class="nv-sub">OpenSanctions: ${invKeyed('OpenSanctions','OPENSANCTIONS_API_KEY','not enabled')}</div>`;
+    const oc=s.registry?.opencorporates;const lei=s.registry?.gleif;
+    body+=`<div class="fm-sec"><span>Corporate registries · live</span><span>GLEIF ${esc(lei?.status||'off')} · OpenCorporates ${esc(oc?.status||'off')}</span></div>`;
+    const reg=[...(lei?.results||[]).map(h=>fmHitRow(h,'gleif')),...(oc?.results||[]).map(h=>fmHitRow(h,'opencorporates'))];
+    body+=reg.join('')||(lei?.status==='ok'?'<div class="inv-hint">No LEI record matches.</div>':`<div class="inv-hint">${esc(lei?.error||'registry lookup unavailable')}</div>`);
+    if(oc?.status==='no_key')body+=`<div class="nv-sub">OpenCorporates: ${invKeyed('OpenCorporates','OPENCORPORATES_API_TOKEN','not enabled')}</div>`;
+  } else {
+    const ov=FM.overlaps;
+    body+=`<div class="fm-sec"><span>SDN ∩ Offshore Leaks · exact-name leads</span><span>${ov?.count??ov?.leads?.length??'…'}</span></div>`;
+    body+=ov?.leads?.length?ov.leads.slice(0,14).map(l=>`<div class="fm-row" data-fm="open" data-ref="${esc(l.icij.id)}"><span class="fm-cap">${esc(l.icij.name)}</span><span class="fm-k ${esc(l.icij.kind||'other')}">${esc(l.icij.kind||'other')}</span><span class="fm-sub">${esc([l.icij.dataset||'ICIJ',l.icij.jurisdiction,`${l.icij.degree} links`].filter(Boolean).join(' · '))} · <span class="fm-sdn">SDN ${esc((l.ofac.programs||[]).slice(0,2).join(' '))}</span>${l.ofac.via&&l.ofac.via!=='name'?` via ${esc(l.ofac.via)}`:''} · same spelling — a lead, not an identity</span></div>`).join(''):'<div class="inv-hint">Overlap leads compute after the OFAC list loads.</div>';
+  }
+  return `<div class="g-panel"><div class="sec-head"><h3>Follow the Money</h3><span class="badge ${FM.error?'err':''}">${FM.error?'ERROR':st?'READY':'LOADING'}</span></div>
+    <form class="fm-form" onsubmit="return fmSubmit(event)"><input id="fmQ" class="inv-input" type="search" placeholder="Offshore company, officer, intermediary or address…" value="${esc(FM.q)}" maxlength="160" autocomplete="off"><button class="inv-btn" type="submit">Search</button></form>
+    <div class="fm-chips">${kinds.map(([k,l])=>`<button class="fm-chip ${FM.kind===k?'on':''}" data-fm="kind" data-kind="${k}">${l}</button>`).join('')}</div>
+    ${!FM.search&&seeds.length?`<div class="fm-chips">${seeds.map(s=>`<button class="fm-seed" data-fm="seed" data-q="${esc(s.names[0])}" title="${esc(s.why)}">${esc(s.names[0])}</button>`).join('')}</div>`:''}
+    <div class="nv-sub">${idxLine}${FM.error?` · <span style="color:#ff5f63">${esc(FM.error)}</span>`:''}</div>
+    <div class="inv-scroll" style="margin-top:6px">${body}</div></div>`;
+}
+function fmResultRow(r){const k=fmKind(r);const sdn=fmSdnFor(r);const meta=[r.source?.dataset,fmRecordCountries(r),r.properties?.incorporationDate?.[0]?`inc. ${r.properties.incorporationDate[0]}`:null,r.properties?.status?.[0],r.degree!=null?`${r.degree} links`:null].filter(Boolean);return `<div class="fm-row ${FM.ref===r.id?'sel':''}" data-fm="open" data-ref="${esc(r.id)}"><span class="fm-cap">${esc(r.caption)}</span><span class="fm-k ${esc(k)}">${esc(k)}</span><span class="fm-sub">${esc(meta.join(' · '))}${sdn?.length?` · <span class="fm-sdn">SDN name match ${Math.round(sdn[0].score*100)}%</span>`:''}</span></div>`}
+function fmHitRow(h,src){const r=h.record;const sc=typeof h.score==='number'?`<span class="fm-score ${fmBand(h.score)}">${Math.round(h.score*100)}%</span>`:'';const meta=[...(r.properties?.program||[]).slice(0,3),...(r.properties?.topics||[]).slice(0,2),fmRecordCountries(r),r.properties?.status?.[0],r.properties?.lei?.[0]?`LEI ${r.properties.lei[0]}`:null].filter(Boolean);return `<div class="fm-row" style="cursor:default"><span class="fm-cap">${invExt(r.source?.url,esc(r.caption))}</span><span class="fm-k ${esc(src)}">${esc(FM_SRC_LABEL[src]||src)} ${sc}</span><span class="fm-sub">${esc(meta.join(' · '))}${h.matched?.length?` · matched ${esc(h.matched.join(', '))}`:''}</span></div>`}
+function fmRailSources(){
+  const st=FM.status;if(!st)return '';
+  const srcs=Object.values(st.sources||{});
+  const stateTxt={live:'LIVE',snapshot:'SNAPSHOT',stale:'STALE',building:'BUILDING',no_key:'NO KEY',off:'OFF'};
+  const fresh=s=>s.key==='icij'?`release ${st.icij?.release||'?'} · indexed ${(st.icij?.builtAt||'').slice(0,10)}`:s.key==='ofac'?`${Number(st.ofac?.count||0).toLocaleString()} SDN entries · published ${st.ofac?.publishDate||'?'}`:s.state==='live'?'queried live per search, cached ≤ 15 min':'';
+  return `<div class="g-panel"><div class="sec-head"><h3>Sources & terms</h3><span class="badge">${srcs.filter(s=>s.state==='live').length}/${srcs.length} LIVE</span></div>
+    ${srcs.map(s=>`<div class="fm-src"><span class="fm-dot ${esc(s.state)}"></span><span>${invExt(s.url,esc(s.name))} <span class="fm-k ${esc(s.key==='icij'?'entity':s.key)}" style="margin-left:4px">${esc(stateTxt[s.state]||s.state)}</span></span><span class="fm-ev">${esc(s.license)}</span><span class="nv-sub">${[esc(st.tiers?.[s.tier]||s.tier),esc(fresh(s)),s.state==='no_key'?invKeyed(s.name,s.key==='opensanctions'?'OPENSANCTIONS_API_KEY':'OPENCORPORATES_API_TOKEN','not enabled'):''].filter(Boolean).join(' · ')}</span></div>`).join('')}
+    <div class="fm-disc"><b>Leads, not verdicts.</b> ${esc(st.disclaimer||'')}</div>
+    <div class="fm-ev">${esc(st.sources?.icij?.attribution||'')} Name matches across sources are scored proposals with the matched fields shown; nothing is merged until an analyst accepts it.</div></div>`;
+}
+
+// --- lower grid ---
+function fmLowerPanels(){
+  const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
+  if(!FM.ref)return [wrap(fmEmptyPanel(),'lp-wide'),wrap(`<div class="g-panel"><div class="sec-head"><h3>Money trail</h3><span class="badge" id="fmTrailBadge">${FM.trail.nodes.length} RECORDS</span></div><div id="fmTrail"></div></div>`,'lp-wide')];
+  return [
+    wrap(`<div class="g-panel"><div class="sec-head"><h3>Shell structure</h3><span class="badge" id="fmProfileBadge">${FM.profileLoading?'LOADING':'ICIJ'}</span></div><div id="fmProfile" class="inv-scroll"></div></div>`,'lp-half'),
+    wrap(`<div class="g-panel"><div class="sec-head"><h3>Structure graph</h3><span class="badge" id="fmGraphBadge">…</span></div><div class="fm-acts"><button class="fm-chip ${FM.graphDepth===1?'on':''}" data-fm="depth" data-depth="1">1 hop</button><button class="fm-chip ${FM.graphDepth===2?'on':''}" data-fm="depth" data-depth="2">2 hops</button><button class="fm-chip ${FM.graphIdentity?'on':''}" data-fm="identity">same-name edges</button></div><div class="fm-canvas" id="fmCanvas"><svg id="fmSvg"></svg></div><div class="fm-legend"><span><i style="background:#ff8a65"></i>entity</span><span><i style="background:#64f0c8"></i>officer</span><span><i style="background:#ce93d8"></i>intermediary</span><span><i style="background:#64b5f6"></i>address</span><span><i style="background:#90a4ae"></i>other</span><span style="margin-left:auto">edges: <span style="color:#ff8a65">ownership</span> · <span style="color:#64f0c8">control</span> · <span style="color:#ce93d8">service</span> · <span style="color:#64b5f6">address</span> · red ring = SDN name match</span></div></div>`,'lp-half'),
+    wrap(`<div class="g-panel"><div class="sec-head"><h3>Follow across sources</h3><span class="badge" id="fmFollowBadge">…</span></div><div id="fmFollow" class="inv-scroll"></div></div>`,'lp-half'),
+    wrap(`<div class="g-panel"><div class="sec-head"><h3>Money trail</h3><span class="badge" id="fmTrailBadge">${FM.trail.nodes.length} RECORDS</span></div><div id="fmTrail"></div></div>`,'lp-half'),
+  ];
+}
+function fmEmptyPanel(){return `<div class="g-panel"><div class="sec-head"><h3>Follow the Money</h3><span class="badge">DEMO WORKBENCH</span></div>
+  <div class="inv-empty-title">Search an offshore name → unpack the shell → follow the trail across sources.</div>
+  <div class="fm-beats">
+    <div class="fm-beat"><b>1 · Search</b>One query fans out to the local ICIJ Offshore Leaks index (Panama, Paradise, Pandora Papers, Bahamas Leaks, Offshore Leaks), the full OFAC SDN list and live corporate registries. Each result is tagged with its source, dataset and license; nothing is merged.</div>
+    <div class="fm-beat"><b>2 · Unpack</b>Open a record to see officers, shareholders, beneficiaries and nominees, the intermediary that set it up, its registered address — and every other entity registered at that address (the classic shell-company pivot). The graph expands 1–2 hops, bounded.</div>
+    <div class="fm-beat"><b>3 · Follow</b>Screen the name against OFAC / OpenSanctions and hop to onshore registries (GLEIF LEI, OpenCorporates). Add records to a trail; cross-source matches are <em>possible same</em> proposals with a score and matched fields that you accept or reject. Save, export (license-aware), push to the Investigations case graph, or nominate to Target Development.</div>
+  </div>
+  <div class="fm-disc" style="margin-top:10px"><b>Leads, not verdicts.</b> ${esc(FM.status?.disclaimer||'There are legitimate uses for offshore companies and trusts. Inclusion in the ICIJ database does not suggest or imply wrongdoing.')}</div></div>`}
+
+function fmRenderProfile(){const el=document.getElementById('fmProfile');if(!el)return;const p=FM.profile;const badge=document.getElementById('fmProfileBadge');
+  if(!p){el.innerHTML=FM.profileLoading?'<div class="inv-hint">Loading record…</div>':`<div class="inv-hint">${esc(FM.error||'Record not found')}</div>`;return}
+  const r=p.record;const k=fmKind(r);const pr=r.properties||{};if(badge)badge.textContent=`${k.toUpperCase()} · ${p.relationships.degree} LINKS`;
+  const kv=[['Record',`${esc(r.caption)} <span class="fm-k ${esc(k)}">${esc(k)}</span>`],['Dataset',esc(r.source?.dataset||'')],['Jurisdiction',esc((pr.jurisdiction||[]).join(', ')||'—')],['Countries',esc((pr.country||[]).join(', ')||'—')],['Incorporated',esc(pr.incorporationDate?.[0]||'—')],['Status',esc(pr.status?.[0]||'—')],['Dissolved',esc(pr.dissolutionDate?.[0]||'—')],['Provider',esc(pr.serviceProvider?.[0]||'—')],['Address',esc((pr.address||[]).join(' · ')||'—')],['Valid until',esc(pr.validUntil?.[0]||pr.note?.[0]||'—')]].filter(([,v])=>v&&v!=='—');
+  const sdn=p.screening?.ofac?.hits||[];const inTrail=FM.trail.nodes.some(n=>n.id===r.id);
+  const roles=[['ownership','Ownership · shareholders, beneficiaries, beneficial owners'],['control','Control · directors, nominees, officers'],['service','Service · intermediaries, agents, providers'],['address','Registered addresses'],['identity','Same name as (ICIJ identity hints)'],['other','Other relationships']];
+  const byId=Object.fromEntries(p.relationships.nodes.map(n=>[n.id,n]));
+  const relHtml=roles.map(([role,label])=>{const ls=p.relationships.byRole?.[role]||[];if(!ls.length)return '';return `<div class="fm-sec"><span>${esc(label)}</span><span>${ls.length}</span></div>${ls.slice(0,40).map(l=>{const oid=l.from===r.id?l.to:l.from;const o=byId[oid];if(!o)return '';const dir=l.from===r.id?'→':'←';const when=[l.startDate,l.endDate].filter(Boolean).join(' – ');const tn=FM.trail.nodes.some(n=>n.id===oid);return `<div class="fm-rel"><span class="fm-cap" data-fm="open" data-ref="${esc(oid)}"><span class="fm-k ${esc(fmKind(o))}" style="margin-right:4px">${esc(fmKind(o))}</span>${esc(o.caption)}${fmSdnFor(o)?.length?' <span class="fm-sdn">SDN</span>':''}</span><span class="fm-lbl">${dir} ${esc(l.label)}${when?` · ${esc(when)}`:''}${l.status?` · ${esc(l.status)}`:''}</span><button class="fm-mini ${tn?'acc':''}" data-fm="add-neighbor" data-ref="${esc(oid)}" title="Add this record and the reported link to the trail">${tn?'in trail':'+ trail'}</button></div>`}).join('')}${ls.length>40?`<div class="nv-sub">${ls.length-40} more not shown</div>`:''}`}).join('');
+  const sa=p.sameAddress||[];
+  el.innerHTML=`<div class="inv-kv">${kv.map(([a,b])=>`<span style="color:var(--dim)">${a}</span><span>${b}</span>`).join('')}</div>
+    <div class="fm-acts"><button class="inv-btn ${inTrail?'ghost':''}" data-fm="add-subject">${inTrail?'In trail ✓':'+ Add to trail'}</button>${fmExtBtn(r.source?.url,'Open at ICIJ ↗')}<button class="inv-btn ghost" data-fm="follow">Re-screen</button></div>
+    <div class="fm-sec"><span>Sanctions screen · OFAC SDN (local)</span><span>${sdn.length?`<span class="fm-sdn">${sdn.length} NAME MATCH${sdn.length===1?'':'ES'}</span>`:'clear ≥ 50%'}</span></div>
+    ${sdn.map((h,i)=>`<div class="fm-rel"><span class="fm-cap" style="cursor:default">${invExt(h.record.source?.url,esc(h.record.caption))} <span class="fm-k ofac">SDN ${esc((h.record.properties?.program||[]).slice(0,3).join(' '))}</span></span><span class="fm-lbl"><span class="fm-score ${esc(h.band)}">${Math.round(h.score*100)}%</span> ${esc((h.matched||[]).join(', '))}</span><button class="fm-mini" data-fm="add-hit" data-src="ofac" data-i="${i}" title="Add as a possible-same proposal">+ possible same</button></div>`).join('')}
+    ${relHtml||'<div class="inv-hint">No relationships recorded for this node.</div>'}
+    <div class="fm-sec"><span>Same registered address · shell pivot</span><span>${sa.length}${sa.length>=20?'+':''}</span></div>
+    ${sa.length?sa.map(s=>`<div class="fm-rel"><span class="fm-cap" data-fm="open" data-ref="${esc(s.record.id)}"><span class="fm-k ${esc(fmKind(s.record))}" style="margin-right:4px">${esc(fmKind(s.record))}</span>${esc(s.record.caption)}${fmSdnFor(s.record)?.length?' <span class="fm-sdn">SDN</span>':''}</span><span class="fm-lbl">${esc(s.record.source?.dataset||'')}</span><button class="fm-mini" data-fm="add-same" data-ref="${esc(s.record.id)}">+ trail</button></div>`).join(''):'<div class="inv-hint">No other entities share this record\u2019s registered address (or it has none).</div>'}
+    <div class="fm-ev" style="margin-top:8px">Source: ${esc(r.source?.name||'ICIJ')} · ${esc(r.source?.dataset||'')} · ${esc(r.source?.license||'')} · release ${esc(r.source?.release||'')} · ${invExt(r.source?.url,'original record')}. ${esc(FM.status?.tiers?.[r.source?.tier]||'')}</div>`;
+  applyCaptions(el);
+}
+function fmRenderFollow(){const el=document.getElementById('fmFollow');if(!el)return;const badge=document.getElementById('fmFollowBadge');const f=FM.follow;
+  if(FM.followLoading||!f){el.innerHTML='<div class="inv-hint">Screening name against OFAC + OpenSanctions and querying GLEIF / OpenCorporates…</div>';if(badge)badge.textContent='LIVE…';return}
+  if(f.error){el.innerHTML=`<div class="inv-hint">${esc(f.error)}</div>`;if(badge)badge.textContent='ERROR';return}
+  const sc=f.screen||{};const rg=f.registry||{};
+  const sec=(title,src,obj,hits,empty)=>`<div class="fm-sec"><span>${esc(title)}</span><span>${esc(obj?.status||'off')}${hits.length?` · ${hits.length}`:''}</span></div>${obj?.status==='no_key'?`<div class="nv-sub">${invKeyed(title,src==='opensanctions'?'OPENSANCTIONS_API_KEY':'OPENCORPORATES_API_TOKEN','not enabled — add a key to screen / hop live')}</div>`:obj?.status==='error'?`<div class="inv-hint">${esc(obj.error||'error')}</div>`:hits.length?hits.map((h,i)=>`<div class="fm-rel"><span class="fm-cap" style="cursor:default">${invExt(h.record.source?.url,esc(h.record.caption))} <span class="fm-k ${esc(src)}">${esc([...(h.record.properties?.program||[]),...(h.record.properties?.topics||[])].slice(0,3).join(' ')||h.record.schema)}</span></span><span class="fm-lbl"><span class="fm-score ${esc(h.band||fmBand(h.score))}">${Math.round((h.score||0)*100)}%</span> ${esc((h.matched||[]).join(', '))}${h.via?` · ${esc(h.via)}`:''} · ${esc(fmRecordCountries(h.record))}</span><button class="fm-mini" data-fm="add-hit" data-src="${esc(src)}" data-i="${i}" title="Add as a possible-same proposal to the trail">+ possible same</button></div>`).join(''):`<div class="inv-hint">${esc(empty)}</div>`}`;
+  const n=(sc.ofac?.hits?.length||0)+(sc.opensanctions?.hits?.length||0)+(rg.gleif?.results?.length||0)+(rg.opencorporates?.results?.length||0);if(badge)badge.textContent=`${n} CANDIDATE${n===1?'':'S'}`;
+  el.innerHTML=`<div class="nv-sub" style="margin-bottom:4px">Screening “${esc(sc.name||f.for)}”. Scores compare folded names (+ country, type); they are candidate identities for you to adjudicate, not matches.</div>
+    ${sec('OFAC SDN · US Treasury','ofac',sc.ofac,sc.ofac?.hits||[],'No SDN name match ≥ 50%.')}
+    ${sec('OpenSanctions · sanctions, PEPs, watchlists','opensanctions',sc.opensanctions,sc.opensanctions?.hits||[],'No OpenSanctions match ≥ 50%.')}
+    ${FM.profile?.record?.schema==='Person'?'<div class="fm-sec"><span>Corporate registries</span><span>skipped for persons</span></div>':`${sec('GLEIF · Legal Entity Identifier (CC0)','gleif',rg.gleif,rg.gleif?.results||[],'No LEI record with a similar legal name.')}${sec('OpenCorporates · onshore registries','opencorporates',rg.opencorporates,rg.opencorporates?.results||[],'No registry company with a similar name.')}`}
+    <div class="fm-ev" style="margin-top:8px">as of ${esc((sc.asOf||rg.asOf||'').slice(0,19).replace('T',' '))}Z · OpenSanctions CC BY-NC 4.0 and OpenCorporates results are exported as references only.</div>`;
+}
+function fmRenderTrail(){const el=document.getElementById('fmTrail');if(!el)return;const t=FM.trail;const badge=document.getElementById('fmTrailBadge');if(badge)badge.textContent=`${t.nodes.length} RECORDS · ${t.links.length} LINKS${t.id?' · SAVED':''}`;
+  const byId=Object.fromEntries(t.nodes.map(n=>[n.id,n]));t.links.forEach((l,i)=>{if(!l.id)l._tmp=`tmp_${i}`});
+  const pending=t.links.filter(l=>l.state==='proposed').length;
+  el.innerHTML=`<div class="fm-trail-in"><input id="fmTitle" class="inv-input" maxlength="120" placeholder="Trail title" value="${esc(t.title)}" oninput="FM.trail.title=this.value"><input id="fmNotes" class="inv-input" maxlength="2000" placeholder="Working notes (what the trail is meant to show)" value="${esc(t.notes||'')}" oninput="FM.trail.notes=this.value"></div>
+    <div class="fm-acts"><button class="inv-btn" data-fm="trail-save">${t.id?'Save changes':'Save trail'}</button><button class="inv-btn ghost" data-fm="trail-case" title="Push records + non-rejected links into the Investigations case graph">→ Investigations case</button><button class="inv-btn ghost" data-fm="trail-export" title="JSON export; OpenSanctions / OpenCorporates nodes exported as references only">Export JSON</button><button class="inv-btn ghost" data-fm="trail-new">New</button>${t.id?`<span class="fm-ev" style="align-self:center">${esc(t.id)}${t.nominated?` · nominated → ${esc(t.nominated.id)}`:''}</span>`:''}</div>
+    <div class="fm-sec"><span>Records</span><span>${t.nodes.length}/80</span></div>
+    ${t.nodes.length?t.nodes.map(n=>`<div class="fm-tnode"><span class="fm-k ${esc(fmKind(n))}">${esc(n.source?.key||fmKind(n))}</span><span>${/^icij:/.test(n.id)?`<span class="fm-cap" data-fm="open" data-ref="${esc(n.id)}" style="cursor:pointer">${esc(n.caption)}</span>`:invExt(n.source?.url,esc(n.caption))} <span class="fm-ev">${esc(n.schema)} · ${esc(n.source?.dataset||n.source?.license||'')}</span></span><span style="display:flex;gap:3px"><button class="fm-mini" data-fm="nominate" data-node="${esc(n.id)}" title="Nominate to Target Development (requires saved trail)">nominate</button><button class="fm-mini rej" data-fm="remove-node" data-node="${esc(n.id)}" title="Remove from trail">×</button></span></div>`).join(''):'<div class="inv-hint">Empty. Open a record and use “+ Add to trail”, “+ trail” on a relationship, or “+ possible same” on a screening hit.</div>'}
+    <div class="fm-sec"><span>Links · ${pending} awaiting decision</span><span>${esc(Object.keys(FM.status?.claimStates||{}).join(' / '))}</span></div>
+    ${t.links.map(l=>{const a=byId[l.from],b=byId[l.to];const id=l.id||l._tmp;return `<div class="fm-tlink"><span><b>${esc(a?.caption||l.from)}</b> <span class="fm-lbl" style="color:var(--dim)">${esc(l.label)}</span> <b>${esc(b?.caption||l.to)}</b>${typeof l.score==='number'?` <span class="fm-score ${fmBand(l.score)}">${Math.round(l.score*100)}%</span>`:''}</span><span style="display:flex;gap:3px;align-items:center"><span class="fm-state ${esc(l.state)}">${esc(l.state)}</span>${l.state==='reported'?'':`<button class="fm-mini acc" data-fm="decide" data-link="${esc(id)}" data-decision="accept" ${l.state==='accepted'?'disabled':''}>accept</button><button class="fm-mini rej" data-fm="decide" data-link="${esc(id)}" data-decision="reject" ${l.state==='rejected'?'disabled':''}>reject</button>${l.state!=='proposed'?`<button class="fm-mini" data-fm="decide" data-link="${esc(id)}" data-decision="reset">reset</button>`:''}`}</span><span class="fm-ev">${esc(l.state==='reported'?`reported by ${l.source?.key||'source'}${l.source?.dataset?` · ${l.source.dataset}`:''} — a source assertion, not adjudicated here`:`${l.source?.dataset||'analyst proposal'}${l.matched?.length?` · matched ${l.matched.join(', ')}`:''}${l.decidedAt?` · decided ${l.decidedAt.slice(0,16).replace('T',' ')}`:''}`)}${l.note?` · ${esc(l.note)}`:''}</span></div>`}).join('')}
+    <div class="fm-sec"><span>Saved trails</span><span>${FM.trails.length}</span></div>
+    ${FM.trails.length?FM.trails.map(s=>`<div class="fm-tnode"><span class="fm-k analyst">${esc(String(s.nodes??s.nodeCount??'')) }</span><span><span class="fm-cap" data-fm="trail-load" data-id="${esc(s.id)}" style="cursor:pointer">${esc(s.title)}</span> <span class="fm-ev">${esc(s.id)} · ${esc((s.updatedAt||s.createdAt||'').slice(0,16).replace('T',' '))}${s.pending?` · ${s.pending} pending`:''}${s.nominated?' · nominated':''}</span></span><button class="fm-mini rej" data-fm="trail-delete" data-id="${esc(s.id)}" title="Delete trail">×</button></div>`).join(''):'<div class="inv-hint">No saved trails yet.</div>'}`;
+}
+function fmRenderGraph(){const svg=document.getElementById('fmSvg');const badge=document.getElementById('fmGraphBadge');if(!svg)return;const g=FM.graph;if(FM.sim){FM.sim.stop();FM.sim=null}
+  const s=d3.select(svg);s.selectAll('*').remove();
+  if(!g){if(badge)badge.textContent='LOADING';return}
+  if(g.error){if(badge)badge.textContent='ERROR';s.append('text').attr('x',12).attr('y',24).attr('fill','#ff5f63').attr('font-size',10).text(g.error);return}
+  if(badge)badge.textContent=`${g.nodes.length} NODES · ${g.links.length} EDGES${g.truncated?' · BOUNDED':''}`;
+  const W=svg.clientWidth||600,H=svg.clientHeight||400;const color={entity:'#ff8a65',officer:'#64f0c8',intermediary:'#ce93d8',address:'#64b5f6',other:'#90a4ae'};
+  const nodes=g.nodes.map(n=>({...n,k:fmKind(n),sdn:!!fmSdnFor(n)?.length}));const ids=new Set(nodes.map(n=>n.id));const links=g.links.filter(l=>ids.has(l.from)&&ids.has(l.to)).map(l=>({...l,source:l.from,target:l.to}));
+  const root=s.append('g');const zoom=d3.zoom().scaleExtent([0.3,4]).on('zoom',e=>root.attr('transform',e.transform));s.call(zoom);
+  const link=root.append('g').selectAll('line').data(links).join('line').attr('class',d=>`fm-link ${d.role||'other'}`).attr('stroke-width',d=>d.role==='ownership'||d.role==='control'?1.6:1);
+  link.append('title').text(d=>`${d.label}${d.startDate?` · ${d.startDate}`:''}${d.endDate?` – ${d.endDate}`:''} · ${d.source?.dataset||'ICIJ'}`);
+  const node=root.append('g').selectAll('g').data(nodes).join('g').attr('class',d=>`fm-node ${d.id===g.root?'root':''} ${d.sdn?'sdn':''}`).call(d3.drag().on('start',(e,d)=>{if(!e.active)FM.sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y}).on('end',(e,d)=>{if(!e.active)FM.sim.alphaTarget(0);d.fx=null;d.fy=null}));
+  node.append('circle').attr('r',d=>d.id===g.root?9:d.k==='address'?4:Math.min(8,3+Math.sqrt(d.degree||1))).attr('fill',d=>color[d.k]||color.other);
+  node.append('text').attr('dx',9).attr('dy',3).text(d=>d.caption.length>28?d.caption.slice(0,27)+'…':d.caption);
+  node.append('title').text(d=>`${d.caption}\n${d.k} · ${d.source?.dataset||''}${d.sdn?'\nOFAC SDN name match — a lead, not an identity':''}\nclick to open`);
+  node.on('click',(e,d)=>{e.stopPropagation();if(d.id!==FM.ref)fmOpen(d.id)});
+  FM.sim=d3.forceSimulation(nodes).force('link',d3.forceLink(links).id(d=>d.id).distance(d=>d.role==='address'?40:60).strength(.6)).force('charge',d3.forceManyBody().strength(-140)).force('center',d3.forceCenter(W/2,H/2)).force('collide',d3.forceCollide(14)).on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);node.attr('transform',d=>`translate(${d.x},${d.y})`)});
+}
+
+// --- delegated actions (no inline handlers on third-party strings) ---
+document.addEventListener('click',e=>{const el=e.target.closest('[data-fm]');if(!el||!fmActive())return;const a=el.dataset.fm;const d=el.dataset;
+  if(a==='open')fmOpen(d.ref);else if(a==='seed')fmSearch(d.q);else if(a==='kind'){FM.kind=d.kind||'';if(FM.q)fmSearch(FM.q,FM.kind);else renderLeftRail()}
+  else if(a==='add-subject')fmAddSubject();else if(a==='add-neighbor')fmAddNeighbor(d.ref);else if(a==='add-same')fmAddSameAddress(d.ref);else if(a==='add-hit')fmAddHit(d.src,Number(d.i));else if(a==='follow')fmFollow();
+  else if(a==='depth'){FM.graphDepth=Number(d.depth)||2;renderLower();fmLoadGraph()}else if(a==='identity'){FM.graphIdentity=!FM.graphIdentity;renderLower();fmLoadGraph()}
+  else if(a==='decide')fmDecide(d.link,d.decision);else if(a==='remove-node')fmRemoveNode(d.node);else if(a==='nominate')fmNominate(d.node);
+  else if(a==='trail-save')fmSaveTrail();else if(a==='trail-case')fmTrailToCase();else if(a==='trail-export')fmExportTrail();else if(a==='trail-new'){FM.trail=fmNewTrail();fmRenderTrail();fmRenderProfile()}else if(a==='trail-load')fmLoadTrail(d.id);else if(a==='trail-delete'){if(confirm('Delete this saved trail?'))fmDeleteTrail(d.id)}
+});
+
+// Hook the shared renderers without editing their dispatch tables (same pattern as Standing Requirements).
+const _fmTabCounts=tabCounts;
+tabCounts=function(){const c=_fmTabCounts();const ov=FM.overlaps?.count??FM.overlaps?.leads?.length;const st=FM.status?.icij;c.finance=ov?{n:String(ov),cls:'',title:`${ov} exact-name SDN ∩ Offshore Leaks leads`}:st?.mode?{n:st.mode==='full'?'FULL':'DEMO',cls:'',title:`Offshore Leaks index: ${st.mode}`}:null;return c};
+const _fmRenderLeftRail=renderLeftRail;
+renderLeftRail=function(){if(!fmActive())return _fmRenderLeftRail();const rail=document.getElementById('leftRail');rail.innerHTML=[fmRailSearch(),fmRailSources()].join('');applyCaptions(rail);fmLoadStatus();if(!FM.trails.length&&!FM._trailsLoaded){FM._trailsLoaded=true;fmLoadTrails()}};
+const _fmRenderLower=renderLower;
+renderLower=function(){if(!fmActive()){if(FM.sim){FM.sim.stop();FM.sim=null}return _fmRenderLower()}const grid=document.getElementById('lowerGrid');grid.innerHTML=fmLowerPanels().join('');applyCaptions(grid);fmRenderProfile();fmRenderFollow();fmRenderTrail();fmRenderGraph()};
+
 // === SITUATION STRIP (rule-based headlines from lib/situation.mjs; all text is third-party-derived → esc()) ===
 const SIT_TAB_LABEL=Object.fromEntries(TAB_DEFS.map(t=>[t.id,t.label]));
 function jumpToPanel(tab, panel){
@@ -2152,6 +2384,12 @@ const PANEL_CAPTIONS={
   'standing requirements':'Analyst-defined watch rules evaluated every sweep against persistent history (24h / 7d / 30d / 90d baselines). FIRED means the observed window deviates from its own baseline by the rule\u2019s threshold; QUIET means it does not.',
   'how to read':'z is the observed value minus the baseline mean in floor-corrected standard deviations (Poisson floor: std &ge; &radic;mean). SPARSE means too few baseline buckets to judge, so the rule never fires on thin history.',
   'describe a standing requirement':'Plain-language requirement &rarr; compiled rule (metric, dims, window, threshold) shown for confirmation before anything is saved. Compiled by the configured LLM when a key exists, else by the deterministic keyword compiler; either way every field is validated against the metric catalog and gazetteer.',
+  'follow the money':'Investigative-finance workbench: search the local ICIJ Offshore Leaks index, the full OFAC SDN list and live registries from one box, open a record to unpack its shell structure, and follow the trail across sources. Everything here is a <b>lead, not a verdict</b>; results stay per source and nothing is merged.',
+  'sources & terms':'Each source feeding this tab with its license, freshness and whether it is live, keyed or absent. ICIJ data is ODbL (attribution shown); OpenSanctions is CC BY-NC; OpenCorporates results are queried live and not stored; GLEIF is CC0.',
+  'shell structure':'The selected record: officers, shareholders, beneficiaries and nominees grouped as ownership vs control, the intermediary that set it up, registered addresses and every other entity at the same address. The inline sanctions screen is a folded-name comparison against the OFAC SDN list, scored and labelled — same spelling is a lead, not an identity.',
+  'structure graph':'Bounded 1–2 hop neighbourhood of the selected record from the ICIJ link table. Edge colour is the relationship group (ownership / control / service / address); a red ring marks a node whose exact folded name also appears on the SDN list. Hub nodes are capped so the walk stays readable.',
+  'follow across sources':'The selected record\'s name screened against OFAC (local) and OpenSanctions, and looked up in GLEIF LEI and OpenCorporates. Each hit carries a transparent score with the matched fields (folded name, legal-form-stripped core, token overlap, country, type). Add a hit to the trail as a <b>possible same</b> proposal for you to accept or reject.',
+  'money trail':'Your working set of records and the links between them. Source-reported relationships are <b>reported</b>; cross-source matches are <b>proposed</b> until you accept or reject them. Save the trail, push it into the Investigations case graph, nominate a record to Target Development, or export JSON (OpenSanctions / OpenCorporates nodes as references only).',
 };
 function captionKey(h3){
   return (h3.textContent||'').replace(/\s+/g,' ').trim().toLowerCase().replace(/\s+\u2014.*$/,'');
@@ -7563,7 +7801,7 @@ function renderTelegramLivePanel(){
 const INV_TYPE_META = {
   domain:{label:'Domain',color:'#44ccff'}, ip:{label:'IP',color:'#64f0c8'}, url:{label:'URL',color:'#82aaff'}, email:{label:'Email',color:'#ffb84c'},
   username:{label:'Handle',color:'#c792ea'}, phone:{label:'Phone',color:'#f78c6c'}, hash:{label:'Hash',color:'#ff5f63'}, company:{label:'Company',color:'#89ddff'},
-  btc:{label:'BTC',color:'#f9d71c'}, eth:{label:'ETH',color:'#b39ddb'}, account:{label:'Account',color:'#a6e22e'}, breach:{label:'Breach',color:'#ff5f63'}, org:{label:'Org',color:'#89ddff'}, location:{label:'Geo',color:'#4dd0e1'},
+  btc:{label:'BTC',color:'#f9d71c'}, eth:{label:'ETH',color:'#b39ddb'}, account:{label:'Account',color:'#a6e22e'}, breach:{label:'Breach',color:'#ff5f63'}, org:{label:'Org',color:'#89ddff'}, location:{label:'Geo',color:'#4dd0e1'}, person:{label:'Person',color:'#64f0c8'},
 };
 const INV_PIVOTABLE = new Set(['domain','ip','url','email','username','phone','hash','company','btc','eth']);
 const INV_SOURCES_BY_TYPE = {
