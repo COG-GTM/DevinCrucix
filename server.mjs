@@ -1156,7 +1156,7 @@ function askRateLimited(ip) {
 }
 function askState() {
   return {
-    data: currentData, narco: narcoData, graph: cjngGraph, lastSweepTime,
+    data: currentData, narco: narcoData, graph: kgState.cjng.graph, lastSweepTime,
     requirements: rqStore.snapshot(),
     targets: targetStore.list().map(summarizeTarget),
   };
