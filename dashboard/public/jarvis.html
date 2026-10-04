@@ -1397,6 +1397,18 @@ let lowPerfMode = localStorage.getItem('crucix_low_perf') === 'true';
 let isFlat = shouldStartFlat();
 let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
+let mapViewportStale = false;
+// #mapContainer is display:none on every tab except Situation (grid.no-map), so it measures 0px
+// there. Projecting into a 0px box yields NaN transforms and a blank map, so size from the
+// container only when it is actually laid out and fall back to the grid/window otherwise.
+function mapViewportSize(){
+  const container = document.getElementById('mapContainer');
+  const width = container ? container.clientWidth : 0;
+  const visible = width > 0;
+  const fallbackW = Math.max(320, (document.getElementById('grid')?.clientWidth || window.innerWidth || 960) - 40);
+  const fallbackH = isMobileLayout() ? 420 : 560;
+  return { visible, width: visible ? width : fallbackW, height: (visible && container.clientHeight) || fallbackH };
+}
 const signalGuideItems = [
   {
     term:'No Callsign',
@@ -2300,6 +2312,7 @@ const PANEL_CAPTIONS={
   'attached public profiles':'Profiles attached from the OSINT Workbench handle sweep (curated probes + Sherlock manifest), each with its detector confidence. A same-handle match is a lead until an analyst accepts it; nothing is written to the graph.',
   'graph proposals':'Relations the package would add to the CJNG graph, each with evidence. Accepted proposals form an analyst-approved overlay; the verified source-attributed graph is never modified.',
   'published selectors':'Identifiers literally present in official or published text (OFAC ids and programs, DOJ case numbers, IMO, registrations, domains). Nothing is inferred or looked up.',
+  'evidence locker':'Public https pages captured into the package: bytes stored, SHA-256 recorded, hash-chained custody line appended, Wayback snapshot requested. A capture proves what a URL served at that moment, not that it is true.',
   'public-record locations':'Dated place mentions snapped to the gazetteer, drawn at the radius their precision supports. Last known is the newest sentence that <i>states</i> presence — not a live position. Telegram is never used for location.',
   'pattern of activity':'Reporting tempo against the target\u2019s own history, weekday / source / state mix, gaps and status words. Tempo tracks press attention as much as activity.',
   'target timeline':'Every dated public mention, newest first, with source tier, named place and any status word. Red rows carry a status change.',
@@ -2840,9 +2853,7 @@ function initGlobe(){
     document.getElementById('mapHint').textContent = 'DRAG TO ROTATE · SCROLL TO ZOOM';
     return;
   }
-  const container = document.getElementById('mapContainer');
-  const w = container.clientWidth;
-  const h = container.clientHeight || 560;
+  const { w, h } = (({ width, height }) => ({ w: width, h: height }))(mapViewportSize());
 
   globe = Globe()
     .width(w)
@@ -3607,8 +3618,9 @@ function toggleMapMode(){
 }
 
 function initFlatMap(){
-  const container = document.getElementById('mapContainer');
-  flatW = container.clientWidth; flatH = container.clientHeight || 560;
+  const size = mapViewportSize();
+  flatW = size.width; flatH = size.height;
+  mapViewportStale = !size.visible;
   flatSvg = d3.select('#flatMapSvg').attr('viewBox',`0 0 ${flatW} ${flatH}`).attr('preserveAspectRatio','xMidYMid meet');
   flatProjection = d3.geoNaturalEarth1().fitSize([flatW-20,flatH-20],{type:'Sphere'}).translate([flatW/2,flatH/2]);
   flatPath = d3.geoPath(flatProjection);
@@ -3634,7 +3646,7 @@ function drawFlatMap(){
 
 // Keep marker labels at constant screen size and damp circle growth as the flat map zooms.
 function scaleFlatMarkers(k){
-  if(!flatG)return;
+  if(!flatG||!(k>0)||!isFinite(k))return;
   flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/k}).attr('stroke-width',function(){return (this.classList.contains('conflict-ring')?1.5:0.8)/k});
   flatG.selectAll('.marker-air').attr('transform',`scale(${1/k})`);
   flatG.selectAll('.marker-label').style('font-size',(9/k)+'px').style('display',k>=2.5?'block':'none');
@@ -6240,7 +6252,7 @@ function initCyGl(cc){
     map.on('load',()=>{if(cyGlMap!==map)return;cyGlStyle(map);cyGlReady=true;cyGlDraw();});
     map.on('mousemove',e=>{const r=document.getElementById('cyGlLL'),m=document.getElementById('cyGlMgrs');if(r)r.textContent=cyGlFmt(e.lngLat.lng,e.lngLat.lat);if(m)m.textContent='MGRS '+(cyGlMgrs(e.lngLat.lng,e.lngLat.lat)||'\u2014')});
     map.on('move',()=>{const z=document.getElementById('cyGlZ');if(z)z.textContent=`Z ${map.getZoom().toFixed(1)}`});
-    map.on('click',e=>{if(cyGlMode==='measure'){cyGlMeasureClick(e);return;}if(!cyGlMode)cyClosePopup()});
+    map.on('click',e=>{if(cyGlMode==='measure'){cyGlMeasureClick(e);return;}if(cyGlMode==='nearby'){cyGlNearbyClick(e);return;}if(!cyGlMode)cyClosePopup()});
     cyGlBindBox(map,wrap);
   }).catch(err=>{if(note)note.textContent='MAP LIBRARY UNAVAILABLE \u2014 '+(err?.message||err)+' \u00b7 the D3 map is used for other countries';});
 }
@@ -6292,6 +6304,11 @@ function cyGlStyle(map){
   map.addLayer({id:'cy-hs',type:'hillshade',source:'cy-dem',paint:{'hillshade-exaggeration':0.55,'hillshade-shadow-color':'#000000','hillshade-highlight-color':'#55656c','hillshade-accent-color':'#15232a'}},'water');
   map.addSource('cy-night',{type:'raster',tiles:[CY_GL_SRC.night],tileSize:256,maxzoom:8,attribution:'Night lights: NASA GIBS VIIRS Black Marble'});
   map.addLayer({id:'cy-night',type:'raster',source:'cy-night',paint:{'raster-opacity':0.75,'raster-contrast':0.25,'raster-saturation':-0.6}},'water');
+  map.addSource('cy-nlx',{type:'geojson',data:{type:'FeatureCollection',features:[]},attribution:'Night change: NASA GIBS VIIRS Black Marble'});
+  map.addLayer({id:'cy-nlx-fill',type:'fill',source:'cy-nlx',paint:{'fill-color':['case',['==',['get','kind'],'dimmed'],'#ff7043','#ffee58'],'fill-opacity':0.32}},below);
+  map.addLayer({id:'cy-nlx-line',type:'line',source:'cy-nlx',paint:{'line-color':['case',['==',['get','kind'],'dimmed'],'#ff7043','#ffee58'],'line-width':1,'line-opacity':0.9}},below);
+  map.on('click','cy-nlx-fill',e=>{if(cyGlMode)return;if(map.queryRenderedFeatures(e.point,{layers:['cy-ev-glyph']}).length)return;e.originalEvent.stopPropagation();cyNlxPopup(e.originalEvent,e.features[0].properties)});
+  map.on('mouseenter','cy-nlx-fill',()=>{if(!cyGlMode)map.getCanvas().style.cursor='pointer'});map.on('mouseleave','cy-nlx-fill',()=>{map.getCanvas().style.cursor=''});
   map.addSource('cy-grat',{type:'geojson',data:cyGlGraticule(2)});
   map.addLayer({id:'cy-grat',type:'line',source:'cy-grat',paint:{'line-color':'#64f0c8','line-opacity':0.07,'line-width':0.5}},below);
   map.addSource('cy-adm2',{type:'geojson',data:CY_GL_SRC.adm2,attribution:'ADM1/ADM2: geoBoundaries (CC BY 4.0)'});
@@ -6373,9 +6390,10 @@ function cyGlDraw(){
   map.setFilter('cy-ev-halo',['all',['>',['get','mentions'],0],hiddenF,zF]);map.setFilter('cy-ev-ring1',['all',['==',['get','tier'],1],hiddenF,zF]);map.setFilter('cy-ev-ring3',['all',['==',['get','tier'],3],hiddenF,zF]);
   ['cy-ev-glyph','cy-ev-lbl','cy-ev-halo','cy-ev-ring1','cy-ev-ring3','cy-ev-focus'].forEach(id=>vis(id,on('places')));
   vis('cy-hs',gl('terrain'));vis('cy-night',gl('night'));vis('cy-adm2',gl('adm2'));vis('cy-adm2-lbl',gl('adm2'));vis('cy-grat',gl('grat'));vis('cy-ne-dot',gl('labels'));vis('cy-ne-lbl',gl('labels'));
+  vis('cy-nlx-fill',gl('nightx'));vis('cy-nlx-line',gl('nightx'));if(gl('nightx')){cyNlxEnsure(cc);cyNlxApply(cc)}
   const counts={adm1:adm1.features.length,loc:on('loc')?loc.features.length:0,sat:on('sat')?sat.features.length:0,mass:on('mass')?mass.features.length:0,places:ev.features.length,hist:0};
   cyLastCounts=counts;
-  cyGlLegend(c,ev);
+  cyGlLegend(c,ev);cyNlxLegend();
   if(cyGlFeedSel)cyGlFeed(cyGlFeedSel);
   if(note)note.textContent=g?`${counts.adm1} ${g.adm1.unit||'unit'}s drawn${g.values?` \u00b7 shaded by ${g.values.label} \u00b7 ${g.values.month} (official)`:''}${counts.loc?` \u00b7 ${counts.loc} localidades`:''}${counts.sat?` \u00b7 ${counts.sat} SAT alerts`:''}${counts.mass?` \u00b7 ${counts.mass} massacres`:''} \u00b7 ${counts.places} places \u00b7 ${cyGlItems(c).length} wire items in window \u00b7 basemap OpenFreeMap (OSM) \u00b7 terrain Mapzen/AWS \u00b7 night lights NASA GIBS \u00b7 ADM2 geoBoundaries \u00b7 labels Natural Earth`:cyGeo[cc]?.failed?'GEOMETRY UNAVAILABLE \u2014 place anchors still drawn':'LOADING GEOMETRY\u2026';
 }
@@ -6398,6 +6416,8 @@ function cyGlSetMode(m){
   const wrap=document.getElementById('cyMapWrap');if(wrap){wrap.classList.toggle('measuring',cyGlMode==='measure');wrap.classList.toggle('boxing',cyGlMode==='box')}
   if(cyGlMap){cyGlMap.dragPan[cyGlMode==='box'?'disable':'enable']();if(cyGlMode!=='measure')cyGlClearMeasure();}
   if(cyGlMode!=='box')cyGlFeedClose();
+  if(cyGlMode!=='nearby')cyGlNearbyClear();
+  if(cyGlMap)cyGlMap.getCanvas().style.cursor=cyGlMode==='nearby'?'crosshair':'';
   renderCyChips();
 }
 function cyGlClearMeasure(){const m=cyGlMap;if(!m)return;['cy-mline','cy-mlbl'].forEach(id=>{if(m.getLayer(id))m.removeLayer(id)});if(m.getSource('cy-m'))m.removeSource('cy-m')}
@@ -6436,15 +6456,84 @@ function cyGlFeed(bb){
 function cyGlFeedClose(){cyGlFeedSel=null;document.getElementById('cyGlFeed')?.remove();document.getElementById('cyMapWrap')?.classList.remove('has-feed');const m=cyGlMap;if(m&&m.getLayer('cy-bbox')){m.removeLayer('cy-bbox');m.removeSource('cy-bbox')}}
 function renderCyGlChips(c){
   const chip=(k,label,on,fn,cls='')=>`<button type="button" class="lchip ${cls} ${on?'on':'off'}" style="--lc:#64f0c8" onclick="${fn}"><span class="ldot"></span>${label}</button>`;
-  const ctx=[['terrain','TERRAIN \u00b7 HILLSHADE'],['night','NIGHT LIGHTS'],['adm2','ADM2 MUNICIPIOS'],['labels','RANKED LABELS'],['grat','GRATICULE']].map(([k,l])=>chip(k,l,cyGlOn.has(k),`cyGlToggle('${k}')`)).join('');
+  const ctx=[['terrain','TERRAIN \u00b7 HILLSHADE'],['night','NIGHT LIGHTS'],['adm2','ADM2 MUNICIPIOS'],['labels','RANKED LABELS'],['grat','GRATICULE'],['nightx','NIGHT \u0394 \u00b7 VIIRS 30 D']].map(([k,l])=>chip(k,l,cyGlOn.has(k),`cyGlToggle('${k}')`)).join('');
   const win=CY_GL_WINDOWS.map(([l,h])=>`<button type="button" class="lchip tool ${cyGlWindowH===h?'on':'off'}" onclick="cyGlWindow(${h})">${l}</button>`).join('');
-  const tools=`<button type="button" class="lchip tool ${cyGlMode==='measure'?'on':'off'}" onclick="cyGlSetMode('measure')" title="Click two points for great-circle distance">MEASURE</button><button type="button" class="lchip tool ${cyGlMode==='box'?'on':'off'}" onclick="cyGlSetMode('box')" title="Drag a box: places inside it feed the wire list">BBOX \u2192 FEED</button>`;
+  const tools=`<button type="button" class="lchip tool ${cyGlMode==='measure'?'on':'off'}" onclick="cyGlSetMode('measure')" title="Click two points for great-circle distance">MEASURE</button><button type="button" class="lchip tool ${cyGlMode==='box'?'on':'off'}" onclick="cyGlSetMode('box')" title="Drag a box: places inside it feed the wire list">BBOX \u2192 FEED</button><button type="button" class="lchip tool ${cyGlMode==='nearby'?'on':'off'}" onclick="cyGlSetMode('nearby')" title="Click a point: hospitals, police, military and airfields within 3 km from OpenStreetMap (Overpass)">NEARBY \u00b7 OSM</button>`;
   const f=c.focusCity||{};
   const bms=[['COUNTRY','cyGlReset()']].concat(Number.isFinite(f.lat)?[[`FOCUS \u00b7 ${esc(String(f.name||'').toUpperCase())}`,`cyGlFly(${Number(f.lat)},${Number(f.lon)},10)`]]:[])
     .concat((c.places||[]).filter(p=>['city','region'].includes(p.level)&&p.key!=='bogota').slice(0,7).map(p=>[esc(String(p.name).toUpperCase()),`cyGlFly(${p.lat},${p.lon},${p.level==='region'?7.5:9.5})`]));
   return `<div class="ct-chiprow"><span class="lchip-head">VIEW</span>${bms.map(([l,fn])=>`<button type="button" class="lchip preset off" onclick="${fn}">${l}</button>`).join('')}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">CONTEXT</span>${ctx}</div>`
     +`<div class="ct-chiprow"><span class="lchip-head">WINDOW</span>${win}<span class="lchip-head" style="margin-left:6px">TOOLS</span>${tools}</div>`;
+}
+// ---- Night-lights change (VIIRS, /api/country/:cc/nightlights) and OSM proximity (/api/geo/nearby) on the GL map.
+let cyNlx={},cyNearby=null;
+const CY_NEARBY_KINDS=['hospital','police','military','airstrip'];
+function cyNlxEnsure(cc){
+  const s=cyNlx[cc];if(s&&(s.data||s.busy||(s.at&&Date.now()-s.at<20000)))return;
+  cyNlx[cc]={...(s||{}),busy:true,at:Date.now()};
+  fetch(`/api/country/${encodeURIComponent(cc)}/nightlights`,{credentials:'same-origin'}).then(async r=>{
+    const j=await r.json().catch(()=>null);const st=cyNlx[cc]||{};st.busy=false;st.at=Date.now();
+    if(r.status===202){st.status='computing';setTimeout(()=>{if(cyGlOn.has('nightx')&&cyGlCc===cc&&cyNlx[cc]){delete cyNlx[cc].at;cyNlxEnsure(cc)}},20000)}
+    else if(r.ok&&j){st.data=j;st.status=j.status;st.error=null}
+    else st.error=j?.error||`HTTP ${r.status}`;
+    cyNlx[cc]=st;cyNlxApply(cc)
+  }).catch(e=>{const st=cyNlx[cc]||{};st.busy=false;st.error=e.message;cyNlx[cc]=st;cyNlxApply(cc)});
+}
+function cyNlxFeatures(d){return {type:'FeatureCollection',features:(d?.cells||[]).map(c=>{const h=(c.sizeDeg||0.088)/2;return {type:'Feature',properties:{kind:c.kind,recent:c.recent,base:c.base,delta:c.delta,near:c.near?.name||'',nearKm:c.near?.km??'',lat:c.lat,lon:c.lon},geometry:{type:'Polygon',coordinates:[[[c.lon-h,c.lat-h],[c.lon+h,c.lat-h],[c.lon+h,c.lat+h],[c.lon-h,c.lat+h],[c.lon-h,c.lat-h]]]}}})}}
+function cyNlxApply(cc){const m=cyGlMap;if(!m||!cyGlReady||cyGlCc!==cc)return;m.getSource('cy-nlx')?.setData(cyNlxFeatures(cyNlx[cc]?.data));cyNlxLegend()}
+function cyNlxLegend(){
+  const el=document.getElementById('cyGlLegend');if(!el)return;el.querySelector('.nlx')?.remove();if(!cyGlOn.has('nightx'))return;
+  const st=cyNlx[cyGlCc]||{},d=st.data;const div=document.createElement('div');div.className='nlx';div.style.cssText='margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08)';
+  div.innerHTML=d?`<h5 style="margin:0 0 2px">Night lights \u0394 \u00b7 ${esc(d.recentDate||'')} vs ${esc(String((d.baselineDates||[])[0]||''))} / ${esc(String((d.baselineDates||[])[2]||''))}${d.status==='stale'?' \u00b7 stale':''}</h5><span style="color:#ff7043">\u25A0</span> dimmed ${d.summary?.dimmed??0} \u00b7 <span style="color:#ffee58">\u25A0</span> brightened ${d.summary?.brightened??0} \u00b7 of ${d.summary?.litCells??0} lit ~${d.cellKm||10} km cells${d.error?`<br><span style="color:#ff8a80">${esc(d.error)}</span>`:''}<br><span style="color:var(--dim)">${esc(d.caveat||'')}</span><br><span style="color:var(--dim)">${esc(d.attribution||'')} \u00b7 click a cell</span>`
+    :st.status==='computing'?'<h5 style="margin:0">Night lights \u0394 \u00b7 computing from NASA GIBS (\u2248 80 tiles)\u2026</h5>'
+    :st.error?`<h5 style="margin:0;color:#ff8a80">Night lights \u0394 \u00b7 ${esc(st.error)}</h5>`:'<h5 style="margin:0">Night lights \u0394 \u00b7 loading\u2026</h5>';
+  el.appendChild(div);
+}
+function cyNlxPopup(ev,p){
+  const d=cyNlx[cyGlCc]?.data||{};const dim=p.kind==='dimmed';
+  cyPopup(ev,`${dim?'DIMMED':'BRIGHTENED'} \u00b7 ${p.near||'no configured place nearby'}${p.nearKm!==''&&p.nearKm!==undefined?` ${p.nearKm} km`:''}`,
+    `<b style="color:${dim?'#ff7043':'#ffee58'}">${p.delta>0?'+':''}${esc(String(p.delta))}</b> grey (0\u2013255) \u00b7 ${esc(String(p.recent))} on ${esc(d.recentDate||'recent night')} vs ${esc(String(p.base))} baseline (brighter of ${esc((d.baselineDates||[]).join(', '))})<br><span style="color:var(--dim)">${esc(cyGlFmt(+p.lon,+p.lat))} \u00b7 ~${d.cellKm||10} km cell \u00b7 MGRS ${esc(cyGlMgrs(+p.lon,+p.lat)||'\u2014')}</span>`,
+    d.caveat||'');
+}
+function cyGlNearbyClear(){const m=cyGlMap;cyNearby=null;document.getElementById('cyGlNearby')?.remove();if(!m)return;['cy-nb-ring','cy-nb-pair','cy-nb-dot','cy-nb-lbl'].forEach(id=>{if(m.getLayer(id))m.removeLayer(id)});if(m.getSource('cy-nb'))m.removeSource('cy-nb')}
+function cyGlNearbyClick(e){if(!cyGlMap||!cyGlReady)return;cyGlNearby(e.lngLat.lat,e.lngLat.lng,3000,CY_NEARBY_KINDS)}
+const CY_NB_H5='style="margin:0 0 4px;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:0.12em;font-weight:500"';
+async function cyGlNearby(lat,lon,radius,kinds){
+  const wrap=document.getElementById('cyMapWrap');if(!wrap)return;cyGlNearbyClear();
+  const f=document.createElement('div');f.id='cyGlNearby';f.className='cy-hud cy-feed';wrap.appendChild(f);
+  f.innerHTML=`<span class="x" onclick="cyGlNearbyClear()">\u2715</span><h5 ${CY_NB_H5}>Nearby \u00b7 OSM via Overpass</h5><div class="it">Querying ${(radius/1000).toFixed(1)} km around ${esc(cyGlFmt(lon,lat))}\u2026</div>`;
+  cyNearby={lat,lon,radius,kinds,busy:true};
+  try{
+    const r=await fetch(`/api/geo/nearby?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}&radius=${radius}&kinds=${kinds.join(',')}&within=500`,{credentials:'same-origin'});
+    const j=await r.json();if(!r.ok)throw new Error(j.error||`HTTP ${r.status}`);
+    if(!cyNearby||cyNearby.lat!==lat)return;cyNearby={...cyNearby,busy:false,data:j};cyGlNearbyRender(j);
+  }catch(err){
+    cyNearby={...(cyNearby||{}),busy:false,error:err.message};const el=document.getElementById('cyGlNearby');
+    if(el)el.innerHTML=`<span class="x" onclick="cyGlNearbyClear()">\u2715</span><h5 ${CY_NB_H5}>Nearby \u00b7 OSM via Overpass</h5><div class="it" style="color:#ff8a80">${esc(err.message)}</div><div class="m" style="color:var(--dim)">Overpass is a shared public service; wait a minute and click again.</div>`;
+  }
+}
+function cyGlCircle(lon,lat,rM,n=48){const c=[];for(let i=0;i<=n;i++){const a=i/n*2*Math.PI;c.push([lon+rM/(111320*Math.cos(lat*Math.PI/180))*Math.sin(a),lat+rM/111320*Math.cos(a)])}return c}
+function cyGlNearbyRender(j){
+  const m=cyGlMap;if(!m||!cyGlReady)return;const q=j.query,km=j.kinds||{};
+  const feats=[{type:'Feature',properties:{t:'ring'},geometry:{type:'Polygon',coordinates:[cyGlCircle(q.lon,q.lat,q.radiusM)]}}]
+    .concat(j.features.map(f=>({type:'Feature',properties:{t:'f',glyph:km[f.kind]?.glyph||'?',color:km[f.kind]?.color||'#fff'},geometry:{type:'Point',coordinates:[f.lon,f.lat]}})))
+    .concat((j.pairs||[]).slice(0,40).map(p=>{const a=j.features.find(x=>x.id===p.a),b=j.features.find(x=>x.id===p.b);return a&&b?{type:'Feature',properties:{t:'pair'},geometry:{type:'LineString',coordinates:[[a.lon,a.lat],[b.lon,b.lat]]}}:null}).filter(Boolean));
+  if(m.getSource('cy-nb'))m.getSource('cy-nb').setData({type:'FeatureCollection',features:feats});
+  else{
+    m.addSource('cy-nb',{type:'geojson',data:{type:'FeatureCollection',features:feats}});
+    m.addLayer({id:'cy-nb-ring',type:'line',source:'cy-nb',filter:['==',['get','t'],'ring'],paint:{'line-color':'#64f0c8','line-width':1,'line-dasharray':[3,2]}});
+    m.addLayer({id:'cy-nb-pair',type:'line',source:'cy-nb',filter:['==',['get','t'],'pair'],paint:{'line-color':'#ffd54f','line-width':0.8,'line-opacity':0.7}});
+    m.addLayer({id:'cy-nb-dot',type:'circle',source:'cy-nb',filter:['==',['get','t'],'f'],paint:{'circle-radius':7,'circle-color':'#0b1116','circle-stroke-color':['get','color'],'circle-stroke-width':1.2}});
+    m.addLayer({id:'cy-nb-lbl',type:'symbol',source:'cy-nb',filter:['==',['get','t'],'f'],layout:{'text-field':['get','glyph'],'text-font':['Noto Sans Regular'],'text-size':9,'text-allow-overlap':true,'text-ignore-placement':true},paint:{'text-color':['get','color']}});
+  }
+  const el=document.getElementById('cyGlNearby');if(!el)return;
+  const fmtD=d=>d>=1000?(d/1000).toFixed(1)+' km':d+' m';
+  el.innerHTML=`<span class="x" onclick="cyGlNearbyClear()">\u2715</span><h5 ${CY_NB_H5}>Nearby \u00b7 ${j.count} OSM feature${j.count===1?'':'s'} \u2264 ${(q.radiusM/1000).toFixed(1)} km${j.cached?' \u00b7 cached':''}</h5>`
+    +`<div style="margin-bottom:4px">${q.kinds.map(k=>`<span style="color:${km[k]?.color||'#fff'}">${km[k]?.glyph||'?'}</span> ${esc(km[k]?.label||k)} <b>${j.byKind[k]||0}</b>`).join(' \u00b7 ')}</div>`
+    +(j.features.length?j.features.slice(0,40).map(f=>`<div class="it"><div class="t"><span style="color:${km[f.kind]?.color||'#fff'}">${km[f.kind]?.glyph||'?'}</span> ${twLink(f.osmUrl,f.name||km[f.kind]?.label||f.kind)}</div><div class="m">${fmtD(f.distanceM)} ${esc(f.compass)}${f.tags?.operator?` \u00b7 ${esc(f.tags.operator)}`:''}${f.tags?.military?` \u00b7 ${esc(f.tags.military)}`:''}</div></div>`).join(''):'<div class="it">Nothing of these kinds is mapped in OSM within the radius (absence in OSM is not absence on the ground).</div>')
+    +((j.pairs||[]).length?`<div class="it"><div class="t" style="color:#ffd54f">${j.pairs.length} co-located pair${j.pairs.length===1?'':'s'} \u2264 ${q.withinM} m</div>${j.pairs.slice(0,8).map(p=>`<div class="m">${esc(p.aName||p.aKind)} \u2194 ${esc(p.bName||p.bKind)} \u00b7 ${p.distanceM} m</div>`).join('')}</div>`:'')
+    +`<div class="m" style="margin-top:4px;color:var(--dim)">${esc(j.rule||'')}<br>${esc(j.attribution||'')}</div>`;
 }
 // ---- cy-gl:end
 function initCyMap(){
@@ -9038,7 +9127,7 @@ function tgtPick(id){
 }
 function tgtLowerPanels(wrap){
   if(!TGT.sel)return [wrap(renderTgtNominateHero(),'lp-wide')];
-  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtAccountsPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
+  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtAccountsPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtEvidencePanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
 }
 async function tgtSuggestVariants(){
   const f=TGT.form;const label=(f.label||'').trim();if(!label||TGT.varBusy)return;
@@ -9397,8 +9486,68 @@ function renderTgtMapPanel(){
       ${obs.length?'':'<div class="map-loading-text" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">No place mention resolved against the gazetteer</div>'}
       <div class="map-legend"><span style="color:var(--accent)">&#9679; stated presence</span><span style="color:var(--accent2)">&#9675; operation / contextual</span><span style="color:#ff8a80">&#9673; last known (dated)</span><span style="color:var(--dim)">ring = uncertainty radius \u00b7 drag / wheel to pan &amp; zoom</span><button type="button" class="inv-chip" style="cursor:pointer;color:var(--accent2);border-color:currentColor;background:transparent;padding:1px 6px" onclick="tgtMapReset()" title="Reset pan and zoom to the fitted extent">reset view</button></div></div>
     <div class="tgt-footprint"><span class="inv-sec-title" style="display:inline;margin-right:6px">Footprint</span>${fpRows||'<span class="inv-hint" style="padding:0">none</span>'}${disp?` <span class="sh-ms" style="margin-left:6px">dispersion median ${disp.medianKm} km \u00b7 max ${disp.maxKm} km over ${disp.n} places</span>`:''}</div>
+    ${tgtNearbyHtml(p)}
     <div class="sh-note">${esc(p.fix?.caveat||'')}</div>`,
     `<span class="badge">${obs.length} PLACED${lk?` \u00b7 LAST ${esc(lk.date)}`:''}</span>`);
+}
+// Nearby (OSM via Overpass) around the last-known public-record place — a Fix aid, bounded to 5 km and four kinds.
+function tgtLkCoords(p){const lk=p?.fix?.lastKnown;if(!lk)return null;if(Number.isFinite(lk.lat)&&Number.isFinite(lk.lon))return {lat:lk.lat,lon:lk.lon,place:lk.place};const o=(p.fix?.observations||[]).find(x=>x.place===lk.place&&Number.isFinite(x.lat)&&Number.isFinite(x.lon));return o?{lat:o.lat,lon:o.lon,place:lk.place}:null}
+function tgtNearbyHtml(p){
+  const c=tgtLkCoords(p);if(!c)return '';const nb=TGT.nearby&&TGT.nearby.for===TGT.sel?TGT.nearby:null;
+  const btn=`<button class="inv-btn ghost" type="button" onclick="tgtNearby()" ${nb?.busy?'disabled':''}>${nb?.busy?'Querying OSM\u2026':nb?.data?'Refresh':'What is nearby? (OSM \u00b7 5 km)'}</button>`;
+  let body='';
+  if(nb?.error)body=`<span style="color:#ff8a80">${esc(nb.error)}</span>`;
+  else if(nb?.data){const j=nb.data,km=j.kinds||{};
+    body=(j.features.length?j.features.slice(0,12).map(f=>`<span class="inv-chip" style="color:${km[f.kind]?.color||'#fff'};border-color:currentColor" title="${esc(km[f.kind]?.label||f.kind)} \u00b7 ${esc(f.id)}">${km[f.kind]?.glyph||'?'} ${twLink(f.osmUrl,f.name||km[f.kind]?.label||f.kind)} ${f.distanceM>=1000?(f.distanceM/1000).toFixed(1)+' km':f.distanceM+' m'} ${esc(f.compass)}</span>`).join(' '):'<span class="inv-hint" style="padding:0">nothing of these kinds mapped in OSM within 5 km</span>')
+      +`<div class="sh-note" style="margin:2px 0 0">${j.count} OSM features${j.cached?' (cached)':''} \u00b7 ${esc(j.attribution||'')} \u00b7 ${esc(j.rule||'')}</div>`}
+  return `<div class="tgt-footprint"><span class="inv-sec-title" style="display:inline;margin-right:6px">Nearby \u00b7 ${esc(c.place)}</span>${btn}<div style="margin-top:3px">${body}</div></div>`;
+}
+async function tgtNearby(){
+  const c=tgtLkCoords(TGT.target?.package);if(!c||!TGT.sel)return;
+  TGT.nearby={for:TGT.sel,busy:true};tgtRerender();
+  try{const r=await fetch(`/api/geo/nearby?lat=${Number(c.lat).toFixed(5)}&lon=${Number(c.lon).toFixed(5)}&radius=5000&kinds=military,police,airstrip,border&within=1000`,{credentials:'same-origin'});const j=await r.json();if(!r.ok)throw new Error(j.error||`HTTP ${r.status}`);TGT.nearby={for:TGT.sel,data:j}}
+  catch(e){TGT.nearby={for:TGT.sel,error:e.message}}
+  tgtRerender();
+}
+// Evidence locker: capture public https URLs into the package (bytes + SHA-256 + hash-chained custody + Wayback).
+function tgtEvKb(b){return b>=1048576?(b/1048576).toFixed(1)+' MB':b>=1024?Math.round(b/1024)+' kB':b+' B'}
+function renderTgtEvidencePanel(){
+  const t=TGT.target;const ev=TGT.ev&&TGT.ev.for===TGT.sel?TGT.ev:null;
+  if(t&&TGT.sel&&(!ev||ev.stale)&&!TGT.evBusy)tgtEvLoad();
+  const wrapP=(body,badge)=>`<div class="g-panel"><div class="sec-head"><h3>Evidence Locker</h3>${badge||'<span class="badge">CUSTODY</span>'}</div>${body}</div>`;
+  if(!t)return wrapP('<div class="inv-hint">Capture public https pages into the package: the bytes served are stored, SHA-256 recorded, a hash-chained custody line appended and a Wayback snapshot requested.</div>');
+  const items=ev?.items||[],chain=ev?.chain;
+  const form=`<form onsubmit="event.preventDefault();tgtEvCapture()" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><input class="inv-input" id="tgtEvUrl" type="url" maxlength="400" placeholder="https://\u2026 public page to capture" required autocomplete="off" spellcheck="false" style="flex:1 1 220px"><input class="inv-input" id="tgtEvNote" maxlength="240" placeholder="note (optional)" autocomplete="off" style="flex:1 1 120px"><button class="inv-btn" type="submit" ${TGT.evBusy==='capture'||t.status==='closed'?'disabled':''}>${TGT.evBusy==='capture'?'Capturing\u2026':'Capture'}</button></form>`;
+  const rows=items.map(i=>`<div style="padding:5px 0;border-top:1px solid var(--border);font-size:10px"><div>${invExt(i.url,i.title||i.url)} <span class="inv-ttag">${esc(i.contentType)}</span> <span class="inv-ttag" style="${i.httpStatus>=400?'color:#ff8a80':''}">HTTP ${esc(String(i.httpStatus))}</span>${i.truncated?' <span class="inv-ttag" style="color:#ffb74d">truncated</span>':''}</div>`
+    +`<div style="color:var(--dim);font-family:var(--mono);word-break:break-all">sha256 ${esc(i.sha256)}</div>`
+    +`<div style="color:var(--dim)">${tgtEvKb(i.bytes)} \u00b7 ${esc(String(i.capturedAt||'').replace('T',' ').slice(0,16))}Z \u00b7 wayback ${i.wayback?.url?invExt(i.wayback.url,i.wayback.timestamp||'snapshot'):esc(i.wayback?.status||'off')}${i.verifiedAt?` \u00b7 <span style="color:${i.verified?'var(--accent)':'#ff8a80'}">${i.verified?'hash verified':'HASH MISMATCH'}</span>`:''}${i.note?` \u00b7 \u201c${esc(i.note)}\u201d`:''}</div>`
+    +`<div style="margin-top:3px"><a class="inv-btn ghost" href="/api/targeting/evidence/${esc(i.id)}/content" download>Download bytes</a> <button class="inv-btn ghost" type="button" onclick="tgtEvVerify('${esc(i.id)}')" ${TGT.evBusy?'disabled':''}>Re-hash</button></div></div>`).join('');
+  return wrapP(`${form}${ev?.error?`<div class="inv-hint" style="color:#ff8a80">${esc(ev.error)}</div>`:''}${rows||(TGT.evBusy==='load'?'<div class="inv-hint" style="padding:4px 0">Loading\u2026</div>':'<div class="inv-hint" style="padding:4px 0">No captures yet. A capture records what a public URL served to CRUCIX at that moment \u2014 not that the content is true.</div>')}<div class="sh-note">${esc(ev?.rule||'')}${chain?` Custody chain: ${chain.ok?`intact (${chain.length} entries)`:`<b style="color:#ff8a80">BROKEN at #${esc(String(chain.brokenAt))}</b>`}.`:''}</div>`,
+    `<span class="badge">${items.length} ITEM${items.length===1?'':'S'}${chain&&!chain.ok?' \u00b7 CHAIN BROKEN':''}</span>`);
+}
+async function tgtEvLoad(keepError){
+  if(!TGT.sel)return;const id=TGT.sel;TGT.evBusy='load';
+  const held=keepError&&TGT.ev&&TGT.ev.for===id?TGT.ev.error:null;
+  const r=await tgtApi('GET',`/api/targeting/targets/${id}/evidence`);
+  TGT.ev=r.ok?{for:id,...r.body,error:held||null}:{for:id,items:(TGT.ev&&TGT.ev.for===id?TGT.ev.items:[])||[],error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
+  TGT.evBusy=null;
+  tgtRerender();
+}
+async function tgtEvCapture(){
+  const url=(document.getElementById('tgtEvUrl')?.value||'').trim(),note=(document.getElementById('tgtEvNote')?.value||'').trim();if(!url||!TGT.sel)return;
+  const id=TGT.sel;TGT.evBusy='capture';tgtRerender();
+  const r=await tgtApi('POST',`/api/targeting/targets/${id}/evidence`,{url,note});
+  TGT.evBusy=null;
+  if(r.ok){if(TGT.ev&&TGT.ev.for===id)TGT.ev.error=null;setTimeout(()=>{if(TGT.ev&&TGT.ev.for===id){TGT.ev.stale=true;tgtRerender()}},30000)}
+  else TGT.ev={...(TGT.ev&&TGT.ev.for===id?TGT.ev:{for:id,items:[]}),error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
+  await tgtEvLoad(!r.ok);
+}
+async function tgtEvVerify(id){
+  TGT.evBusy='verify';tgtRerender();
+  const r=await tgtApi('POST',`/api/targeting/evidence/${id}/verify`);
+  TGT.evBusy=null;
+  if(!r.ok)TGT.ev={...(TGT.ev||{for:TGT.sel,items:[]}),error:r.body?.error||(r.status?`HTTP ${r.status}`:'network error')};
+  await tgtEvLoad(!r.ok);
 }
 function initTgtMap(){
   const wrap=document.getElementById('tgtMapWrap'),svgEl=document.getElementById('tgtMapSvg');
@@ -9698,8 +9847,12 @@ async function askExternal(idx){
 function refreshMapViewport(forceGlobeReflow=false){
   const container = document.getElementById('mapContainer');
   if(!container) return;
-  const width = container.clientWidth;
-  const height = container.clientHeight || (isMobileLayout() ? 420 : 560);
+  const size = mapViewportSize();
+  if(!size.visible){ mapViewportStale = true; return; }
+  const { width, height } = size;
+  const wasStale = mapViewportStale;
+  mapViewportStale = false;
+  if(wasStale && !forceGlobeReflow && !isFlat) forceGlobeReflow = true;
   if(globe){
     globe.width(width).height(height);
     if(forceGlobeReflow && !isFlat){

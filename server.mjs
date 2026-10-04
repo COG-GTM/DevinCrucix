@@ -72,6 +72,10 @@ import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './l
 import { buildSourceContext } from './lib/targeting/sources.mjs';
 import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
+import { EvidenceLocker, EVIDENCE_ID_RE } from './lib/targeting/evidence.mjs';
+import { OverpassClient, KIND_KEYS as OSM_KINDS, KINDS as OSM_KIND_META, MIN_RADIUS_M as OSM_MIN_R, MAX_RADIUS_M as OSM_MAX_R } from './lib/geo/overpass.mjs';
+import { NightLights } from './lib/geo/nightlights.mjs';
+import { countryConfig } from './lib/countryconfig.mjs';
 import { DevinSecurity, DevinNotConfigured, DevinApiError, publicStatus as devinPublicStatus, buildScanBrief, EFFORTS as DEVIN_EFFORTS } from './lib/devinsec.mjs';
 import { buildGraph as buildInsightGraph, loadProfileGraph, saveGraph as saveInsightGraph, summarizeGraph as summarizeInsightGraph, filterGraph as filterInsightGraph, NODE_TYPES as KG_NODE_TYPES, RELATIONS as KG_RELATIONS } from './lib/cjng/graph.mjs';
 
@@ -630,6 +634,48 @@ app.get('/api/country/:cc/geo', (req, res) => {
   res.json(geo);
 });
 
+// VIIRS nighttime-lights change (lib/geo/nightlights.mjs): NASA GIBS Black Marble daily tiles for the country
+// viewport, one recent night vs. two baseline months, reduced to ~10 km cells. Computed lazily on first request,
+// cached 6 h in runs/nightlights/<cc>.json; the response carries the status while a computation runs.
+const nightLights = new NightLights({ dataDir: RUNS_DIR });
+app.get('/api/country/:cc/nightlights', validateQuery({ refresh: (v) => oneOf(v, ['1']) }), (req, res) => {
+  const cc = req.params.cc;
+  if (!isCountryId(cc)) return res.status(404).json({ error: 'unknown country' });
+  const cfg = countryConfig(cc);
+  if (!Array.isArray(cfg.viewport?.bbox)) return res.status(404).json({ error: 'country has no viewport' });
+  const current = nightLights.get(cc);
+  const force = req.validated.query.refresh === '1' && (!current || Date.now() - Date.parse(current.computedAt || 0) > 10 * 60_000);
+  if (force || !nightLights.isFresh(cc)) nightLights.compute({ id: cc, viewport: cfg.viewport, places: cfg.places || [] }, { force }).catch(() => {});
+  if (!current) return res.status(202).json({ status: 'computing', cc, caveat: 'First VIIRS comparison for this country is being computed (≈ 80 tiles from NASA GIBS); retry in a minute.' });
+  res.set('Cache-Control', 'private, max-age=60');
+  res.json({ status: nightLights.status(cc), ...current });
+});
+
+// OSM proximity via Overpass (lib/geo/overpass.mjs): bounded "what is within r m of this point" for the
+// country map and the targeting Fix step. One query in flight, ≤ 4 kinds, r ≤ 20 km, 6 h cache.
+const overpass = new OverpassClient({ dataDir: RUNS_DIR });
+app.get('/api/geo/nearby', validateQuery({
+  lat: (v) => num(v, { min: -85, max: 85, required: true }),
+  lon: (v) => num(v, { min: -180, max: 180, required: true }),
+  radius: (v) => num(v, { min: OSM_MIN_R, max: OSM_MAX_R, int: true }),
+  kinds: (v) => str(v, { max: 120, pattern: /^[a-z,|;]+$/, required: true }),
+  within: (v) => num(v, { min: 50, max: OSM_MAX_R, int: true }),
+}), async (req, res) => {
+  const { lat, lon, radius = 2000, kinds, within } = req.validated.query;
+  const ks = kinds.split(/[,;|]/).filter(k => OSM_KINDS.includes(k));
+  if (!ks.length) return res.status(400).json({ error: 'kinds must include at least one of ' + OSM_KINDS.join(', ') });
+  try {
+    const r = await overpass.nearby({ lat, lon, radiusM: radius, kinds: ks, withinM: within });
+    res.json({ ...r, kinds: Object.fromEntries(r.query.kinds.map(k => [k, { label: OSM_KIND_META[k].label, glyph: OSM_KIND_META[k].glyph, color: OSM_KIND_META[k].color }])) });
+  } catch (err) {
+    console.error('[OSM] nearby failed:', err.message);
+    res.status(/HTTP (429|504)/.test(err.message) ? 503 : 502).json({ error: err.message.slice(0, 160), attribution: '© OpenStreetMap contributors via Overpass API' });
+  }
+});
+app.get('/api/geo/nearby/kinds', (req, res) => {
+  res.json({ kinds: OSM_KINDS.map(k => ({ key: k, ...OSM_KIND_META[k], sel: undefined })), minRadiusM: OSM_MIN_R, maxRadiusM: OSM_MAX_R, maxKinds: 4 });
+});
+
 // API: Homeland / Narco — normalized cartel / border-crime events (Border Watch feeds + DOJ), graded by
 // independent corroboration and cross-matched against the OFAC SDN narco-program index.
 const NARCO_ID_RE = /^[a-z0-9_-]{1,40}$/;
@@ -867,6 +913,56 @@ app.get('/api/targeting/targets/:id/dossier.md', validateParams({ id: TGT_ID }),
     console.error('[Crucix] Dossier render error:', err);
     res.status(500).json({ error: 'Dossier export failed' });
   }
+});
+
+// Evidence locker (lib/targeting/evidence.mjs): capture a public https URL into the target package — bytes stored
+// under runs/targeting/evidence/<sha256>.bin, SHA-256 + response metadata in evidence.json, hash-chained custody
+// lines in custody.jsonl, Wayback snapshot requested best-effort. Content is only ever served as a download.
+const evidenceLocker = new EvidenceLocker({ dataDir: targetStore.dataDir });
+const EV_ID = (v) => str(v, { max: 16, pattern: EVIDENCE_ID_RE, required: true });
+const evidenceCaptureBody = validateBody({
+  url: (v) => str(v, { max: 400, pattern: /^https:\/\/[^\s<>"']+$/, required: true }),
+  note: (v) => str(v, { max: 240, min: 0, pattern: /^[^<>]*$/ }),
+});
+app.get('/api/targeting/targets/:id/evidence', validateParams({ id: TGT_ID }), (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const t = targetStore.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  res.json({ targetId: t.id, items: evidenceLocker.list(t.id), chain: evidenceLocker.chainStatus(), limits: { maxPerTarget: 40, maxBytes: 2 * 1024 * 1024 },
+    rule: 'Each item is the bytes a public URL returned to CRUCIX at capture time, hashed with SHA-256 and logged in a hash-chained custody file. The capture proves what was served, not that the content is true.' });
+});
+app.post('/api/targeting/targets/:id/evidence', validateParams({ id: TGT_ID }), evidenceCaptureBody, async (req, res) => {
+  const t = targetStore.get(req.validated.params.id);
+  if (!t) return res.status(404).json({ error: 'Target not found' });
+  if (t.status === 'closed') return res.status(409).json({ error: 'Target is closed' });
+  const { url, note = '' } = req.validated.body;
+  const r = await evidenceLocker.capture(t.id, url, { note, actor: 'operator' });
+  if (r.error) { targetAudit('targeting_evidence_failed', req, { id: t.id, status: r.status }); return res.status(r.status).json({ error: r.error }); }
+  targetStore.audit('evidence.capture', { id: t.id, evidenceId: r.item.id, sha256: r.item.sha256, bytes: r.item.bytes });
+  targetAudit('targeting_evidence_capture', req, { id: t.id, evidenceId: r.item.id, sha256: r.item.sha256, bytes: r.item.bytes });
+  res.status(201).json({ item: r.item, chain: evidenceLocker.chainStatus() });
+});
+app.post('/api/targeting/evidence/:evId/verify', validateParams({ evId: EV_ID }), (req, res) => {
+  const r = evidenceLocker.verify(req.validated.params.evId, { actor: 'operator' });
+  if (!r) return res.status(404).json({ error: 'Evidence not found' });
+  targetAudit('targeting_evidence_verify', req, { evidenceId: req.validated.params.evId, ok: r.ok });
+  res.json(r);
+});
+app.get('/api/targeting/evidence/:evId/content', validateParams({ evId: EV_ID }), (req, res) => {
+  if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
+  const c = evidenceLocker.content(req.validated.params.evId);
+  if (!c) return res.status(404).json({ error: 'Evidence not found' });
+  if (!c.buf) return res.status(410).json({ error: 'Stored bytes are gone; the custody log still records the capture', sha256: c.item.sha256 });
+  const ext = /html/.test(c.item.contentType) ? 'html' : /pdf/.test(c.item.contentType) ? 'pdf' : /json/.test(c.item.contentType) ? 'json' : 'bin';
+  res.set('Content-Type', 'application/octet-stream');
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Content-Disposition', `attachment; filename="crucix-evidence-${c.item.id}-${c.item.sha256.slice(0, 12)}.${ext}"`);
+  res.send(c.buf);
+});
+app.get('/api/targeting/custody', validateQuery({ limit: (v) => num(v, { min: 1, max: 200, int: true }) }), (req, res) => {
+  const lines = evidenceLocker.readChain();
+  const limit = req.validated.query.limit || 50;
+  res.json({ chain: evidenceLocker.chainStatus(), stats: evidenceLocker.stats(), lines: lines.slice(-limit).reverse() });
 });
 app.get('/api/targeting/graph-overlay', (req, res) => {
   if (!onlyQueryKeys(req, [])) return res.status(400).json({ error: 'Invalid request' });
