@@ -8251,7 +8251,7 @@ function renderTgtPackagePanel(){
   const kpi=(k,v,title)=>`<div class="tgt-kpi" title="${esc(title||'')}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
   const actions=`<div class="tgt-pkg-actions">
       <button class="inv-btn" data-tgt-act="develop" ${dev||t.status==='closed'||TGT.busy?'disabled':''}>${dev?'Developing…':p?'Re-develop':'Develop target'}</button>
-      ${(p||(t.accounts||[]).length)?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
+      ${(p||(t.accountList||[]).length)?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
       <button class="inv-btn ghost" data-tgt-act="close" ${t.status==='closed'||TGT.busy?'disabled':''}>Close</button>
       <button class="inv-btn ghost" data-tgt-act="delete" ${TGT.busy?'disabled':''}>Delete</button></div>`;
   const developing=dev?`<div class="inv-loading"><div class="inv-loading-head">DEVELOPING TARGET \u00b7 FIND \u2192 CLASSIFY \u2192 FIX \u2192 PATTERN</div><div class="inv-chips">${Object.values(TGT_SOURCE_META).map((m,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(m.label)}</span>`).join('')}<span class="inv-chip pulse" style="animation-delay:900ms">${TGT.caps?.llm?.configured?'model adjudication':'rules (no model key)'}</span></div></div>`:'';

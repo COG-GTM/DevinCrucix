@@ -50,7 +50,7 @@ export function classifyTarget(raw, hint) {
   if (!s || s.length > 2048) return null;
   const lower = s.toLowerCase();
   if (hint === 'company') return COMPANY_RE.test(s) ? { type: 'company', value: s } : null;
-  if (hint === 'username') return USERNAME_RE.test(s) && s.length <= 39 ? { type: 'username', value: s } : null;
+  if (hint === 'username') { const h = s.replace(/^@/, ''); return USERNAME_RE.test(h) && h.length <= 39 ? { type: 'username', value: h } : null; }
   if (hint === 'phone') return PHONE_RE.test(s) && s.replace(/\D/g, '').length >= 7 ? { type: 'phone', value: s } : null;
   if (hint === 'url') return URL_RE.test(s) ? { type: 'url', value: s } : null;
   if (/^https?:\/\//i.test(s)) {
