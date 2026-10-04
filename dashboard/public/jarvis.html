@@ -7988,7 +7988,7 @@ async function tgtFetchTarget(id){
 function tgtSelect(id){if(!id||id===TGT.sel&&TGT.target)return;TGT.sel=id;localStorage.setItem('crucix_tgt',id);TGT.target=null;TGT.error=null;TGT.view='all';tgtRerender();tgtFetchTarget(id).then(tgtRerender)}
 function tgtFormRerender(){if(currentTab==='targeting'&&D)renderLower()}
 function tgtFormSet(k,v){TGT.form[k]=v;if(k==='basisKind'){TGT.form.basisRef='';tgtFormRerender()}}
-function tgtNew(){TGT.sel=null;TGT.target=null;TGT.error=null;TGT.formError=null;localStorage.removeItem('crucix_tgt');tgtRerender();requestAnimationFrame(()=>document.querySelector('.tgt-label-input')?.focus())}
+function tgtNew(){TGT.sel=null;TGT.target=null;TGT.error=null;TGT.formError=null;TGT.form={...TGT.form,label:'',aliases:'',basisRef:'',requirement:''};localStorage.removeItem('crucix_tgt');tgtRerender();requestAnimationFrame(()=>document.querySelector('.tgt-label-input')?.focus())}
 // Quick picks: the most-connected person / org nodes of the CJNG knowledge graph — already named in public
 // reporting, so they satisfy the public-basis rule. Read-only; nomination still goes through the form.
 const TGT_PICK_REQ='Current public-record whereabouts and status, succession, and publicly named associates.';
