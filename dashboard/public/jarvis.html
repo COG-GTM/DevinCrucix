@@ -1378,6 +1378,18 @@ let lowPerfMode = localStorage.getItem('crucix_low_perf') === 'true';
 let isFlat = shouldStartFlat();
 let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
+let mapViewportStale = false;
+// #mapContainer is display:none on every tab except Situation (grid.no-map), so it measures 0px
+// there. Projecting into a 0px box yields NaN transforms and a blank map, so size from the
+// container only when it is actually laid out and fall back to the grid/window otherwise.
+function mapViewportSize(){
+  const container = document.getElementById('mapContainer');
+  const width = container ? container.clientWidth : 0;
+  const visible = width > 0;
+  const fallbackW = Math.max(320, (document.getElementById('grid')?.clientWidth || window.innerWidth || 960) - 40);
+  const fallbackH = isMobileLayout() ? 420 : 560;
+  return { visible, width: visible ? width : fallbackW, height: (visible && container.clientHeight) || fallbackH };
+}
 const signalGuideItems = [
   {
     term:'No Callsign',
@@ -2819,9 +2831,7 @@ function initGlobe(){
     document.getElementById('mapHint').textContent = 'DRAG TO ROTATE · SCROLL TO ZOOM';
     return;
   }
-  const container = document.getElementById('mapContainer');
-  const w = container.clientWidth;
-  const h = container.clientHeight || 560;
+  const { w, h } = (({ width, height }) => ({ w: width, h: height }))(mapViewportSize());
 
   globe = Globe()
     .width(w)
@@ -3586,8 +3596,9 @@ function toggleMapMode(){
 }
 
 function initFlatMap(){
-  const container = document.getElementById('mapContainer');
-  flatW = container.clientWidth; flatH = container.clientHeight || 560;
+  const size = mapViewportSize();
+  flatW = size.width; flatH = size.height;
+  mapViewportStale = !size.visible;
   flatSvg = d3.select('#flatMapSvg').attr('viewBox',`0 0 ${flatW} ${flatH}`).attr('preserveAspectRatio','xMidYMid meet');
   flatProjection = d3.geoNaturalEarth1().fitSize([flatW-20,flatH-20],{type:'Sphere'}).translate([flatW/2,flatH/2]);
   flatPath = d3.geoPath(flatProjection);
@@ -3613,7 +3624,7 @@ function drawFlatMap(){
 
 // Keep marker labels at constant screen size and damp circle growth as the flat map zooms.
 function scaleFlatMarkers(k){
-  if(!flatG)return;
+  if(!flatG||!(k>0)||!isFinite(k))return;
   flatG.selectAll('.marker-circle').attr('r',function(){return +this.dataset.baseR/k}).attr('stroke-width',function(){return (this.classList.contains('conflict-ring')?1.5:0.8)/k});
   flatG.selectAll('.marker-air').attr('transform',`scale(${1/k})`);
   flatG.selectAll('.marker-label').style('font-size',(9/k)+'px').style('display',k>=2.5?'block':'none');
@@ -9548,8 +9559,12 @@ async function askExternal(idx){
 function refreshMapViewport(forceGlobeReflow=false){
   const container = document.getElementById('mapContainer');
   if(!container) return;
-  const width = container.clientWidth;
-  const height = container.clientHeight || (isMobileLayout() ? 420 : 560);
+  const size = mapViewportSize();
+  if(!size.visible){ mapViewportStale = true; return; }
+  const { width, height } = size;
+  const wasStale = mapViewportStale;
+  mapViewportStale = false;
+  if(wasStale && !forceGlobeReflow && !isFlat) forceGlobeReflow = true;
   if(globe){
     globe.width(width).height(height);
     if(forceGlobeReflow && !isFlat){
