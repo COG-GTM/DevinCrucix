@@ -50,7 +50,7 @@ export function classifyTarget(raw, hint) {
   if (!s || s.length > 2048) return null;
   const lower = s.toLowerCase();
   if (hint === 'company') return COMPANY_RE.test(s) ? { type: 'company', value: s } : null;
-  if (hint === 'username') return USERNAME_RE.test(s) && s.length <= 39 ? { type: 'username', value: s } : null;
+  if (hint === 'username') { const h = s.replace(/^@/, ''); return USERNAME_RE.test(h) && h.length <= 39 ? { type: 'username', value: h } : null; }
   if (hint === 'phone') return PHONE_RE.test(s) && s.replace(/\D/g, '').length >= 7 ? { type: 'phone', value: s } : null;
   if (hint === 'url') return URL_RE.test(s) ? { type: 'url', value: s } : null;
   if (/^https?:\/\//i.test(s)) {
@@ -356,15 +356,15 @@ export function keyedSourceStatus() {
   };
 }
 
-export async function investigate(target) {
-  const key = `${target.type}:${target.value}`;
+export async function investigate(target, { onProgress, includeNsfw = false } = {}) {
+  const key = `${target.type}:${target.value}${target.type === 'username' && includeNsfw ? ':nsfw' : ''}`;
   const cached = _cache.get(key);
   if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return { ...cached.dossier, cached: true };
 
   const start = Date.now();
   const runner = {
     domain: investigateDomain, ip: investigateIp, hash: investigateHash, company: investigateCompany,
-    email: investigateEmail, username: investigateUsername, phone: investigatePhone, url: investigateUrl,
+    email: investigateEmail, username: v => investigateUsername(v, { onProgress, includeNsfw }), phone: investigatePhone, url: investigateUrl,
     btc: v => investigateWallet('btc', v), eth: v => investigateWallet('eth', v),
   }[target.type];
   const result = await runner(target.value);
