@@ -62,6 +62,7 @@ import { loadGroups } from './lib/narco/groups.mjs';
 import { TargetStore, validateNomination, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE } from './lib/targeting/store.mjs';
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
 import { buildSourceContext } from './lib/targeting/sources.mjs';
+import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
 import { buildGraph as buildInsightGraph, loadProfileGraph, saveGraph as saveInsightGraph, summarizeGraph as summarizeInsightGraph, filterGraph as filterInsightGraph, NODE_TYPES as KG_NODE_TYPES, RELATIONS as KG_RELATIONS } from './lib/cjng/graph.mjs';
 
@@ -1144,6 +1145,71 @@ app.get('/api/history/series', validateQuery({
   }
 });
 // === end standing requirements ===
+
+// === Ask CRUCIX ===
+// Read-only Q&A drawer. Grounded mode answers from a bounded pack of the live state and cites
+// section ids; external mode (explicit analyst confirm) uses provider web search and is labelled
+// unverified. On-click only — nothing here runs during a sweep.
+const ASK_RATE = { windowMs: 60_000, max: config.ask.ratePerMin };
+const _askBuckets = new Map();
+function askRateLimited(ip) {
+  const now = Date.now();
+  const b = _askBuckets.get(ip) || { start: now, n: 0 };
+  if (now - b.start > ASK_RATE.windowMs) { b.start = now; b.n = 0; }
+  b.n++;
+  _askBuckets.set(ip, b);
+  if (_askBuckets.size > 5000) for (const [k, v] of _askBuckets) if (now - v.start > ASK_RATE.windowMs) _askBuckets.delete(k);
+  return b.n > ASK_RATE.max;
+}
+function askState() {
+  return {
+    data: currentData, narco: narcoData, graph: cjngGraph, lastSweepTime,
+    requirements: rqStore.snapshot(),
+    targets: targetStore.list().map(summarizeTarget),
+  };
+}
+function askExternalEnabled() { return config.ask.external && !!llmProvider?.isConfigured && !!llmProvider.supportsWebSearch; }
+
+// GET /api/ask/status — what the drawer can do right now
+app.get('/api/ask/status', (req, res) => {
+  res.json({
+    version: ASK_VERSION,
+    enabled: !!llmProvider?.isConfigured,
+    provider: llmProvider?.isConfigured ? llmProvider.name : null,
+    model: llmProvider?.isConfigured ? (llmProvider.model || null) : null,
+    external: askExternalEnabled(),
+    externalLabel: ASK_EXTERNAL_LABEL,
+    hasData: !!currentData,
+    asOf: currentData?.situation?.asOf || lastSweepTime,
+    limits: { questionChars: ASK_MAX_QUESTION, historyTurns: ASK_MAX_HISTORY, perMinute: ASK_RATE.max, contextChars: config.ask.maxContextChars },
+  });
+});
+
+// POST /api/ask { question, history?, mode?: 'grounded'|'external' }
+app.post('/api/ask', async (req, res) => {
+  if (askRateLimited(req.ip)) return res.status(429).json({ error: 'rate limited', retryAfterSec: 60 });
+  const v = validateAskRequest(req.body);
+  if (!v.ok) return res.status(400).json({ error: 'invalid request', field: v.field, reason: v.reason });
+  const { question, mode, history } = v.value;
+  try {
+    if (mode === 'external') {
+      if (!askExternalEnabled()) return res.status(409).json({ error: 'external search unavailable', reason: !llmProvider?.isConfigured ? 'no model configured' : !config.ask.external ? 'disabled by ASK_EXTERNAL=false' : `provider ${llmProvider.name} has no web search` });
+      const out = await askExternal({ provider: llmProvider, state: askState(), question, history, maxContextChars: config.ask.maxContextChars });
+      if (!out.ok) return res.status(502).json({ error: out.error, mode: 'external' });
+      console.log(`[Ask] external · ${out.model} · ${out.usage?.inputTokens || 0}/${out.usage?.outputTokens || 0} tok · ${out.sources.length} sources`);
+      return res.json(out);
+    }
+    const out = await askGrounded({ provider: llmProvider, state: askState(), question, history, maxContextChars: config.ask.maxContextChars });
+    out.externalAvailable = askExternalEnabled();
+    if (!out.externalAvailable) out.suggestExternal = false;
+    if (out.llm?.used) console.log(`[Ask] grounded · ${out.model} · ${out.usage?.inputTokens || 0}/${out.usage?.outputTokens || 0} tok · ${out.sufficiency} · cites ${out.citations.map(c => c.id).join(',') || 'none'}`);
+    res.json(out);
+  } catch (err) {
+    console.error('[Ask] failed:', err.message);
+    res.status(502).json({ error: 'model request failed', detail: String(err.message || '').slice(0, 160) });
+  }
+});
+// === end Ask CRUCIX ===
 
 // API: health check. Always HTTP 200 (Fly health checks kill the machine on 503). The endpoint is
 // public, so unauthenticated callers only get the minimal body; configuration detail requires a session.
