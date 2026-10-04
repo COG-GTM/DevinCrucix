@@ -210,6 +210,10 @@ Below the border-reporting group on the Cartels & Border tab sits a **CJNG-only 
 
 The panel is a D3 force layout with node-type, relation and minimum-support chips (persisted in `localStorage`); clicking a node lists its relations with the evidence sentences and links to the original article. Relations are as reported in the cited sentence, not verified ground truth, and rule-based cues miss relations phrased differently.
 
+### Country knowledge graphs (Colombia, Venezuela)
+
+The same pipeline is parameterised by a **graph profile** (`lib/cjng/profiles.mjs`): `cjng` (org-rooted, Mexico gazetteer, `config/cartel-groups.json`), `co` and `ve` (country-rooted `country:CO` / `country:VE`, GeoNames gazetteers `config/co-gazetteer.json` / `config/ve-gazetteer.json` built by `scripts/build-gazetteer.mjs`, group/alias indexes `config/co-groups.json` / `config/ve-groups.json`). Country corpora are every InSight Crime post carrying the country tag, its *Groups* / *Personalities* tags and the main group tags (ELN, Gaitanistas, Ex-FARC Mafia, Second Marquetalia, Tren de Aragua, colectivos, megabandas …) plus full-text hits on the country name; an article enters the graph when it is tagged or names the country at least three times. Places are namespaced per country (`place:CO-…`), the graph caps itself at the 800 most recent focused articles, and every edge still carries bounded evidence sentences and source URLs. Snapshots live in `config/co-graph-snapshot.json.gz` / `config/ve-graph-snapshot.json.gz`; the server refreshes the three profiles in turn on the `CJNG_GRAPH_REFRESH*` schedule, serves them at `/api/country/co/graph` and `/api/country/ve/graph`, and the Colombia / Venezuela tabs render them with the same pull-apart panel as the CJNG graph.
+
 ### Target Development (public-source find / fix workbench)
 
 The **Target Development** tab turns the stores CRUCIX already holds into an analyst's targeting package (`lib/targeting/`). It is scoped to entities that public reporting already names — persons, organisations, facilities, vehicles, vessels, aircraft — and never to ordinary private individuals.
@@ -223,6 +227,15 @@ The **Target Development** tab turns the stores CRUCIX already holds into an ana
 - **Dossier** — `GET /api/targeting/targets/:id/dossier.md` renders a sourced Markdown package with every claim cited and its caveats.
 
 Routes live under `/api/targeting` (list, nominate, get, develop, link / proposal decisions, close, delete, dossier, overlay); ids, enums and body fields are whitelisted and unexpected fields are a 400.
+
+### Ask CRUCIX (header drawer)
+
+The **◈ Ask CRUCIX** button in the header opens a read-only side drawer from any tab. A question is answered in two clearly separated modes:
+
+- **CRUCIX-grounded** — the server packs the live state (situation headlines, DEFCON, delta, signals, focal points, CII, cartel events, Border Watch, CBP, InsightCrime, CJNG graph, KEV, Telegram OSINT, markets, theater tabs, standing requirements, target packages, source health) into a bounded, source-attributed context and the model may only answer from it. Every claim cites a section id (`[narco]`, `[defcon]`, …) that the drawer turns into a jump to the tab it came from; the model is told to keep CRUCIX's provenance tiers apart (source-reported vs computed vs model-proposed vs analyst-decided) and to say `insufficient` instead of guessing.
+- **EXTERNAL — UNVERIFIED** — offered only when the grounded pass says CRUCIX does not hold the answer, and only run after the analyst clicks *Search outside CRUCIX*. Uses the provider's hosted web search (OpenAI Responses API `web_search_preview`); the answer is labelled and lists the cited URLs. External and grounded material are never merged into one answer.
+
+On-click only (no sweep cost), per-IP rate limited, token-capped, conversation kept in the browser's `sessionStorage` (nothing persisted server-side), rules-only card when no `LLM_*` key is set. It cannot nominate targets, decide links, or touch the verified graph. `GET /api/ask/status`, `POST /api/ask { question, history?, mode: grounded|external }`.
 
 ### Ukraine War (Ukraine theater)
 
@@ -636,6 +649,7 @@ crucix/
 | `npm run brief:save` | `node apis/save-briefing.mjs` | Run sweep + save timestamped JSON |
 | `npm run diag` | `node diag.mjs` | Run diagnostics (Node version, imports, port check) |
 | `npm run cjng:graph` | `node scripts/cjng-graph.mjs` | Refresh the InSight Crime CJNG corpus and rebuild the knowledge graph (`--full` re-pulls everything, `--offline` rebuilds from the cached corpus) |
+| `npm run insight:graph -- <cjng\|co\|ve>` | `node scripts/insight-graph.mjs` | Same pipeline for any InSight Crime graph profile: the CJNG org graph or the Colombia / Venezuela country graphs (`--full`, `--offline`, `--snapshot` to refresh `config/<key>-graph-snapshot.json.gz`) |
 | `npm run ingest` | `python -m crucix_ingest serve` | Start the Border Watch ingestion service (needs the `ingest/` venv active) |
 | `npm run ingest:poll` | `python -m crucix_ingest poll` | One polling pass over every enabled source |
 | `npm run ingest:test` | `cd ingest && python -m pytest` | Ingestion test suite (recorded fixtures, no network) |
@@ -661,6 +675,7 @@ All settings are in `.env` with sensible defaults:
 | `LLM_PROVIDER` | disabled | `anthropic`, `openai`, `gemini`, `codex`, `openrouter`, `minimax`, `mistral`, or `grok` |
 | `LLM_API_KEY` | — | API key (not needed for codex) |
 | `LLM_MODEL` | per-provider default | Override model selection |
+| `ASK_RATE_PER_MIN` / `ASK_MAX_CONTEXT_CHARS` / `ASK_EXTERNAL` | `10` / `14000` / `true` | Ask CRUCIX drawer: per-IP questions per minute, grounded context budget, allow the confirmed external web-search fallback (OpenAI only) |
 | `TELEGRAM_BOT_TOKEN` | disabled | For Telegram alerts + bot commands |
 | `TELEGRAM_CHAT_ID` | — | Your Telegram chat ID |
 | `TELEGRAM_CHANNELS` | — | Extra channel IDs to monitor (comma-separated) |
@@ -692,6 +707,9 @@ When running `npm run dev`:
 | `GET /api/cartels` | Current cartel-map summary (status, counts, organizations, wars, recent entries, disclaimer) |
 | `GET /api/cartels/geo` | Cartel-map geometry (polygons, points, lines) for the CARTELS tab; 404 until the first successful fetch |
 | `GET /api/narco/graph` | CJNG knowledge graph (nodes, edges with evidence, article index); optional `type`, `rel`, `min` filters |
+| `GET /api/country/:cc/graph` | Country knowledge graph (Colombia `co`, Venezuela `ve`) from the InSight Crime corpus; same `type`, `rel`, `min` filters; 404 for countries without a profile |
+| `GET /api/ask/status` | Ask CRUCIX capability: model configured, external search available, limits |
+| `POST /api/ask` | Ask CRUCIX: `{ question, history?, mode: grounded\|external }` → cited answer; external only when explicitly requested; rate limited |
 
 ---
 

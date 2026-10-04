@@ -55,12 +55,14 @@ import { queryReleases as dojReleases, DISTRICTS as DOJ_DISTRICTS, CATEGORY_IDS 
 import { loadIndex as ofacNarcoIndex, matchNames as ofacMatchNames } from './apis/sources/ofacnarco.mjs';
 import { CONFIDENCE as NARCO_GRADES } from './lib/narco/events.mjs';
 import { EVENT_TYPE_LABELS as NARCO_TYPES } from './lib/narco/extract.mjs';
-import { refreshCorpus as refreshCjngCorpus } from './lib/cjng/corpus.mjs';
+import { refreshCorpus as refreshInsightCorpus } from './lib/cjng/corpus.mjs';
+import { PROFILES as KG_PROFILES, COUNTRY_PROFILES as KG_COUNTRY_PROFILES } from './lib/cjng/profiles.mjs';
 import { TargetStore, validateNomination, summarizeTarget, TARGET_TYPES as TGT_TYPES, BASIS_KINDS as TGT_BASIS, DECISIONS as TGT_DECISIONS, TARGET_ID_RE, LINK_ID_RE, PROPOSAL_ID_RE } from './lib/targeting/store.mjs';
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
 import { buildSourceContext } from './lib/targeting/sources.mjs';
+import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
-import { buildCjngGraph, loadGraph as loadCjngGraph, saveGraph as saveCjngGraph, summarizeGraph as summarizeCjngGraph, filterGraph as filterCjngGraph, NODE_TYPES as CJNG_NODE_TYPES, RELATIONS as CJNG_RELATIONS } from './lib/cjng/graph.mjs';
+import { buildGraph as buildInsightGraph, loadProfileGraph, saveGraph as saveInsightGraph, summarizeGraph as summarizeInsightGraph, filterGraph as filterInsightGraph, NODE_TYPES as KG_NODE_TYPES, RELATIONS as KG_RELATIONS } from './lib/cjng/graph.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
@@ -85,13 +87,23 @@ let sweepInProgress = false;
 let marketRefreshInProgress = false;
 let seismicData = null;      // Seismic Event Monitor state (refreshed independently)
 let narcoData = loadNarcoEvents(); // Full narco event clusters from the last post-sweep computation (runs/narco/events.json)
-let cjngGraph = loadCjngGraph();   // CJNG knowledge graph built from InSight Crime's public API (runs/insightcrime/cjng/graph.json, else committed snapshot)
-let cjngRefresh = { status: cjngGraph ? (cjngGraph.snapshot ? 'snapshot' : 'cached') : 'pending', lastAttempt: null, lastSuccess: cjngGraph?.computedAt || null, error: null, inProgress: false };
+// InSight Crime knowledge graphs, one per profile (cjng = Cartels tab, co / ve = Country Home Pages), each loaded
+// from runs/insightcrime/<profile>/graph.json, else the committed snapshot in config/.
+const kgState = Object.fromEntries(Object.values(KG_PROFILES).map(p => {
+  const graph = loadProfileGraph(p);
+  return [p.key, { profile: p, graph, refresh: { status: graph ? (graph.snapshot ? 'snapshot' : 'cached') : 'pending', lastAttempt: null, lastSuccess: graph?.computedAt || null, error: null, inProgress: false } }];
+}));
+const kgSummary = key => summarizeInsightGraph(kgState[key].graph, kgState[key].refresh);
+// Compact per-country graph summary on the country payload; the full graph is served by /api/country/:cc/graph.
+function attachCountryGraphs(country) {
+  for (const [cc, key] of Object.entries(KG_COUNTRY_PROFILES)) if (country?.[cc] && kgState[key]) country[cc].graph = kgSummary(key);
+  return country;
+}
 const CJNG_REFRESH_HOURS = Math.min(168, Math.max(1, Number(process.env.CJNG_GRAPH_REFRESH_HOURS) || 12));
 const CJNG_REFRESH_ENABLED = process.env.CJNG_GRAPH_REFRESH !== 'false';
 function narcoView(result, sources, opts) {
   const v = buildNarcoView(result, sources, opts);
-  v.cjng = summarizeCjngGraph(cjngGraph, cjngRefresh);
+  v.cjng = kgSummary('cjng');
   return v;
 }
 const startTime = Date.now();
@@ -547,7 +559,17 @@ app.get('/api/taiwan/geo', (req, res) => {
 app.get('/api/country/:cc', (req, res) => {
   if (!isCountryId(req.params.cc)) return res.status(404).json({ error: 'unknown country' });
   if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
-  res.json(currentData.country?.[req.params.cc] || { status: 'unavailable' });
+  const view = currentData.country?.[req.params.cc];
+  if (!view) return res.json({ status: 'unavailable' });
+  const key = KG_COUNTRY_PROFILES[req.params.cc];
+  res.json(key ? { ...view, graph: kgSummary(key) } : view);
+});
+
+// Full country knowledge graph (InSight Crime country + group tags -> lib/cjng with the country profile).
+app.get('/api/country/:cc/graph', (req, res) => {
+  const key = isCountryId(req.params.cc) ? KG_COUNTRY_PROFILES[req.params.cc] : null;
+  if (!key) return res.status(404).json({ error: 'no graph for this country' });
+  return serveGraph(key, req, res);
 });
 
 app.get('/api/country/:cc/geo', (req, res) => {
@@ -610,18 +632,20 @@ app.get('/api/narco/events/:id', (req, res) => {
   if (!c) return res.status(404).json({ error: 'Event not found' });
   res.json(c);
 });
-// CJNG knowledge graph (InSight Crime public API -> lib/cjng). Filters are allowlisted; the full graph is bounded at build time.
-const CJNG_LIST_RE = /^[a-z_]{1,20}(?:,[a-z_]{1,20}){0,9}$/;
-app.get('/api/narco/graph', (req, res) => {
+// Knowledge graphs (InSight Crime public API -> lib/cjng). Filters are allowlisted; the full graph is bounded at build time.
+const KG_LIST_RE = /^[a-z_]{1,20}(?:,[a-z_]{1,20}){0,9}$/;
+function serveGraph(key, req, res) {
   if (!onlyQueryKeys(req, ['type', 'rel', 'min'])) return res.status(400).json({ error: 'Invalid request' });
-  const type = narcoPick(req, 'type', v => CJNG_LIST_RE.test(v) && v.split(',').every(t => CJNG_NODE_TYPES.includes(t)));
-  const rel = narcoPick(req, 'rel', v => CJNG_LIST_RE.test(v) && v.split(',').every(t => Object.hasOwn(CJNG_RELATIONS, t)));
+  const type = narcoPick(req, 'type', v => KG_LIST_RE.test(v) && v.split(',').every(t => KG_NODE_TYPES.includes(t)));
+  const rel = narcoPick(req, 'rel', v => KG_LIST_RE.test(v) && v.split(',').every(t => Object.hasOwn(KG_RELATIONS, t)));
   const min = narcoInt(req, 'min', 1, 1, 999, 3);
   if (type === undefined || rel === undefined || Number.isNaN(min)) return res.status(400).json({ error: 'Invalid request' });
-  if (!cjngGraph) return res.json({ status: cjngRefresh.status, refresh: cjngRefresh, nodes: [], edges: [], articles: [] });
-  const g = filterCjngGraph(cjngGraph, { types: type ? type.split(',') : null, rels: rel ? rel.split(',') : null, minArticles: min });
-  res.json({ status: cjngGraph.snapshot ? 'snapshot' : 'live', refresh: cjngRefresh, ...g });
-});
+  const { graph, refresh } = kgState[key];
+  if (!graph) return res.json({ status: refresh.status, refresh, nodes: [], edges: [], articles: [] });
+  const g = filterInsightGraph(graph, { types: type ? type.split(',') : null, rels: rel ? rel.split(',') : null, minArticles: min });
+  res.json({ status: graph.snapshot ? 'snapshot' : 'live', refresh, ...g });
+}
+app.get('/api/narco/graph', (req, res) => serveGraph('cjng', req, res));
 
 app.get('/api/narco/doj', (req, res) => {
   if (!onlyQueryKeys(req, ['district', 'category', 'days', 'limit'])) return res.status(400).json({ error: 'Invalid request' });
@@ -699,7 +723,7 @@ app.post('/api/targeting/targets/:id/develop', validateParams({ id: TGT_ID }), a
   targetDevelopInFlight.add(t.id);
   targetAudit('targeting_develop_start', req, { id: t.id, llm: Boolean(llmProvider?.isConfigured) });
   try {
-    const ctx = buildSourceContext({ graph: cjngGraph, narcoData, telegramFeed: getTelegramFeed() });
+    const ctx = buildSourceContext({ graph: kgState.cjng.graph, narcoData, telegramFeed: getTelegramFeed() });
     const pkg = await developTarget(llmProvider, t, ctx);
     const saved = targetStore.setPackage(t.id, pkg);
     targetAudit('targeting_develop_done', req, { id: t.id, ms: pkg.durationMs, mentions: pkg.stats.mentions, links: pkg.links.length, proposals: saved.graphProposals.length, llm: pkg.llm.used ? pkg.llm.model : null });
@@ -1115,6 +1139,71 @@ app.get('/api/history/series', validateQuery({
 });
 // === end standing requirements ===
 
+// === Ask CRUCIX ===
+// Read-only Q&A drawer. Grounded mode answers from a bounded pack of the live state and cites
+// section ids; external mode (explicit analyst confirm) uses provider web search and is labelled
+// unverified. On-click only — nothing here runs during a sweep.
+const ASK_RATE = { windowMs: 60_000, max: config.ask.ratePerMin };
+const _askBuckets = new Map();
+function askRateLimited(ip) {
+  const now = Date.now();
+  const b = _askBuckets.get(ip) || { start: now, n: 0 };
+  if (now - b.start > ASK_RATE.windowMs) { b.start = now; b.n = 0; }
+  b.n++;
+  _askBuckets.set(ip, b);
+  if (_askBuckets.size > 5000) for (const [k, v] of _askBuckets) if (now - v.start > ASK_RATE.windowMs) _askBuckets.delete(k);
+  return b.n > ASK_RATE.max;
+}
+function askState() {
+  return {
+    data: currentData, narco: narcoData, graph: kgState.cjng.graph, lastSweepTime,
+    requirements: rqStore.snapshot(),
+    targets: targetStore.list().map(summarizeTarget),
+  };
+}
+function askExternalEnabled() { return config.ask.external && !!llmProvider?.isConfigured && !!llmProvider.supportsWebSearch; }
+
+// GET /api/ask/status — what the drawer can do right now
+app.get('/api/ask/status', (req, res) => {
+  res.json({
+    version: ASK_VERSION,
+    enabled: !!llmProvider?.isConfigured,
+    provider: llmProvider?.isConfigured ? llmProvider.name : null,
+    model: llmProvider?.isConfigured ? (llmProvider.model || null) : null,
+    external: askExternalEnabled(),
+    externalLabel: ASK_EXTERNAL_LABEL,
+    hasData: !!currentData,
+    asOf: currentData?.situation?.asOf || lastSweepTime,
+    limits: { questionChars: ASK_MAX_QUESTION, historyTurns: ASK_MAX_HISTORY, perMinute: ASK_RATE.max, contextChars: config.ask.maxContextChars },
+  });
+});
+
+// POST /api/ask { question, history?, mode?: 'grounded'|'external' }
+app.post('/api/ask', async (req, res) => {
+  if (askRateLimited(req.ip)) return res.status(429).json({ error: 'rate limited', retryAfterSec: 60 });
+  const v = validateAskRequest(req.body);
+  if (!v.ok) return res.status(400).json({ error: 'invalid request', field: v.field, reason: v.reason });
+  const { question, mode, history } = v.value;
+  try {
+    if (mode === 'external') {
+      if (!askExternalEnabled()) return res.status(409).json({ error: 'external search unavailable', reason: !llmProvider?.isConfigured ? 'no model configured' : !config.ask.external ? 'disabled by ASK_EXTERNAL=false' : `provider ${llmProvider.name} has no web search` });
+      const out = await askExternal({ provider: llmProvider, state: askState(), question, history, maxContextChars: config.ask.maxContextChars });
+      if (!out.ok) return res.status(502).json({ error: out.error, mode: 'external' });
+      console.log(`[Ask] external · ${out.model} · ${out.usage?.inputTokens || 0}/${out.usage?.outputTokens || 0} tok · ${out.sources.length} sources`);
+      return res.json(out);
+    }
+    const out = await askGrounded({ provider: llmProvider, state: askState(), question, history, maxContextChars: config.ask.maxContextChars });
+    out.externalAvailable = askExternalEnabled();
+    if (!out.externalAvailable) out.suggestExternal = false;
+    if (out.llm?.used) console.log(`[Ask] grounded · ${out.model} · ${out.usage?.inputTokens || 0}/${out.usage?.outputTokens || 0} tok · ${out.sufficiency} · cites ${out.citations.map(c => c.id).join(',') || 'none'}`);
+    res.json(out);
+  } catch (err) {
+    console.error('[Ask] failed:', err.message);
+    res.status(502).json({ error: 'model request failed', detail: String(err.message || '').slice(0, 160) });
+  }
+});
+// === end Ask CRUCIX ===
+
 // API: health check. Always HTTP 200 (Fly health checks kill the machine on 503). The endpoint is
 // public, so unauthenticated callers only get the minimal body; configuration detail requires a session.
 app.get('/api/health', (req, res) => {
@@ -1267,7 +1356,7 @@ async function runSweepCycle() {
         synthesized.ukraine.cii = trimCii({ CII: synthesized.cii }, [{ name: 'CII', state: prior.state, reason: prior.reason }]);
       }
       // Same for the country pages' CII tile / health row.
-      synthesized.country = buildAllCountryViews({ ...(rawData.sources || {}), CII: synthesized.cii }, rawData.errors);
+      synthesized.country = attachCountryGraphs(buildAllCountryViews({ ...(rawData.sources || {}), CII: synthesized.cii }, rawData.errors));
 
       // Step 5: Signals (uses raw sources + convergence + CII)
       const signalsResult = computeSignals(rawData.sources || {}, convergenceResult, synthesized.cii);
@@ -1537,33 +1626,39 @@ async function start() {
     refreshSeismic();
     setInterval(refreshSeismic, 5 * 60 * 1000);
 
-    // CJNG knowledge graph — incremental InSight Crime corpus refresh + graph rebuild, independent of the
-    // sweep (a dozen polite API requests). First run is delayed so it does not compete with the initial sweep.
-    const refreshCjng = async () => {
-      if (cjngRefresh.inProgress) return;
-      cjngRefresh = { ...cjngRefresh, inProgress: true, lastAttempt: new Date().toISOString() };
+    // Knowledge graphs — incremental InSight Crime corpus refresh + graph rebuild per profile, independent of
+    // the sweep (a few dozen polite API requests). Profiles are staggered so only one corpus refresh runs at a
+    // time and the first run does not compete with the initial sweep.
+    const refreshGraph = async (key) => {
+      const st = kgState[key];
+      if (st.refresh.inProgress || Object.values(kgState).some(o => o !== st && o.refresh.inProgress)) return;
+      const tag = `[KG ${st.profile.label}]`;
+      st.refresh = { ...st.refresh, inProgress: true, lastAttempt: new Date().toISOString() };
       try {
-        const corpus = await refreshCjngCorpus({ delayMs: 2500, log: m => console.log(`[CJNG] ${m}`) });
-        const graph = buildCjngGraph(corpus);
-        saveCjngGraph(graph);
-        cjngGraph = graph;
-        cjngRefresh = { status: 'live', lastAttempt: cjngRefresh.lastAttempt, lastSuccess: graph.computedAt, error: corpus.stats?.errors?.length ? `partial: ${corpus.stats.errors.length} query error(s)` : null, inProgress: false };
-        console.log(`[CJNG] graph: ${graph.totals.nodes} nodes · ${graph.totals.edges} edges from ${graph.totals.articles} articles (${corpus.stats?.added || 0} new, ${corpus.stats?.updated || 0} updated)`);
+        const corpus = await refreshInsightCorpus({ profile: st.profile, delayMs: 2500, log: m => console.log(`${tag} ${m}`) });
+        const graph = buildInsightGraph(corpus, { profile: st.profile });
+        saveInsightGraph(graph, st.profile.dataDir);
+        st.graph = graph;
+        st.refresh = { status: 'live', lastAttempt: st.refresh.lastAttempt, lastSuccess: graph.computedAt, error: corpus.stats?.errors?.length ? `partial: ${corpus.stats.errors.length} query error(s)` : null, inProgress: false };
+        console.log(`${tag} graph: ${graph.totals.nodes} nodes · ${graph.totals.edges} edges from ${graph.totals.articles} articles (${corpus.stats?.added || 0} new, ${corpus.stats?.updated || 0} updated)`);
       } catch (err) {
-        console.error('[CJNG] refresh failed (non-fatal):', err.message);
-        cjngRefresh = { ...cjngRefresh, status: cjngGraph ? cjngRefresh.status : 'error', error: 'refresh failed', inProgress: false };
+        console.error(`${tag} refresh failed (non-fatal):`, err.message);
+        st.refresh = { ...st.refresh, status: st.graph ? st.refresh.status : 'error', error: 'refresh failed', inProgress: false };
       }
-      if (currentData?.narco) {
-        currentData.narco.cjng = summarizeCjngGraph(cjngGraph, cjngRefresh);
-        broadcast({ type: 'update', data: currentData });
-      }
+      if (!currentData) return;
+      if (key === 'cjng' && currentData.narco) currentData.narco.cjng = kgSummary('cjng');
+      else attachCountryGraphs(currentData.country);
+      broadcast({ type: 'update', data: currentData });
     };
     if (CJNG_REFRESH_ENABLED) {
-      console.log(`[CJNG] graph refresh: every ${CJNG_REFRESH_HOURS}h (${cjngGraph ? `${cjngGraph.totals.nodes} nodes loaded${cjngGraph.snapshot ? ' from snapshot' : ''}` : 'no graph yet'})`);
-      setTimeout(refreshCjng, 90 * 1000).unref();
-      setInterval(refreshCjng, CJNG_REFRESH_HOURS * 3600 * 1000).unref();
+      Object.values(kgState).forEach((st, i) => {
+        const g = st.graph;
+        console.log(`[KG ${st.profile.label}] graph refresh: every ${CJNG_REFRESH_HOURS}h (${g ? `${g.totals.nodes} nodes loaded${g.snapshot ? ' from snapshot' : ''}` : 'no graph yet'})`);
+        setTimeout(() => refreshGraph(st.profile.key), (90 + i * 300) * 1000).unref();
+        setInterval(() => refreshGraph(st.profile.key), CJNG_REFRESH_HOURS * 3600 * 1000 + i * 300 * 1000).unref();
+      });
     } else {
-      console.log('[CJNG] graph refresh disabled (CJNG_GRAPH_REFRESH=false)');
+      console.log('[KG] graph refresh disabled (CJNG_GRAPH_REFRESH=false)');
     }
   });
 }

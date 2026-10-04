@@ -13,6 +13,13 @@ export default {
     baseUrl: process.env.OLLAMA_BASE_URL || null,
   },
 
+  // Ask CRUCIX drawer (on-click only; uses the llm provider above).
+  ask: {
+    ratePerMin: Number(process.env.ASK_RATE_PER_MIN) || 10,          // per-IP questions per minute
+    maxContextChars: Number(process.env.ASK_MAX_CONTEXT_CHARS) || 14000, // grounded context budget (~3.5k tokens)
+    external: process.env.ASK_EXTERNAL !== 'false',                   // allow the explicit web-search fallback
+  },
+
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || null,
     chatId: process.env.TELEGRAM_CHAT_ID || null,
