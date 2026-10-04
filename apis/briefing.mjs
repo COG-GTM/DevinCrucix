@@ -103,6 +103,7 @@ import { briefing as borderingest } from './sources/borderingest.mjs';
 import { briefing as doj } from './sources/doj.mjs';
 // OFAC SDN narco-program index (SDNTK / SDNT / EO 14059 / TCO + Mexico-linked FTO/SDGT)
 import { briefing as ofacnarco } from './sources/ofacnarco.mjs';
+import { briefing as offshoreleaks } from './sources/offshoreleaks.mjs';
 // Commercial Mexico-security vendors — keyed NO KEY slots, never scraped
 import { dataint, lantia } from './sources/commercialnarco.mjs';
 
@@ -249,6 +250,7 @@ export async function fullBriefing() {
     // Tier 17: Homeland / Narco — official records + sanctions + commercial slots
     runSource('DOJ', doj),
     runSource('OFACNarco', ofacnarco),
+    runSource('OffshoreLeaks', offshoreleaks),
     runSource('DataInt', dataint),
     runSource('Lantia', lantia),
   ];
