@@ -5768,6 +5768,7 @@ function initCyGl(cc){
   const c=cyD(cc),wrap=document.getElementById('cyMapWrap');
   if(!wrap)return;
   cyMapCc=cc;cySvg=null;cyLayersG=null;cyProj=null;
+  renderCyChips();
   if(cyGlMap){try{cyGlView={center:cyGlMap.getCenter(),zoom:cyGlMap.getZoom()}}catch{}try{cyGlMap.remove()}catch{}cyGlMap=null;cyGlReady=false}
   const note=document.getElementById('cyMapNote');
   cyGlLoadLib().then(()=>{
