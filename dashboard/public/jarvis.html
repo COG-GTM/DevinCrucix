@@ -1126,6 +1126,22 @@ body.low-perf .ticker-wrap::-webkit-scrollbar-thumb{background:rgba(100,240,200,
 #tgtMapSvg .tgt-lbl{font-family:var(--mono);font-size:10px;fill:#c8d8d2;paint-order:stroke;stroke:#02060a;stroke-width:2px}#tgtMapSvg .tgt-lbl.lk{fill:#ff8a80;font-weight:700}
 #tgtMapSvg .tgt-lk{fill:rgba(255,138,128,.12);stroke:#ff8a80;stroke-width:2}#tgtMapSvg .tgt-lk-pulse{fill:none;stroke:#ff8a80;stroke-width:1.5;animation:tgtPulse 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes tgtPulse{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(2.2)}}
+.tgt-hero{display:grid;grid-template-columns:minmax(320px,1.15fr) minmax(260px,.85fr);gap:18px;align-items:start;margin-top:4px}
+@media(max-width:900px){.tgt-hero{grid-template-columns:1fr}}
+.tgt-hero-title{font-family:var(--sans);font-size:19px;color:var(--text);letter-spacing:.01em;margin:2px 0 4px}
+.tgt-hero-sub{font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:12px;max-width:760px}
+.tgt-hero .tgt-form .inv-input{width:100%;box-sizing:border-box;margin-bottom:6px;font-size:12px;padding:8px 10px}
+.tgt-hero .tgt-form .inv-input.tgt-label-input{font-family:var(--sans);font-size:15px;padding:10px 12px;border-color:rgba(68,204,255,.35)}
+.tgt-hero .tgt-form-row .inv-input{margin-bottom:0}.tgt-hero .tgt-form-row{margin-bottom:6px}
+.tgt-hero .tgt-form .tgt-submit{width:100%;margin-top:6px;padding:10px;font-size:11px;background:rgba(68,204,255,.16);border-color:rgba(68,204,255,.5)}
+.tgt-hero .tgt-form .tgt-submit:hover{background:rgba(68,204,255,.26)}
+.tgt-picks{display:flex;flex-direction:column;gap:3px;max-height:420px;overflow-y:auto}.tgt-picks::-webkit-scrollbar{width:3px}.tgt-picks::-webkit-scrollbar-thumb{background:rgba(68,204,255,0.3)}
+.tgt-pick{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);cursor:pointer;text-align:left;color:var(--text);font-family:inherit}
+.tgt-pick:hover,.tgt-pick:focus-visible{border-color:rgba(68,204,255,.45);background:rgba(68,204,255,.07);outline:none}
+.tgt-pick-label{font-family:var(--sans);font-size:12px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tgt-pick-sub{display:block;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.04em;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tgt-pick-n{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.06em;white-space:nowrap;text-align:right}.tgt-pick-n b{display:block;font-size:11px;color:var(--accent2)}
+.tgt-steps{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}.tgt-steps .inv-empty-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.tgt-steps .inv-hint{font-size:9px;line-height:1.5}
 .tgt-footprint{font-size:10px;margin-top:6px;line-height:2}.tgt-footprint .inv-chip{margin-right:3px}
 .ts-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px}
 .ts-domain{font-family:var(--mono);font-size:10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2218,7 +2234,7 @@ function renderLeftRail(){
     colombia:[renderCySourcePanel(),renderCyNotesPanel(),sensorGridPanel],
     venezuela:[renderCySourcePanel(),renderCyNotesPanel(),sensorGridPanel],
     investigations:[renderCaseFilePanel(),renderInvestigateHelpPanel()],
-    targeting:[renderTgtNominatePanel(),renderTgtDeckPanel(),renderTgtCoveragePanel()],
+    targeting:[renderTgtDeckPanel(),renderTgtCoveragePanel()],
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
   const rail=document.getElementById('leftRail');
@@ -3746,7 +3762,7 @@ function renderLower(){
     colombia:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCySatPanel(),'lp-half'),wrap(renderCyIndepazPanel(),'lp-half'),wrap(renderCyOfficialPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderCyActorsPanel(),'lp-wide'),wrap(renderKgPanel('co'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
     venezuela:[wrap(renderCyMapPanel(),'lp-wide'),wrap(renderCyProtestPanel(),'lp-half'),wrap(renderCyWiresPanel(),'lp-half'),wrap(renderCyActorsPanel(),'lp-wide'),wrap(renderKgPanel('ve'),'lp-wide'),wrap(renderCyProfilesPanel(),'lp-half'),wrap(renderCyInsightPanel(),'lp-half'),wrap(renderCyLinkOutsPanel(),'lp-half')],
     investigations:[wrap(renderInvestigatePanel(),'lp-wide'),wrap(renderTyposquatPanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(buildOsintPanel('',320),'lp-wide')],
-    targeting:[wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')],
+    targeting:tgtLowerPanels(wrap),
     sources:[renderSourceHealthFullPanel()],
   };
   const grid=document.getElementById('lowerGrid');
@@ -7970,16 +7986,43 @@ async function tgtFetchTarget(id){
   else TGT.error='Could not load target';
 }
 function tgtSelect(id){if(!id||id===TGT.sel&&TGT.target)return;TGT.sel=id;localStorage.setItem('crucix_tgt',id);TGT.target=null;TGT.error=null;TGT.view='all';tgtRerender();tgtFetchTarget(id).then(tgtRerender)}
-function tgtFormSet(k,v){TGT.form[k]=v;if(k==='basisKind'){TGT.form.basisRef='';renderLeftRail()}}
+function tgtFormRerender(){if(currentTab==='targeting'&&D)renderLower()}
+function tgtFormSet(k,v){TGT.form[k]=v;if(k==='basisKind'){TGT.form.basisRef='';tgtFormRerender()}}
+function tgtNew(){TGT.sel=null;TGT.target=null;TGT.error=null;TGT.formError=null;localStorage.removeItem('crucix_tgt');tgtRerender();requestAnimationFrame(()=>document.querySelector('.tgt-label-input')?.focus())}
+// Quick picks: the most-connected person / org nodes of the CJNG knowledge graph — already named in public
+// reporting, so they satisfy the public-basis rule. Read-only; nomination still goes through the form.
+const TGT_PICK_REQ='Current public-record whereabouts and status, succession, and publicly named associates.';
+function tgtKgLoad(){
+  if(TGT.kg)return;TGT.kg={loading:true,nodes:[],error:null};
+  fetch('/api/narco/graph',{credentials:'same-origin'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(g=>{
+    const ns=Array.isArray(g?.nodes)?g.nodes:[];
+    const rank=(a,b)=>(b.degree||0)-(a.degree||0)||(b.mentions||0)-(a.mentions||0);
+    const persons=ns.filter(n=>n.type==='person'&&(n.degree||0)>=3).sort(rank).slice(0,8);
+    const orgs=ns.filter(n=>(n.type==='org'||n.type==='faction')&&n.id!=='org:cjng').sort(rank).slice(0,4);
+    TGT.kg={loading:false,nodes:[...persons,...orgs],error:null};
+  }).catch(e=>{TGT.kg={loading:false,nodes:[],error:String(e.message||e).slice(0,80)}}).finally(()=>{if(!TGT.sel)tgtFormRerender()});
+}
+function tgtPick(id){
+  const n=(TGT.kg?.nodes||[]).find(x=>x.id===id);if(!n)return;
+  const seen=new Set([n.label.toLowerCase()]);const aliases=[];
+  for(const a of (n.meta?.aliases||[])){const c=String(a).replace(/[\u2018\u2019'"]/g,'').trim();if(c.length>1&&!seen.has(c.toLowerCase())){seen.add(c.toLowerCase());aliases.push(c)}if(aliases.length>=6)break}
+  TGT.form={...TGT.form,label:n.label,entityType:n.type==='person'?'person':'org',aliases:aliases.join(', '),basisKind:'kg-node',basisRef:n.id,requirement:TGT.form.requirement||TGT_PICK_REQ};
+  TGT.formError=null;tgtFormRerender();
+  requestAnimationFrame(()=>{const t=document.querySelector('.tgt-hero textarea[name=tgt-req]');if(t){t.focus();t.scrollIntoView({block:'nearest'})}});
+}
+function tgtLowerPanels(wrap){
+  if(!TGT.sel)return [wrap(renderTgtNominateHero(),'lp-wide')];
+  return [wrap(renderTgtPackagePanel(),'lp-wide'),wrap(renderTgtLinksPanel(),'lp-half'),wrap(renderTgtMapPanel(),'lp-half'),wrap(renderTgtProposalsPanel(),'lp-half'),wrap(renderTgtSelectorsPanel(),'lp-half'),wrap(renderTgtPatternPanel(),'lp-half'),wrap(renderTgtTimelinePanel(),'lp-half')];
+}
 async function tgtNominate(){
   const f=TGT.form;
   const aliases=f.aliases.split(',').map(s=>s.trim()).filter(Boolean);
   const body={label:f.label.trim(),type:f.entityType,basis:{kind:f.basisKind,ref:f.basisRef.trim()},requirement:f.requirement.trim(),priority:Number(f.priority)};
   if(aliases.length)body.aliases=aliases;
-  if(body.label.length<2){TGT.formError='Enter a label (2–80 characters)';return renderLeftRail()}
-  if(!body.basis.ref){TGT.formError='A nomination basis is required';return renderLeftRail()}
-  if(body.requirement.length<8){TGT.formError='State the intelligence requirement (8–400 characters)';return renderLeftRail()}
-  TGT.busy='nominate';TGT.formError=null;renderLeftRail();
+  if(body.label.length<2){TGT.formError='Enter a label (2–80 characters)';return tgtFormRerender()}
+  if(!body.basis.ref){TGT.formError='A nomination basis is required';return tgtFormRerender()}
+  if(body.requirement.length<8){TGT.formError='State the intelligence requirement (8–400 characters)';return tgtFormRerender()}
+  TGT.busy='nominate';TGT.formError=null;tgtFormRerender();
   const r=await tgtApi('POST','/api/targeting/targets',body);
   TGT.busy=null;
   if(r.status===201&&r.body?.target){TGT.form={...TGT.form,label:'',aliases:'',basisRef:'',requirement:''};invToast('Target nominated');await tgtLoad();tgtSelect(r.body.target.id);return}
@@ -7988,7 +8031,7 @@ async function tgtNominate(){
   else if(r.status===400){const field=String(r.body?.field||'input').replace(/[^a-zA-Z.]/g,'');TGT.formError=`Rejected: check ${field}`}
   else if(r.status===429){TGT.formError='Too many requests; wait a minute'}
   else TGT.formError='Nomination failed';
-  renderLeftRail();
+  tgtFormRerender();
 }
 async function tgtDevelop(){
   if(!TGT.sel||TGT.busy)return;
@@ -8025,6 +8068,8 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-tgt-act]');if(!b||b.disabled)return;
   const a=b.dataset.tgtAct;
   if(a==='select')tgtSelect(b.dataset.id);
+  else if(a==='new')tgtNew();
+  else if(a==='pick')tgtPick(b.dataset.id);
   else if(a==='develop')tgtDevelop();
   else if(a==='close')tgtClose();
   else if(a==='delete')tgtDelete();
@@ -8034,30 +8079,46 @@ document.addEventListener('click',e=>{
 });
 
 // ─── Left rail ───────────────────────────────────────────────────────────────
-function renderTgtNominatePanel(){
+function renderTgtNominateHero(){
   const f=TGT.form,caps=TGT.caps;
   const types=caps?.types||Object.keys(TGT_TYPE_LABEL);
   const kinds=caps?.basisKinds||Object.keys(TGT_BASIS_META);
   const bm=TGT_BASIS_META[f.basisKind]||TGT_BASIS_META['kg-node'];
-  const cap=TGT.list.filter(x=>x.status!=='closed').length;
-  return `<div class="g-panel tgt-nominate"><div class="sec-head"><h3>Target Nomination</h3><span class="badge">${cap} OPEN</span></div>
-    <form class="tgt-form" onsubmit="event.preventDefault();tgtNominate()">
-      <input class="inv-input" name="tgt-label" maxlength="80" autocomplete="off" spellcheck="false" placeholder="Label — as published (e.g. Nemesio Oseguera Cervantes)" value="${esc(f.label)}" oninput="tgtFormSet('label',this.value)">
-      <div class="tgt-form-row">
-        <select class="inv-btn" name="tgt-type" onchange="tgtFormSet('entityType',this.value)">${types.map(v=>`<option value="${esc(v)}" ${f.entityType===v?'selected':''}>${esc(TGT_TYPE_LABEL[v]||v.toUpperCase())}</option>`).join('')}</select>
-        <select class="inv-btn" name="tgt-priority" onchange="tgtFormSet('priority',this.value)" title="Priority 1 = highest">${['1','2','3'].map(p=>`<option value="${p}" ${f.priority===p?'selected':''}>PRI ${p}</option>`).join('')}</select>
+  const open=TGT.list.filter(x=>x.status!=='closed').length;
+  tgtKgLoad();
+  const kg=TGT.kg||{loading:true,nodes:[]};
+  const picks=kg.nodes.map(n=>`<button type="button" class="tgt-pick" data-tgt-act="pick" data-id="${esc(n.id)}" title="${esc(n.id)}">
+      <span class="tgt-pick-label">${esc(n.label)}<span class="tgt-pick-sub">${esc(TGT_TYPE_LABEL[n.type==='faction'?'org':n.type]||n.type)}${n.meta?.groupId?` \u00b7 ${esc(n.meta.groupId)}`:''}${n.meta?.aliases?.length?` \u00b7 a.k.a. ${esc(String(n.meta.aliases[0]).replace(/[\u2018\u2019'"]/g,''))}`:''}</span></span>
+      <span class="tgt-pick-n"><b>${esc(String(n.mentions||0))}</b>mentions \u00b7 ${esc(String(n.degree||0))} links</span></button>`).join('');
+  return `<div class="g-panel tgt-nominate"><div class="sec-head"><h3>Target Nomination</h3><div style="display:flex;gap:6px;align-items:center"><span class="badge">${open} OPEN \u00b7 ${TGT.list.length}/60</span><span class="badge">PUBLIC SOURCES \u00b7 ANALYST-REVIEWED</span></div></div>
+    <div class="tgt-hero-title">Nominate a public-source target</div>
+    <div class="tgt-hero-sub">Type the name as it appears in public reporting, give a public basis and the question you need answered. CRUCIX then reads everything it already holds on them \u2014 the CJNG graph, InSight Crime, border wires, DOJ, OFAC, Telegram and graded narco events \u2014 and you review every link before the graph changes.</div>
+    <div class="tgt-hero">
+      <form class="tgt-form" onsubmit="event.preventDefault();tgtNominate()">
+        <input class="inv-input tgt-label-input" name="tgt-label" maxlength="80" autocomplete="off" spellcheck="false" autofocus placeholder="Target \u2014 name as published (e.g. Nemesio Oseguera Cervantes)" value="${esc(f.label)}" oninput="tgtFormSet('label',this.value)">
+        <div class="tgt-form-row">
+          <select class="inv-btn" name="tgt-type" onchange="tgtFormSet('entityType',this.value)">${types.map(v=>`<option value="${esc(v)}" ${f.entityType===v?'selected':''}>${esc(TGT_TYPE_LABEL[v]||v.toUpperCase())}</option>`).join('')}</select>
+          <select class="inv-btn" name="tgt-priority" onchange="tgtFormSet('priority',this.value)" title="Priority 1 = highest">${['1','2','3'].map(p=>`<option value="${p}" ${f.priority===p?'selected':''}>PRI ${p}</option>`).join('')}</select>
+          <input class="inv-input" name="tgt-aliases" maxlength="400" autocomplete="off" spellcheck="false" placeholder="Aliases, comma-separated (published a.k.a. only)" value="${esc(f.aliases)}" oninput="tgtFormSet('aliases',this.value)">
+        </div>
+        <div class="tgt-form-row">
+          <select class="inv-btn" name="tgt-basis" onchange="tgtFormSet('basisKind',this.value)">${kinds.map(k=>`<option value="${esc(k)}" ${f.basisKind===k?'selected':''}>${esc((TGT_BASIS_META[k]||{label:k}).label)}</option>`).join('')}</select>
+          <input class="inv-input" name="tgt-basis-ref" maxlength="512" autocomplete="off" spellcheck="false" placeholder="${esc(bm.ph)}" value="${esc(f.basisRef)}" oninput="tgtFormSet('basisRef',this.value)">
+        </div>
+        <div class="sh-note" style="margin:0 0 6px">${esc(bm.hint)}. Nomination requires a public basis; it is logged with the target.</div>
+        <textarea class="inv-input" name="tgt-req" rows="3" maxlength="400" placeholder="Intelligence requirement \u2014 what the analyst needs answered (e.g. current whereabouts, succession, publicly named associates)" oninput="tgtFormSet('requirement',this.value)">${esc(f.requirement)}</textarea>
+        ${TGT.formError?`<div class="inv-err" style="margin:6px 0 0">${esc(TGT.formError)}</div>`:''}
+        <button class="inv-btn tgt-submit" type="submit" ${TGT.busy==='nominate'?'disabled':''}>${TGT.busy==='nominate'?'Nominating\u2026':'Nominate target \u2192'}</button>
+        <div class="sh-note">Scope: persons, organizations, facilities, vehicles, vessels and aircraft already named in public reporting, sanctions or indictments. Not for locating private individuals.</div>
+      </form>
+      <div>
+        <div class="inv-sec-title"><span>Quick picks \u00b7 CJNG knowledge graph</span><span class="nokey">${kg.loading?'loading\u2026':`${kg.nodes.length} nodes`}</span></div>
+        <div class="inv-hint" style="padding:2px 0 6px">Most-connected persons and groups in the verified graph. One click fills the form; the requirement stays yours to edit.</div>
+        <div class="tgt-picks">${picks||`<div class="inv-hint">${kg.loading?'Reading the knowledge graph\u2026':kg.error?esc('Knowledge graph unavailable: '+kg.error):'No graph nodes available \u2014 enter a target by hand.'}</div>`}</div>
+        ${TGT.list.length?`<div class="sh-note" style="margin-top:8px">${TGT.list.length} target${TGT.list.length===1?'':'s'} already nominated \u2014 pick one from the Target Deck on the left to open its package.</div>`:''}
       </div>
-      <input class="inv-input" name="tgt-aliases" maxlength="400" autocomplete="off" spellcheck="false" placeholder="Aliases, comma-separated (published a.k.a. only)" value="${esc(f.aliases)}" oninput="tgtFormSet('aliases',this.value)">
-      <div class="tgt-form-row">
-        <select class="inv-btn" name="tgt-basis" onchange="tgtFormSet('basisKind',this.value)">${kinds.map(k=>`<option value="${esc(k)}" ${f.basisKind===k?'selected':''}>${esc((TGT_BASIS_META[k]||{label:k}).label)}</option>`).join('')}</select>
-        <input class="inv-input" name="tgt-basis-ref" maxlength="512" autocomplete="off" spellcheck="false" placeholder="${esc(bm.ph)}" value="${esc(f.basisRef)}" oninput="tgtFormSet('basisRef',this.value)">
-      </div>
-      <div class="sh-note" style="margin:0 0 6px">${esc(bm.hint)}. Nomination requires a public basis; it is logged with the target.</div>
-      <textarea class="inv-input" name="tgt-req" rows="3" maxlength="400" placeholder="Intelligence requirement — what the analyst needs answered (e.g. current whereabouts, succession, publicly named associates)" oninput="tgtFormSet('requirement',this.value)">${esc(f.requirement)}</textarea>
-      ${TGT.formError?`<div class="inv-err" style="margin:6px 0 0">${esc(TGT.formError)}</div>`:''}
-      <button class="inv-btn" type="submit" style="width:100%;margin-top:6px" ${TGT.busy==='nominate'?'disabled':''}>${TGT.busy==='nominate'?'Nominating…':'Nominate target'}</button>
-    </form>
-    <div class="sh-note">Scope: persons, organizations, facilities, vehicles, vessels and aircraft already named in public reporting, sanctions or indictments. Not for locating private individuals.</div></div>`;
+    </div>
+    <div class="tgt-steps">${renderTgtSteps()}</div></div>`;
 }
 function renderTgtDeckPanel(){
   const rows=TGT.list.slice().sort((a,b)=>(a.status==='closed')-(b.status==='closed')||(a.priority||3)-(b.priority||3)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))).map(x=>{
@@ -8067,9 +8128,9 @@ function renderTgtDeckPanel(){
       <span class="tgt-deck-label">${esc(x.label)}<span class="tgt-deck-sub">${esc(TGT_TYPE_LABEL[x.type]||x.type)} \u00b7 ${esc((TGT_BASIS_META[x.basis?.kind]||{label:x.basis?.kind||''}).label)}${x.aliases?.length?` \u00b7 a.k.a. ${esc(x.aliases.slice(0,2).join(', '))}`:''}</span></span>
       <span class="tgt-deck-st ${x.status}">${esc(x.status)}${x.status==='developed'&&pend?`<em>${pend} pending</em>`:''}</span></div>`;
   }).join('');
-  return `<div class="g-panel"><div class="sec-head"><h3>Target Deck</h3><span class="badge">${TGT.list.length}/60</span></div>
+  return `<div class="g-panel"><div class="sec-head"><h3>Target Deck</h3><div style="display:flex;gap:6px;align-items:center">${TGT.sel?`<button class="inv-btn" data-tgt-act="new" style="padding:3px 8px;font-size:8px" title="Nominate another target">+ New</button>`:''}<span class="badge">${TGT.list.length}/60</span></div></div>
     ${TGT.error?`<div class="inv-err">${esc(TGT.error)}</div>`:''}
-    <div class="tgt-deck">${rows||`<div class="inv-hint">${TGT.loaded?'No targets nominated. Nominate one above — try the CJNG leadership nodes from the Cartels &amp; Border knowledge graph.':'Loading targets…'}</div>`}</div>
+    <div class="tgt-deck">${rows||`<div class="inv-hint">${TGT.loaded?'No targets nominated yet. Use the nomination form in the main panel — the quick picks list the CJNG leadership nodes from the knowledge graph.':'Loading targets…'}</div>`}</div>
     <div class="sh-note">Targets, packages and analyst decisions persist server-side (runs/targeting) with a JSON audit trail; closed targets stay for the record until deleted.</div></div>`;
 }
 function renderTgtCoveragePanel(){
@@ -8100,13 +8161,16 @@ function renderTgtCoveragePanel(){
 // ─── Lower grid ──────────────────────────────────────────────────────────────
 function renderTgtEmpty(){
   return `<div class="inv-empty"><div class="inv-empty-title">Nominate a public-source target → CRUCIX reads everything it holds on them → analyst reviews every link before the graph changes.</div>
-    <div class="inv-empty-grid">
+    ${renderTgtSteps()}</div>`;
+}
+function renderTgtSteps(){
+  return `<div class="inv-empty-grid">
       <div><div class="inv-sec-title"><span>1 · Nominate</span></div><div class="inv-hint">Label, type and a public basis (knowledge-graph node, OFAC SDN id, DOJ release, or a source URL) plus the intelligence requirement. Logged.</div></div>
       <div><div class="inv-sec-title"><span>2 · Find</span></div><div class="inv-hint">Mentions across the CJNG graph, InSight Crime, border news, DOJ, OFAC, Telegram and graded narco events. Personas, aliases and transliterations are correlated with verbatim evidence.</div></div>
       <div><div class="inv-sec-title"><span>3 · Classify</span></div><div class="inv-hint">Each linked entity is proposed as <b>target</b>, <b>associate</b> or <b>background</b> against the requirement — by rules, or by the configured OpenAI / Anthropic model, validated against source spans.</div></div>
       <div><div class="inv-sec-title"><span>4 · Fix</span></div><div class="inv-hint">Text geolocation over dated sentences → gazetteer place, precision and uncertainty radius. Last known <i>public-record</i> location, footprint and dispersion. Telegram is never used for location.</div></div>
       <div><div class="inv-sec-title"><span>5 · Pattern &amp; report</span></div><div class="inv-hint">Per-target timeline, month / weekday / source / state aggregates, tempo spikes, gaps, new geography and status changes. Export a fully cited Markdown dossier.</div></div>
-    </div></div>`;
+    </div>`;
 }
 function renderTgtPackagePanel(){
   const t=TGT.target;
@@ -8123,7 +8187,8 @@ function renderTgtPackagePanel(){
       <button class="inv-btn" data-tgt-act="develop" ${dev||t.status==='closed'||TGT.busy?'disabled':''}>${dev?'Developing…':p?'Re-develop':'Develop target'}</button>
       ${p?`<a class="inv-btn" href="/api/targeting/targets/${esc(t.id)}/dossier.md" download="crucix-target-${esc(t.id)}.md" title="Sourced Markdown dossier">Dossier .md</a>`:`<span class="inv-btn" style="opacity:.5">Dossier .md</span>`}
       <button class="inv-btn ghost" data-tgt-act="close" ${t.status==='closed'||TGT.busy?'disabled':''}>Close</button>
-      <button class="inv-btn ghost" data-tgt-act="delete" ${TGT.busy?'disabled':''}>Delete</button></div>`;
+      <button class="inv-btn ghost" data-tgt-act="delete" ${TGT.busy?'disabled':''}>Delete</button>
+      <button class="inv-btn ghost" data-tgt-act="new" ${TGT.busy?'disabled':''} title="Nominate another target">+ New target</button></div>`;
   const developing=dev?`<div class="inv-loading"><div class="inv-loading-head">DEVELOPING TARGET \u00b7 FIND \u2192 CLASSIFY \u2192 FIX \u2192 PATTERN</div><div class="inv-chips">${Object.values(TGT_SOURCE_META).map((m,i)=>`<span class="inv-chip pulse" style="animation-delay:${i*120}ms">${esc(m.label)}</span>`).join('')}<span class="inv-chip pulse" style="animation-delay:900ms">${TGT.caps?.llm?.configured?'model adjudication':'rules (no model key)'}</span></div></div>`:'';
   const llmLine=p?`<div class="tgt-llm ${p.llm?.used?'on':''}">${p.llm?.used?`Model analyst: <b>${esc(p.llm.model)}</b> assessed ${p.llm.assessed||0} candidates; every output was validated against candidate / evidence indexes and source spans.`:`Deterministic rules only \u2014 ${esc(p.llm?.reason||'no model configured')}. Same package shape; the model adds role / relation judgments with cited evidence.`}</div>`:'';
   return head(`
