@@ -28,7 +28,8 @@ export default {
     am: process.env.SITREP_AM || '06:00',
     pm: process.env.SITREP_PM || '16:00',
     maxContextChars: Number(process.env.SITREP_MAX_CONTEXT_CHARS) || 24000, // draft context budget (~6k tokens)
-    review: process.env.SITREP_REVIEW !== 'false',                     // step 2: provider web-search review of each draft (needs a provider with hosted search, e.g. openai)
+    review: process.env.SITREP_REVIEW !== 'false',
+    arcs: process.env.SITREP_ARCS !== 'false',                         // weekly (Monday) / monthly (1st) narrative arcs from the archive, 30 min after the AM edition                     // step 2: provider web-search review of each draft (needs a provider with hosted search, e.g. openai)
     dataDir: process.env.SITREP_DATA_DIR || null,                      // default runs/sitreps
   },
 

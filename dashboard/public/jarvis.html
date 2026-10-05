@@ -1733,6 +1733,9 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
 .sr-row.sel{border-left-color:var(--accent);background:rgba(100,240,200,0.06)}
 .sr-row .sr-ed{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;padding:1px 5px;border:1px solid var(--border);color:var(--dim);flex:0 0 auto;text-transform:uppercase}
 .sr-row .sr-ed.am{color:#ffd54f;border-color:rgba(255,213,79,0.35)}.sr-row .sr-ed.pm{color:var(--accent2);border-color:rgba(68,204,255,0.35)}
+.sr-row .sr-ed.weekly{color:#ce93d8;border-color:rgba(206,147,216,0.4)}.sr-row .sr-ed.monthly{color:#80cbc4;border-color:rgba(128,203,196,0.4)}
+.sr-kind.emerged{color:#ffd54f;border-color:rgba(255,213,79,0.4)}.sr-kind.escalating{color:var(--danger);border-color:rgba(255,95,99,0.4)}.sr-kind.steady{color:var(--dim)}.sr-kind.de-escalating{color:var(--accent);border-color:rgba(105,240,174,0.4)}.sr-kind.resolved{color:#80cbc4;border-color:rgba(128,203,196,0.4)}
+.sr-trend li{color:var(--dim);font-size:11px}.sr-src{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:10px;color:var(--dim)}.sr-src .sr-cite{margin-right:3px}
 .sr-row .sr-when{flex:1;min-width:0;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sr-row .sr-sub{font-family:var(--mono);font-size:9px;color:var(--dim)}
 .sr-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
@@ -1778,11 +1781,25 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
     finally{SR.generating=false;srRerender()}
   }
   function srSetEdition(v){if(['am','pm','adhoc'].includes(v))SR.edition=v}
+  const SR_ARC=['weekly','monthly'];
+  const srIsArc=(ed)=>!!ed&&SR_ARC.includes(ed.edition);
+  // Weekly / monthly arc: written from the archive only (POST /api/sitrep/arc), no sweep data involved.
+  async function srArc(kind){
+    if(SR.generating||!SR_ARC.includes(kind))return;
+    SR.generating=kind;SR.error=null;srRerender();
+    try{
+      const ed=await srFetch('/api/sitrep/arc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kind})});
+      SR.cur=ed;SR.curId=ed.id;SR.loadedAt=0;
+      await srLoad(true);
+    }catch(e){SR.error=e.message}
+    finally{SR.generating=false;srRerender()}
+  }
+  window.srArc=srArc;
   function srDownload(){if(SR.cur)location.href=`/api/sitrep/${encodeURIComponent(SR.cur.id)}?format=md`}
   // Print: a clean standalone document in a new window (the dashboard's fixed-height grid clips the in-page print).
   function srPrint(){
     const ed=SR.cur;if(!ed)return;
-    const T=(t)=>esc(t).replace(/\[([a-z]+)\]/g,'<span class="c">[$1]</span>').replace(/\[UNCITED\]/g,'<span class="u">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="u">[SAME FIGURE AS PREVIOUS]</span>');
+    const T=(t)=>esc(t).replace(/\[([a-z]+\d*)\]/g,'<span class="c">[$1]</span>').replace(/\[UNCITED\]/g,'<span class="u">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="u">[SAME FIGURE AS PREVIOUS]</span>');
     const li=(a)=>a.length?a.join(''):'';
     const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(ed.id)}</title><style>
       @page{size:letter;margin:0.7in}body{font:11pt/1.45 Georgia,"Times New Roman",serif;color:#000;margin:0;max-width:7.1in}
@@ -1790,7 +1807,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       .meta{font:9pt Arial,Helvetica,sans-serif;color:#333;margin-bottom:8px}.banner{font:bold 8.5pt/1.3 Arial,Helvetica,sans-serif;text-transform:uppercase;border:1px solid #000;padding:5px 8px;margin:8px 0 10px}
       p{margin:0 0 6px}ul{margin:0;padding-left:18px}li{margin:0 0 4px}.c{font:8.5pt "Courier New",monospace;color:#444}.u{font:bold 8.5pt "Courier New",monospace;color:#900}
       .foot{margin-top:14px;padding-top:6px;border-top:1px dashed #000;font:8.5pt/1.4 Arial,Helvetica,sans-serif;color:#333}.ext{font:9pt/1.4 Arial,Helvetica,sans-serif;border-left:2px solid #000;padding-left:8px;margin:0 0 6px}</style></head><body>
-      <h1>COMMANDER\u2019S SITREP \u2014 SOUTHCOM AOR (OSINT)</h1>
+      ${srIsArc(ed)?srArcPrint(ed,T,li):`<h1>COMMANDER\u2019S SITREP \u2014 SOUTHCOM AOR (OSINT)</h1>
       <div class="meta">${esc(EDL[ed.edition]||ed.edition)} \u00b7 ${fmtWhen(ed.generatedAt)} \u00b7 CRUCIX sweep as of ${fmtWhen(ed.asOf)} \u00b7 ${esc(ed.id)}</div>
       <div class="banner">${esc(ed.banner||'OSINT demonstration product')}</div>
       <h2>1. BLUF</h2><p>${T(ed.bluf)}</p>
@@ -1801,7 +1818,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       <h2>6. Source integrity &amp; caveats</h2><p>${T(ed.integrity)}</p>
       ${ed.external?`<h2>7. Outside-source review \u2014 ${esc(ed.external.label||'EXTERNAL \u2014 UNVERIFIED')}</h2><p class="ext">Found by the model\u2019s web search, not by CRUCIX feeds; not analyst-verified, kept apart from sections 1\u20136.${ed.external.status&&ed.external.status!=='ok'?` Status: ${esc(ed.external.status)}${ed.external.error?` (${esc(ed.external.error)})`:''}.`:''}</p><ul>${li((ed.external.findings||[]).map(f=>`<li><b>${esc((f.kind||'missing').toUpperCase())}</b>${f.published?` \u00b7 ${esc(f.published)}`:''} \u2014 ${esc(f.text)} <span class="c">&lt;${esc(f.url)}&gt;</span></li>`))||`<li>${esc(ed.external.note||'No additional developments found.')}</li>`}</ul>${(ed.external.findings||[]).length&&ed.external.note?`<p class="ext">${esc(ed.external.note)}</p>`:''}`:''}
       <div class="foot">Sources cited (CRUCIX sections): ${esc((ed.citations||[]).map(c=>`[${c.id}] ${c.label}`).join('; ')||'none')}.<br>
-      ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections \u00b7 SHA-256 ${esc(ed.sha256||'')}${ed.grounding?.sentences?`<br>Grounding: ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite a CRUCIX section${ed.grounding.uncited?`; ${ed.grounding.uncited} marked [UNCITED]`:''}`:''}${ed.external?.usage?`<br>Outside-source review: ${esc(ed.external.model||'model')} web search \u00b7 ${ed.external.usage.inputTokens??'?'} in / ${ed.external.usage.outputTokens??'?'} out tokens \u00b7 ${(ed.external.findings||[]).length} finding(s), ${(ed.external.sources||[]).length} source(s)`:''}</div>
+      ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections \u00b7 SHA-256 ${esc(ed.sha256||'')}${ed.grounding?.sentences?`<br>Grounding: ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite a CRUCIX section${ed.grounding.uncited?`; ${ed.grounding.uncited} marked [UNCITED]`:''}`:''}${ed.external?.usage?`<br>Outside-source review: ${esc(ed.external.model||'model')} web search \u00b7 ${ed.external.usage.inputTokens??'?'} in / ${ed.external.usage.outputTokens??'?'} out tokens \u00b7 ${(ed.external.findings||[]).length} finding(s), ${(ed.external.sources||[]).length} source(s)`:''}</div>`}
       </body></html>`;
     const w=window.open('','_blank','noopener=no');if(!w){SR.error='Pop-up blocked: allow pop-ups to print';srRerender();return}
     w.document.open();w.document.write(html);w.document.close();
@@ -1818,9 +1835,13 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
   // Escape first, then turn [id] citations into clickable chips (ids are [a-z]+ so the regex cannot touch markup).
   function srText(t){
     const cites=new Map((SR.cur?.citations||[]).map(c=>[c.id,c]));
-    return esc(t).replace(/\[UNCITED\]/g,'<span class="sr-uncited" title="No CRUCIX section backs this sentence \u2014 treat as model assertion">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="sr-uncited" title="This sentence claims a trend on a figure the previous edition already reported \u2014 verify before briefing">[SAME FIGURE AS PREVIOUS]</span>').replace(/\[([a-z]+)\]/g,(m,id)=>{const c=cites.get(id);if(!c)return m;const tab=TAB_IDS.includes(c.tab)?c.tab:null;
+    return esc(t).replace(/\[UNCITED\]/g,'<span class="sr-uncited" title="No CRUCIX section backs this sentence \u2014 treat as model assertion">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="sr-uncited" title="This sentence claims a trend on a figure the previous edition already reported \u2014 verify before briefing">[SAME FIGURE AS PREVIOUS]</span>').replace(/\[([a-z]+\d*)\]/g,(m,id)=>{
+      const c=cites.get(id);if(!c)return m;
+      if(c.editionId)return `<span class="sr-cite" title="${esc(c.label)} \u2014 open this edition" onclick="srOpen('${esc(c.editionId)}')">[${esc(id)}]</span>`;
+      const tab=TAB_IDS.includes(c.tab)?c.tab:null;
       return `<span class="sr-cite" title="${esc(c.label)}${tab?' \u2014 open '+esc(tab)+' tab':''}" ${tab?`onclick="setTab('${tab}')"`:''}>[${esc(id)}]</span>`});
   }
+
   // Section 7: what the provider's web search found that the feeds did not. Rendered apart, never merged into 1–6.
   function srExternal(x){
     const st=x.status||'ok';
@@ -1835,13 +1856,15 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
     const ed=SR.cur,st=SR.status;
     const tools=`<div class="sr-tools">
       <select class="inv-btn" onchange="srSetEdition(this.value)" title="Edition label for an on-demand run"><option value="adhoc" ${SR.edition==='adhoc'?'selected':''}>Ad hoc</option><option value="am" ${SR.edition==='am'?'selected':''}>AM</option><option value="pm" ${SR.edition==='pm'?'selected':''}>PM</option></select>
-      <button class="inv-btn" onclick="srGenerate()" ${SR.generating||!st?.hasData?'disabled':''} title="${st?.hasData?'Draft an edition from the current sweep':'Waiting for the first sweep'}">${SR.generating?'Drafting\u2026':'Generate now'}</button>
+      <button class="inv-btn" onclick="srGenerate()" ${SR.generating||!st?.hasData?'disabled':''} title="${st?.hasData?'Draft an edition from the current sweep':'Waiting for the first sweep'}">${SR.generating===true?'Drafting\u2026':'Generate now'}</button>
+      ${SR_ARC.map(k=>{const a=st?.arcs,ok=a&&(a.dailies??0)>=(a.minSources??2);return `<button class="inv-btn ghost" onclick="srArc('${k}')" ${SR.generating||!ok?'disabled':''} title="${ok?`Write the ${k} narrative arc from the archived editions (${a.dailies} daily editions on file)`:`Needs at least ${a?.minSources??2} archived daily editions (have ${a?.dailies??0})`}">${SR.generating===k?'Writing\u2026':k==='weekly'?'Weekly arc':'Monthly arc'}</button>`}).join('')}
       <button class="inv-btn ghost" onclick="srDownload()" ${ed?'':'disabled'}>Download .md</button>
       <button class="inv-btn ghost" onclick="srPrint()" ${ed?'':'disabled'}>Print</button></div>`;
     let body;
     if(SR.error&&!ed)body=`<div class="sr-err">${esc(SR.error.toUpperCase())}</div>`;
     else if(!SR.status&&!ed)body='<div class="inv-hint">Loading SITREP\u2026</div>';
     else if(!ed)body=`<div class="inv-hint">No SITREP generated yet. ${st?.hasData?'Click <b>Generate now</b> for the first edition, or wait for the next scheduled run':'The first sweep has not completed; the first edition runs after it'}${st?.schedule?.next?` (${esc(EDL[st.schedule.next.edition]||st.schedule.next.edition)} at ${fmtWhen(st.schedule.next.at)})`:''}.</div>`;
+    else if(srIsArc(ed))body=srArcBody(ed,st);
     else{
       const act=(ed.activity||[]).map(a=>`<li><b>${esc(a.domain)}.</b> ${srText(a.text)}</li>`).join('')||'<li>No reporting in CRUCIX feeds.</li>';
       const watch=(ed.watch||[]).map(w=>`<li>${srText(w)}</li>`).join('')||'<li>None identified in CRUCIX feeds.</li>';
@@ -1860,6 +1883,40 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections${(ed.context?.omitted||[]).length?` (omitted ${esc(ed.context.omitted.join(', '))})`:''} \u00b7 SHA-256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026${ed.previousId?` \u00b7 previous ${esc(ed.previousId)}`:' \u00b7 baseline edition'}${ed.grounding?.sentences?`<br>Grounding: ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite a CRUCIX section${ed.grounding.uncited?` \u00b7 <span class="sr-uncited">${ed.grounding.uncited} [UNCITED]</span>`:''}${ed.grounding.repaired?` \u00b7 repair pass ${ed.grounding.before}\u2192${ed.grounding.uncited}`:''}${ed.grounding.baselineFixed?` \u00b7 <span class="sr-uncited" title="The model called this edition a baseline although a previous edition was in its context; the sentence was replaced server-side">baseline claim corrected</span>`:''}${ed.grounding.sameFigure?` \u00b7 <span class="sr-uncited" title="Change sentences that claim a trend on a figure the previous edition already reported">${ed.grounding.sameFigure} same-figure flag(s)</span>`:''}`:''}${ed.external?`<br>Outside-source review: ${esc(ed.external.status||'ok')}${ed.external.usage?` \u00b7 ${esc(ed.external.model||'model')} web search \u00b7 ${ed.external.usage.inputTokens??'?'} in / ${ed.external.usage.outputTokens??'?'} out tokens`:''} \u00b7 ${(ed.external.findings||[]).length} finding(s), ${(ed.external.sources||[]).length} source(s)${ed.external.dropped?`, ${ed.external.dropped} dropped (no cited URL)`:''}`:''}</div>`;
     }
     return `<div class="g-panel sr-doc"><div class="sec-head"><h3>Commander SITREP</h3>${tools}</div>${body}</div>`;
+  }
+  const srGen=(ed)=>ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data arc (${esc(ed.llm?.reason||'no model')})`;
+  const srArcMeta=(ed)=>`${esc(EDL[ed.edition]||ed.edition)} \u00b7 window ${esc(ed.window?.startKey||'?')} \u2192 ${esc(ed.window?.endKey||'?')} (${esc(ed.window?.days??'?')} days) \u00b7 ${(ed.sources||[]).length} source editions \u00b7 written ${fmtWhen(ed.generatedAt)} \u00b7 ${esc(ed.id)}`;
+  // Weekly / monthly arc document: six sections, every sentence cites an archived edition token or [stats].
+  function srArcBody(ed,st){
+    const items=(ed.arc||[]).map(a=>`<li><b>${esc(a.theme)}</b> <span class="sr-kind ${esc(a.trajectory||'steady')}">${esc(String(a.trajectory||'steady').toUpperCase())}</span> ${srText(a.text)}</li>`).join('')||'<li>No storylines identified in the period\u2019s SITREPs.</li>';
+    const trend=(ed.trend||[]).map(l=>`<li>${esc(l)}</li>`).join('');
+    const srcs=(ed.sources||[]).map(x=>`<span><span class="sr-cite" title="open ${esc(x.id)}" onclick="srOpen('${esc(x.id)}')">[${esc(x.token)}]</span>${esc(EDL[x.edition]||x.edition)} ${fmtWhen(x.generatedAt)} \u00b7 ${esc(x.llm)}</span>`).join('');
+    const span=ed.edition==='weekly'?'week':'month';
+    return `<div class="sr-banner">${esc(ed.banner||st?.banner||'OSINT demonstration product')} \u00b7 written from archived SITREP editions only</div>
+      <div class="sr-head"><b>SITREP ${esc(String(ed.edition).toUpperCase())} ARC \u2014 SOUTHCOM AOR</b><span>${srArcMeta(ed)}</span></div>
+      ${SR.error?`<div class="sr-err">${esc(SR.error.toUpperCase())}</div>`:''}
+      <div class="sr-sec"><h4>1. BLUF</h4><p>${srText(ed.bluf)}</p></div>
+      <div class="sr-sec"><h4>2. Narrative arc by theme</h4><ul>${items}</ul></div>
+      <div class="sr-sec"><h4>3. What did not develop</h4><p>${srText(ed.fizzled)}</p></div>
+      <div class="sr-sec sr-trend"><h4>4. Trend lines (CRUCIX-computed) <span class="sr-cite">[stats]</span></h4><ul>${trend||'<li>\u2014</li>'}</ul></div>
+      <div class="sr-sec"><h4>5. Outlook (next ${span})</h4><p>${srText(ed.outlook)}</p></div>
+      <div class="sr-sec"><h4>6. Source integrity &amp; caveats</h4><p>${srText(ed.integrity)}</p></div>
+      <div class="sr-foot">Editions cited: <div class="sr-src">${srcs||'none'}</div>${(ed.omitted||[]).length?`Omitted for size: ${esc(ed.omitted.join(', '))}<br>`:''}
+      ${srGen(ed)} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars${ed.grounding?.sentences?` \u00b7 grounding ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite an edition or [stats]${ed.grounding.uncited?` \u00b7 <span class="sr-uncited">${ed.grounding.uncited} UNCITED</span>`:''}`:''} \u00b7 sha256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026</div>`;
+  }
+  function srArcPrint(ed,T,li){
+    const span=ed.edition==='weekly'?'week':'month';
+    return `<h1>SITREP ${esc(String(ed.edition).toUpperCase())} ARC \u2014 SOUTHCOM AOR (OSINT)</h1>
+      <div class="meta">${srArcMeta(ed)}</div>
+      <div class="banner">${esc(ed.banner||'OSINT demonstration product')} \u00b7 written from archived SITREP editions only; [dN] / [wN] cite the editions listed at the end</div>
+      <h2>1. BLUF</h2><p>${T(ed.bluf)}</p>
+      <h2>2. Narrative arc by theme</h2><ul>${li((ed.arc||[]).map(a=>`<li><b>${esc(a.theme)}</b> \u2014 <i>${esc(a.trajectory||'steady')}</i>. ${T(a.text)}</li>`))||'<li>No storylines identified in the period\u2019s SITREPs.</li>'}</ul>
+      <h2>3. What did not develop</h2><p>${T(ed.fizzled)}</p>
+      <h2>4. Trend lines (CRUCIX-computed) <span class="c">[stats]</span></h2><ul>${li((ed.trend||[]).map(l=>`<li>${esc(l)}</li>`))||'<li>\u2014</li>'}</ul>
+      <h2>5. Outlook (next ${span})</h2><p>${T(ed.outlook)}</p>
+      <h2>6. Source integrity &amp; caveats</h2><p>${T(ed.integrity)}</p>
+      <div class="foot">Editions cited: ${esc((ed.sources||[]).map(x=>`[${x.token}] ${EDL[x.edition]||x.edition} ${x.id} (${x.llm})`).join('; ')||'none')}.<br>
+      ${srGen(ed)} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars${ed.grounding?.sentences?` \u00b7 grounding ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cited`:''} \u00b7 sha256 ${esc(ed.sha256||'')}</div>`;
   }
   function srArchivePanel(){
     const list=SR.list||[];
@@ -1880,11 +1937,12 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       ['Last run',st.lastRunAt?fmtWhen(st.lastRunAt):'none this process'],
       ['Sweep as of',fmtWhen(st.asOf)],
       ['Archive',`${st.store?.editions??0} editions${st.store?.oldest?` since ${fmtWhen(st.store.oldest)}`:''}`],
-      ['Outside review',st.review?(st.review.on?`on \u2014 provider web search, labelled ${st.review.label||'EXTERNAL \u2014 UNVERIFIED'}`:`off \u2014 ${st.review.reason||''}`):'\u2014']];
+      ['Outside review',st.review?(st.review.on?`on \u2014 provider web search, labelled ${st.review.label||'EXTERNAL \u2014 UNVERIFIED'}`:`off \u2014 ${st.review.reason||''}`):'\u2014'],
+      ['Arcs',st.arcs?(st.arcs.on?`weekly Mon \u00b7 monthly 1st at ${st.arcs.time} ${st.arcs.timezone}; next weekly ${fmtWhen(st.arcs.next?.weekly?.at)}, monthly ${fmtWhen(st.arcs.next?.monthly?.at)}`:'off (SITREP_ARCS=false) \u2014 on demand only')+` \u00b7 ${st.arcs.dailies??0} daily editions on file`:'\u2014']];
     return `<div class="g-panel"><div class="sec-head"><h3>SITREP Schedule</h3><span class="badge ${st.enabled?'':'warn'}">${st.inFlight?'DRAFTING':st.enabled?'MODEL':'RULES-ONLY'}</span></div>
       <div class="sr-kv">${kv.map(([k,v])=>`<span>${esc(k)}</span><b>${esc(v)}</b>`).join('')}</div>
       ${st.lastError?`<div class="sr-err">LAST ERROR: ${esc(st.lastError)}</div>`:''}
-      <div class="inv-hint">Twice-daily commander\u2019s brief drafted from the live CRUCIX state (sections 1\u20136, every sentence cited), then checked against outside sources by the provider\u2019s web search (section 7, kept apart and labelled unverified). Weekly / monthly arcs come in the next release.</div></div>`;
+      <div class="inv-hint">Twice-daily commander\u2019s brief drafted from the live CRUCIX state (sections 1\u20136, every sentence cited), then checked against outside sources by the provider\u2019s web search (section 7, kept apart and labelled unverified). Weekly (Monday) and monthly (1st) arcs are written from the archive alone \u2014 every sentence cites an edition token or the CRUCIX-computed trend lines.</div></div>`;
   }
 
   const _srTabCounts=tabCounts;

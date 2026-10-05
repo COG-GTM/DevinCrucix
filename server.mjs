@@ -70,7 +70,8 @@ import { buildSourceContext } from './lib/targeting/sources.mjs';
 import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
 import { generateSitrep, SITREP_VERSION, DAILY_EDITIONS as SITREP_EDITIONS, BANNER as SITREP_BANNER, EXTERNAL_LABEL as SITREP_EXTERNAL_LABEL } from './lib/sitrep/index.mjs';
 import { SitrepStore, ID_RE as SITREP_ID_RE } from './lib/sitrep/store.mjs';
-import { dueEdition as sitrepDue, nextSlot as sitrepNext, isValidTimeZone, parseTimes as sitrepTimes } from './lib/sitrep/schedule.mjs';
+import { dueEdition as sitrepDue, nextSlot as sitrepNext, isValidTimeZone, parseTimes as sitrepTimes, dueArc as sitrepArcDue, nextArc as sitrepArcNext, arcTime as sitrepArcTime } from './lib/sitrep/schedule.mjs';
+import { generateArc as generateSitrepArc, ARC_KINDS as SITREP_ARC_KINDS, ARC_VERSION as SITREP_ARC_VERSION, MIN_SOURCES as SITREP_ARC_MIN } from './lib/sitrep/arcs.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
 import { EvidenceLocker, EVIDENCE_ID_RE } from './lib/targeting/evidence.mjs';
 import { OverpassClient, KIND_KEYS as OSM_KINDS, KINDS as OSM_KIND_META, MIN_RADIUS_M as OSM_MIN_R, MAX_RADIUS_M as OSM_MAX_R } from './lib/geo/overpass.mjs';
@@ -1526,6 +1527,33 @@ async function runSitrep({ edition, slotKey = null, trigger = 'manual' }) {
 }
 
 // Once a minute: is an AM / PM slot due that has no stored edition yet? (Catch-up window in schedule.mjs.)
+// Weekly / monthly arcs: written from the archive only, so they need no sweep data — just enough editions.
+let sitrepArcLastRunAt = 0;
+async function runSitrepArc({ kind, slotKey = null, trigger = 'manual' }) {
+  if (sitrepInFlight) return sitrepInFlight;
+  sitrepInFlight = (async () => {
+    const ed = await generateSitrepArc({ provider: llmProvider, store: sitrepStore, kind, now: new Date(), tz: SITREP_TZ, slotKey, trigger });
+    sitrepStore.save(ed);
+    sitrepArcLastRunAt = Date.now();
+    sitrepLastError = null;
+    console.log(`[SITREP] ${ed.id} · ${ed.llm.used ? ed.model : `rules-only (${ed.llm.reason})`} · ${ed.sources.length} source editions · ${ed.words} words · ${ed.usage?.inputTokens || 0}/${ed.usage?.outputTokens || 0} tok · ${trigger}`);
+    broadcast({ type: 'sitrep', id: ed.id, edition: ed.edition, generatedAt: ed.generatedAt });
+    return ed;
+  })().catch((err) => { if (err.code !== 'TOO_FEW') sitrepLastError = String(err.message || err).slice(0, 200); throw err; }).finally(() => { sitrepInFlight = null; });
+  return sitrepInFlight;
+}
+
+const sitrepArcSkipped = new Set(); // slots skipped this process for lack of editions (not retried every minute)
+function sitrepArcTick() {
+  if (sitrepInFlight) return;
+  const due = sitrepArcDue(new Date(), { tz: SITREP_TZ, times: SITREP_TIMES, done: (k) => sitrepStore.hasSlot(k) || sitrepArcSkipped.has(k) });
+  if (!due) return;
+  runSitrepArc({ kind: due.kind, slotKey: due.slotKey, trigger: 'schedule' }).catch(err => {
+    if (err.code === 'TOO_FEW') { sitrepArcSkipped.add(due.slotKey); console.log(`[SITREP] ${due.kind} arc skipped: ${err.message}`); }
+    else console.warn(`[SITREP] scheduled ${due.kind} arc failed:`, err.message);
+  });
+}
+
 function sitrepTick() {
   if (!currentData || sitrepInFlight) return;
   const due = sitrepDue(new Date(), { tz: SITREP_TZ, times: SITREP_TIMES, done: (k) => sitrepStore.hasSlot(k) });
@@ -1556,8 +1584,37 @@ app.get('/api/sitrep/status', (req, res) => {
     editions: SITREP_EDITIONS,
     banner: SITREP_BANNER,
     review: { ...sitrepReview(), label: SITREP_EXTERNAL_LABEL },
+    arcs: sitrepArcStatus(now),
     limits: { contextChars: config.sitrep.maxContextChars, minGapSec: SITREP_MIN_GAP_MS / 1000 },
   });
+});
+
+function sitrepArcStatus(now = new Date()) {
+  const next = sitrepArcNext(now, { tz: SITREP_TZ, times: SITREP_TIMES });
+  const latest = {};
+  for (const k of SITREP_ARC_KINDS) latest[k] = sitrepSummary(sitrepStore.latest({ kinds: [k] }));
+  return {
+    version: SITREP_ARC_VERSION, on: !!config.sitrep.arcs, kinds: SITREP_ARC_KINDS, time: sitrepArcTime(SITREP_TIMES), timezone: SITREP_TZ, minSources: SITREP_ARC_MIN,
+    next: Object.fromEntries(Object.entries(next || {}).map(([k, v]) => [k, v ? { at: v.at.toISOString(), slotKey: v.slotKey } : null])),
+    latest, lastRunAt: sitrepArcLastRunAt ? new Date(sitrepArcLastRunAt).toISOString() : null,
+    dailies: sitrepStore.index.filter(e => ['am', 'pm', 'adhoc'].includes(e.edition)).length,
+  };
+}
+
+// POST /api/sitrep/arc { kind: 'weekly' | 'monthly' } — write a narrative arc from the archive now (no sweep data needed)
+app.post('/api/sitrep/arc', validateBody({ kind: (v) => oneOf(v, SITREP_ARC_KINDS) }), async (req, res) => {
+  if (sitrepInFlight) return res.status(409).json({ error: 'a SITREP is already being generated' });
+  const wait = SITREP_MIN_GAP_MS - (Date.now() - sitrepArcLastRunAt);
+  if (wait > 0) return res.status(429).json({ error: 'rate limited', retryAfterSec: Math.ceil(wait / 1000) });
+  const kind = req.validated.body.kind || 'weekly';
+  try {
+    const ed = await runSitrepArc({ kind, trigger: 'manual' });
+    res.status(201).json(ed);
+  } catch (err) {
+    if (err.code === 'TOO_FEW') return res.status(422).json({ error: err.message, minSources: SITREP_ARC_MIN });
+    console.error(`[SITREP] ${kind} arc failed:`, err.message);
+    res.status(502).json({ error: 'SITREP arc generation failed', detail: String(err.message || '').slice(0, 160) });
+  }
 });
 
 // GET /api/sitrep?limit=60&kind=am — archive index (summaries, newest first)
@@ -2185,6 +2242,7 @@ async function start() {
     if (config.sitrep.schedule) {
       console.log(`[SITREP] schedule: AM ${SITREP_TIMES.am} / PM ${SITREP_TIMES.pm} ${SITREP_TZ}`);
       setInterval(sitrepTick, 60_000).unref();
+      if (config.sitrep.arcs) setInterval(sitrepArcTick, 60_000).unref();
     } else console.log('[SITREP] scheduler disabled (SITREP_SCHEDULE=false); Generate now still available');
 
     // Schedule fast market-only refresh (every 60s by default)
