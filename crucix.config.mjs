@@ -20,6 +20,17 @@ export default {
     external: process.env.ASK_EXTERNAL !== 'false',                   // allow the explicit web-search fallback
   },
 
+  // Commander's SITREP (SOUTHCOM AOR): twice-daily editions drafted by the LLM layer from the live
+  // CRUCIX state, archived under runs/sitreps/. Edition times are wall-clock in `timezone`.
+  sitrep: {
+    schedule: process.env.SITREP_SCHEDULE !== 'false',                 // set false to disable the AM/PM scheduler (Generate now still works)
+    timezone: process.env.SITREP_TZ || 'America/New_York',
+    am: process.env.SITREP_AM || '06:00',
+    pm: process.env.SITREP_PM || '16:00',
+    maxContextChars: Number(process.env.SITREP_MAX_CONTEXT_CHARS) || 24000, // draft context budget (~6k tokens)
+    dataDir: process.env.SITREP_DATA_DIR || null,                      // default runs/sitreps
+  },
+
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || null,
     chatId: process.env.TELEGRAM_CHAT_ID || null,
