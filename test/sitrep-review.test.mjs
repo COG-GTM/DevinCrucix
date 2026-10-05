@@ -27,6 +27,18 @@ const webProvider = (text, { sources = SOURCES, fail = false, searched = true } 
   async completeWithWebSearch(system, user, opts) { this.calls.push({ system, user, opts }); if (fail) throw new Error('web search 429'); return { text, sources, searched, model: 'fake-search', usage: { inputTokens: 700, outputTokens: 250 } }; },
 });
 
+test('reviewSitrep: pages the search read (visited) count as provider-cited; JSON answers carry no annotations', async () => {
+  // Real behaviour observed: JSON output → zero url_citation annotations, so trust must come from web_search_call.action.sources.
+  const p = webProvider(REVIEW, { sources: [] });
+  p.completeWithWebSearch = async () => ({ text: REVIEW, sources: [], visited: SOURCES, searched: true, model: 'fake-search', usage: { inputTokens: 1, outputTokens: 1 } });
+  const ok = await reviewSitrep({ provider: p, edition: ED });
+  assert.equal(ok.status, 'ok'); assert.equal(ok.findings.length, 2); assert.equal(ok.dropped, 2); assert.equal(ok.sources.length, 2);
+  // Nothing trusted at all → every finding dropped and the note says so instead of echoing the model's "holds up well".
+  const none = await reviewSitrep({ provider: webProvider(REVIEW, { sources: [] }), edition: ED });
+  assert.equal(none.status, 'ok'); assert.equal(none.findings.length, 0); assert.equal(none.dropped, 4);
+  assert.equal(none.note, 'No finding kept: the model offered 4 but none pointed at a page the search actually read (0 read).');
+});
+
 test('draftSummary / reviewSystemPrompt: the grounded draft without citation tokens, rules and schema', () => {
   const d = draftSummary(ED);
   assert.doesNotMatch(d, /\[venezuela\]|\[UNCITED\]/); assert.match(d, /^BLUF: Caracas blackout continues\. Fabricated\./m); assert.match(d, /ACTIVITY: Maritime & air: 212 aircraft/);
