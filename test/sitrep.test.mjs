@@ -6,7 +6,7 @@ import { mkdtempSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  buildSitrepPack, renderSitrepPack, draftSystemPrompt, parseDraft, rulesOnlySitrep, renderMarkdown, generateSitrep, editionId, fixBaselineClaim,
+  buildSitrepPack, renderSitrepPack, draftSystemPrompt, parseDraft, rulesOnlySitrep, renderMarkdown, generateSitrep, editionId, fixBaselineClaim, flagUnsupportedChanges, SAME_FIGURE,
   annotateSentences, repairSystemPrompt, UNCITED, REPAIR_THRESHOLD,
   DOMAINS, MAX_ACTIVITY, MAX_WATCH, BANNER, SITREP_VERSION,
 } from '../lib/sitrep/index.mjs';
@@ -124,6 +124,27 @@ test('previous edition: prompt says NOT a baseline with the exact id, age in min
   const ok = await generateSitrep({ provider: fakeProvider(okDraft), state: STATE, edition: 'am', previous, now: new Date('2026-10-05T14:06:29Z') });
   assert.equal(ok.grounding.baselineFixed, undefined);
   assert.doesNotMatch(ok.markdown, /called this edition a baseline/);
+});
+
+test('same-figure trend claims: flagged when the previous edition already reported the figure; previous context carries activity + changes', async () => {
+  const prevText = 'Venezuela outages at 28% of networks [outages]. 510 aircraft in the box [caribbeanair]. CII 61/100 [aor].';
+  const r = flagUnsupportedChanges('Venezuela outages increased from previous levels to 28% outages, marking a worsening condition [outages]. Aircraft rose from 480 to 510 [caribbeanair]. CII unchanged at 61/100 [aor]. New IODA alert [delta]. Detentions climbed to 12 [venezuela].', prevText);
+  assert.equal(r.flagged, 1);
+  assert.match(r.text, /marking a worsening condition \[SAME FIGURE AS PREVIOUS\]\[outages\]\. Aircraft rose from 480 to 510 \[caribbeanair\]\. CII unchanged at 61\/100 \[aor\]\. New IODA alert \[delta\]\. Detentions climbed to 12 \[venezuela\]\.$/);
+  assert.deepEqual(flagUnsupportedChanges('x increased to 28% [a].', ''), { text: 'x increased to 28% [a].', flagged: 0 });
+  assert.equal(flagUnsupportedChanges('Outages at 28% [a].', prevText).flagged, 0, 'no trend word → no flag');
+  assert.equal(flagUnsupportedChanges('Outages increased to 2,800 users [a].', 'previous saw 2800 users').flagged, 1, 'comma-normalised match');
+
+  const previous = { id: 'sitrep-20261005-am', edition: 'am', generatedAt: '2026-10-05T10:00:00Z', bluf: 'Prior BLUF [situation].', activity: [{ domain: 'Cyber & information', text: 'Venezuela outages at 28% of networks [outages].' }], changes: 'Baseline [delta].', watch: ['w1 [delta]'], assessment: 'prior [situation]' };
+  const pack = buildSitrepPack(STATE, { previous });
+  assert.match(pack.sections.find(s => s.id === 'previous').text, /activity — Cyber & information: Venezuela outages at 28% of networks \[outages\]\.\nchanges: Baseline \[delta\]\./);
+  const p = draftSystemPrompt(pack, { edition: 'pm' });
+  assert.match(p, /quote BOTH figures: "from X \(previous edition\) to Y"/);
+  const draft = JSON.stringify({ ...JSON.parse(GOOD), changes: 'Versus AM edition sitrep-20261005-am: Venezuela outages increased to 28%, a worsening condition [situation]. New IODA alert since the last sweep [delta].' });
+  const ed = await generateSitrep({ provider: fakeProvider(draft), state: STATE, edition: 'pm', previous, now: new Date('2026-10-05T20:00:00Z') });
+  assert.equal(ed.grounding.sameFigure, 1);
+  assert.match(ed.changes, new RegExp(`a worsening condition \\${SAME_FIGURE.replace(/[[\]]/g, m => '\\' + m)}\\[situation\\]\\. New IODA alert since the last sweep \\[delta\\]\\.$`));
+  assert.match(ed.markdown, /1 change sentence\(s\) claim a trend on a figure the previous edition already reported — marked \[SAME FIGURE AS PREVIOUS\]/);
 });
 
 test('draftSystemPrompt carries the rules, the schema and the rendered pack', () => {
