@@ -272,6 +272,17 @@ The **◈ Ask CRUCIX** button in the header opens a read-only side drawer from a
 
 On-click only (no sweep cost), per-IP rate limited, token-capped, conversation kept in the browser's `sessionStorage` (nothing persisted server-side), rules-only card when no `LLM_*` key is set. It cannot nominate targets, decide links, or touch the verified graph. `GET /api/ask/status`, `POST /api/ask { question, history?, mode: grounded|external }`.
 
+### Commander's SITREP (SOUTHCOM AOR)
+
+The **SITREP** tab turns the live state into a twice-daily commander's brief, written by the configured LLM layer and stored as a repository of editions.
+
+- **Editions** — *AM* at 06:00 and *PM* at 16:00 commander's local time (`SITREP_AM` / `SITREP_PM` / `SITREP_TZ`, default `America/New_York`; DST-aware, one check a minute, a 6 h catch-up window so a server that comes up late still produces the slot once, never twice). **Generate now** drafts an *ad hoc* edition from the current sweep (one at a time, 60 s apart).
+- **Draft from CRUCIX only** — `lib/sitrep/context.mjs` builds a SOUTHCOM-weighted context pack on top of the Ask CRUCIX packer: Colombia and Venezuela country pages, the AOR slice of CII and ACLED, Caribbean air activity with contact provenance, maritime (Panama Canal, carriers in the Caribbean / eastern Pacific, GPS degradation), InSight Crime sanctions touchpoints, IODA outages in the AOR, plus the previous edition, situation, DEFCON, delta, cartel / border, Telegram, requirements and source health. Theaters outside the AOR (Ukraine, Iran, Taiwan, markets) are excluded; Mexico / US-border sections are marked NORTHCOM context. Budget `SITREP_MAX_CONTEXT_CHARS` (default 24 000); whole sections are dropped, never truncated mid-way.
+- **Fixed shape, 1–2 pages** — BLUF · Significant activity by domain (last 12 h) · Changes since the previous SITREP · Indicators & warnings (next 24 h) · Assessment (with stated confidence) · Source integrity & caveats. Every claim carries a `[section]` citation; citations the pack cannot back are struck server-side, and in the tab each citation is a chip that opens the feed's tab. The prompt forbids outside knowledge and keeps CRUCIX's provenance distinctions (source report / CRUCIX-computed / model assessment / unverified Telegram).
+- **Repository** — `runs/sitreps/<id>.json` (+ `index.json`), each edition with the rendered Markdown, a SHA-256 over it (`/api/sitrep/:id/verify` re-hashes), model, token usage, context sections used / omitted and the previous edition id. Capped at 400 editions. **Download .md** and **Print** (print stylesheet shows the SITREP alone) in the tab.
+- **No key** — a rules-only *data SITREP*: the same six sections filled with the feed digests verbatim and an explicit "no assessment offered". Provider errors and unparseable drafts fall back the same way and say so in the footer.
+- Every edition carries the banner *OSINT demonstration product — not an official US Government product; CRUCIX indices are computed metrics*. Routes sit behind the password gate like everything else. The outside-source review pass (`EXTERNAL — UNVERIFIED` block) and the weekly / monthly narrative arcs are the next two releases.
+
 ### Ukraine War (Ukraine theater)
 
 The **UKRAINE WAR** tab gives the Russia–Ukraine war its own theater view. No new upstream adapters are involved: every panel is a theater slice of something CRUCIX already sweeps, assembled by `lib/ukraineview.mjs` into a bounded `ukraine` view model and rendered next to the existing **Ukraine Front** panel.
@@ -733,6 +744,7 @@ All settings are in `.env` with sensible defaults:
 | `LLM_API_KEY` | — | API key (not needed for codex) |
 | `LLM_MODEL` | per-provider default | Override model selection |
 | `ASK_RATE_PER_MIN` / `ASK_MAX_CONTEXT_CHARS` / `ASK_EXTERNAL` | `10` / `14000` / `true` | Ask CRUCIX drawer: per-IP questions per minute, grounded context budget, allow the confirmed external web-search fallback (OpenAI only) |
+| `SITREP_SCHEDULE` / `SITREP_TZ` / `SITREP_AM` / `SITREP_PM` / `SITREP_MAX_CONTEXT_CHARS` / `SITREP_DATA_DIR` | `true` / `America/New_York` / `06:00` / `16:00` / `24000` / `runs/sitreps` | Commander's SITREP: AM / PM scheduler on-off, commander's time zone and edition times, draft context budget, archive directory |
 | `TELEGRAM_BOT_TOKEN` | disabled | For Telegram alerts + bot commands |
 | `TELEGRAM_CHAT_ID` | — | Your Telegram chat ID |
 | `TELEGRAM_CHANNELS` | — | Extra channel IDs to monitor (comma-separated) |
@@ -780,6 +792,10 @@ When running `npm run dev`:
 | `GET /api/contacts/history?region=<hotspot>&hours=<1-48>[&id=<icao24>]` | Contact replay: one frame per sweep (positions + provenance at that instant) and per-contact polylines for a hotspot region over the trailing window |
 | `GET /api/ask/status` | Ask CRUCIX capability: model configured, external search available, limits |
 | `POST /api/ask` | Ask CRUCIX: `{ question, history?, mode: grounded\|external }` → cited answer; external only when explicitly requested; rate limited |
+| `GET /api/sitrep/status` | Commander's SITREP: model, AM / PM schedule and next slot, archive stats, latest edition |
+| `GET /api/sitrep?limit=&kind=&before=` | SITREP archive index (summaries, newest first) |
+| `GET /api/sitrep/latest` · `GET /api/sitrep/:id[?format=md]` · `GET /api/sitrep/:id/verify` | One edition as JSON or Markdown download; re-hash against the stored SHA-256 |
+| `POST /api/sitrep/generate` | `{ edition?: am\|pm\|adhoc }` → draft an edition now from the current sweep (201); one in flight, 60 s gap |
 
 ---
 
