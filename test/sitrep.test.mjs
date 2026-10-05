@@ -134,6 +134,7 @@ test('same-figure trend claims: flagged when the previous edition already report
   assert.deepEqual(flagUnsupportedChanges('x increased to 28% [a].', ''), { text: 'x increased to 28% [a].', flagged: 0 });
   assert.equal(flagUnsupportedChanges('Outages at 28% [a].', prevText).flagged, 0, 'no trend word → no flag');
   assert.equal(flagUnsupportedChanges('Outages increased to 2,800 users [a].', 'previous saw 2800 users').flagged, 1, 'comma-normalised match');
+  assert.equal(flagUnsupportedChanges('Versus AM edition sitrep-20261005-am (generated 2026-10-05T10:00:00Z, 4 minutes before): outages rose to 28% [a].', prevText).flagged, 1, 'edition ids, timestamps and minutes-ago are not figures');
 
   const previous = { id: 'sitrep-20261005-am', edition: 'am', generatedAt: '2026-10-05T10:00:00Z', bluf: 'Prior BLUF [situation].', activity: [{ domain: 'Cyber & information', text: 'Venezuela outages at 28% of networks [outages].' }], changes: 'Baseline [delta].', watch: ['w1 [delta]'], assessment: 'prior [situation]' };
   const pack = buildSitrepPack(STATE, { previous });
@@ -143,7 +144,7 @@ test('same-figure trend claims: flagged when the previous edition already report
   const draft = JSON.stringify({ ...JSON.parse(GOOD), changes: 'Versus AM edition sitrep-20261005-am: Venezuela outages increased to 28%, a worsening condition [situation]. New IODA alert since the last sweep [delta].' });
   const ed = await generateSitrep({ provider: fakeProvider(draft), state: STATE, edition: 'pm', previous, now: new Date('2026-10-05T20:00:00Z') });
   assert.equal(ed.grounding.sameFigure, 1);
-  assert.match(ed.changes, new RegExp(`a worsening condition \\${SAME_FIGURE.replace(/[[\]]/g, m => '\\' + m)}\\[situation\\]\\. New IODA alert since the last sweep \\[delta\\]\\.$`));
+  assert.ok(ed.changes.endsWith(`a worsening condition ${SAME_FIGURE}[situation]. New IODA alert since the last sweep [delta].`), ed.changes);
   assert.match(ed.markdown, /1 change sentence\(s\) claim a trend on a figure the previous edition already reported — marked \[SAME FIGURE AS PREVIOUS\]/);
 });
 
