@@ -37,6 +37,7 @@ test('sitrep routes', async (t) => {
     assert.deepEqual(b.editions, ['am', 'pm', 'adhoc']);
     assert.match(b.banner, /OSINT DEMONSTRATION PRODUCT/);
     assert.equal(b.limits.minGapSec, 60);
+    assert.deepEqual(b.review, { on: false, reason: 'no model configured', label: 'EXTERNAL — UNVERIFIED' });
   });
 
   await t.test('GET /api/sitrep lists nothing and validates query', async () => {
