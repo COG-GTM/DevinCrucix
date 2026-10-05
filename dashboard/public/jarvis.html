@@ -1735,7 +1735,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
 .sr-row .sr-ed.am{color:#ffd54f;border-color:rgba(255,213,79,0.35)}.sr-row .sr-ed.pm{color:var(--accent2);border-color:rgba(68,204,255,0.35)}
 .sr-row .sr-ed.weekly{color:#ce93d8;border-color:rgba(206,147,216,0.4)}.sr-row .sr-ed.monthly{color:#80cbc4;border-color:rgba(128,203,196,0.4)}
 .sr-kind.emerged{color:#ffd54f;border-color:rgba(255,213,79,0.4)}.sr-kind.escalating{color:var(--danger);border-color:rgba(255,95,99,0.4)}.sr-kind.steady{color:var(--dim)}.sr-kind.de-escalating{color:var(--accent);border-color:rgba(105,240,174,0.4)}.sr-kind.resolved{color:#80cbc4;border-color:rgba(128,203,196,0.4)}
-.sr-trend li{color:var(--dim);font-size:11px}.sr-src{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:10px;color:var(--dim)}.sr-src .sr-cite{margin-right:3px}
+.sr-trend li{color:var(--dim);font-size:11px}.sr-src{display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--dim);margin:4px 0 6px}.sr-src .sr-cite{margin-right:4px}.sr-src code{font-family:ui-monospace,monospace;font-size:10px;color:var(--text)}.sr-src .sr-src-id{cursor:pointer;text-decoration:underline dotted}.sr-src .sr-src-hash{color:var(--dim)}
 .sr-row .sr-when{flex:1;min-width:0;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sr-row .sr-sub{font-family:var(--mono);font-size:9px;color:var(--dim)}
 .sr-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
@@ -1890,7 +1890,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
   function srArcBody(ed,st){
     const items=(ed.arc||[]).map(a=>`<li><b>${esc(a.theme)}</b> <span class="sr-kind ${esc(a.trajectory||'steady')}">${esc(String(a.trajectory||'steady').toUpperCase())}</span> ${srText(a.text)}</li>`).join('')||'<li>No storylines identified in the period\u2019s SITREPs.</li>';
     const trend=(ed.trend||[]).map(l=>`<li>${esc(l)}</li>`).join('');
-    const srcs=(ed.sources||[]).map(x=>`<span><span class="sr-cite" title="open ${esc(x.id)}" onclick="srOpen('${esc(x.id)}')">[${esc(x.token)}]</span>${esc(EDL[x.edition]||x.edition)} ${fmtWhen(x.generatedAt)} \u00b7 ${esc(x.llm)}</span>`).join('');
+    const srcs=(ed.sources||[]).map(x=>`<span><span class="sr-cite" title="open ${esc(x.id)}" onclick="srOpen('${esc(x.id)}')">[${esc(x.token)}]</span><code class="sr-src-id" onclick="srOpen('${esc(x.id)}')">${esc(x.id)}</code> ${esc(EDL[x.edition]||x.edition)} \u00b7 ${fmtWhen(x.generatedAt)} \u00b7 ${esc(x.llm)} \u00b7 sha256 <code class="sr-src-hash" title="${esc(x.sha256||'')}">${esc(String(x.sha256||'').slice(0,16))}\u2026</code></span>`).join('');
     const span=ed.edition==='weekly'?'week':'month';
     return `<div class="sr-banner">${esc(ed.banner||st?.banner||'OSINT demonstration product')} \u00b7 written from archived SITREP editions only</div>
       <div class="sr-head"><b>SITREP ${esc(String(ed.edition).toUpperCase())} ARC \u2014 SOUTHCOM AOR</b><span>${srArcMeta(ed)}</span></div>
