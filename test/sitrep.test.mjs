@@ -6,7 +6,7 @@ import { mkdtempSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  buildSitrepPack, renderSitrepPack, draftSystemPrompt, parseDraft, rulesOnlySitrep, renderMarkdown, generateSitrep, editionId,
+  buildSitrepPack, renderSitrepPack, draftSystemPrompt, parseDraft, rulesOnlySitrep, renderMarkdown, generateSitrep, editionId, fixBaselineClaim,
   annotateSentences, repairSystemPrompt, UNCITED, REPAIR_THRESHOLD,
   DOMAINS, MAX_ACTIVITY, MAX_WATCH, BANNER, SITREP_VERSION,
 } from '../lib/sitrep/index.mjs';
@@ -92,6 +92,38 @@ test('buildSitrepPack: previous edition section, budget drops whole sections but
   assert.match(pack.sections.find(s => s.id === 'previous').text, /sitrep-20261004-pm.*\n.*Prior BLUF text\nwatch: old watch item/);
   assert.deepEqual(buildSitrepPack({ data: null }).sections, []);
   assert.ok(AOR_COUNTRIES.includes('Panama') && !AOR_COUNTRIES.includes('Mexico'));
+});
+
+test('previous edition: prompt says NOT a baseline with the exact id, age in minutes; baseline claims are replaced deterministically', async () => {
+  const previous = { id: 'sitrep-20261005-adhoc-140429', edition: 'adhoc', generatedAt: '2026-10-05T14:04:29Z', ageMinutes: 2, bluf: 'Prior BLUF', watch: [], assessment: 'prior' };
+  const pack = buildSitrepPack(STATE, { previous });
+  assert.deepEqual(pack.previous, { id: 'sitrep-20261005-adhoc-140429', label: 'ad hoc edition', generatedAt: '2026-10-05T14:04:29Z', ageMinutes: 2 });
+  assert.match(pack.sections.find(s => s.id === 'previous').text, /\(2 minutes before this edition\)\. .*This edition is NOT a baseline\./);
+  const p = draftSystemPrompt(pack, { edition: 'am' });
+  assert.match(p, /a \[previous\] section IS present — ad hoc edition sitrep-20261005-adhoc-140429, generated 2026-10-05T14:04:29Z \(2 minutes before this edition\)\. This edition is NOT a baseline/);
+  assert.match(p, /Open "changes" with "Versus ad hoc edition sitrep-20261005-adhoc-140429:"/);
+  assert.doesNotMatch(p, /if no previous edition, say this is the baseline/);
+  const p0 = draftSystemPrompt(buildSitrepPack(STATE), { edition: 'am' });
+  assert.match(p0, /there is NO \[previous\] section — this is the baseline edition/);
+  assert.equal(buildSitrepPack(STATE).previous, null);
+
+  const fx = fixBaselineClaim('This edition is the baseline with no previous SITREP for direct comparison [situation]. Venezuela outages persist [outages]. No prior SITREP is available [delta].', pack.previous);
+  assert.equal(fx.fixed, true);
+  assert.equal(fx.text, 'Versus ad hoc edition sitrep-20261005-adhoc-140429 (generated 2026-10-05T14:04:29Z, 2 minutes before this edition) [previous]. Venezuela outages persist [outages].');
+  assert.deepEqual(fixBaselineClaim('Versus the previous edition, unchanged [previous].', pack.previous), { text: 'Versus the previous edition, unchanged [previous].', fixed: false });
+  assert.equal(fixBaselineClaim('Baseline edition [delta].', null).fixed, false, 'no previous → a baseline claim is correct');
+
+  const draft = JSON.stringify({ ...JSON.parse(GOOD), changes: 'This edition is the baseline; no prior SITREP available except the ad hoc edition last hour ago [previous]. IODA alert unchanged [delta].' });
+  const ed = await generateSitrep({ provider: fakeProvider(draft), state: STATE, edition: 'am', previous: { ...previous, ageMinutes: undefined }, now: new Date('2026-10-05T14:06:29Z') });
+  assert.equal(ed.llm.used, true);
+  assert.match(ed.changes, /^Versus ad hoc edition sitrep-20261005-adhoc-140429 \(generated 2026-10-05T14:04:29Z, 2 minutes before this edition\) \[previous\]\. IODA alert unchanged \[delta\]\.$/);
+  assert.equal(ed.grounding.baselineFixed, true);
+  assert.ok(ed.citations.some(c => c.id === 'previous'));
+  assert.match(ed.markdown, /model called this edition a baseline despite a previous edition/);
+  const okDraft = JSON.stringify({ ...JSON.parse(GOOD), changes: 'Versus ad hoc edition sitrep-20261005-adhoc-140429: IODA alert unchanged [previous][delta].' });
+  const ok = await generateSitrep({ provider: fakeProvider(okDraft), state: STATE, edition: 'am', previous, now: new Date('2026-10-05T14:06:29Z') });
+  assert.equal(ok.grounding.baselineFixed, undefined);
+  assert.doesNotMatch(ok.markdown, /called this edition a baseline/);
 });
 
 test('draftSystemPrompt carries the rules, the schema and the rendered pack', () => {
