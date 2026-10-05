@@ -68,6 +68,9 @@ import { validateTrail, TRAIL_ID_RE, LINK_ID_RE as TRL_LINK_ID_RE, RECORD_ID_RE 
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
 import { buildSourceContext } from './lib/targeting/sources.mjs';
 import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
+import { generateSitrep, SITREP_VERSION, DAILY_EDITIONS as SITREP_EDITIONS, BANNER as SITREP_BANNER } from './lib/sitrep/index.mjs';
+import { SitrepStore, ID_RE as SITREP_ID_RE } from './lib/sitrep/store.mjs';
+import { dueEdition as sitrepDue, nextSlot as sitrepNext, isValidTimeZone, parseTimes as sitrepTimes } from './lib/sitrep/schedule.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
 import { EvidenceLocker, EVIDENCE_ID_RE } from './lib/targeting/evidence.mjs';
 import { OverpassClient, KIND_KEYS as OSM_KINDS, KINDS as OSM_KIND_META, MIN_RADIUS_M as OSM_MIN_R, MAX_RADIUS_M as OSM_MAX_R } from './lib/geo/overpass.mjs';
@@ -1484,6 +1487,127 @@ app.post('/api/ask', async (req, res) => {
 });
 // === end Ask CRUCIX ===
 
+// === Commander's SITREP (SOUTHCOM AOR) ===
+// Twice-daily (AM / PM, commander's local time) plus on-demand editions drafted by the LLM layer from the
+// SOUTHCOM-weighted context pack; every claim cites a pack section, rules-only data digest when no model is
+// configured. Editions are archived under runs/sitreps/ (JSON + rendered Markdown + SHA-256). Routes sit behind
+// the same password gate as the rest of the app; nothing here is exposed beyond it.
+const SITREP_TZ = isValidTimeZone(config.sitrep.timezone) ? config.sitrep.timezone : 'America/New_York';
+const SITREP_TIMES = sitrepTimes({ am: config.sitrep.am, pm: config.sitrep.pm });
+const SITREP_MIN_GAP_MS = 60_000;
+const sitrepStore = new SitrepStore({ dir: config.sitrep.dataDir || join(RUNS_DIR, 'sitreps') });
+let sitrepInFlight = null;
+let sitrepLastRunAt = 0;
+let sitrepLastError = null;
+
+function sitrepState() { return { ...askState(), contacts: contactProvenance }; }
+
+async function runSitrep({ edition, slotKey = null, trigger = 'manual' }) {
+  if (sitrepInFlight) return sitrepInFlight;
+  sitrepInFlight = (async () => {
+    const now = new Date();
+    const previous = sitrepStore.previous(now.toISOString());
+    const ed = await generateSitrep({ provider: llmProvider, state: sitrepState(), edition, previous, now, tz: SITREP_TZ, maxContextChars: config.sitrep.maxContextChars, slotKey, trigger });
+    sitrepStore.save(ed);
+    sitrepLastRunAt = Date.now();
+    sitrepLastError = null;
+    console.log(`[SITREP] ${ed.id} · ${ed.llm.used ? ed.model : `rules-only (${ed.llm.reason})`} · ${ed.words} words · ${ed.citations.length} cites · ${ed.usage?.inputTokens || 0}/${ed.usage?.outputTokens || 0} tok · ${trigger}`);
+    broadcast({ type: 'sitrep', id: ed.id, edition: ed.edition, generatedAt: ed.generatedAt });
+    return ed;
+  })().catch((err) => { sitrepLastError = String(err.message || err).slice(0, 200); throw err; }).finally(() => { sitrepInFlight = null; });
+  return sitrepInFlight;
+}
+
+// Once a minute: is an AM / PM slot due that has no stored edition yet? (Catch-up window in schedule.mjs.)
+function sitrepTick() {
+  if (!currentData || sitrepInFlight) return;
+  const due = sitrepDue(new Date(), { tz: SITREP_TZ, times: SITREP_TIMES, done: (k) => sitrepStore.hasSlot(k) });
+  if (!due) return;
+  runSitrep({ edition: due.edition, slotKey: due.slotKey, trigger: 'schedule' }).catch(err => console.warn('[SITREP] scheduled edition failed:', err.message));
+}
+
+const sitrepSummary = (ed) => ed ? { id: ed.id, edition: ed.edition, generatedAt: ed.generatedAt, asOf: ed.asOf, llm: ed.llm, model: ed.model, words: ed.words, sha256: ed.sha256 } : null;
+
+// GET /api/sitrep/status — schedule, model, archive stats, latest edition
+app.get('/api/sitrep/status', (req, res) => {
+  const now = new Date();
+  const next = sitrepNext(now, { tz: SITREP_TZ, times: SITREP_TIMES });
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    version: SITREP_VERSION,
+    enabled: !!llmProvider?.isConfigured,
+    provider: llmProvider?.isConfigured ? llmProvider.name : null,
+    model: llmProvider?.isConfigured ? (llmProvider.model || null) : null,
+    schedule: { on: config.sitrep.schedule, timezone: SITREP_TZ, am: SITREP_TIMES.am, pm: SITREP_TIMES.pm, next: next ? { edition: next.edition, at: next.at.toISOString(), slotKey: next.slotKey } : null },
+    hasData: !!currentData,
+    asOf: currentData?.situation?.asOf || lastSweepTime,
+    inFlight: !!sitrepInFlight,
+    lastRunAt: sitrepLastRunAt ? new Date(sitrepLastRunAt).toISOString() : null,
+    lastError: sitrepLastError,
+    store: sitrepStore.stats(),
+    latest: sitrepSummary(sitrepStore.latest()),
+    editions: SITREP_EDITIONS,
+    banner: SITREP_BANNER,
+    limits: { contextChars: config.sitrep.maxContextChars, minGapSec: SITREP_MIN_GAP_MS / 1000 },
+  });
+});
+
+// GET /api/sitrep?limit=60&kind=am — archive index (summaries, newest first)
+app.get('/api/sitrep', validateQuery({
+  limit: (v) => num(v, { min: 1, max: 400, int: true }),
+  kind: (v) => oneOf(v, ['am', 'pm', 'adhoc', 'weekly', 'monthly']),
+  before: (v) => str(v, { max: 40, pattern: /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/ }),
+}), (req, res) => {
+  const { limit = 60, kind, before } = req.validated.query;
+  res.set('Cache-Control', 'no-store');
+  res.json({ editions: sitrepStore.list({ limit, kind, before }), stats: sitrepStore.stats() });
+});
+
+// GET /api/sitrep/latest — the newest daily edition in full
+app.get('/api/sitrep/latest', (req, res) => {
+  const ed = sitrepStore.latest();
+  res.set('Cache-Control', 'no-store');
+  if (!ed) return res.status(404).json({ error: 'no SITREP yet', hasData: !!currentData });
+  res.json(ed);
+});
+
+// GET /api/sitrep/:id[?format=md] — one edition (JSON, or the rendered Markdown as a download)
+app.get('/api/sitrep/:id', validateParams({ id: (v) => str(v, { max: 48, pattern: SITREP_ID_RE, required: true }) }), validateQuery({ format: (v) => oneOf(v, ['json', 'md']) }), (req, res) => {
+  const ed = sitrepStore.get(req.validated.params.id);
+  if (!ed) return res.status(404).json({ error: 'unknown SITREP' });
+  res.set('Cache-Control', 'no-store');
+  if (req.validated.query.format === 'md') {
+    res.set('Content-Type', 'text/markdown; charset=utf-8');
+    res.set('Content-Disposition', `attachment; filename="${ed.id}.md"`);
+    return res.send(ed.markdown || '');
+  }
+  res.json(ed);
+});
+
+// GET /api/sitrep/:id/verify — re-hash the stored Markdown against the recorded SHA-256
+app.get('/api/sitrep/:id/verify', validateParams({ id: (v) => str(v, { max: 48, pattern: SITREP_ID_RE, required: true }) }), (req, res) => {
+  const v = sitrepStore.verify(req.validated.params.id);
+  if (!v) return res.status(404).json({ error: 'unknown SITREP' });
+  res.json(v);
+});
+
+// POST /api/sitrep/generate { edition?: 'am'|'pm'|'adhoc' } — on-demand edition (one in flight, 60 s gap)
+app.post('/api/sitrep/generate', validateBody({ edition: (v) => oneOf(v, SITREP_EDITIONS) }), async (req, res) => {
+  if (!currentData) return res.status(503).json({ error: 'No data yet — first sweep in progress' });
+  if (sitrepInFlight) return res.status(409).json({ error: 'a SITREP is already being generated' });
+  const wait = SITREP_MIN_GAP_MS - (Date.now() - sitrepLastRunAt);
+  if (wait > 0) return res.status(429).json({ error: 'rate limited', retryAfterSec: Math.ceil(wait / 1000) });
+  const edition = req.validated.body.edition || 'adhoc';
+  try {
+    const ed = await runSitrep({ edition, trigger: 'manual' });
+    res.status(201).json(ed);
+  } catch (err) {
+    console.error('[SITREP] generate failed:', err.message);
+    res.status(502).json({ error: 'SITREP generation failed', detail: String(err.message || '').slice(0, 160) });
+  }
+});
+// === end Commander's SITREP ===
+
 // === Follow the Money (offshore leaks · sanctions · registries · money trail) ===
 // One query fans out to the local ICIJ Offshore Leaks index (SQLite/FTS5), the local full OFAC SDN index and
 // the live registries (OpenSanctions / OpenCorporates keyed, GLEIF keyless). Records stay per-source and
@@ -2048,6 +2172,12 @@ async function start() {
 
     // Schedule recurring sweeps
     setInterval(runSweepCycle, config.refreshIntervalMinutes * 60 * 1000);
+
+    // Commander's SITREP: AM / PM editions in the commander's time zone (one check a minute; catch-up window in lib/sitrep/schedule.mjs)
+    if (config.sitrep.schedule) {
+      console.log(`[SITREP] schedule: AM ${SITREP_TIMES.am} / PM ${SITREP_TIMES.pm} ${SITREP_TZ}`);
+      setInterval(sitrepTick, 60_000).unref();
+    } else console.log('[SITREP] scheduler disabled (SITREP_SCHEDULE=false); Generate now still available');
 
     // Schedule fast market-only refresh (every 60s by default)
     console.log(`[Crucix] Market ticker refresh: every ${MARKET_REFRESH_SECONDS}s`);

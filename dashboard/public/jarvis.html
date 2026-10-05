@@ -1600,6 +1600,7 @@ function renderTopbar(){
 // panel set rendered into #lowerGrid (and #leftRail), so the wall of ~30 equal panels is gone.
 const TAB_DEFS=[
   {id:'situation',label:'Situation',hint:'What matters this sweep'},
+  {id:'sitrep',label:'SITREP',hint:'Commander\u2019s SITREP \u00b7 SOUTHCOM AOR \u00b7 AM / PM editions drafted by the model from CRUCIX feeds, every claim cites a feed section \u00b7 archive, weekly / monthly arcs \u00b7 OSINT demo product'},
   {id:'military',label:'Military',hint:'Air (provenance-scored contacts + 48 h replay), maritime, PRC, nuclear, space'},
   {id:'cyber',label:'Cyber',hint:'Exploited in the wild, ransomware, outages, Devin scan'},
   {id:'macro',label:'Macro',hint:'Markets, energy, rates, prediction odds'},
@@ -1700,6 +1701,175 @@ function applyTabLayout(){
   g.classList.toggle('no-map',currentTab!=='situation');
 }
 window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h)syncHash(h);});
+
+// === SITREP TAB (Commander's SITREP · SOUTHCOM AOR; served by /api/sitrep/*) ===
+// Model- or rules-generated text plus feed excerpts → esc() on every string. Self-contained like the
+// Requirements tab: owns its CSS and state, wraps tabCounts / renderLeftRail / renderLower.
+(function(){
+  const css=document.createElement('style');
+  css.textContent=`
+.sr-doc{font-size:12px;line-height:1.6;color:var(--text)}
+.sr-banner{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#ffd54f;border:1px solid rgba(255,213,79,0.35);background:rgba(255,213,79,0.06);padding:5px 8px;margin:0 0 10px}
+.sr-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;margin-bottom:8px;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.sr-head b{color:var(--text);font-size:13px;letter-spacing:0.04em}
+.sr-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sr-tools select.inv-btn{padding:5px 6px}
+.sr-sec{margin:12px 0 0}
+.sr-sec h4{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin:0 0 4px;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.sr-sec p{margin:0 0 6px}
+.sr-sec ul{margin:0;padding-left:18px}
+.sr-sec li{margin:0 0 5px}
+.sr-cite{font-family:var(--mono);font-size:9px;color:var(--accent2);cursor:pointer;border-bottom:1px dotted rgba(68,204,255,0.5)}
+.sr-cite:hover{color:#fff}
+.sr-foot{margin-top:12px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.08);font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6}
+.sr-list{display:flex;flex-direction:column}
+.sr-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;border-left:2px solid transparent}
+.sr-row:hover{background:rgba(100,240,200,0.04)}
+.sr-row.sel{border-left-color:var(--accent);background:rgba(100,240,200,0.06)}
+.sr-row .sr-ed{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;padding:1px 5px;border:1px solid var(--border);color:var(--dim);flex:0 0 auto;text-transform:uppercase}
+.sr-row .sr-ed.am{color:#ffd54f;border-color:rgba(255,213,79,0.35)}.sr-row .sr-ed.pm{color:var(--accent2);border-color:rgba(68,204,255,0.35)}
+.sr-row .sr-when{flex:1;min-width:0;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-row .sr-sub{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.sr-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
+.sr-kv b{color:var(--text);font-weight:600}
+.sr-err{font-family:var(--mono);font-size:10px;color:var(--danger);margin:6px 0}
+@media print{body *{visibility:hidden}.sr-doc,.sr-doc *{visibility:visible}.sr-doc{position:absolute;left:0;top:0;width:100%;color:#000}}
+`;
+  document.head.appendChild(css);
+
+  const SR={status:null,list:null,cur:null,curId:null,loading:false,generating:false,error:null,edition:'adhoc',loadedAt:0,fresh:null};
+  const srActive=()=>currentTab==='sitrep';
+  async function srFetch(path,init){
+    const r=await fetch(path,init);let j=null;try{j=await r.json()}catch{}
+    if(!r.ok)throw new Error((j&&j.error)||`HTTP ${r.status}`);
+    return j;
+  }
+  function srRerender(){if(!srActive()||!D)return;renderTabbar();renderLeftRail();renderLower()}
+  async function srLoad(force){
+    if(SR.loading)return;
+    if(!force&&SR.loadedAt&&Date.now()-SR.loadedAt<30000)return;
+    SR.loading=true;
+    try{
+      const [st,list]=await Promise.all([srFetch('/api/sitrep/status'),srFetch('/api/sitrep?limit=60')]);
+      SR.status=st;SR.list=list.editions||[];SR.error=null;SR.loadedAt=Date.now();
+      if(!SR.cur&&SR.list[0])await srOpen(SR.list[0].id,false);
+    }catch(e){SR.error=e.message}
+    finally{SR.loading=false;srRerender()}
+  }
+  async function srOpen(id,rerender=true){
+    if(!/^[a-z0-9-]{8,48}$/.test(String(id)))return;
+    SR.curId=id;
+    try{SR.cur=await srFetch('/api/sitrep/'+encodeURIComponent(id));SR.error=null}
+    catch(e){SR.error=e.message}
+    if(rerender)srRerender();
+  }
+  async function srGenerate(){
+    if(SR.generating)return;
+    SR.generating=true;SR.error=null;srRerender();
+    try{
+      const ed=await srFetch('/api/sitrep/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({edition:SR.edition})});
+      SR.cur=ed;SR.curId=ed.id;SR.loadedAt=0;
+      await srLoad(true);
+    }catch(e){SR.error=e.message}
+    finally{SR.generating=false;srRerender()}
+  }
+  function srSetEdition(v){if(['am','pm','adhoc'].includes(v))SR.edition=v}
+  function srDownload(){if(SR.cur)location.href=`/api/sitrep/${encodeURIComponent(SR.cur.id)}?format=md`}
+  function srPrint(){if(SR.cur)window.print()}
+  // SSE: a scheduled edition landed while the tab is open → refresh the archive and show it.
+  window.srNotify=function(msg){SR.fresh=msg;SR.loadedAt=0;if(srActive()){SR.cur=null;srLoad(true)}else{renderTabbar()}};
+  window.srOpen=srOpen;window.srGenerate=srGenerate;window.srSetEdition=srSetEdition;window.srDownload=srDownload;window.srPrint=srPrint;window.srReload=()=>srLoad(true);
+
+  const fmtWhen=(iso)=>{if(!iso)return '\u2014';const d=new Date(iso);if(Number.isNaN(d.getTime()))return esc(iso);
+    try{return d.toLocaleString('en-US',{timeZone:SR.status?.schedule?.timezone||'America/New_York',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'})}catch{return d.toISOString().slice(0,16)+'Z'}};
+  const EDL={am:'AM edition',pm:'PM edition',adhoc:'Ad hoc edition',weekly:'Weekly arc',monthly:'Monthly arc'};
+  // Escape first, then turn [id] citations into clickable chips (ids are [a-z]+ so the regex cannot touch markup).
+  function srText(t){
+    const cites=new Map((SR.cur?.citations||[]).map(c=>[c.id,c]));
+    return esc(t).replace(/\[([a-z]+)\]/g,(m,id)=>{const c=cites.get(id);if(!c)return m;const tab=TAB_IDS.includes(c.tab)?c.tab:null;
+      return `<span class="sr-cite" title="${esc(c.label)}${tab?' \u2014 open '+esc(tab)+' tab':''}" ${tab?`onclick="setTab('${tab}')"`:''}>[${esc(id)}]</span>`});
+  }
+  function srDocPanel(){
+    const ed=SR.cur,st=SR.status;
+    const tools=`<div class="sr-tools">
+      <select class="inv-btn" onchange="srSetEdition(this.value)" title="Edition label for an on-demand run"><option value="adhoc" ${SR.edition==='adhoc'?'selected':''}>Ad hoc</option><option value="am" ${SR.edition==='am'?'selected':''}>AM</option><option value="pm" ${SR.edition==='pm'?'selected':''}>PM</option></select>
+      <button class="inv-btn" onclick="srGenerate()" ${SR.generating||!st?.hasData?'disabled':''} title="${st?.hasData?'Draft an edition from the current sweep':'Waiting for the first sweep'}">${SR.generating?'Drafting\u2026':'Generate now'}</button>
+      <button class="inv-btn ghost" onclick="srDownload()" ${ed?'':'disabled'}>Download .md</button>
+      <button class="inv-btn ghost" onclick="srPrint()" ${ed?'':'disabled'}>Print</button></div>`;
+    let body;
+    if(SR.error&&!ed)body=`<div class="sr-err">${esc(SR.error.toUpperCase())}</div>`;
+    else if(!SR.status&&!ed)body='<div class="inv-hint">Loading SITREP\u2026</div>';
+    else if(!ed)body=`<div class="inv-hint">No SITREP generated yet. ${st?.hasData?'Click <b>Generate now</b> for the first edition, or wait for the next scheduled run':'The first sweep has not completed; the first edition runs after it'}${st?.schedule?.next?` (${esc(EDL[st.schedule.next.edition]||st.schedule.next.edition)} at ${fmtWhen(st.schedule.next.at)})`:''}.</div>`;
+    else{
+      const act=(ed.activity||[]).map(a=>`<li><b>${esc(a.domain)}.</b> ${srText(a.text)}</li>`).join('')||'<li>No reporting in CRUCIX feeds.</li>';
+      const watch=(ed.watch||[]).map(w=>`<li>${srText(w)}</li>`).join('')||'<li>None identified in CRUCIX feeds.</li>';
+      const ext=ed.external?`<div class="sr-sec"><h4>7. ${esc(ed.external.label||'EXTERNAL \u2014 UNVERIFIED')}</h4><ul>${(ed.external.findings||[]).map(f=>`<li>${esc(f.text)}${f.url?` <a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.url)}</a>`:''}</li>`).join('')||`<li>${esc(ed.external.note||'No additional developments found.')}</li>`}</ul></div>`:'';
+      body=`<div class="sr-banner">${esc(ed.banner||st?.banner||'OSINT demonstration product')}</div>
+      <div class="sr-head"><b>COMMANDER\u2019S SITREP \u2014 SOUTHCOM AOR</b><span>${esc(EDL[ed.edition]||ed.edition)}</span><span>${fmtWhen(ed.generatedAt)}</span><span>sweep as of ${fmtWhen(ed.asOf)}</span><span>${esc(ed.id)}</span></div>
+      ${SR.error?`<div class="sr-err">${esc(SR.error.toUpperCase())}</div>`:''}
+      <div class="sr-sec"><h4>1. BLUF</h4><p>${srText(ed.bluf)}</p></div>
+      <div class="sr-sec"><h4>2. Significant activity (last ${esc(ed.windowHours||12)} h)</h4><ul>${act}</ul></div>
+      <div class="sr-sec"><h4>3. Changes since previous SITREP</h4><p>${srText(ed.changes)}</p></div>
+      <div class="sr-sec"><h4>4. Indicators &amp; warnings \u2014 next 24 h</h4><ul>${watch}</ul></div>
+      <div class="sr-sec"><h4>5. Assessment (next 24 h)</h4><p>${srText(ed.assessment)}</p></div>
+      <div class="sr-sec"><h4>6. Source integrity &amp; caveats</h4><p>${srText(ed.integrity)}</p></div>
+      ${ext}
+      <div class="sr-foot">Sources cited: ${(ed.citations||[]).map(c=>`<span class="sr-cite" title="${esc(c.label)}" ${TAB_IDS.includes(c.tab)?`onclick="setTab('${c.tab}')"`:''}>[${esc(c.id)}]</span>`).join(' ')||'none'}<br>
+      ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections${(ed.context?.omitted||[]).length?` (omitted ${esc(ed.context.omitted.join(', '))})`:''} \u00b7 SHA-256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026${ed.previousId?` \u00b7 previous ${esc(ed.previousId)}`:' \u00b7 baseline edition'}</div>`;
+    }
+    return `<div class="g-panel sr-doc"><div class="sec-head"><h3>Commander SITREP</h3>${tools}</div>${body}</div>`;
+  }
+  function srArchivePanel(){
+    const list=SR.list||[];
+    const body=SR.error&&!list.length?`<div class="g-off-why">${esc(SR.error.toUpperCase())}</div>`
+      :!SR.list?'<div class="inv-hint">Loading archive\u2026</div>'
+      :!list.length?'<div class="inv-hint">Empty. The first edition appears here once generated.</div>'
+      :`<div class="sr-list">${list.map(e=>`<div class="sr-row ${e.id===SR.curId?'sel':''}" role="button" tabindex="0" onclick="srOpen('${esc(e.id)}')" title="${esc(e.bluf||'')}"><span class="sr-ed ${esc(e.edition)}">${esc(e.edition)}</span><span class="sr-when">${fmtWhen(e.generatedAt)}<div class="sr-sub">${e.llm==='model'?esc(e.model||'model'):'rules-only'} \u00b7 ${e.words??'?'} w \u00b7 ${e.citations} cites</div></span></div>`).join('')}</div>`;
+    const st=SR.status?.store;
+    return `<div class="g-panel"><div class="sec-head"><h3>SITREP Archive</h3><span class="badge">${st?`${st.editions} / ${st.max}`:'\u2014'}</span></div>${body}</div>`;
+  }
+  function srSchedulePanel(){
+    const st=SR.status;
+    if(!st)return `<div class="g-panel"><div class="sec-head"><h3>SITREP Schedule</h3></div><div class="inv-hint">Loading\u2026</div></div>`;
+    const sch=st.schedule||{};
+    const kv=[['Model',st.enabled?`${st.provider}${st.model?' \u00b7 '+st.model:''}`:'none configured \u2014 rules-only digests'],
+      ['Editions',`AM ${sch.am} \u00b7 PM ${sch.pm} ${sch.timezone}${sch.on?'':' (scheduler off)'}`],
+      ['Next',sch.next?`${EDL[sch.next.edition]||sch.next.edition} \u00b7 ${fmtWhen(sch.next.at)}`:'\u2014'],
+      ['Last run',st.lastRunAt?fmtWhen(st.lastRunAt):'none this process'],
+      ['Sweep as of',fmtWhen(st.asOf)],
+      ['Archive',`${st.store?.editions??0} editions${st.store?.oldest?` since ${fmtWhen(st.store.oldest)}`:''}`]];
+    return `<div class="g-panel"><div class="sec-head"><h3>SITREP Schedule</h3><span class="badge ${st.enabled?'':'warn'}">${st.inFlight?'DRAFTING':st.enabled?'MODEL':'RULES-ONLY'}</span></div>
+      <div class="sr-kv">${kv.map(([k,v])=>`<span>${esc(k)}</span><b>${esc(v)}</b>`).join('')}</div>
+      ${st.lastError?`<div class="sr-err">LAST ERROR: ${esc(st.lastError)}</div>`:''}
+      <div class="inv-hint">Twice-daily commander\u2019s brief drafted from the live CRUCIX state. Step 2 (outside-source review) and the weekly / monthly arcs are added in the next releases; this edition is CRUCIX-grounded only.</div></div>`;
+  }
+
+  const _srTabCounts=tabCounts;
+  tabCounts=function(){
+    const c=_srTabCounts();
+    const l=SR.status?.latest||SR.list?.[0];
+    if(SR.fresh&&!srActive())c.sitrep={n:'NEW',cls:'hot',title:`New ${EDL[SR.fresh.edition]||'edition'} ${fmtWhen(SR.fresh.generatedAt)}`};
+    else if(l)c.sitrep={n:String(l.edition).toUpperCase(),cls:'',title:`Latest: ${EDL[l.edition]||l.edition} ${fmtWhen(l.generatedAt)}`};
+    else c.sitrep=null;
+    return c;
+  };
+  const _srRenderLeftRail=renderLeftRail;
+  renderLeftRail=function(){
+    if(!srActive())return _srRenderLeftRail();
+    const rail=document.getElementById('leftRail');
+    rail.innerHTML=[srSchedulePanel(),srArchivePanel()].join('');
+    applyCaptions(rail);
+  };
+  const _srRenderLower=renderLower;
+  renderLower=function(){
+    if(!srActive())return _srRenderLower();
+    SR.fresh=null;
+    const grid=document.getElementById('lowerGrid');
+    grid.innerHTML=srDocPanel().replace(/^(\s*<div class="g-panel)/,'$1 lp-wide');
+    applyCaptions(grid);
+    srLoad();
+  };
+})();
 
 // === REQUIREMENTS TAB (standing intelligence requirements vs 24h / 7d / 30d / 90d baselines; served by /api/requirements/*) ===
 // Everything shown here is analyst- or model-authored text or third-party evidence → esc() on every string.
@@ -2282,6 +2452,9 @@ document.addEventListener('keydown',e=>{
 // One line under each panel title: what it shows, where it comes from, what it does not establish.
 // Keyed by the panel title text (i18n-independent English fallback titles).
 const PANEL_CAPTIONS={
+  'commander sitrep':'The current edition of the Commander\u2019s SITREP for the SOUTHCOM AOR: BLUF, significant activity by domain, changes since the previous edition, indicators &amp; warnings, a 24 h assessment and source-integrity caveats. Drafted by the configured model from the live CRUCIX state only \u2014 every claim carries a <b>[section]</b> citation you can click to open the feed it came from; uncited claims are struck server-side. With no model key it degrades to a rules-only data digest. <b>OSINT demonstration product</b>, not an official assessment.',
+  'sitrep archive':'Every edition ever generated, newest first (AM / PM scheduled, ad hoc, and later weekly / monthly arcs). Stored as JSON + Markdown with a SHA-256 over the rendered text so an edition can be re-verified later. Select one to read it.',
+  'sitrep schedule':'When the next edition runs (commander\u2019s local time), which model drafts it, and how many tokens the last run cost. <b>Generate now</b> drafts an edition from the current sweep without waiting for the schedule \u2014 one at a time, 60 s apart.',
   'contact replay':'Scrub through the last 48 h of air contacts in one hotspot, one frame per sweep. Each contact is coloured by provenance confidence \u2014 how many independent feeds (OpenSky, adsb.fi) reported the same ICAO24, whether they agreed on position, and how old the fix was at sweep time. <b>Computed from the feeds CRUCIX already pulls</b>; not a live track and not an intent assessment.',
   'target nomination':'Nominate a public-source target with a logged basis (knowledge-graph node, OFAC SDN id, DOJ release or a source URL) and the requirement it must answer. Persons, organizations, facilities, vehicles, vessels, aircraft already named in public reporting only.',
   'target deck':'Every nominated target with status and pending review count. Select one to open its package; closed targets stay for the record.',
@@ -9888,6 +10061,8 @@ function connectSSE(){
       if (msg.type === 'connected') {
         if (Number.isFinite(msg.heartbeatMs) && msg.heartbeatMs > 0) sseHeartbeatMs = msg.heartbeatMs;
         armWatchdog();
+      } else if (msg.type === 'sitrep') {
+        if (typeof window.srNotify === 'function') window.srNotify(msg);
       } else if (msg.type === 'update' && msg.data) {
         if (!applyPayload(msg.data)) { setLiveStatus('sweep-failed'); return; }
         setLiveStatus('live');
