@@ -27,6 +27,16 @@ const webProvider = (text, { sources = SOURCES, fail = false, searched = true } 
   async completeWithWebSearch(system, user, opts) { this.calls.push({ system, user, opts }); if (fail) throw new Error('web search 429'); return { text, sources, searched, model: 'fake-search', usage: { inputTokens: 700, outputTokens: 250 } }; },
 });
 
+test('parseReview: host match ignores www. / m. / amp. prefixes; dropped hosts are reported for diagnosis', () => {
+  const srcs = [{ title: 'UPI', url: 'https://www.upi.com/Top_News/2026/10/05/x/' }];
+  const r = parseReview(JSON.stringify({ findings: [
+    { kind: 'missing', text: 'Same publisher, no www.', url: 'https://upi.com/Top_News/2026/10/05/other/' },
+    { kind: 'missing', text: 'Mobile host.', url: 'https://m.upi.com/story' },
+    { kind: 'missing', text: 'Typed from memory.', url: 'https://www.reuters.com/world/americas/x' },
+  ], note: 'n' }), srcs);
+  assert.equal(r.findings.length, 2); assert.equal(r.dropped, 1); assert.deepEqual(r.droppedHosts, ['reuters.com']);
+});
+
 test('reviewSitrep: pages the search read (visited) count as provider-cited; JSON answers carry no annotations', async () => {
   // Real behaviour observed: JSON output → zero url_citation annotations, so trust must come from web_search_call.action.sources.
   const p = webProvider(REVIEW, { sources: [] });
