@@ -133,6 +133,7 @@ test('same-figure trend claims: flagged when the previous edition already report
   assert.match(r.text, /marking a worsening condition \[SAME FIGURE AS PREVIOUS\]\[outages\]\. Aircraft rose from 480 to 510 \[caribbeanair\]\. CII unchanged at 61\/100 \[aor\]\. New IODA alert \[delta\]\. Detentions climbed to 12 \[venezuela\]\.$/);
   assert.deepEqual(flagUnsupportedChanges('x increased to 28% [a].', ''), { text: 'x increased to 28% [a].', flagged: 0 });
   assert.equal(flagUnsupportedChanges('Outages at 28% [a].', prevText).flagged, 0, 'no trend word → no flag');
+  assert.equal(flagUnsupportedChanges('Internet disruption alerts in Venezuela steady at 28% with no rise or fall reported [a]. Aircraft remained at 510 [b]. The 28% outage level persisted [a].', prevText).flagged, 0, 'steady / no rise or fall / remained / persisted are not trend claims');
   assert.equal(flagUnsupportedChanges('Outages increased to 2,800 users [a].', 'previous saw 2800 users').flagged, 1, 'comma-normalised match');
   assert.equal(flagUnsupportedChanges('Versus AM edition sitrep-20261005-am (generated 2026-10-05T10:00:00Z, 4 minutes before): outages rose to 28% [a].', prevText).flagged, 1, 'edition ids, timestamps and minutes-ago are not figures');
 
