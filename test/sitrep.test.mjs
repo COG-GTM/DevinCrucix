@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   buildSitrepPack, renderSitrepPack, draftSystemPrompt, parseDraft, rulesOnlySitrep, renderMarkdown, generateSitrep, editionId,
+  annotateSentences, repairSystemPrompt, UNCITED, REPAIR_THRESHOLD,
   DOMAINS, MAX_ACTIVITY, MAX_WATCH, BANNER, SITREP_VERSION,
 } from '../lib/sitrep/index.mjs';
 import { SITREP_SECTION_IDS, ASK_SECTION_ORDER, AOR_COUNTRIES } from '../lib/sitrep/context.mjs';
@@ -64,12 +65,12 @@ test('buildSitrepPack: SOUTHCOM sections first, AOR filtering, Ask sections in r
   const ids = pack.sections.map(s => s.id);
   assert.ok(ids.indexOf('colombia') < ids.indexOf('situation'), 'AOR sections precede Ask sections');
   for (const id of ['colombia', 'venezuela', 'aor', 'conflict', 'caribbeanair', 'maritime', 'sanctions', 'outages', 'situation', 'defcon', 'delta', 'narco', 'telegram', 'sources']) assert.ok(ids.includes(id), `has ${id}`);
-  assert.ok(!ids.includes('ukraine') && !ids.includes('iranwar') && !ids.includes('taiwan') && !ids.includes('macro'), 'theater / market sections excluded');
+  assert.ok(!ids.includes('ukraine') && !ids.includes('iranwar') && !ids.includes('taiwan') && !ids.includes('macro') && !ids.includes('ioda'), 'theater / market / global-outage sections excluded');
   assert.ok(!ids.includes('previous'), 'no previous edition → no section');
   const by = id => pack.sections.find(s => s.id === id).text;
   assert.match(by('aor'), /Venezuela 71/); assert.match(by('aor'), /Haiti 80/); assert.doesNotMatch(by('aor'), /Ukraine/);
   assert.match(by('conflict'), /Colombia 40/); assert.doesNotMatch(by('conflict'), /Kharkiv/);
-  assert.match(by('caribbeanair'), /212 aircraft/); assert.match(by('caribbeanair'), /corroborated 20/); assert.match(by('caribbeanair'), /400 fused contacts/); assert.match(by('caribbeanair'), /RCH123/);
+  assert.match(by('caribbeanair'), /212 aircraft of all types in box \(airliners, cargo, GA and military together; 1 tracks flagged military\)/); assert.match(by('caribbeanair'), /corroborated 20/); assert.match(by('caribbeanair'), /400 fused contacts/); assert.match(by('caribbeanair'), /RCH123/);
   assert.match(by('maritime'), /Panama Canal/); assert.doesNotMatch(by('maritime'), /Hormuz/); assert.match(by('maritime'), /Eisenhower/); assert.doesNotMatch(by('maritime'), /Vinson/); assert.match(by('maritime'), /GPS degradation Caribbean/);
   assert.match(by('outages'), /Venezuela \(VE\): critical/); assert.doesNotMatch(by('outages'), /Iran/);
   assert.match(by('colombia'), /Hurto a personas.*\[official\]/); assert.match(by('colombia'), /El Tiempo: Clan del Golfo/); assert.match(by('colombia'), /SAT alerts 2026: 31/); assert.match(by('colombia'), /massacres 2026: 60/);
@@ -96,7 +97,7 @@ test('buildSitrepPack: previous edition section, budget drops whole sections but
 test('draftSystemPrompt carries the rules, the schema and the rendered pack', () => {
   const pack = buildSitrepPack(STATE);
   const p = draftSystemPrompt(pack, { edition: 'pm' });
-  assert.match(p, /PM edition/); assert.match(p, /Mexico \/ US-border sections are NORTHCOM/); assert.match(p, /Only cite ids that appear in the context/);
+  assert.match(p, /PM edition/); assert.match(p, /Mexico and the US-Mexico border .* are NORTHCOM/); assert.match(p, /EVERY sentence in EVERY field/); assert.match(p, /Never call the total "military aircraft"/); assert.match(p, /Only cite ids that appear in the context/);
   assert.match(p, /"bluf": string/); assert.match(p, /### \[venezuela\]/);
   for (const d of DOMAINS) assert.ok(p.includes(d));
 });
@@ -107,6 +108,9 @@ test('parseDraft keeps only pack-backed citations, caps lists and normalises dom
   assert.ok(d);
   assert.doesNotMatch(d.bluf, /\[nosuch\]/, 'unknown citation struck');
   assert.match(d.bluf, /\[aor\]/);
+  assert.match(d.bluf, /Fabricated claim \[UNCITED\]\./, 'sentence left without a citation is marked');
+  assert.equal(d.grounding.uncited, 7, '1 bluf sentence + 6 bare watch items');
+  assert.ok(d.grounding.sentences > 20);
   assert.equal(d.activity.length, MAX_ACTIVITY);
   assert.equal(d.activity[2].domain, 'Not a domain');
   assert.equal(d.watch.length, MAX_WATCH);
@@ -145,7 +149,11 @@ test('generateSitrep: model path, fallbacks, ids, Markdown and hash', async () =
   assert.deepEqual(ed.llm, { used: true, reason: null }); assert.equal(ed.model, 'fake-1'); assert.equal(ed.usage.outputTokens, 400);
   assert.equal(ed.previousId, null); assert.equal(ed.external, null); assert.equal(ed.banner, BANNER);
   assert.ok(ed.words > 50); assert.ok(ed.context.sections.includes('colombia'));
-  assert.equal(prov.calls.length, 1); assert.equal(prov.calls[0].opts.maxTokens, 1800); assert.match(prov.calls[0].user, /AM edition/);
+  assert.equal(prov.calls.length, 2, 'draft + citation repair pass (fixture draft has > 15 % uncited sentences)');
+  assert.equal(prov.calls[0].opts.maxTokens, 1800); assert.match(prov.calls[0].user, /AM edition/);
+  assert.match(prov.calls[1].system, /^You are fixing a Commander's SITREP draft/); assert.match(prov.calls[1].system, /\[venezuela\] /); assert.match(prov.calls[1].user, /^Draft to fix:\n\{/);
+  assert.equal(ed.usage.inputTokens, 1000, 'repair that does not improve is discarded, usage not added');
+  assert.equal(ed.grounding.repaired, undefined); assert.match(ed.markdown, /Grounding: \d+\/\d+ sentences cite a CRUCIX section; 7 marked \[UNCITED\]/);
   assert.equal(ed.sha256, sha256(ed.markdown));
   assert.match(ed.markdown, /^# COMMANDER'S SITREP — SOUTHCOM AOR \(OSINT\)\n\*\*AM edition\*\* · 05 OCT 2026 0605 EDT/);
   assert.match(ed.markdown, /## 1\. BLUF\n.*\[aor\]/); assert.match(ed.markdown, /- \*\*Maritime & air\.\*\* 212 aircraft/); assert.match(ed.markdown, /## 4\. Indicators & warnings/);
@@ -230,4 +238,34 @@ test('schedule: zoned times, due slots with catch-up window, next slot', () => {
   assert.equal(n2.slotKey, '2026-10-06-am'); assert.equal(n2.at.toISOString(), '2026-10-06T10:00:00.000Z');
   const utc = nextSlot(new Date('2026-10-05T05:00:00Z'), { tz: 'UTC', times: { am: '05:30', pm: '17:00' } });
   assert.equal(utc.at.toISOString(), '2026-10-05T05:30:00.000Z');
+});
+
+test('annotateSentences: NORTHCOM tag for Mexico / border sentences, UNCITED marker, citations preserved', () => {
+  const a = annotateSentences('Enforcement spiked in Ciudad Juárez [border]. Caracas blackout continues [venezuela][outages]. The commander should expect more.');
+  assert.equal(a.text, 'Enforcement spiked in Ciudad Juárez (NORTHCOM context) [border]. Caracas blackout continues [venezuela][outages]. The commander should expect more [UNCITED].');
+  assert.equal(a.uncited, 1); assert.equal(a.total, 3);
+  const b = annotateSentences('CBP seizures rose (NORTHCOM context) [cbp].');
+  assert.equal(b.text, 'CBP seizures rose (NORTHCOM context) [cbp].', 'already tagged → unchanged');
+  assert.equal(annotateSentences('Flows via Sinaloa [narco]').text, 'Flows via Sinaloa (NORTHCOM context) [narco].');
+  assert.deepEqual(annotateSentences(''), { text: '', uncited: 0, total: 0 });
+  assert.equal(UNCITED, '[UNCITED]'); assert.equal(REPAIR_THRESHOLD, 0.15);
+});
+
+test('generateSitrep: repair pass replaces the draft when it reduces uncited sentences and adds its tokens', async () => {
+  const bad = JSON.stringify({ bluf: 'Venezuela is unstable. Colombia saw an attack. Caribbean traffic rose.', activity: [], changes: 'Baseline.', watch: [], assessment: 'Likely worse.', integrity: 'Thin.' });
+  const fixed = JSON.stringify({ bluf: 'Venezuela is unstable [aor]. Colombia saw an attack [colombia]. Caribbean traffic rose [caribbeanair].', activity: [], changes: 'Baseline [delta].', watch: [], assessment: 'Likely worse [aor].', integrity: 'Thin [sources].' });
+  let n = 0;
+  const prov = { isConfigured: true, name: 'fake', calls: [], async complete(sys, user, opts) { this.calls.push(sys); n++; return { text: n === 1 ? bad : fixed, model: 'fake-1', usage: { inputTokens: 100, outputTokens: 50 } }; } };
+  const ed = await generateSitrep({ provider: prov, state: STATE, edition: 'adhoc', now: new Date('2026-10-05T12:00:00Z') });
+  assert.equal(prov.calls.length, 2);
+  assert.deepEqual(ed.grounding, { sentences: 6, uncited: 0, repaired: true, before: 6 });
+  assert.deepEqual(ed.usage, { inputTokens: 200, outputTokens: 100 });
+  assert.match(ed.bluf, /^Venezuela is unstable \[aor\]\./); assert.doesNotMatch(ed.markdown, /UNCITED/);
+  assert.match(ed.markdown, /citation repair pass applied \(6 → 0 uncited\)/);
+  assert.match(repairSystemPrompt(buildSitrepPack(STATE)), /\[colombia\] Colombia/);
+  // repair call failing keeps the marked first draft
+  let m = 0;
+  const prov2 = { isConfigured: true, name: 'fake', async complete() { m++; if (m === 2) throw new Error('timeout'); return { text: bad, model: 'fake-1', usage: { inputTokens: 100, outputTokens: 50 } }; } };
+  const ed2 = await generateSitrep({ provider: prov2, state: STATE, edition: 'adhoc', now: new Date('2026-10-05T12:00:00Z') });
+  assert.equal(m, 2); assert.equal(ed2.llm.used, true); assert.equal(ed2.grounding.uncited, 6); assert.match(ed2.bluf, /Venezuela is unstable \[UNCITED\]\./);
 });

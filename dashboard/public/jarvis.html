@@ -1721,6 +1721,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
 .sr-sec li{margin:0 0 5px}
 .sr-cite{font-family:var(--mono);font-size:9px;color:var(--accent2);cursor:pointer;border-bottom:1px dotted rgba(68,204,255,0.5)}
 .sr-cite:hover{color:#fff}
+.sr-uncited{font-family:var(--mono);font-size:9px;color:var(--danger);border-bottom:1px dotted rgba(255,95,99,0.6)}
 .sr-foot{margin-top:12px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.08);font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6}
 .sr-list{display:flex;flex-direction:column}
 .sr-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;border-left:2px solid transparent}
@@ -1733,7 +1734,6 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
 .sr-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
 .sr-kv b{color:var(--text);font-weight:600}
 .sr-err{font-family:var(--mono);font-size:10px;color:var(--danger);margin:6px 0}
-@media print{body *{visibility:hidden}.sr-doc,.sr-doc *{visibility:visible}.sr-doc{position:absolute;left:0;top:0;width:100%;color:#000}}
 `;
   document.head.appendChild(css);
 
@@ -1775,7 +1775,34 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
   }
   function srSetEdition(v){if(['am','pm','adhoc'].includes(v))SR.edition=v}
   function srDownload(){if(SR.cur)location.href=`/api/sitrep/${encodeURIComponent(SR.cur.id)}?format=md`}
-  function srPrint(){if(SR.cur)window.print()}
+  // Print: a clean standalone document in a new window (the dashboard's fixed-height grid clips the in-page print).
+  function srPrint(){
+    const ed=SR.cur;if(!ed)return;
+    const T=(t)=>esc(t).replace(/\[([a-z]+)\]/g,'<span class="c">[$1]</span>').replace(/\[UNCITED\]/g,'<span class="u">[UNCITED]</span>');
+    const li=(a)=>a.length?a.join(''):'';
+    const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(ed.id)}</title><style>
+      @page{size:letter;margin:0.7in}body{font:11pt/1.45 Georgia,"Times New Roman",serif;color:#000;margin:0;max-width:7.1in}
+      h1{font:bold 14pt/1.2 Arial,Helvetica,sans-serif;letter-spacing:0.04em;margin:0 0 4px}h2{font:bold 10.5pt/1.2 Arial,Helvetica,sans-serif;text-transform:uppercase;letter-spacing:0.08em;margin:14px 0 4px;border-bottom:1px solid #000;padding-bottom:2px}
+      .meta{font:9pt Arial,Helvetica,sans-serif;color:#333;margin-bottom:8px}.banner{font:bold 8.5pt/1.3 Arial,Helvetica,sans-serif;text-transform:uppercase;border:1px solid #000;padding:5px 8px;margin:8px 0 10px}
+      p{margin:0 0 6px}ul{margin:0;padding-left:18px}li{margin:0 0 4px}.c{font:8.5pt "Courier New",monospace;color:#444}.u{font:bold 8.5pt "Courier New",monospace;color:#900}
+      .foot{margin-top:14px;padding-top:6px;border-top:1px dashed #000;font:8.5pt/1.4 Arial,Helvetica,sans-serif;color:#333}</style></head><body>
+      <h1>COMMANDER\u2019S SITREP \u2014 SOUTHCOM AOR (OSINT)</h1>
+      <div class="meta">${esc(EDL[ed.edition]||ed.edition)} \u00b7 ${fmtWhen(ed.generatedAt)} \u00b7 CRUCIX sweep as of ${fmtWhen(ed.asOf)} \u00b7 ${esc(ed.id)}</div>
+      <div class="banner">${esc(ed.banner||'OSINT demonstration product')}</div>
+      <h2>1. BLUF</h2><p>${T(ed.bluf)}</p>
+      <h2>2. Significant activity (last ${esc(ed.windowHours||12)} h)</h2><ul>${li((ed.activity||[]).map(a=>`<li><b>${esc(a.domain)}.</b> ${T(a.text)}</li>`))||'<li>No reporting in CRUCIX feeds.</li>'}</ul>
+      <h2>3. Changes since previous SITREP</h2><p>${T(ed.changes)}</p>
+      <h2>4. Indicators &amp; warnings \u2014 next 24 h</h2><ul>${li((ed.watch||[]).map(w=>`<li>${T(w)}</li>`))||'<li>None identified in CRUCIX feeds.</li>'}</ul>
+      <h2>5. Assessment (next 24 h)</h2><p>${T(ed.assessment)}</p>
+      <h2>6. Source integrity &amp; caveats</h2><p>${T(ed.integrity)}</p>
+      ${ed.external?`<h2>7. ${esc(ed.external.label||'EXTERNAL \u2014 UNVERIFIED')}</h2><ul>${li((ed.external.findings||[]).map(f=>`<li>${esc(f.text)}${f.url?` (${esc(f.url)})`:''}</li>`))||`<li>${esc(ed.external.note||'No additional developments found.')}</li>`}</ul>`:''}
+      <div class="foot">Sources cited (CRUCIX sections): ${esc((ed.citations||[]).map(c=>`[${c.id}] ${c.label}`).join('; ')||'none')}.<br>
+      ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections \u00b7 SHA-256 ${esc(ed.sha256||'')}${ed.grounding?.sentences?`<br>Grounding: ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite a CRUCIX section${ed.grounding.uncited?`; ${ed.grounding.uncited} marked [UNCITED]`:''}`:''}</div>
+      </body></html>`;
+    const w=window.open('','_blank','noopener=no');if(!w){SR.error='Pop-up blocked: allow pop-ups to print';srRerender();return}
+    w.document.open();w.document.write(html);w.document.close();
+    w.addEventListener('load',()=>{w.focus();w.print()});setTimeout(()=>{try{w.focus();w.print()}catch{}},400);
+  }
   // SSE: a scheduled edition landed while the tab is open → refresh the archive and show it.
   window.srNotify=function(msg){SR.fresh=msg;SR.loadedAt=0;if(srActive()){SR.cur=null;srLoad(true)}else{renderTabbar()}};
   window.srOpen=srOpen;window.srGenerate=srGenerate;window.srSetEdition=srSetEdition;window.srDownload=srDownload;window.srPrint=srPrint;window.srReload=()=>srLoad(true);
@@ -1786,7 +1813,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
   // Escape first, then turn [id] citations into clickable chips (ids are [a-z]+ so the regex cannot touch markup).
   function srText(t){
     const cites=new Map((SR.cur?.citations||[]).map(c=>[c.id,c]));
-    return esc(t).replace(/\[([a-z]+)\]/g,(m,id)=>{const c=cites.get(id);if(!c)return m;const tab=TAB_IDS.includes(c.tab)?c.tab:null;
+    return esc(t).replace(/\[UNCITED\]/g,'<span class="sr-uncited" title="No CRUCIX section backs this sentence \u2014 treat as model assertion">[UNCITED]</span>').replace(/\[([a-z]+)\]/g,(m,id)=>{const c=cites.get(id);if(!c)return m;const tab=TAB_IDS.includes(c.tab)?c.tab:null;
       return `<span class="sr-cite" title="${esc(c.label)}${tab?' \u2014 open '+esc(tab)+' tab':''}" ${tab?`onclick="setTab('${tab}')"`:''}>[${esc(id)}]</span>`});
   }
   function srDocPanel(){
@@ -1815,7 +1842,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       <div class="sr-sec"><h4>6. Source integrity &amp; caveats</h4><p>${srText(ed.integrity)}</p></div>
       ${ext}
       <div class="sr-foot">Sources cited: ${(ed.citations||[]).map(c=>`<span class="sr-cite" title="${esc(c.label)}" ${TAB_IDS.includes(c.tab)?`onclick="setTab('${c.tab}')"`:''}>[${esc(c.id)}]</span>`).join(' ')||'none'}<br>
-      ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections${(ed.context?.omitted||[]).length?` (omitted ${esc(ed.context.omitted.join(', '))})`:''} \u00b7 SHA-256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026${ed.previousId?` \u00b7 previous ${esc(ed.previousId)}`:' \u00b7 baseline edition'}</div>`;
+      ${ed.llm?.used?`Drafted by ${esc(ed.model||'model')} \u00b7 ${ed.usage?.inputTokens??'?'} in / ${ed.usage?.outputTokens??'?'} out tokens`:`Rules-only data digest (${esc(ed.llm?.reason||'no model')})`} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars / ${(ed.context?.sections||[]).length} sections${(ed.context?.omitted||[]).length?` (omitted ${esc(ed.context.omitted.join(', '))})`:''} \u00b7 SHA-256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026${ed.previousId?` \u00b7 previous ${esc(ed.previousId)}`:' \u00b7 baseline edition'}${ed.grounding?.sentences?`<br>Grounding: ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite a CRUCIX section${ed.grounding.uncited?` \u00b7 <span class="sr-uncited">${ed.grounding.uncited} [UNCITED]</span>`:''}${ed.grounding.repaired?` \u00b7 repair pass ${ed.grounding.before}\u2192${ed.grounding.uncited}`:''}`:''}</div>`;
     }
     return `<div class="g-panel sr-doc"><div class="sec-head"><h3>Commander SITREP</h3>${tools}</div>${body}</div>`;
   }
