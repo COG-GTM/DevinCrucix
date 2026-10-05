@@ -138,6 +138,9 @@ test('arcSystemPrompt / parseArc / rulesOnlyArc: every sentence cites a token, u
   assert.equal(r.arc.length, MAX_ARC_ITEMS);
   assert.deepEqual(r.arc[1], { theme: 'Bad token', trajectory: 'steady', text: 'Cited a token that does not exist [d2].' });
   assert.equal(r.grounding.uncited, 1);
+  assert.equal(r.grounding.spanFlagged, 0);
+  assert.match(r.integrity, /CRUCIX check: \d+ of \d+ model sentences cite an edition or the trend lines, 1 marked \[UNCITED\]; editions span 47 h \[stats\]\.$/);
+  assert.match(p, /editions span only 47 h/);
   const ids = r.citations.map(c => c.id).sort();
   assert.deepEqual(ids, ['d1', 'd2', 'd3', 'stats']);
   assert.equal(r.citations.find(c => c.id === 'd2').editionId, pack.sources[1].id);
@@ -172,7 +175,7 @@ test('generateArc: too few editions, rules-only, model path, provider failure, u
   const provider = (text, fail) => ({ isConfigured: true, name: 'fake', model: 'fake-1', async complete(sys, user, opts) { calls.push({ sys, user, opts }); if (fail) throw new Error('boom 503'); return { text, model: 'fake-1', usage: { inputTokens: 3000, outputTokens: 500 } }; } });
   const md = await generateArc({ provider: provider(good), store, kind: 'weekly', now: NOW, tz: TZ });
   assert.equal(md.id, 'sitrep-20261005-weekly-063000'); assert.deepEqual(md.llm, { used: true, reason: null }); assert.equal(md.model, 'fake-1'); assert.equal(md.usage.outputTokens, 500);
-  assert.equal(md.bluf, 'The week in brief [d1][d3].'); assert.deepEqual(md.grounding, { sentences: 5, uncited: 0 });
+  assert.equal(md.bluf, 'The week in brief [d1][d3].'); assert.deepEqual(md.grounding, { sentences: 5, uncited: 0, spanFlagged: 0, trajectoryFlagged: 0 });
   assert.equal(calls[0].opts.maxTokens, 2200); assert.match(calls[0].user, /Write the Weekly arc now\./); assert.match(calls[0].sys, /ARCHIVED EDITIONS \(3\)/);
   assert.match(md.markdown, /Grounding: 5\/5 sentences cite an archived edition or the trend lines/); assert.match(md.markdown, /Generation: fake-1 · 3000 in \/ 500 out tokens/);
   assert.equal(md.sha256, sha256(md.markdown));
@@ -186,4 +189,31 @@ test('generateArc: too few editions, rules-only, model path, provider failure, u
   assert.equal(mo.edition, 'monthly'); assert.deepEqual(mo.sources.map(s => s.token), ['w1', 'd1', 'd2', 'd3']); assert.equal(mo.window.days, 30);
   assert.match(mo.markdown, /\[w1\] weekly arc sitrep-20261005-weekly/);
   assert.deepEqual(ARC_KINDS, ['weekly', 'monthly']);
+});
+
+
+test('parseArc guards: period-wide claims over a sub-day span, "emerged" themes already in the first edition', async () => {
+  const store = tmpStore();
+  await seed(store, [{ hoursAgo: 0.1, bluf: 'PRC-linked vessel activity near Venezuela [situation]. DEFCON composite 50 [defcon].' }, { hoursAgo: 0.05, edition: 'pm', bluf: 'PRC-linked vessel activity continues [situation].' }]);
+  const w = arcWindow('weekly', NOW, TZ); const sel = selectSources(store, 'weekly', w);
+  const pack = buildArcPack({ dailies: sel.dailies, weeklies: [], kind: 'weekly', window: w, tz: TZ });
+  assert.ok(pack.stats.spanHours < 1); assert.equal(pack.first.token, 'd1'); assert.match(pack.first.text, /prc-linked/);
+  assert.match(arcSystemPrompt(pack), /span only \d+ min/);
+  assert.match(renderStats(pack.stats)[1], /Source editions span \d+ min of the 7-day window/);
+  const r = parseArc(JSON.stringify({
+    bluf: 'DEFCON composite held at 50 throughout the week [d1][d2]. Two editions on file [stats].',
+    arc: [
+      { theme: 'PRC-linked vessel activity', trajectory: 'emerged', text: 'Reported in both editions [d1][d2].' },
+      { theme: 'Caribbean cyber outage', trajectory: 'emerged', text: 'First appears in the second edition [d2].' },
+    ],
+    fizzled: 'Nothing was flagged early enough to fizzle [d1].', outlook: 'Assessment: steady; confidence low because the editions are minutes apart [stats].', integrity: 'There are no uncited claims [stats].',
+  }), pack);
+  assert.equal(r.bluf, 'DEFCON composite held at 50 throughout the week [BEYOND EDITION SPAN][d1][d2]. Two editions on file [stats].');
+  assert.equal(r.grounding.spanFlagged, 1);
+  assert.equal(r.arc[0].text, 'Reported in both editions [d1][d2]. [ALREADY IN d1]');
+  assert.equal(r.arc[1].text, 'First appears in the second edition [d2].');
+  assert.equal(r.grounding.trajectoryFlagged, 1);
+  assert.match(r.integrity, /^There are no uncited claims \[stats\]\. CRUCIX check: 7 of 7 model sentences cite an edition or the trend lines, 0 marked \[UNCITED\], 1 marked \[BEYOND EDITION SPAN\], 1 "emerged" theme\(s\) already present in d1; editions span \d+ min \[stats\]\.$/);
+  const ro = rulesOnlyArc(pack);
+  assert.match(ro.integrity, /Source editions span \d+ min/);
 });

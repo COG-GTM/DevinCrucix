@@ -1799,7 +1799,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
   // Print: a clean standalone document in a new window (the dashboard's fixed-height grid clips the in-page print).
   function srPrint(){
     const ed=SR.cur;if(!ed)return;
-    const T=(t)=>esc(t).replace(/\[([a-z]+\d*)\]/g,'<span class="c">[$1]</span>').replace(/\[UNCITED\]/g,'<span class="u">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="u">[SAME FIGURE AS PREVIOUS]</span>');
+    const T=(t)=>esc(t).replace(/\[([a-z]+\d*)\]/g,'<span class="c">[$1]</span>').replace(/\[UNCITED\]/g,'<span class="u">[UNCITED]</span>').replace(/\[(SAME FIGURE AS PREVIOUS|BEYOND EDITION SPAN|ALREADY IN [a-z]+\d*)\]/g,'<span class="u">[$1]</span>');
     const li=(a)=>a.length?a.join(''):'';
     const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(ed.id)}</title><style>
       @page{size:letter;margin:0.7in}body{font:11pt/1.45 Georgia,"Times New Roman",serif;color:#000;margin:0;max-width:7.1in}
@@ -1835,7 +1835,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
   // Escape first, then turn [id] citations into clickable chips (ids are [a-z]+ so the regex cannot touch markup).
   function srText(t){
     const cites=new Map((SR.cur?.citations||[]).map(c=>[c.id,c]));
-    return esc(t).replace(/\[UNCITED\]/g,'<span class="sr-uncited" title="No CRUCIX section backs this sentence \u2014 treat as model assertion">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="sr-uncited" title="This sentence claims a trend on a figure the previous edition already reported \u2014 verify before briefing">[SAME FIGURE AS PREVIOUS]</span>').replace(/\[([a-z]+\d*)\]/g,(m,id)=>{
+    return esc(t).replace(/\[UNCITED\]/g,'<span class="sr-uncited" title="No CRUCIX section backs this sentence \u2014 treat as model assertion">[UNCITED]</span>').replace(/\[SAME FIGURE AS PREVIOUS\]/g,'<span class="sr-uncited" title="This sentence claims a trend on a figure the previous edition already reported \u2014 verify before briefing">[SAME FIGURE AS PREVIOUS]</span>').replace(/\[BEYOND EDITION SPAN\]/g,'<span class="sr-uncited" title="This sentence implies coverage of the whole period, but the archived editions span less than a day \u2014 verify before briefing">[BEYOND EDITION SPAN]</span>').replace(/\[(ALREADY IN [a-z]+\d*)\]/g,'<span class="sr-uncited" title="Trajectory \u201cemerged\u201d, but this theme already appears in the earliest edition">[$1]</span>').replace(/\[([a-z]+\d*)\]/g,(m,id)=>{
       const c=cites.get(id);if(!c)return m;
       if(c.editionId)return `<span class="sr-cite" title="${esc(c.label)} \u2014 open this edition" onclick="srOpen('${esc(c.editionId)}')">[${esc(id)}]</span>`;
       const tab=TAB_IDS.includes(c.tab)?c.tab:null;
@@ -1857,7 +1857,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
     const tools=`<div class="sr-tools">
       <select class="inv-btn" onchange="srSetEdition(this.value)" title="Edition label for an on-demand run"><option value="adhoc" ${SR.edition==='adhoc'?'selected':''}>Ad hoc</option><option value="am" ${SR.edition==='am'?'selected':''}>AM</option><option value="pm" ${SR.edition==='pm'?'selected':''}>PM</option></select>
       <button class="inv-btn" onclick="srGenerate()" ${SR.generating||!st?.hasData?'disabled':''} title="${st?.hasData?'Draft an edition from the current sweep':'Waiting for the first sweep'}">${SR.generating===true?'Drafting\u2026':'Generate now'}</button>
-      ${SR_ARC.map(k=>{const a=st?.arcs,ok=a&&(a.dailies??0)>=(a.minSources??2);return `<button class="inv-btn ghost" onclick="srArc('${k}')" ${SR.generating||!ok?'disabled':''} title="${ok?`Write the ${k} narrative arc from the archived editions (${a.dailies} daily editions on file)`:`Needs at least ${a?.minSources??2} archived daily editions (have ${a?.dailies??0})`}">${SR.generating===k?'Writing\u2026':k==='weekly'?'Weekly arc':'Monthly arc'}</button>`}).join('')}
+      ${st?.arcs&&st.arcs.on===false?'':SR_ARC.map(k=>{const a=st?.arcs,ok=a&&(a.dailies??0)>=(a.minSources??2);return `<button class="inv-btn ghost" onclick="srArc('${k}')" ${SR.generating||!ok?'disabled':''} title="${ok?`Write the ${k} narrative arc from the archived editions (${a.dailies} daily editions on file)`:`Needs at least ${a?.minSources??2} archived daily editions (have ${a?.dailies??0})`}">${SR.generating===k?'Writing\u2026':k==='weekly'?'Weekly arc':'Monthly arc'}</button>`}).join('')}
       <button class="inv-btn ghost" onclick="srDownload()" ${ed?'':'disabled'}>Download .md</button>
       <button class="inv-btn ghost" onclick="srPrint()" ${ed?'':'disabled'}>Print</button></div>`;
     let body;
@@ -1902,7 +1902,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       <div class="sr-sec"><h4>5. Outlook (next ${span})</h4><p>${srText(ed.outlook)}</p></div>
       <div class="sr-sec"><h4>6. Source integrity &amp; caveats</h4><p>${srText(ed.integrity)}</p></div>
       <div class="sr-foot">Editions cited: <div class="sr-src">${srcs||'none'}</div>${(ed.omitted||[]).length?`Omitted for size: ${esc(ed.omitted.join(', '))}<br>`:''}
-      ${srGen(ed)} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars${ed.grounding?.sentences?` \u00b7 grounding ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite an edition or [stats]${ed.grounding.uncited?` \u00b7 <span class="sr-uncited">${ed.grounding.uncited} UNCITED</span>`:''}`:''} \u00b7 sha256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026</div>`;
+      ${srGen(ed)} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars${ed.grounding?.sentences?` \u00b7 grounding ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cite an edition or [stats]${ed.grounding.uncited?` \u00b7 <span class="sr-uncited">${ed.grounding.uncited} UNCITED</span>`:''}${ed.grounding.spanFlagged?` \u00b7 <span class="sr-uncited">${ed.grounding.spanFlagged} beyond edition span</span>`:''}${ed.grounding.trajectoryFlagged?` \u00b7 <span class="sr-uncited">${ed.grounding.trajectoryFlagged} emerged-but-present</span>`:''}`:''} \u00b7 sha256 ${esc(String(ed.sha256||'').slice(0,16))}\u2026</div>`;
   }
   function srArcPrint(ed,T,li){
     const span=ed.edition==='weekly'?'week':'month';
@@ -1938,7 +1938,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       ['Sweep as of',fmtWhen(st.asOf)],
       ['Archive',`${st.store?.editions??0} editions${st.store?.oldest?` since ${fmtWhen(st.store.oldest)}`:''}`],
       ['Outside review',st.review?(st.review.on?`on \u2014 provider web search, labelled ${st.review.label||'EXTERNAL \u2014 UNVERIFIED'}`:`off \u2014 ${st.review.reason||''}`):'\u2014'],
-      ['Arcs',st.arcs?(st.arcs.on?`weekly Mon \u00b7 monthly 1st at ${st.arcs.time} ${st.arcs.timezone}; next weekly ${fmtWhen(st.arcs.next?.weekly?.at)}, monthly ${fmtWhen(st.arcs.next?.monthly?.at)}`:'off (SITREP_ARCS=false) \u2014 on demand only')+` \u00b7 ${st.arcs.dailies??0} daily editions on file`:'\u2014']];
+      ['Arcs',st.arcs?(st.arcs.on?`weekly Mon \u00b7 monthly 1st at ${st.arcs.time} ${st.arcs.timezone}; next weekly ${fmtWhen(st.arcs.next?.weekly?.at)}, monthly ${fmtWhen(st.arcs.next?.monthly?.at)}`:'off (SITREP_ARCS=false)')+` \u00b7 ${st.arcs.dailies??0} daily editions on file`:'\u2014']];
     return `<div class="g-panel"><div class="sec-head"><h3>SITREP Schedule</h3><span class="badge ${st.enabled?'':'warn'}">${st.inFlight?'DRAFTING':st.enabled?'MODEL':'RULES-ONLY'}</span></div>
       <div class="sr-kv">${kv.map(([k,v])=>`<span>${esc(k)}</span><b>${esc(v)}</b>`).join('')}</div>
       ${st.lastError?`<div class="sr-err">LAST ERROR: ${esc(st.lastError)}</div>`:''}

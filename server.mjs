@@ -1603,6 +1603,7 @@ function sitrepArcStatus(now = new Date()) {
 
 // POST /api/sitrep/arc { kind: 'weekly' | 'monthly' } — write a narrative arc from the archive now (no sweep data needed)
 app.post('/api/sitrep/arc', validateBody({ kind: (v) => oneOf(v, SITREP_ARC_KINDS) }), async (req, res) => {
+  if (!config.sitrep.arcs) return res.status(409).json({ error: 'SITREP arcs are disabled (SITREP_ARCS=false)' });
   if (sitrepInFlight) return res.status(409).json({ error: 'a SITREP is already being generated' });
   const wait = SITREP_MIN_GAP_MS - (Date.now() - sitrepArcLastRunAt);
   if (wait > 0) return res.status(429).json({ error: 'rate limited', retryAfterSec: Math.ceil(wait / 1000) });
