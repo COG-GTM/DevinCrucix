@@ -1915,7 +1915,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       <h2>4. Trend lines (CRUCIX-computed) <span class="c">[stats]</span></h2><ul>${li((ed.trend||[]).map(l=>`<li>${esc(l)}</li>`))||'<li>\u2014</li>'}</ul>
       <h2>5. Outlook (next ${span})</h2><p>${T(ed.outlook)}</p>
       <h2>6. Source integrity &amp; caveats</h2><p>${T(ed.integrity)}</p>
-      <div class="foot">Editions cited: ${esc((ed.sources||[]).map(x=>`[${x.token}] ${EDL[x.edition]||x.edition} ${x.id} (${x.llm})`).join('; ')||'none')}.<br>
+      <div class="foot">Editions cited:<br>${(ed.sources||[]).map(x=>esc(`[${x.token}] ${x.id} \u00b7 ${EDL[x.edition]||x.edition} \u00b7 ${fmtWhen(x.generatedAt)} \u00b7 ${x.llm} \u00b7 sha256 ${String(x.sha256||'').slice(0,16)}\u2026`)).join('<br>')||'none'}<br>
       ${srGen(ed)} \u00b7 ${ed.words??'?'} words \u00b7 context ${ed.context?.chars??'?'} chars${ed.grounding?.sentences?` \u00b7 grounding ${ed.grounding.sentences-ed.grounding.uncited}/${ed.grounding.sentences} sentences cited`:''} \u00b7 sha256 ${esc(ed.sha256||'')}</div>`;
   }
   function srArchivePanel(){
