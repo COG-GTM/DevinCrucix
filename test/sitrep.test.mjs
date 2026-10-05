@@ -172,8 +172,8 @@ test('generateSitrep: model path, fallbacks, ids, Markdown and hash', async () =
   assert.deepEqual(ed4.llm, { used: false, reason: 'no model configured' }); assert.equal(ed4.model, null);
   assert.equal(editionId(now, 'adhoc', 'UTC'), 'sitrep-20261005-adhoc-100500');
   await assert.rejects(generateSitrep({ provider: null, state: STATE, edition: 'weekly' }), /unknown edition/);
-  const md = renderMarkdown({ ...ed, external: { label: 'EXTERNAL — UNVERIFIED', findings: [{ text: 'Outside item', url: 'https://example.com/a' }] } });
-  assert.match(md, /## 7\. EXTERNAL — UNVERIFIED\n- Outside item \(https:\/\/example.com\/a\)/);
+  const md = renderMarkdown({ ...ed, external: { label: 'EXTERNAL — UNVERIFIED', status: 'ok', findings: [{ kind: 'missing', text: 'Outside item', url: 'https://example.com/a' }] } });
+  assert.match(md, /## 7\. Outside-source review — EXTERNAL — UNVERIFIED\n> Found by the model's web search.*\n- \*\*MISSING\*\* — Outside item <https:\/\/example.com\/a>/);
 });
 
 test('SitrepStore: save / list / latest / previous / verify / rebuild / cap', async () => {

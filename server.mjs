@@ -68,7 +68,7 @@ import { validateTrail, TRAIL_ID_RE, LINK_ID_RE as TRL_LINK_ID_RE, RECORD_ID_RE 
 import { developTarget, compactPackage, EVIDENCE_TIERS, CLAIM_STATES } from './lib/targeting/index.mjs';
 import { buildSourceContext } from './lib/targeting/sources.mjs';
 import { askGrounded, askExternal, validateAskRequest, ASK_VERSION, MAX_QUESTION_CHARS as ASK_MAX_QUESTION, MAX_HISTORY_TURNS as ASK_MAX_HISTORY, EXTERNAL_LABEL as ASK_EXTERNAL_LABEL } from './lib/ask/index.mjs';
-import { generateSitrep, SITREP_VERSION, DAILY_EDITIONS as SITREP_EDITIONS, BANNER as SITREP_BANNER } from './lib/sitrep/index.mjs';
+import { generateSitrep, SITREP_VERSION, DAILY_EDITIONS as SITREP_EDITIONS, BANNER as SITREP_BANNER, EXTERNAL_LABEL as SITREP_EXTERNAL_LABEL } from './lib/sitrep/index.mjs';
 import { SitrepStore, ID_RE as SITREP_ID_RE } from './lib/sitrep/store.mjs';
 import { dueEdition as sitrepDue, nextSlot as sitrepNext, isValidTimeZone, parseTimes as sitrepTimes } from './lib/sitrep/schedule.mjs';
 import { renderDossier } from './lib/targeting/dossier.mjs';
@@ -1501,17 +1501,24 @@ let sitrepLastRunAt = 0;
 let sitrepLastError = null;
 
 function sitrepState() { return { ...askState(), contacts: contactProvenance }; }
+function sitrepReview() {
+  if (!config.sitrep.review) return { on: false, reason: 'SITREP_REVIEW=false' };
+  if (!config.ask.external) return { on: false, reason: 'ASK_EXTERNAL=false' };
+  if (!llmProvider?.isConfigured) return { on: false, reason: 'no model configured' };
+  if (!llmProvider.supportsWebSearch) return { on: false, reason: `provider ${llmProvider.name} has no hosted web search` };
+  return { on: true, reason: null };
+}
 
 async function runSitrep({ edition, slotKey = null, trigger = 'manual' }) {
   if (sitrepInFlight) return sitrepInFlight;
   sitrepInFlight = (async () => {
     const now = new Date();
     const previous = sitrepStore.previous(now.toISOString());
-    const ed = await generateSitrep({ provider: llmProvider, state: sitrepState(), edition, previous, now, tz: SITREP_TZ, maxContextChars: config.sitrep.maxContextChars, slotKey, trigger });
+    const ed = await generateSitrep({ provider: llmProvider, state: sitrepState(), edition, previous, now, tz: SITREP_TZ, maxContextChars: config.sitrep.maxContextChars, slotKey, trigger, review: sitrepReview().on });
     sitrepStore.save(ed);
     sitrepLastRunAt = Date.now();
     sitrepLastError = null;
-    console.log(`[SITREP] ${ed.id} · ${ed.llm.used ? ed.model : `rules-only (${ed.llm.reason})`} · ${ed.words} words · ${ed.citations.length} cites · ${ed.usage?.inputTokens || 0}/${ed.usage?.outputTokens || 0} tok · ${trigger}`);
+    console.log(`[SITREP] ${ed.id} · ${ed.llm.used ? ed.model : `rules-only (${ed.llm.reason})`} · ${ed.words} words · ${ed.citations.length} cites · ${ed.usage?.inputTokens || 0}/${ed.usage?.outputTokens || 0} tok${ed.external ? ` · review ${ed.external.status}: ${ed.external.findings.length} finding(s), ${ed.external.usage?.inputTokens || 0}/${ed.external.usage?.outputTokens || 0} tok` : ''} · ${trigger}`);
     broadcast({ type: 'sitrep', id: ed.id, edition: ed.edition, generatedAt: ed.generatedAt });
     return ed;
   })().catch((err) => { sitrepLastError = String(err.message || err).slice(0, 200); throw err; }).finally(() => { sitrepInFlight = null; });
@@ -1548,6 +1555,7 @@ app.get('/api/sitrep/status', (req, res) => {
     latest: sitrepSummary(sitrepStore.latest()),
     editions: SITREP_EDITIONS,
     banner: SITREP_BANNER,
+    review: { ...sitrepReview(), label: SITREP_EXTERNAL_LABEL },
     limits: { contextChars: config.sitrep.maxContextChars, minGapSec: SITREP_MIN_GAP_MS / 1000 },
   });
 });
