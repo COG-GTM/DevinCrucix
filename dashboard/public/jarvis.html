@@ -1608,6 +1608,7 @@ const TAB_DEFS=[
   {id:'cartels',label:'Cartels & Border',hint:'Mexico cartel influence map \u00b7 graded cartel / border-crime events \u00b7 official CBP data (encounters, seizures, use of force, custody) \u00b7 US\u2013Mexico border reporting \u00b7 DOJ prosecutions \u00b7 OFAC sanctions'},
   {id:'iranwar',label:'Iran War Live',hint:'Iran-theater kinetic events, ground operations, airspace and posturing from IranWarLive \u00b7 machine-extracted, observational, attributed'},
   {id:'taiwan',label:'China / Taiwan',hint:'Taiwan MND daily PLA counts, Coast Guard grey-zone incidents, theater map with live air, headlines, GCA observational strip, market-implied odds \u00b7 official counts vs OSINT kept apart'},
+  {id:'prcdel',label:'PRC Delegations',hint:'Chinese Delegation Tracker \u00b7 open-source reporting of PRC delegations mapped by date and place \u00b7 reported meetings \u00b7 concurrent PRC-linked events (ByteDance, Huawei, Confucius Institute, CGTN\u2026) \u00b7 SYNTHETIC overlay: one fictional person of interest per delegation across travel / border / SS7 / CDR / voter / vehicle records'},
   {id:'colombia',label:'Colombia / Bogot\u00e1',hint:'Official Polic\u00eda Nacional counts (datos.gov.co) \u00b7 Bogot\u00e1 focus \u00b7 departamento choropleth \u00b7 Colombian wires \u00b7 InSight Crime group profiles \u00b7 ACLED no key \u00b7 official vs observational kept apart'},
   {id:'venezuela',label:'Venezuela / Caracas',hint:'Independent Venezuelan wires \u00b7 OVCS protest monitor \u00b7 CII \u00b7 state outlines \u00b7 InSight Crime group profiles \u00b7 monitoring under censorship: observational, attributed, no official crime feed'},
   {id:'investigations',label:'Investigations',hint:'OSINT workbench · selector → dossier → case graph → report'},
@@ -10176,5 +10177,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadLive();
 });
 </script>
+<script src="/prcdel.js"></script>
 </body>
 </html>
