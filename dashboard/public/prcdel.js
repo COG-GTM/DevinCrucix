@@ -81,7 +81,7 @@
 `;
   document.head.appendChild(css);
 
-  const PALETTE=['#64f0c8','#44ccff','#b388ff','#ffd54f','#69f0ae','#4fc3f7','#f48fb1','#aed581','#90caf9','#ffcc80','#80deea','#ce93d8'];
+  const PALETTE=['#64f0c8','#44ccff','#b388ff','#ffd54f','#69f0ae','#4fc3f7','#e6ee9c','#aed581','#90caf9','#ffcc80','#80deea','#bcaaa4'];
   const DS=['travel','border','ss7','cdr','voter','vehicle'];
   const DSL={travel:'Travel',border:'Border',ss7:'SS7',cdr:'CDR',voter:'Voter',vehicle:'Vehicle'};
   const SIL='<svg viewBox="0 0 40 50"><circle cx="20" cy="16" r="9"/><path d="M3 50c0-11 8-18 17-18s17 7 17 18z"/></svg>';
