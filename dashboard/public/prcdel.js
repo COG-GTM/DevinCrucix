@@ -417,7 +417,11 @@
   });
 
   // PRC WATCH chip → this tab
-  const chip=[...document.querySelectorAll('.regime-chip')].find(el=>/PRC WATCH/.test(el.textContent));
-  if(chip){chip.classList.add('pd-link');chip.title='Open the Chinese Delegation Tracker';chip.addEventListener('click',()=>setTab('prcdel'))}
+  // The top bar is re-rendered on every sweep, so mark + handle the chip by delegation, not a one-time binding.
+  const isPrcChip=el=>el&&/PRC WATCH/.test(el.textContent);
+  const markChip=()=>document.querySelectorAll('.regime-chip').forEach(el=>{if(isPrcChip(el)&&!el.classList.contains('pd-link')){el.classList.add('pd-link');el.title='Open the Chinese Delegation Tracker'}});
+  document.addEventListener('click',e=>{const c=e.target.closest('.regime-chip');if(isPrcChip(c)){e.preventDefault();setTab('prcdel')}});
+  new MutationObserver(markChip).observe(document.body,{childList:true,subtree:true});
+  markChip();
   if(active()&&typeof D!=='undefined'&&D){renderTabbar();renderLeftRail();renderLower()}
 })();
