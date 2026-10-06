@@ -1,0 +1,40 @@
+{
+  "_readme": "SYNTHETIC scenario for the PRC Delegations tab. Edit and reload — every record generated from this file is fictional. seed changes every generated name/number; coverage = probability a supporting person shows up in each dataset; offsetDays = start relative to today (or set an explicit date YYYY-MM-DD). Events with 'delegation' are placed dayOffset days after that delegation's stop in the same city.",
+  "seed": 20261006,
+  "windowDays": 3,
+  "maxStopsPerPerson": 6,
+  "coverage": { "travel": 0.6, "border": 0.7, "ss7": 0.85, "cdr": 0.8, "voter": 0.75, "vehicle": 0.55 },
+  "delegations": [
+    {
+      "id": "syn-econ-01",
+      "label": "PRC Economic & Trade Delegation — SYNTHETIC",
+      "category": "Economic / Trade",
+      "offsetDays": -16,
+      "stops": [
+        { "city": "Cairo", "nights": 3, "meetings": ["Ministry of Trade & Industry — deputy minister (scenario)", "Suez Canal Economic Zone authority (scenario)", "Egyptian Chamber of Commerce delegation (scenario)"] },
+        { "city": "Beirut", "nights": 2, "meetings": ["Ministry of Economy & Trade — director general (scenario)", "Beirut port authority (scenario)"] },
+        { "city": "Islamabad", "nights": 3, "meetings": ["Board of Investment (scenario)", "CPEC authority — project review (scenario)", "Ministry of IT & Telecom (scenario)"] },
+        { "city": "Nairobi", "nights": 2, "meetings": ["Ministry of Investments, Trade & Industry (scenario)", "Kenya Ports Authority (scenario)"] }
+      ]
+    },
+    {
+      "id": "syn-tech-02",
+      "label": "PRC Digital Silk Road Technology Delegation — SYNTHETIC",
+      "category": "Economic / Trade",
+      "offsetDays": -9,
+      "stops": [
+        { "city": "Riyadh", "nights": 2, "meetings": ["Ministry of Communications & IT (scenario)", "National data & AI authority (scenario)"] },
+        { "city": "Dubai", "nights": 2, "meetings": ["Free-zone authority — cloud campus (scenario)"] },
+        { "city": "Tashkent", "nights": 2, "meetings": ["Ministry of Digital Technologies (scenario)", "IT Park board (scenario)"] }
+      ]
+    }
+  ],
+  "events": [
+    { "delegation": "syn-econ-01", "city": "Cairo", "dayOffset": 1, "host": "ByteDance", "title": "ByteDance-hosted programming & social-media creator conference — SYNTHETIC", "venue": "Convention district" },
+    { "delegation": "syn-econ-01", "city": "Beirut", "dayOffset": 0, "host": "CGTN / CMG", "title": "CGTN regional media & blogger workshop — SYNTHETIC" },
+    { "delegation": "syn-econ-01", "city": "Islamabad", "dayOffset": 2, "host": "Huawei", "title": "Huawei ICT talent & Seeds-for-the-Future cohort launch — SYNTHETIC" },
+    { "delegation": "syn-econ-01", "city": "Nairobi", "dayOffset": 1, "host": "Confucius Institute", "title": "Confucius Institute youth-leaders forum — SYNTHETIC" },
+    { "delegation": "syn-tech-02", "city": "Riyadh", "dayOffset": 1, "host": "Alibaba", "title": "Alibaba Cloud developer summit — SYNTHETIC" },
+    { "delegation": "syn-tech-02", "city": "Tashkent", "dayOffset": 0, "host": "TikTok", "title": "TikTok creator bootcamp — SYNTHETIC" }
+  ]
+}
