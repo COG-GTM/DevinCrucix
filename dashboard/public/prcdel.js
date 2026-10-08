@@ -171,7 +171,7 @@
     pts.push([PDL.origin.lon,PDL.origin.lat]);
     const fit=pts.length>1?{type:'MultiPoint',coordinates:pts}:{type:'Sphere'};
     proj=d3.geoNaturalEarth1().fitExtent([[40,30],[W-40,H-30]],fit);
-    if(proj.scale()>2400)proj.scale(2400);
+    if(proj.scale()>2400){proj.scale(2400);const c=proj(d3.geoCentroid(fit)),t=proj.translate();proj.translate([t[0]+W/2-c[0],t[1]+H/2-c[1]])}
     path=d3.geoPath(proj);
     root=svg.append('g');
     const base=root.append('g'),lay=root.append('g');

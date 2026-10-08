@@ -143,3 +143,10 @@ test('europe buildTracker drops cached / curated out-of-theater events', () => {
     console.log(JSON.stringify(out.events.map(e => e.city)));`);
   assert.deepEqual(r, ['Belgrade']);
 });
+
+test('europe tracker does not turn Ukraine-as-topic into a Kyiv stop', () => {
+  const r = runEurope(`import { parseDelegationItem } from './lib/prcdel/tracker.mjs';
+    const a = parseDelegationItem({ title: 'Russian delegation says Moscow ready for peace talks on Ukraine - Outlet', published: '2026-10-01T10:00:00Z', link: 'u' });
+    console.log(JSON.stringify(a));`);
+  assert.equal(r, null);
+});
