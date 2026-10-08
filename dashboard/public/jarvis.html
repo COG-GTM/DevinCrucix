@@ -9992,6 +9992,8 @@ function refreshMapViewport(forceGlobeReflow=false){
       flatPath = d3.geoPath(flatProjection);
       flatG.selectAll('*').remove();
       drawFlatMap();
+      // A map first laid out while hidden kept a zoom fitted to the fallback size; re-fit the region.
+      if(wasStale&&flatZoom)setRegion(currentRegion);
     }
   }
 }
