@@ -1382,6 +1382,7 @@ let isFlat = shouldStartFlat();
 let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
 let mapViewportStale = false;
+let flatFitW = 0, flatFitH = 0;
 // #mapContainer is display:none on every tab except Situation (grid.no-map), so it measures 0px
 // there. Projecting into a 0px box yields NaN transforms and a blank map, so size from the
 // container only when it is actually laid out and fall back to the grid/window otherwise.
@@ -9992,8 +9993,9 @@ function refreshMapViewport(forceGlobeReflow=false){
       flatPath = d3.geoPath(flatProjection);
       flatG.selectAll('*').remove();
       drawFlatMap();
-      // A map first laid out while hidden kept a zoom fitted to the fallback size; re-fit the region.
-      if(wasStale&&flatZoom)setRegion(currentRegion);
+      // Re-fit the region whenever the box changed (hidden-start fallback size, or a tab with a wider map).
+      const resized=flatFitW!==flatW||flatFitH!==flatH;flatFitW=flatW;flatFitH=flatH;
+      if((wasStale||resized)&&flatZoom)setRegion(currentRegion);
     }
   }
 }
