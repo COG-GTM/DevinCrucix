@@ -158,3 +158,15 @@ test('europe: cached Ukraine-as-topic Kyiv stops are dropped by buildTracker', a
   const t = buildTracker({ stops: [stale], events: [] });
   assert.equal(t.counts.stops, 0);
 });
+
+test('europe: seismic counts and signals are rebuilt from theater-filtered events', () => {
+  const d = { seismic: { totalEvents: 35, suspectCount: 2, significantCount: 1, signals: ['SUSPECT SEISMIC EVENT: M2.66 ... NNSS', 'MAJOR QUAKE: M5.2 — Chagos Archipelago'],
+    events: [{ lat: 37.1, lon: -116.0, mag: 2.66, suspect: true, nearSite: { name: 'NNSS', km: 5, country: 'US' } }, { lat: -6, lon: 72, mag: 5.2, place: 'Chagos Archipelago' }, { lat: 42.5, lon: 13.4, mag: 4.9, place: 'Italy' }],
+    suspectEvents: [{ lat: 37.1, lon: -116.0, mag: 2.66, suspect: true }] } };
+  applyProfileToData(d, getProfile('europe'));
+  assert.equal(d.seismic.totalEvents, 1);
+  assert.equal(d.seismic.suspectCount, 0);
+  assert.equal(d.seismic.significantCount, 0);
+  assert.equal(d.seismic.maxMagnitude, 4.9);
+  assert.deepEqual(d.seismic.signals, []);
+});

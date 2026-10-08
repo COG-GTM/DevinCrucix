@@ -44,6 +44,22 @@ function nearestTestSite(lat, lng) {
   return best;
 }
 
+// Derived counts and signal lines for a (possibly theater-filtered) event list, strongest first.
+export function summarizeSeismic(events) {
+  const sorted = [...events].sort((a, b) => (b.mag || 0) - (a.mag || 0));
+  const suspectEvents = sorted.filter((e) => e.suspect);
+  const significant = sorted.filter((e) => (e.mag || 0) >= 5.0);
+  const signals = [];
+  for (const s of suspectEvents) {
+    signals.push(`SUSPECT SEISMIC EVENT: M${s.mag} at ${s.depthKm}km depth, ${s.nearSite?.km}km from ${s.nearSite?.name} test site (${s.nearSite?.country})`);
+  }
+  for (const s of significant.slice(0, 3)) signals.push(`MAJOR QUAKE: M${s.mag} — ${s.place}`);
+  const tsunamiCount = sorted.filter((e) => e.tsunami).length;
+  if (tsunamiCount > 0) signals.push(`${tsunamiCount} event(s) with tsunami flag`);
+  return { totalEvents: sorted.length, suspectEvents, suspectCount: suspectEvents.length, significantCount: significant.length,
+    maxMagnitude: sorted.length ? sorted[0].mag ?? null : null, signals };
+}
+
 export async function collectSeismic() {
   if (_cache && Date.now() - _cacheTs < CACHE_TTL_MS) return _cache;
 
@@ -71,26 +87,14 @@ export async function collectSeismic() {
 
   events.sort((a, b) => (b.mag || 0) - (a.mag || 0));
 
-  const suspectEvents = events.filter((e) => e.suspect);
-  const significant = events.filter((e) => (e.mag || 0) >= 5.0);
-  const maxMag = events.length ? events[0].mag : null;
-
-  const signals = [];
-  for (const s of suspectEvents) {
-    signals.push(`SUSPECT SEISMIC EVENT: M${s.mag} at ${s.depthKm}km depth, ${s.nearSite.km}km from ${s.nearSite.name} test site (${s.nearSite.country})`);
-  }
-  for (const s of significant.slice(0, 3)) {
-    signals.push(`MAJOR QUAKE: M${s.mag} — ${s.place}`);
-  }
-  const tsunamiCount = events.filter((e) => e.tsunami).length;
-  if (tsunamiCount > 0) signals.push(`${tsunamiCount} event(s) with tsunami flag`);
+  const { suspectEvents, significantCount, maxMagnitude: maxMag, signals } = summarizeSeismic(events);
 
   const result = {
     status: 'live',
     source: 'USGS FDSN',
     totalEvents: events.length,
     maxMagnitude: maxMag,
-    significantCount: significant.length,
+    significantCount,
     suspectCount: suspectEvents.length,
     suspectEvents,
     events: events.slice(0, 200),
