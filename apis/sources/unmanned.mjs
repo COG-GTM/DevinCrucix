@@ -23,7 +23,7 @@ export function parseUnmanned(html) {
     return { date: e.date, target: e.target || '', type: e.type || '', model: e.model || '', loc: e.loc || '', damage: e.damage || '',
       notes: String(e.notes || '').slice(0, 240), url: e.src || '', ...(r ? { lat: r.lat, lng: r.lng } : {}) };
   }).sort((a, b) => b.date.localeCompare(a.date));
-  const cards = block(html, 'EMBEDDED_KB').filter(k => k.section === 'card' && k.label).map(k => ({ label: k.label, value: k.value || '', sub: k.sub || '' })).slice(0, 6);
+  const cards = block(html, 'EMBEDDED_KB').filter(k => k.section === 'card' && k.label && /\b(usv|vessel|ship|naval|boat|sea|fleet|maritime)/i.test(`${k.label} ${k.sub || ''}`)).map(k => ({ label: k.label, value: k.value || '', sub: k.sub || '' })).slice(0, 6);
   return { usv, cards };
 }
 

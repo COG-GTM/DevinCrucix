@@ -150,3 +150,11 @@ test('europe tracker does not turn Ukraine-as-topic into a Kyiv stop', () => {
     console.log(JSON.stringify(a));`);
   assert.equal(r, null);
 });
+
+test('europe: cached Ukraine-as-topic Kyiv stops are dropped by buildTracker', async () => {
+  const { buildTracker } = await import('../lib/prcdel/tracker.mjs');
+  const stale = { kind: 'stop', date: '2026-09-24', at: '2026-09-24T10:00:00Z', city: 'Kyiv', country: 'Ukraine', iso2: 'UA', lat: 50.45, lon: 30.52,
+    headline: 'Russian Foreign Minister Says Moscow Ready for Enduring Peace Talks on Ukraine', source: 'osint', category: 'diplomatic', meetings: [] };
+  const t = buildTracker({ stops: [stale], events: [] });
+  assert.equal(t.counts.stops, 0);
+});
