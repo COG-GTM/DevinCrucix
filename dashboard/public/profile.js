@@ -12,7 +12,8 @@
     if(P.tabLabels&&P.tabLabels[t.id])t.label=P.tabLabels[t.id];
     if(P.tabHints&&P.tabHints[t.id])t.hint=P.tabHints[t.id];
   }
-  if(!TAB_IDS.includes(currentTab)){currentTab='situation';syncHash(currentTab)}
+  for(const [to,from] of Object.entries(P.mergeTabs||{}))for(const f of from||[])if(TAB_IDS.includes(to)&&!TAB_IDS.includes(f))TAB_ALIASES[f]=to;
+  if(!TAB_IDS.includes(currentTab)){currentTab=resolveTab(currentTab)||'situation';syncHash(currentTab)}
   window.addEventListener('hashchange',()=>{if(!tabFromHash()&&typeof setTab==='function')setTab('situation')});
   if(P.title)document.title='CRUCIX \u00b7 '+P.title;
   if(P.region){

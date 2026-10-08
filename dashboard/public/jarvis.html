@@ -1621,6 +1621,10 @@ const TAB_DEFS=[
 const TAB_IDS=TAB_DEFS.map(t=>t.id);
 // Retired tab ids keep resolving so old bookmarks / persisted tabs land on the successor, never on a blank view.
 const TAB_ALIASES={regional:'cartels'};
+// Profile tab merges (e.g. europe: ukraine -> military): parts of the merged tabs are shown first, deduped.
+function mergedTabs(id){const m=window.__CRUCIX_PROFILE__?.mergeTabs?.[id];return Array.isArray(m)?m:[]}
+function isMergedAway(id){return Object.values(window.__CRUCIX_PROFILE__?.mergeTabs||{}).some(m=>Array.isArray(m)&&m.includes(id))}
+function tabParts(byTab,id){const out=[];for(const t of [...mergedTabs(id),id])for(const p of (byTab[t]||[]))if(p&&!out.includes(p))out.push(p);return out}
 function resolveTab(id){const v=String(id||'');return TAB_IDS.includes(v)?v:TAB_ALIASES[v]||null}
 function tabFromHash(){return resolveTab((location.hash||'').replace(/^#/,''))}
 let currentTab = tabFromHash() || resolveTab(localStorage.getItem('crucix_tab')) || 'situation';
@@ -2771,7 +2775,7 @@ function renderLeftRail(){
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
     targeting:['Border Watch','Narco Intel','Telegram Live'],
   };
-  const layerNames=TAB_LAYERS[currentTab];
+  const layerNames=mergedTabs(currentTab).length?tabParts(TAB_LAYERS,currentTab):TAB_LAYERS[currentTab];
   const profSkip=(window.__CRUCIX_PROFILE__&&window.__CRUCIX_PROFILE__.skipSources)||[];
   const shownLayers=(layerNames?layers.filter(l=>layerNames.includes(l.name)):layers).filter(l=>!profSkip.includes(l.src));
   const sensorGridPanel=`<div class="g-panel sensor-grid">
@@ -2834,7 +2838,7 @@ function renderLeftRail(){
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
   const rail=document.getElementById('leftRail');
-  rail.innerHTML=(byTab[currentTab]||byTab.situation).join('');
+  rail.innerHTML=(mergedTabs(currentTab).length?tabParts(byTab,currentTab):(byTab[currentTab]||byTab.situation)).join('');
   applyCaptions(rail);
 }
 
@@ -4390,7 +4394,7 @@ function renderLower(){
     military:[wrap(renderContactReplayPanel(),'lp-wide'),wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),...(D.rusNavy?.totalShips?[wrap(renderRusNavyPanel(),'lp-half')]:[]),...((D.unmanned?.usv||[]).length?[wrap(renderUnmannedPanel(),'lp-half')]:[]),...((D.fleetLeaks?.items||[]).length||(D.fleetLeaks?.vesselChanges||[]).length?[wrap(renderFleetLeaksPanel(),'lp-half')]:[]),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberAttackMapPanel(),'lp-wide'),wrap(renderRansomwarePanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderDevinSecPanel(),'lp-wide'),wrap(renderIodaPanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),...((D.unmanned?.usv||[]).length?[wrap(renderUnmannedPanel(),'lp-half')]:[]),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
+    ukraine:[...(isMergedAway('ukraine')?[]:[wrap(renderUaMapPanel(),'lp-wide')]),wrap(renderFrontPanel(),'lp-half'),...((D.unmanned?.usv||[]).length?[wrap(renderUnmannedPanel(),'lp-half')]:[]),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
       wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(renderCjngGraphPanel(),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
@@ -4404,7 +4408,7 @@ function renderLower(){
     sources:[renderSourceHealthFullPanel()],
   };
   const grid=document.getElementById('lowerGrid');
-  grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
+  grid.innerHTML=(mergedTabs(currentTab).length?tabParts(byTab,currentTab):(byTab[currentTab]||byTab.situation)).join('');
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
   if(currentTab==='cartels')kgMount('cjng');

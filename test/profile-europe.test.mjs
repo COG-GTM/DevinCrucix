@@ -17,7 +17,9 @@ test('profile lookup: empty id is the full app, europe is case-insensitive', () 
   assert.equal(clientProfile(null), null);
   const c = clientProfile(getProfile('europe'));
   assert.equal(c.region, 'europe');
-  assert.ok(c.tabs.includes('ukraine') && c.tabs.includes('prcdel'));
+  assert.ok(c.tabs.includes('military') && !c.tabs.includes('ukraine') && c.tabs.includes('prcdel'));
+  assert.deepEqual(c.mergeTabs, { military: ['ukraine'] });
+  assert.equal(c.tabLabels.military, 'Military Movements');
   for (const t of ['cartels', 'iranwar', 'taiwan', 'colombia', 'venezuela']) assert.ok(!c.tabs.includes(t), t);
   assert.ok(Array.isArray(c.skipSources) && c.skipSources.includes('InSightCrime'));
 });
