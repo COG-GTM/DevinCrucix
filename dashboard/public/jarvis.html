@@ -102,6 +102,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .grid.no-map{grid-template-columns:240px 1fr}
 .grid.no-map #rightRail,.grid.no-map .map-region-bar,.grid.no-map .map-container,.grid.no-map #situationStrip{display:none !important}
 .grid.no-map .lower{margin-top:0}
+.grid.map-lite{grid-template-columns:240px 1fr}
+.grid.map-lite #rightRail,.grid.map-lite #situationStrip{display:none !important}
 .lower .g-panel.lp-wide{flex:1 1 100%;max-width:none}
 .lower .g-panel.lp-half{flex:1 1 calc(50% - 5px);max-width:none;min-width:280px}
 .lower .g-panel.lp-third{flex:1 1 calc(33.33% - 7px);max-width:none;min-width:260px}
@@ -148,6 +150,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .ldot.space{background:#e0b0ff;box-shadow:0 0 6px rgba(224,176,255,0.4)}
 .ldot.narco{background:#ff4081;box-shadow:0 0 6px rgba(255,64,129,0.4)}
 .ldot.carrier{background:#4fc3f7;box-shadow:0 0 6px rgba(79,195,247,0.4)}
+.ldot.rusnavy{background:#ff5252;box-shadow:0 0 6px rgba(255,82,82,0.4)}
 .ldot.jamming{background:#ef5350;box-shadow:0 0 6px rgba(239,83,80,0.4)}
 .ldot.cctv{background:#66bb6a;box-shadow:0 0 6px rgba(102,187,106,0.4)}
 .ldot.cii{background:#ff7043;box-shadow:0 0 6px rgba(255,112,67,0.4)}
@@ -1379,6 +1382,7 @@ let isFlat = shouldStartFlat();
 let currentRegion = 'asiaPacific';
 let flatSvg, flatProjection, flatPath, flatG, flatZoom, flatW, flatH;
 let mapViewportStale = false;
+let flatFitW = 0, flatFitH = 0;
 // #mapContainer is display:none on every tab except Situation (grid.no-map), so it measures 0px
 // there. Projecting into a 0px box yields NaN transforms and a blank map, so size from the
 // container only when it is actually laid out and fall back to the grid/window otherwise.
@@ -1572,7 +1576,7 @@ function renderTopbar(){
     <div class="top-left">
       <span class="brand">CRUCIX MONITOR</span>
       <span class="regime-chip"><span class="blink"></span>WARTIME STAGFLATION RISK</span>
-      <span class="regime-chip" style="border-color:rgba(244,67,54,0.4);background:rgba(244,67,54,0.08)"><span class="blink" style="background:#f44336;box-shadow:0 0 6px rgba(244,67,54,0.6)"></span><span style="color:#f44336">PRC WATCH</span></span>
+      <span class="regime-chip" style="border-color:rgba(244,67,54,0.4);background:rgba(244,67,54,0.08)"><span class="blink" style="background:#f44336;box-shadow:0 0 6px rgba(244,67,54,0.6)"></span><span style="color:#f44336">${esc((window.__CRUCIX_PROFILE__&&window.__CRUCIX_PROFILE__.watchChip)||'PRC WATCH')}</span></span>
     </div>
     ${mobile ? `<div class="top-center">${getRegionControlsMarkup()}</div>` : ''}
     <div class="top-right">
@@ -1620,6 +1624,10 @@ const TAB_DEFS=[
 const TAB_IDS=TAB_DEFS.map(t=>t.id);
 // Retired tab ids keep resolving so old bookmarks / persisted tabs land on the successor, never on a blank view.
 const TAB_ALIASES={regional:'cartels'};
+// Profile tab merges (e.g. europe: ukraine -> military): parts of the merged tabs are shown first, deduped.
+function mergedTabs(id){const m=window.__CRUCIX_PROFILE__?.mergeTabs?.[id];return Array.isArray(m)?m:[]}
+function isMergedAway(id){return Object.values(window.__CRUCIX_PROFILE__?.mergeTabs||{}).some(m=>Array.isArray(m)&&m.includes(id))}
+function tabParts(byTab,id){const out=[];for(const t of [...mergedTabs(id),id])for(const p of (byTab[t]||[]))if(p&&!out.includes(p))out.push(p);return out}
 function resolveTab(id){const v=String(id||'');return TAB_IDS.includes(v)?v:TAB_ALIASES[v]||null}
 function tabFromHash(){return resolveTab((location.hash||'').replace(/^#/,''))}
 let currentTab = tabFromHash() || resolveTab(localStorage.getItem('crucix_tab')) || 'situation';
@@ -1695,15 +1703,20 @@ function setTab(id, opts={}){
   applyTabLayout();
   renderTabbar();renderLeftRail();renderLower();renderRight();
   if(id==='situation'){renderSituationStrip();refreshMapViewport(changed && !isFlat);}
+  else if(mapTab(id))refreshMapViewport(changed && !isFlat);
   if(changed && !opts.keepScroll){const tb=document.getElementById('tabbar');if(tb)tb.scrollIntoView({behavior:'smooth',block:'start'});}
 }
+// Tabs that show the main map: Situation, plus any profile mapTabs (map without the Situation-only rails).
+function mapTab(id){return id==='situation'||(window.__CRUCIX_PROFILE__?.mapTabs||[]).includes(id)}
 function applyTabLayout(){
   const g=document.getElementById('grid');if(!g)return;
-  g.classList.toggle('no-map',currentTab!=='situation');
+  g.classList.toggle('no-map',!mapTab(currentTab));
+  g.classList.toggle('map-lite',currentTab!=='situation'&&mapTab(currentTab));
 }
 window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h)syncHash(h);});
 
-// === SITREP TAB (Commander's SITREP · SOUTHCOM AOR; served by /api/sitrep/*) ===
+// === SITREP TAB (Commander's SITREP · SOUTHCOM AOR, or EUCOM under the Europe profile; served by /api/sitrep/*) ===
+const SR_AOR=(window.__CRUCIX_PROFILE__&&window.__CRUCIX_PROFILE__.id==='europe')?'EUCOM':'SOUTHCOM';
 // Model- or rules-generated text plus feed excerpts → esc() on every string. Self-contained like the
 // Requirements tab: owns its CSS and state, wraps tabCounts / renderLeftRail / renderLower.
 (function(){
@@ -1787,7 +1800,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       .meta{font:9pt Arial,Helvetica,sans-serif;color:#333;margin-bottom:8px}.banner{font:bold 8.5pt/1.3 Arial,Helvetica,sans-serif;text-transform:uppercase;border:1px solid #000;padding:5px 8px;margin:8px 0 10px}
       p{margin:0 0 6px}ul{margin:0;padding-left:18px}li{margin:0 0 4px}.c{font:8.5pt "Courier New",monospace;color:#444}.u{font:bold 8.5pt "Courier New",monospace;color:#900}
       .foot{margin-top:14px;padding-top:6px;border-top:1px dashed #000;font:8.5pt/1.4 Arial,Helvetica,sans-serif;color:#333}</style></head><body>
-      <h1>COMMANDER\u2019S SITREP \u2014 SOUTHCOM AOR (OSINT)</h1>
+      <h1>COMMANDER\u2019S SITREP \u2014 ${SR_AOR} AOR (OSINT)</h1>
       <div class="meta">${esc(EDL[ed.edition]||ed.edition)} \u00b7 ${fmtWhen(ed.generatedAt)} \u00b7 CRUCIX sweep as of ${fmtWhen(ed.asOf)} \u00b7 ${esc(ed.id)}</div>
       <div class="banner">${esc(ed.banner||'OSINT demonstration product')}</div>
       <h2>1. BLUF</h2><p>${T(ed.bluf)}</p>
@@ -1834,7 +1847,7 @@ window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==curren
       const watch=(ed.watch||[]).map(w=>`<li>${srText(w)}</li>`).join('')||'<li>None identified in CRUCIX feeds.</li>';
       const ext=ed.external?`<div class="sr-sec"><h4>7. ${esc(ed.external.label||'EXTERNAL \u2014 UNVERIFIED')}</h4><ul>${(ed.external.findings||[]).map(f=>`<li>${esc(f.text)}${f.url?` <a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.url)}</a>`:''}</li>`).join('')||`<li>${esc(ed.external.note||'No additional developments found.')}</li>`}</ul></div>`:'';
       body=`<div class="sr-banner">${esc(ed.banner||st?.banner||'OSINT demonstration product')}</div>
-      <div class="sr-head"><b>COMMANDER\u2019S SITREP \u2014 SOUTHCOM AOR</b><span>${esc(EDL[ed.edition]||ed.edition)}</span><span>${fmtWhen(ed.generatedAt)}</span><span>sweep as of ${fmtWhen(ed.asOf)}</span><span>${esc(ed.id)}</span></div>
+      <div class="sr-head"><b>COMMANDER\u2019S SITREP \u2014 ${SR_AOR} AOR</b><span>${esc(EDL[ed.edition]||ed.edition)}</span><span>${fmtWhen(ed.generatedAt)}</span><span>sweep as of ${fmtWhen(ed.asOf)}</span><span>${esc(ed.id)}</span></div>
       ${SR.error?`<div class="sr-err">${esc(SR.error.toUpperCase())}</div>`:''}
       <div class="sr-sec"><h4>1. BLUF</h4><p>${srText(ed.bluf)}</p></div>
       <div class="sr-sec"><h4>2. Significant activity (last ${esc(ed.windowHours||12)} h)</h4><ul>${act}</ul></div>
@@ -2481,7 +2494,12 @@ document.addEventListener('keydown',e=>{
 // One line under each panel title: what it shows, where it comes from, what it does not establish.
 // Keyed by the panel title text (i18n-independent English fallback titles).
 const PANEL_CAPTIONS={
-  'commander sitrep':'The current edition of the Commander\u2019s SITREP for the SOUTHCOM AOR: BLUF, significant activity by domain, changes since the previous edition, indicators &amp; warnings, a 24 h assessment and source-integrity caveats. Drafted by the configured model from the live CRUCIX state only \u2014 every claim carries a <b>[section]</b> citation you can click to open the feed it came from; uncited claims are struck server-side. With no model key it degrades to a rules-only data digest. <b>OSINT demonstration product</b>, not an official assessment.',
+  'russian navy warships':'Named Russian Navy ships placed by sea region parsed from news headlines (14 d), not AIS fixes; unreported ships sit at their homeport. Links out to live AIS and the GFSIS force map.',
+  'fleetleaks · shadow fleet':'Russia-relevant posts from the FleetLeaks intelligence feed plus its vessel flag / name / owner change log: publisher reporting, not verified tracks.',
+  'fleetleaks shadow fleet':'FleetLeaks intelligence feed and vessel-change log (shadow fleet / sanctioned tankers).',
+  'ukrainian usv strikes':'Ukrainian uncrewed surface vessel (USV) strike log and headline killboard from the Ukraine War Unmanned Systems Tracker; locations are named places, plotted approximately. Links out to the ArmyInform strikes map.',
+  'unmanned systems tracker':'Ukraine War Unmanned Systems Tracker (USV strike log).',
+  'commander sitrep':'The current edition of the Commander\u2019s SITREP for the '+(window.__CRUCIX_PROFILE__&&window.__CRUCIX_PROFILE__.id==='europe'?'EUCOM':'SOUTHCOM')+' AOR: BLUF, significant activity by domain, changes since the previous edition, indicators &amp; warnings, a 24 h assessment and source-integrity caveats. Drafted by the configured model from the live CRUCIX state only \u2014 every claim carries a <b>[section]</b> citation you can click to open the feed it came from; uncited claims are struck server-side. With no model key it degrades to a rules-only data digest. <b>OSINT demonstration product</b>, not an official assessment.',
   'sitrep archive':'Every edition ever generated, newest first (AM / PM scheduled, ad hoc, and later weekly / monthly arcs). Stored as JSON + Markdown with a SHA-256 over the rendered text so an edition can be re-verified later. Select one to read it.',
   'sitrep schedule':'When the next edition runs (commander\u2019s local time), which model drafts it, and how many tokens the last run cost. <b>Generate now</b> drafts an edition from the current sweep without waiting for the schedule \u2014 one at a time, 60 s apart.',
   'contact replay':'Scrub through the last 48 h of air contacts in one hotspot, one frame per sweep. Each contact is coloured by provenance confidence \u2014 how many independent feeds (OpenSky, adsb.fi) reported the same ICAO24, whether they agreed on position, and how old the fix was at sweep time. <b>Computed from the feeds CRUCIX already pulls</b>; not a live track and not an intent assessment.',
@@ -2692,6 +2710,8 @@ function renderLeftRail(){
     {name:'Border / CBP',count:D.cbpStats?.encounters?.latest?.total?.toLocaleString()||0,dot:'news',sub:D.cbpStats?.encounters?`SW encounters · ${esc(D.cbpStats.encounters.latest?.label)} · ${cbpLiveCount()}/4 sources live`:'CBP Public Data Portal',src:['CBPStats','CBPSeizures','CBPForce','CBPCustody']},
     {name:'Market Intel',count:(D.unusualWhales?.optionsFlow?.total||0)+(D.unusualWhales?.congressTrades?.total||0)+(D.unusualWhales?.darkPool?.total||0),dot:'market',sub:`${D.unusualWhales?.status==='live'?'options·congress·darkpool':'offline'}`,src:'UnusualWhales'},
     {name:'Carrier Groups',count:D.carriers?.totalCarriers||0,dot:'carrier',sub:'OSINT estimated positions',src:'Carriers'},
+    ...(D.rusNavy?.totalShips?[{name:'Russian Navy',count:D.rusNavy.totalShips,dot:'rusnavy',sub:`${D.rusNavy.reportedShips||0} reported · ${(D.rusNavy.sightings||[]).length} sightings`,src:'RussianNavy'}]:[]),
+    ...((D.fleetLeaks?.items||[]).length||(D.fleetLeaks?.vesselChanges||[]).length?[{name:'FleetLeaks',count:(D.fleetLeaks.items||[]).length,dot:'rusnavy',sub:`${(D.fleetLeaks.vesselChanges||[]).length} vessel changes`,src:'FleetLeaks'}]:[]),
     {name:'GPS Jamming',count:D.gpsJamming?.totalZones||0,dot:'jamming',sub:`${D.gpsJamming?.aircraftAnalyzed||0} aircraft analyzed`,src:'GPSJamming'},
     {name:'CCTV Mesh',count:D.cctvMesh?.totalCameras||0,dot:'cctv',sub:`${Object.keys(D.cctvMesh?.sourceCounts||{}).length} sources`,src:'CCTV'},
     {name:'Instability Index',count:D.cii?.totalCountries||0,dot:'cii',sub:`${((D.cii?.countries||[]).filter(c=>c.level==='Critical'||c.level==='High').length)||0} critical/high`,src:'CII'},
@@ -2754,16 +2774,17 @@ function renderLeftRail(){
 
   // Sensor Grid is filtered per tab so each view only lists the layers it is about.
   const TAB_LAYERS={
-    military:['Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
+    military:['Russian Navy','FleetLeaks','Air Activity','Thermal Spikes','Maritime Watch','Nuclear Sites','Seismic Monitor','Conflict Events','Satellites','Carrier Groups','GPS Jamming','DEFCON','Focal Points'],
     cyber:['Cyber KEV','Ransomware','Internet Outages','Telegram Live'],
     macro:['Market Intel','Polymarket','Instability Index'],
-    ukraine:['Ukraine Front','RU Units / Airfields','GPS Jamming','Thermal Spikes','Air Activity','Nuclear Sites','Telegram Live'],
+    ukraine:['Ukraine Front','Russian Navy','RU Units / Airfields','GPS Jamming','Thermal Spikes','Air Activity','Nuclear Sites','Telegram Live'],
     cartels:['Border Watch','Border / CBP','Narco Intel'],
     investigations:['Cyber KEV','Telegram Live','OSINT Feed','Signal Intel'],
     targeting:['Border Watch','Narco Intel','Telegram Live'],
   };
-  const layerNames=TAB_LAYERS[currentTab];
-  const shownLayers=layerNames?layers.filter(l=>layerNames.includes(l.name)):layers;
+  const layerNames=mergedTabs(currentTab).length?tabParts(TAB_LAYERS,currentTab):TAB_LAYERS[currentTab];
+  const profSkip=(window.__CRUCIX_PROFILE__&&window.__CRUCIX_PROFILE__.skipSources)||[];
+  const shownLayers=(layerNames?layers.filter(l=>layerNames.includes(l.name)):layers).filter(l=>!profSkip.includes(l.src));
   const sensorGridPanel=`<div class="g-panel sensor-grid">
       <div class="sec-head"><h3>${t('panels.sensorGrid','Sensor Grid')}</h3><span class="badge" title="${gridBadgeTitle}">${gridBadge}</span></div>
       ${shownLayers.map(layerRow).join('')}
@@ -2824,7 +2845,7 @@ function renderLeftRail(){
     sources:[renderHowToReadPanel(),sensorGridPanel],
   };
   const rail=document.getElementById('leftRail');
-  rail.innerHTML=(byTab[currentTab]||byTab.situation).join('');
+  rail.innerHTML=(mergedTabs(currentTab).length?tabParts(byTab,currentTab):(byTab[currentTab]||byTab.situation)).join('');
   applyCaptions(rail);
 }
 
@@ -3491,6 +3512,15 @@ function plotMarkers(){
     });
     labels.push({type:'carrier', lat:c.lat, lng:c.lng+2, text:c.hull||c.name.split('(')[0].trim(), size:0.35, color:'rgba(79,195,247,0.8)'});
   });
+  (D.rusNavy?.ships||[]).forEach(r=>{
+    if(!r.lat||!r.lng) return;
+    points.push({lat:r.lat,lng:r.lng,size:r.live?0.45:0.3,alt:0.02,color:r.live?'rgba(255,82,82,0.95)':'rgba(255,82,82,0.45)',type:'rusnavy',priority:r.live?1:3,
+      popHead:r.name,popMeta:`${r.type} · ${r.fleet} · ${r.live?'reported':'homeport default'}`,popText:`${esc(r.desc)}<br>${extLink(r.sourceUrl,r.live?'Source':'Live AIS map','color:var(--accent2)')}`});
+  });
+  (D.rusNavy?.sightings||[]).forEach(r=>{
+    if(!r.lat||!r.lng) return;
+    points.push({lat:r.lat,lng:r.lng,size:0.3,alt:0.02,color:'rgba(255,138,101,0.9)',type:'rusnavy',priority:2,popHead:'Russian warship sighting',popMeta:esc(r.region),popText:`${esc(r.headline)}<br>${extLink(r.url,'Source','color:var(--accent2)')}`});
+  });
 
   // === GPS Jamming Zones (red polygons rendered as large points) ===
   (D.gpsJamming?.zones||[]).forEach(z=>{
@@ -4031,6 +4061,20 @@ function plotFlatMarkers(){
     g.append('rect').attr('x',-5).attr('y',-5).attr('width',10).attr('height',10).attr('fill','rgba(79,195,247,0.85)').attr('stroke','rgba(79,195,247,0.4)').attr('stroke-width',1).attr('transform','rotate(45)');
     g.append('text').attr('class','marker-label').attr('x',10).attr('y',3).attr('fill','rgba(79,195,247,0.8)').attr('font-size','8px').attr('font-family','var(--mono)').text(c.hull||c.name);
   });
+  if(layerOn('rusnavy')){
+    const rn=(D.rusNavy?.ships||[]).map(r=>({...r,kind:'ship'})).concat((D.rusNavy?.sightings||[]).map(r=>({...r,kind:'sighting'})),(D.unmanned?.usv||[]).slice(0,15).map(r=>({...r,kind:'usv',headline:`Ukrainian USV strike: ${r.target} (${r.loc}) · ${r.model} · ${r.damage} · ${r.date}`,region:r.loc})));
+    rn.forEach(r=>{
+      if(!r.lat||!r.lng) return;
+      const[x,y]=proj([r.lng,r.lat]);if(!x||!y)return;
+      const head=r.kind==='ship'?r.name:r.kind==='usv'?'Ukrainian USV strike':'Russian warship sighting';
+      const body=r.kind==='ship'?`${esc(r.type)} · ${esc(r.fleet)}<br>${esc(r.desc)}<br>${extLink(r.sourceUrl,r.live?'Source':'Live AIS map','color:var(--accent2)')}`:`${esc(r.headline)}<br>${extLink(r.url,'Source','color:var(--accent2)')}`;
+      const op=r.kind==='ship'&&!r.live?0.45:0.9;
+      const g=mg.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer').attr('data-priority',r.live?1:3)
+        .on('click',ev=>{ev.stopPropagation();showPopup(ev,head,body,r.kind==='ship'?(r.live?'Russian Navy · reported':'Russian Navy · homeport default'):'Russian Navy · '+esc(r.region))});
+      g.append('path').attr('d',r.kind==='usv'?'M0,-5 L5,4 H-5 Z':'M-5,-3 H5 L3,3 H-3 Z').attr('fill',r.kind==='ship'?`rgba(255,82,82,${op})`:r.kind==='usv'?'rgba(255,215,64,0.9)':'rgba(255,138,101,0.9)').attr('stroke','rgba(0,0,0,0.6)').attr('stroke-width',0.6);
+      if(r.live)g.append('text').attr('class','marker-label').attr('x',8).attr('y',3).attr('fill','rgba(255,82,82,0.85)').attr('font-size','8px').attr('font-family','var(--mono)').text(r.name);
+    });
+  }
   // GPS Jamming Zones (red/orange/yellow circles by severity)
   (D.gpsJamming?.zones||[]).forEach(z=>{
     if(!z.lat||!z.lng) return;
@@ -4354,10 +4398,10 @@ function renderLower(){
   const wrap=(html,cls)=>html?html.replace(/^(\s*<div class="g-panel)/,`$1 ${cls}`):'';
   const byTab={
     situation:[tickerPanel,renderSignalIntelPanel(),renderFocalPointsPanel(),osintPanel],
-    military:[wrap(renderContactReplayPanel(),'lp-wide'),wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
+    military:[wrap(renderContactReplayPanel(),'lp-wide'),wrap(renderAirTheatersPanel(),'lp-half'),wrap(renderPrcPanel(),'lp-half'),wrap(renderFocalPointsPanel(),'lp-half'),wrap(renderSignalIntelPanel(),'lp-half'),...(D.rusNavy?.totalShips?[wrap(renderRusNavyPanel(),'lp-half')]:[]),...((D.unmanned?.usv||[]).length?[wrap(renderUnmannedPanel(),'lp-half')]:[]),...((D.fleetLeaks?.items||[]).length||(D.fleetLeaks?.vesselChanges||[]).length?[wrap(renderFleetLeaksPanel(),'lp-half')]:[]),wrap(renderCarriersPanel(),'lp-half'),wrap(renderCIIPanel(),'lp-half')],
     cyber:[wrap(renderCyberAttackMapPanel(),'lp-wide'),wrap(renderRansomwarePanel(),'lp-half'),wrap(renderCyberKevPanel(),'lp-half'),wrap(renderDevinSecPanel(),'lp-wide'),wrap(renderIodaPanel(),'lp-half'),wrap(renderTyposquatPanel(),'lp-half')],
     macro:[wrap(macroPanel,'lp-wide'),wrap(renderPolymarketPanel(),'lp-half'),wrap(marketPanel,'lp-half'),wrap(ideasPanel,'lp-wide')],
-    ukraine:[wrap(renderUaMapPanel(),'lp-wide'),wrap(renderFrontPanel(),'lp-half'),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
+    ukraine:[...(isMergedAway('ukraine')?[]:[wrap(renderUaMapPanel(),'lp-wide')]),wrap(renderFrontPanel(),'lp-half'),...((D.unmanned?.usv||[]).length?[wrap(renderUnmannedPanel(),'lp-half')]:[]),wrap(renderUaChangeLogPanel(),'lp-half'),wrap(renderUaAirEwPanel(),'lp-half'),wrap(renderUaStrikesPanel(),'lp-half'),wrap(renderUaThermalPanel(),'lp-half'),wrap(renderUaNuclearPanel(),'lp-half'),wrap(renderUaWiresPanel(),'lp-half'),wrap(renderUaCiiPanel(),'lp-half')],
     cartels:[wrap(groupHead('Mexico · Cartel Landscape',['Cartels','BorderNews','DOJ']),'lp-wide'),wrap(renderCartelMapPanel(),'lp-wide'),wrap(renderNarcoEventsPanel(),'lp-wide'),wrap(renderCartelWarsPanel(),'lp-half'),wrap(renderCartelActivityPanel(),'lp-half'),wrap(renderCartelBaselinePanel(),'lp-half'),wrap(renderCartelFeedPanel(),'lp-half'),
       wrap(renderCbpGroupHead(),'lp-wide'),wrap(renderCbpPanel(),'lp-half'),wrap(renderCbpSeizuresPanel(),'lp-half'),wrap(renderCbpForcePanel(),'lp-half'),wrap(renderCbpCustodyPanel(),'lp-half'),
       wrap(groupHead('US–Mexico Border Reporting',['BorderNews','InSightCrime','BorderIngest']),'lp-wide'),wrap(renderCjngGraphPanel(),'lp-wide'),wrap(borderPanel,'lp-half'),wrap(narcoPanel,'lp-half'),wrap(renderBorderIngestPanel(),'lp-half'),
@@ -4371,7 +4415,7 @@ function renderLower(){
     sources:[renderSourceHealthFullPanel()],
   };
   const grid=document.getElementById('lowerGrid');
-  grid.innerHTML=(byTab[currentTab]||byTab.situation).join('');
+  grid.innerHTML=(mergedTabs(currentTab).length?tabParts(byTab,currentTab):(byTab[currentTab]||byTab.situation)).join('');
   applyCaptions(grid);
   if(currentTab==='cartels')requestAnimationFrame(initCartelMap);
   if(currentTab==='cartels')kgMount('cjng');
@@ -4557,6 +4601,28 @@ function renderPrcPanel(){
     ${titles.length?`<div class="sh-group">PRC headlines in GDELT</div>${titles.map(tt=>`<div class="sig-title" style="margin-bottom:3px">${esc(tt)}</div>`).join('')}`:''}
     <div class="sh-note">Score = 1.5×air + 8×GDELT + 15×ISR, capped at 100. It is an activity index, not an intent assessment.</div></div>`;
 }
+const GFSIS_URL='https://gfsis.org.ge/maps/russian-military-forces';
+function renderRusNavyPanel(){
+  const r=D.rusNavy||{};const ships=(r.ships||[]).slice().sort((a,b)=>(b.live?1:0)-(a.live?1:0));
+  const rows=ships.slice(0,14).map(s=>`<div class="fp-row" title="${esc(s.name)}: ${esc(s.desc||'')}"><span class="fp-urgency" style="color:${s.live?'#ff5252':'var(--dim)'};border:1px solid rgba(255,82,82,${s.live?0.5:0.2})">${s.live?'REPORTED':'HOME'}</span><span class="fp-text">${esc(s.name)} <span style="color:var(--dim)">· ${esc(s.type)} · ${esc(s.fleet)} · ${esc(s.region||'')}</span></span></div>`).join('');
+  const sight=(r.sightings||[]).slice(0,6).map(s=>`<div class="fp-row"><span class="fp-urgency" style="color:#ff8a65;border:1px solid rgba(255,138,101,0.4)">${esc(String(s.region||'').toUpperCase())}</span><span class="fp-text">${extLink(s.url,s.headline,'color:inherit')}</span></div>`).join('');
+  return `<div class="g-panel rusnavy-panel"><div class="sec-head"><h3>${shDot('RussianNavy')}Russian Navy Warships</h3><span class="badge">${r.reportedShips||0}/${r.totalShips||ships.length} REPORTED</span></div>${rows}${sight?`<div class="sh-note" style="margin-top:6px">Unattributed warship sightings</div>${sight}`:''}<div class="sh-note">Named-ship positions are sea regions parsed from GDELT news headlines (14 d), not AIS fixes; ships with no recent reporting sit at their homeport. Live AIS: ${extLink(r.liveMapUrl||'https://www.marinevesseltraffic.com/russia-navy-warships','MarineVesselTraffic','color:var(--accent2)')} · Force posture: ${extLink(GFSIS_URL,'GFSIS Russian military forces map','color:var(--accent2)')}</div></div>`;
+}
+const ARMYINFORM_STRIKES_URL='https://armyinform.com.ua/en/ukrainian-strikes-map/';
+function renderUnmannedPanel(){
+  const u=D.unmanned||{};const ev=u.usv||[];
+  if(!ev.length)return offPanel('Unmanned Systems Tracker','UnmannedTracker','No USV strike data this sweep');
+  const cards=(u.cards||[]).slice(0,3).map(c=>`<div class="fp-row"><span class="fp-urgency" style="color:#ffb74d;border:1px solid rgba(255,183,77,0.35)">${esc(c.value)}</span><span class="fp-text">${esc(c.label)}</span></div>`).join('');
+  const rows=ev.slice(0,10).map(e=>`<div class="fp-row" title="${esc(e.notes)}"><span class="fp-urgency" style="color:${/destroy|sunk/i.test(e.damage)?'#ff5252':'#ffb74d'};border:1px solid rgba(255,138,101,0.35)">${esc(String(e.damage||'?').toUpperCase())}</span><span class="fp-text">${extLink(e.url,`${e.target} · ${e.loc}`,'color:inherit')} <span style="color:var(--dim)">· ${esc(e.model)} · ${esc(e.date)}</span></span></div>`).join('');
+  return `<div class="g-panel unmanned-panel"><div class="sec-head"><h3>${shDot('UnmannedTracker')}Ukrainian USV Strikes</h3><span class="badge">${u.totalUsv||ev.length} LOGGED</span></div>${cards}${rows}<div class="sh-note">USV strike log and killboard from ${extLink(u.siteUrl||'https://unmannedsystemstracker.com/#usv','Unmanned Systems Tracker','color:var(--accent2)')}. Strike map: ${extLink(ARMYINFORM_STRIKES_URL,'ArmyInform Ukrainian strikes map','color:var(--accent2)')}</div></div>`;
+}
+function renderFleetLeaksPanel(){
+  const f=D.fleetLeaks||{};const items=f.items||[];const ch=f.vesselChanges||[];
+  const rows=items.slice(0,8).map(i=>`<div class="fp-row" title="${esc(i.date||'')}"><span class="fp-urgency" style="color:var(--accent2);border:1px solid rgba(68,204,255,0.3)">${esc((i.categories||[])[0]||'FEED')}</span><span class="fp-text">${extLink(i.url,i.title,'color:inherit')} <span style="color:var(--dim)">· ${esc(String(i.date||'').slice(0,10))}</span></span></div>`).join('');
+  const crow=ch.slice(0,6).map(c=>`<div class="fp-row"><span class="fp-urgency" style="color:#ffb74d;border:1px solid rgba(255,183,77,0.35)">${esc(String(c.change||'').toUpperCase())}</span><span class="fp-text">${extLink(c.url,c.vessel,'color:inherit')} <span style="color:var(--dim)">IMO ${esc(c.imo)} · ${esc(c.from)} → ${esc(c.to)} · ${esc(c.effective)}</span></span></div>`).join('');
+  if(!rows&&!crow)return offPanel('FleetLeaks Shadow Fleet','FleetLeaks','No FleetLeaks items this sweep');
+  return `<div class="g-panel fleetleaks-panel"><div class="sec-head"><h3>${shDot('FleetLeaks')}FleetLeaks · Shadow Fleet</h3><span class="badge">${items.length} ITEMS</span></div>${rows}${crow?`<div class="sh-note" style="margin-top:6px">Recent vessel flag / name / owner changes</div>${crow}`:''}<div class="sh-note">Russia-relevant posts from the FleetLeaks intelligence feed and its vessel-change log (one request per sweep, per the site's crawl delay). ${extLink(f.feedUrl||'https://fleetleaks.com/#/intelligence-feed/','Open FleetLeaks feed','color:var(--accent2)')}</div></div>`;
+}
 function renderCarriersPanel(){
   const c=D.carriers||{};
   const groups=c.carriers||c.groups||[];
@@ -4598,7 +4664,7 @@ function showFrontLayer(lat,lon){
   if(rows){const act=activeLayerIds();const row=rows.find(r=>r.id==='front');
     if(row&&row.state!=='none'&&!act.has('front')){act.add('front');layerOverride=[...act];try{localStorage.setItem(LAYER_STORE,JSON.stringify(layerOverride))}catch{}renderMapLegend();replotMap();}}
   const go=()=>focusMapAt(Number.isFinite(lat)?lat:FRONT_CENTER.lat,Number.isFinite(lon)?lon:FRONT_CENTER.lon);
-  if(currentTab!=='situation'){setTab('situation',{keepScroll:true});setTimeout(go,350);} else go();
+  if(!mapTab(currentTab)){setTab('situation',{keepScroll:true});setTimeout(go,350);} else go();
 }
 function renderFrontPanel(){
   const f=D.frontlines||{};
@@ -5450,7 +5516,9 @@ function uaPopup(ev,head,html,meta){
 // Deep link into DeepStateMAP at a place. Coordinates are clamped numbers (deepStateUrl), never feed strings.
 function uaDsLink(lat,lon){return `<br><a href="${esc(deepStateUrl(lat,lon))}" target="_blank" rel="noopener noreferrer" style="color:#ff8a65;font-family:var(--mono);font-size:9px;letter-spacing:0.06em">OPEN DEEPSTATEMAP \u2197</a>`}
 function uaFocusAt(lat,lon,k){
-  if(!uaSvg||!uaProj||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  if((!uaSvg||!uaProj)&&isMergedAway('ukraine')){showFrontLayer(lat,lon);return;}
+  if(!uaSvg||!uaProj)return;
   const [x,y]=uaProj([lon,lat]);const z=k||5;
   uaSvg.transition().duration(500).call(uaZoom.transform,d3.zoomIdentity.translate(uaW/2-x*z,uaH/2-y*z).scale(z));
   document.getElementById('uaMapWrap')?.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -9925,6 +9993,9 @@ function refreshMapViewport(forceGlobeReflow=false){
       flatPath = d3.geoPath(flatProjection);
       flatG.selectAll('*').remove();
       drawFlatMap();
+      // Re-fit the region whenever the box changed (hidden-start fallback size, or a tab with a wider map).
+      const resized=flatFitW!==flatW||flatFitH!==flatH;flatFitW=flatW;flatFitH=flatH;
+      if((wasStale||resized)&&flatZoom)setRegion(currentRegion);
     }
   }
 }
@@ -10178,5 +10249,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script src="/prcdel.js"></script>
+<script src="/profile.js"></script>
 </body>
 </html>

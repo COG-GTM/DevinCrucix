@@ -5,6 +5,7 @@
 
 import './utils/env.mjs'; // Load API keys from .env
 import { pathToFileURL } from 'node:url';
+import { getProfile } from '../lib/profile.mjs';
 
 // === Tier 1: Core OSINT & Geopolitical ===
 import { briefing as gdelt } from './sources/gdelt.mjs';
@@ -54,6 +55,9 @@ import { briefing as unusualwhales } from './sources/unusualwhales.mjs';
 
 // === Tier 9: Phase 3 Data Layers ===
 import { briefing as carriers } from './sources/carriers.mjs';
+import { briefing as rusNavy } from './sources/rusnavy.mjs';
+import { briefing as fleetLeaks } from './sources/fleetleaks.mjs';
+import { briefing as unmanned } from './sources/unmanned.mjs';
 import { briefing as gpsjamming } from './sources/gpsjamming.mjs';
 import { briefing as cctv } from './sources/cctv.mjs';
 
@@ -118,8 +122,10 @@ import { briefing as cloudflareRadar } from './sources/cloudflare-radar.mjs';
 
 const SOURCE_TIMEOUT_MS = 30_000; // 30s max per individual source
 const SLOW_SOURCE_TIMEOUT_MS = 60_000; // 60s for sources with rate-limited retry logic
-const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'DOJ', 'OFACNarco', 'ColombiaOpenData']); // sources that need extra time (CBP multi-MB CSVs, DOJ paged backfill, OFAC 30 MB XML, seven datos.gov.co SODA aggregates)
+const SLOW_SOURCES = new Set(['GDELT', 'Carriers', 'RussianNavy', 'FleetLeaks', 'UnmannedTracker', 'CBPStats', 'CBPSeizures', 'CBPForce', 'CBPCustody', 'DOJ', 'OFACNarco', 'ColombiaOpenData']); // sources that need extra time (CBP multi-MB CSVs, DOJ paged backfill, OFAC 30 MB XML, seven datos.gov.co SODA aggregates)
+const PROFILE_SKIP = new Set(getProfile()?.skipSources || []);
 export async function runSource(name, fn, ...args) {
+  if (PROFILE_SKIP.has(name)) return { name, status: 'skipped', durationMs: 0 };
   const start = Date.now();
   let timer;
   const timeout = SLOW_SOURCES.has(name) ? SLOW_SOURCE_TIMEOUT_MS : SOURCE_TIMEOUT_MS;
@@ -191,6 +197,9 @@ export async function fullBriefing() {
 
     // Tier 9: Phase 3 Data Layers
     runSource('Carriers', carriers),
+    runSource('RussianNavy', rusNavy),
+    runSource('FleetLeaks', fleetLeaks),
+    runSource('UnmannedTracker', unmanned),
     runSource('GPSJamming', gpsjamming),
     runSource('CCTV', cctv),
 
@@ -264,7 +273,8 @@ export async function fullBriefing() {
   // within ~30s even if APIs hang. Global timeout is a safety net.
   const results = await Promise.allSettled(allPromises);
 
-  const sources = results.map(r => r.status === 'fulfilled' ? r.value : { status: 'failed', error: r.reason?.message });
+  const sources = results.map(r => r.status === 'fulfilled' ? r.value : { status: 'failed', error: r.reason?.message })
+    .filter(s => s.status !== 'skipped');
   const totalMs = Date.now() - start;
 
   const output = {

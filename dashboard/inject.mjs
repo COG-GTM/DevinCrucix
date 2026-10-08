@@ -900,6 +900,21 @@ export async function synthesize(data) {
         signals: (cData.signals || []).slice(0, 10),
       };
     })(),
+    rusNavy: (() => {
+      const r = data.sources.RussianNavy || {};
+      return { totalShips: r.totalShips || 0, reportedShips: r.reportedShips || 0, liveMapUrl: r.liveMapUrl || '',
+        ships: (r.ships || []).map(s => ({ name: s.name, type: s.type, fleet: s.fleet, homeport: s.homeport, lat: s.lat, lng: s.lng, region: s.region, live: !!s.live,
+          desc: (s.desc || '').substring(0, 140), source: s.source, sourceUrl: s.sourceUrl, reported: s.reported || '' })),
+        sightings: (r.sightings || []).slice(0, 25), signals: (r.signals || []).slice(0, 10), status: r.status || '' };
+    })(),
+    fleetLeaks: (() => {
+      const f = data.sources.FleetLeaks || {};
+      return { feedUrl: f.feedUrl || '', items: (f.items || []).slice(0, 25), vesselChanges: (f.vesselChanges || []).slice(0, 25), itemsAt: f.itemsAt || '', changesAt: f.changesAt || '' };
+    })(),
+    unmanned: (() => {
+      const u = data.sources.UnmannedTracker || {};
+      return { siteUrl: u.siteUrl || '', totalUsv: u.totalUsv || 0, usv: (u.usv || []).slice(0, 40), cards: (u.cards || []).slice(0, 6) };
+    })(),
     // Phase 3: GPS Jamming Detection
     gpsJamming: (() => {
       const gjData = data.sources.GPSJamming || {};
