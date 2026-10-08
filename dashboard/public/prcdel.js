@@ -306,7 +306,7 @@
       const head=person?`<div class="pd-dossier"><div class="pd-sil lg" title="Passport photo placeholder (synthetic)">${SIL}</div><div class="pd-kv">
           <span>Name</span><b style="color:#ff80ab">${esc(person.name)} <span class="pd-syn">SYNTHETIC</span></b>
           <span>Role</span><b>${esc(person.role)}</b><span>Delegation</span><b>${esc(person.delegationLabel)}</b>
-          ${person.passport?`<span>Passport</span><b>${esc(person.passport.number)} · ${esc(person.passport.kind)} · CN</b>`:''}<span>DOB</span><b>${esc(person.dob||'—')}</b>
+          ${person.passport?`<span>Passport</span><b>${esc(person.passport.number)} · ${esc(person.passport.kind)} · ${esc(person.nationality||'')}</b>`:''}<span>DOB</span><b>${esc(person.dob||'—')}</b>
           <span>Route</span><b>${esc((person.route||[]).map(r=>`${r.city} ${r.date}`).join(' → '))}</b>
           <span>Start selectors</span><b>${pv.seeds.map(s=>`${esc(s.t)}: ${esc(s.v)}`).join(' · ')}</b></div></div>`
         :`<div class="pd-kv" style="margin-bottom:8px"><span>Selector pivot</span><b>${pv.seeds.map(s=>`${esc(s.t)}: ${esc(s.v)}`).join(' · ')}</b></div>`;

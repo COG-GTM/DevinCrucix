@@ -25,7 +25,7 @@ test('profile lookup: empty id is the full app, europe is case-insensitive', () 
 test('theater box keeps Europe, Russia and Ukraine and drops other regions', () => {
   const { box } = getProfile('europe');
   for (const [lat, lon] of [[50.45, 30.52], [55.76, 37.62], [52.23, 21.01], [41.71, 44.79], [43.13, 131.9]]) assert.ok(inBox(lat, lon, box), `${lat},${lon}`);
-  for (const [lat, lon] of [[30.04, 31.24], [25.03, 121.56], [4.71, -74.07], [38.9, -77.04], [35.69, 51.39]]) assert.ok(!inBox(lat, lon, box), `${lat},${lon}`);
+  for (const [lat, lon] of [[30.04, 31.24], [25.03, 121.56], [4.71, -74.07], [38.9, -77.04], [35.69, 51.39], [41.31, 69.24], [51.17, 71.45], [43.24, 76.89], [47.92, 106.92]]) assert.ok(!inBox(lat, lon, box), `${lat},${lon}`);
 });
 
 test('applyProfileToData filters geolocated rows, keeps rows without coordinates and the Ukraine payload', () => {
@@ -103,4 +103,34 @@ test('europe SITREP is EUCOM-framed and drops SOUTHCOM-only sections', () => {
   assert.ok(r.ask.includes('ukraine') && !r.ask.includes('narco'));
   assert.ok(!r.b.some(x => /colombia|venezuela|caribbean|SOUTHCOM/i.test(x)));
   assert.ok(r.d.some(x => /Ukraine/.test(x)));
+});
+
+test('applyProfileToData keeps unlocated rows and filters nested region observations', () => {
+  const data = {
+    acled: [{ lat: 50, lon: 30 }, { lat: null, lon: null }, { lat: 4, lon: -74 }],
+    air: [{ region: 'Taiwan Strait', tracks: [{ lat: 25, lon: 121 }] }, { region: 'Baltic', tracks: [{ lat: 56, lon: 20 }, { lat: 25, lon: 121 }] }],
+    thermal: [{ region: 'Ukraine', fires: [{ lat: 48, lon: 37 }] }, { region: 'Brazil', fires: [{ lat: -10, lon: -50 }] }],
+  };
+  const out = applyProfileToData(data, getProfile('europe'));
+  assert.equal(out.acled.length, 2);
+  assert.deepEqual(out.air.map(r => r.region), ['Baltic']);
+  assert.equal(out.air[0].tracks.length, 1);
+  assert.deepEqual(out.thermal.map(r => r.region), ['Ukraine']);
+});
+
+test('europe tracker picks the in-theater destination after a Moscow origin and drops Central Asia', () => {
+  const r = runEurope(`import { parseDelegationItem } from './lib/prcdel/tracker.mjs';
+    const a = parseDelegationItem({ title: 'Russian delegation from Moscow visits Belgrade for talks - Outlet', published: '2026-10-01T10:00:00Z', link: 'u' });
+    const b = parseDelegationItem({ title: 'Russian delegation visits Tashkent for talks - Outlet', published: '2026-10-01T10:00:00Z', link: 'u' });
+    console.log(JSON.stringify({ a: a && a.city, b }));`);
+  assert.equal(r.a, 'Belgrade');
+  assert.equal(r.b, null);
+});
+
+test('europe rules-only SITREP leads with the Ukraine section', () => {
+  const r = runEurope(`import { DOMAINS } from './lib/sitrep/index.mjs';
+    import * as m from './lib/sitrep/index.mjs';
+    console.log(JSON.stringify({ d0: DOMAINS[0], src: String(m.rulesOnlySitrep || '') .includes("ids: ['ukraine'") }));`);
+  assert.equal(r.d0, 'Russia–Ukraine war');
+  assert.equal(r.src, true);
 });
