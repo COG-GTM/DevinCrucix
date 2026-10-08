@@ -2204,7 +2204,7 @@ async function start() {
           console.log(`[Seismic] ${seismicData?.totalEvents || 0} events (max M${seismicData?.maxMagnitude ?? '--'})`);
         }
         if (currentData) {
-          currentData.seismic = seismicData;
+          currentData.seismic = applyProfileToData({ seismic: seismicData }).seismic;
           currentData.situation = buildSituation(currentData);
           broadcast({ type: 'update', data: currentData });
         }

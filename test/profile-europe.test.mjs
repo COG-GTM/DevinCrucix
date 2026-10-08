@@ -19,7 +19,7 @@ test('profile lookup: empty id is the full app, europe is case-insensitive', () 
   assert.equal(c.region, 'europe');
   assert.ok(c.tabs.includes('ukraine') && c.tabs.includes('prcdel'));
   for (const t of ['cartels', 'iranwar', 'taiwan', 'colombia', 'venezuela']) assert.ok(!c.tabs.includes(t), t);
-  assert.equal(c.skipSources, undefined);
+  assert.ok(Array.isArray(c.skipSources) && c.skipSources.includes('InSightCrime'));
 });
 
 test('theater box keeps Europe, Russia and Ukraine and drops other regions', () => {

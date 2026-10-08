@@ -13,7 +13,7 @@
     if(P.tabHints&&P.tabHints[t.id])t.hint=P.tabHints[t.id];
   }
   if(!TAB_IDS.includes(currentTab)){currentTab='situation';syncHash(currentTab)}
-  window.addEventListener('hashchange',()=>{if(!tabFromHash())syncHash(currentTab)});
+  window.addEventListener('hashchange',()=>{if(!tabFromHash()&&typeof setTab==='function')setTab('situation')});
   if(P.title)document.title='CRUCIX \u00b7 '+P.title;
   if(P.region){
     currentRegion=P.region;
