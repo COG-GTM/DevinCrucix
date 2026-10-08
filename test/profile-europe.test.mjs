@@ -134,3 +134,12 @@ test('europe rules-only SITREP leads with the Ukraine section', () => {
   assert.equal(r.d0, 'Russia–Ukraine war');
   assert.equal(r.src, true);
 });
+
+test('europe buildTracker drops cached / curated out-of-theater events', () => {
+  const r = runEurope(`import { buildTracker } from './lib/prcdel/tracker.mjs';
+    const out = buildTracker({ stops: [], events: [
+      { city: 'Kathmandu', country: 'Nepal', iso2: 'NP', lat: 27.7, lon: 85.3, date: '2026-09-09' },
+      { city: 'Belgrade', country: 'Serbia', iso2: 'RS', lat: 44.8, lon: 20.46, date: '2026-09-09' } ] });
+    console.log(JSON.stringify(out.events.map(e => e.city)));`);
+  assert.deepEqual(r, ['Belgrade']);
+});
