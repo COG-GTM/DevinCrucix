@@ -361,6 +361,8 @@ app.get('/', (req, res) => {
     const locale = getLocale();
     const localeScript = `<script>window.__CRUCIX_LOCALE__ = ${JSON.stringify(locale).replace(/<\/script>/gi, '<\\/script>')};</script>`;
     html = html.replace('</head>', `${localeScript}\n</head>`);
+    const prof = clientProfile();
+    if (prof) html = html.replace('</head>', `<script>window.__CRUCIX_PROFILE__ = ${JSON.stringify(prof).replace(/</g, '\\u003c')};</script>\n</head>`);
     
     res.type('html').send(html);
   }
@@ -1144,6 +1146,7 @@ import { SEVERITIES as RQ_SEVERITIES } from './lib/situation.mjs';
 import { ValidationError as RqValidationError } from './lib/validate.mjs';
 import { loadGazetteer as rqGazetteer } from './lib/narco/gazetteer.mjs';
 import { createPrcDelService } from './lib/prcdel/service.mjs';
+import { getProfile, applyProfileToData, clientProfile } from './lib/profile.mjs';
 
 const rqHistory = new HistoryStore(RUNS_DIR);
 try {
@@ -2028,7 +2031,7 @@ async function runSweepCycle() {
     // Prune old alerted signals
     memory.pruneAlertedSignals();
 
-    currentData = synthesized;
+    currentData = applyProfileToData(synthesized);
 
     // 6. Push to all connected browsers
     broadcast({ type: 'update', data: currentData });
@@ -2163,7 +2166,7 @@ async function start() {
       data.seismic = seismicData;
       data.situation = buildSituation(data);
       await requirementsAfterSweep(data, { record: false });
-      currentData = data;
+      currentData = applyProfileToData(data);
       console.log('[Crucix] Loaded existing data from runs/latest.json — dashboard ready instantly');
       broadcast({ type: 'update', data: currentData });
     } catch {

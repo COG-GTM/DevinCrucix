@@ -1,0 +1,140 @@
+{
+  "_readme": "Europe profile (CRUCIX_PROFILE=europe) scenario. SYNTHETIC scenario for the Russian Delegations tab. Edit and reload — every record generated from this file is fictional. seed changes every generated name/number; coverage = probability a supporting person shows up in each dataset; offsetDays = start relative to today (or set an explicit date YYYY-MM-DD). Events with 'delegation' are placed dayOffset days after that delegation's stop in the same city.",
+  "seed": 20261006,
+  "windowDays": 3,
+  "maxStopsPerPerson": 6,
+  "coverage": {
+    "travel": 0.6,
+    "border": 0.7,
+    "ss7": 0.85,
+    "cdr": 0.8,
+    "voter": 0.75,
+    "vehicle": 0.55
+  },
+  "delegations": [
+    {
+      "id": "syn-ru-energy-01",
+      "label": "Russian Energy & Trade Delegation — SYNTHETIC",
+      "category": "Economic / Trade",
+      "offsetDays": -15,
+      "stops": [
+        {
+          "city": "Budapest",
+          "nights": 3,
+          "meetings": [
+            "Ministry of Foreign Affairs & Trade — state secretary (scenario)",
+            "Paks II nuclear project office (scenario)",
+            "MVM energy group — gas contracts (scenario)"
+          ]
+        },
+        {
+          "city": "Belgrade",
+          "nights": 3,
+          "meetings": [
+            "Ministry of Mining & Energy (scenario)",
+            "Srbijagas board (scenario)",
+            "Serbian Chamber of Commerce (scenario)"
+          ]
+        },
+        {
+          "city": "Bratislava",
+          "nights": 2,
+          "meetings": [
+            "Ministry of Economy — energy security directorate (scenario)",
+            "SPP gas utility executives (scenario)"
+          ]
+        },
+        {
+          "city": "Istanbul",
+          "nights": 2,
+          "meetings": [
+            "TurkStream operations office (scenario)",
+            "BOTAŞ executives (scenario)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "syn-ru-parl-02",
+      "label": "Russian Parliamentary & Cultural Delegation — SYNTHETIC",
+      "category": "Parliamentary / Party",
+      "offsetDays": -8,
+      "stops": [
+        {
+          "city": "Vienna",
+          "nights": 2,
+          "meetings": [
+            "OSCE Parliamentary Assembly side meeting (scenario)",
+            "Parliamentary friendship group (scenario)"
+          ]
+        },
+        {
+          "city": "Chisinau",
+          "nights": 2,
+          "meetings": [
+            "Gagauzia regional assembly delegation (scenario)",
+            "Opposition party leadership (scenario)"
+          ]
+        },
+        {
+          "city": "Tbilisi",
+          "nights": 2,
+          "meetings": [
+            "Parliamentary friendship group (scenario)",
+            "Orthodox church representatives (scenario)"
+          ]
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "delegation": "syn-ru-energy-01",
+      "city": "Budapest",
+      "dayOffset": 0,
+      "host": "Rosatom",
+      "title": "Rosatom nuclear-energy supplier & careers expo — SYNTHETIC",
+      "venue": "Exhibition centre"
+    },
+    {
+      "delegation": "syn-ru-energy-01",
+      "city": "Belgrade",
+      "dayOffset": 1,
+      "host": "RT / Sputnik",
+      "title": "Sputnik-hosted Balkan media & blogger forum — SYNTHETIC",
+      "venue": "Congress district"
+    },
+    {
+      "delegation": "syn-ru-energy-01",
+      "city": "Istanbul",
+      "dayOffset": 1,
+      "host": "Gazprom",
+      "title": "Gazprom-sponsored TurkStream partners reception — SYNTHETIC",
+      "venue": "Bosphorus hotel ballroom"
+    },
+    {
+      "delegation": "syn-ru-parl-02",
+      "city": "Chisinau",
+      "dayOffset": 0,
+      "host": "Rossotrudnichestvo / Russian House",
+      "title": "Russian House \"Friends of Russia\" youth festival — SYNTHETIC",
+      "venue": "City centre"
+    },
+    {
+      "delegation": "syn-ru-parl-02",
+      "city": "Tbilisi",
+      "dayOffset": 1,
+      "host": "Russian Orthodox Church",
+      "title": "Moscow Patriarchate-linked Orthodox heritage conference — SYNTHETIC",
+      "venue": "Old town"
+    },
+    {
+      "delegation": "syn-ru-parl-02",
+      "city": "Vienna",
+      "dayOffset": 1,
+      "host": "Russkiy Mir",
+      "title": "Russkiy Mir Foundation compatriots round table — SYNTHETIC",
+      "venue": "Cultural centre"
+    }
+  ]
+}

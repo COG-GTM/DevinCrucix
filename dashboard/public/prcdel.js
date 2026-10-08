@@ -4,6 +4,7 @@
 // renderLeftRail / renderLower (global function bindings from jarvis.html are reassignable).
 (function(){
   if(typeof renderLower!=='function')return;
+  const PDL=Object.assign({tracker:'Chinese Delegation Tracker',actor:'PRC',linked:'PRC-linked',origin:{city:'Beijing',lon:116.4,lat:39.9}},(window.__CRUCIX_PROFILE__||{}).delegation||{});
   const css=document.createElement('style');
   css.textContent=`
 .pd-banner{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#ff80ab;border:1px solid rgba(255,64,129,0.4);background:rgba(255,64,129,0.07);padding:5px 8px;margin:0 0 8px}
@@ -154,7 +155,7 @@
       <div class="pd-banner osint">OSINT layer: ${esc(d?.disclaimer||'Machine-extracted from news headlines.')}</div>
       ${PD.syn?`<div class="pd-banner">SYNTHETIC overlay on: pink items (scenario delegations, scenario events, POI tracks, all records below) are fictional test data.</div>`:''}
       <div class="pd-map" id="pdMapWrap"><svg id="pdMapSvg"></svg>
-        <div class="pd-legend"><div><i style="background:#64f0c8;border-radius:50%"></i>Delegation stop (numbered by date) · line = route</div><div><i style="border:2px solid #ffab40;border-radius:50%"></i>Stop with concurrent PRC-linked event</div><div><i style="background:rgba(255,171,64,0.6);transform:rotate(45deg)"></i>PRC-linked event (OSINT)</div>${PD.syn?'<div><i style="background:#ff4081;transform:rotate(45deg)"></i>SYNTHETIC event / delegation / POI track</div>':''}</div>
+        <div class="pd-legend"><div><i style="background:#64f0c8;border-radius:50%"></i>Delegation stop (numbered by date) · line = route</div><div><i style="border:2px solid #ffab40;border-radius:50%"></i>Stop with concurrent ${PDL.linked} event</div><div><i style="background:rgba(255,171,64,0.6);transform:rotate(45deg)"></i>${PDL.linked} event (OSINT)</div>${PD.syn?'<div><i style="background:#ff4081;transform:rotate(45deg)"></i>SYNTHETIC event / delegation / POI track</div>':''}</div>
         ${PD.pop?popupHtml():''}
       </div></div>`;
   }
@@ -167,7 +168,7 @@
     const dels=visDel();
     const pts=[];dels.forEach(d=>d.stops.forEach(s=>pts.push([s.lon,s.lat])));
     if(PD.sel?.type==='person'){const p=personById(PD.sel.id);(p?.track||[]).forEach(t=>pts.push([t.lon,t.lat]))}
-    pts.push([116.4,39.9]);
+    pts.push([PDL.origin.lon,PDL.origin.lat]);
     const fit=pts.length>1?{type:'MultiPoint',coordinates:pts}:{type:'Sphere'};
     proj=d3.geoNaturalEarth1().fitExtent([[40,30],[W-40,H-30]],fit);
     if(proj.scale()>2400)proj.scale(2400);
@@ -183,7 +184,7 @@
     const hotEv=new Set();dels.forEach(d=>d.stops.forEach(s=>(s.concurrent||[]).forEach(c=>hotEv.add(c.eventId))));
     // routes (Beijing origin → stops)
     dels.forEach(d=>{
-      const coords=[[116.4,39.9],...d.stops.map(s=>[s.lon,s.lat])];
+      const coords=[[PDL.origin.lon,PDL.origin.lat],...d.stops.map(s=>[s.lon,s.lat])];
       if(coords.length>1)lay.append('path').datum({type:'LineString',coordinates:coords}).attr('class','route'+(d.synthetic?' syn':'')).attr('stroke',colorOf(d)).attr('d',path);
     });
     // events
@@ -215,7 +216,7 @@
       c.on('click',ev=>{ev.stopPropagation();PD.pop={type:'stop',del:d.id,id:s.id,x:xy[0],y:xy[1]};renderLower()});
       lay.append('text').attr('class','lbl pd-lbl').attr('x',xy[0]+8).attr('y',xy[1]+3).attr('data-fs',8.5).style('font-size',8.5/k0+'px').text(`${s.seq}·${s.city}`);
     }));
-    const bj=proj([116.4,39.9]);if(bj){lay.append('circle').attr('class','pd-pin').attr('cx',bj[0]).attr('cy',bj[1]).attr('data-r',4).attr('r',4/Math.sqrt(k0)).attr('fill','#f44336');lay.append('text').attr('class','lbl pd-lbl').attr('x',bj[0]+7).attr('y',bj[1]+3).attr('data-fs',8.5).style('font-size',8.5/k0+'px').text('Beijing')}
+    const bj=proj([PDL.origin.lon,PDL.origin.lat]);if(bj){lay.append('circle').attr('class','pd-pin').attr('cx',bj[0]).attr('cy',bj[1]).attr('data-r',4).attr('r',4/Math.sqrt(k0)).attr('fill','#f44336');lay.append('text').attr('class','lbl pd-lbl').attr('x',bj[0]+7).attr('y',bj[1]+3).attr('data-fs',8.5).style('font-size',8.5/k0+'px').text(PDL.origin.city)}
   }
   function scale(k){
     if(!root)return;
@@ -245,13 +246,13 @@
       const poiHits=poi?(poi.track||[]).filter(t=>t.ts.slice(0,10)>=s.date&&t.ts.slice(0,10)<=s.date.replace(/\d\d$/,m=>String(+m+3).padStart(2,'0'))&&Math.abs(t.lat-s.lat)<0.6&&Math.abs(t.lon-s.lon)<0.6):[];
       body=`<h4>#${s.seq} ${esc(s.city)}, ${esc(s.country)}</h4><div class="sub">${esc(d.label)}${d.synthetic?' <span class="pd-syn">SYNTHETIC</span>':''} · ${esc(s.date)}${s.precision==='country'?' · country-level place':''}</div>
         <div class="sec">Reported meetings</div>${s.meetings?.length?`<ul>${s.meetings.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>`:'<div style="color:var(--dim)">No counterpart named in the headline(s).</div>'}
-        <div class="sec">Concurrent PRC-linked events (±${PD.data.windowDays} d)</div>${concHtml(s)||'<div style="color:var(--dim)">None found in this window.</div>'}
+        <div class="sec">Concurrent ${PDL.linked} events (±${PD.data.windowDays} d)</div>${concHtml(s)||'<div style="color:var(--dim)">None found in this window.</div>'}
         <div class="sec">Sources</div><ul>${(s.sources||[]).map(x=>`<li>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.headline)}</a>`:esc(x.headline)} <span style="color:var(--dim)">${esc(x.outlet||'')} · ${esc(x.date||'')}</span></li>`).join('')}</ul>
         ${poi?`<div class="sec" style="color:#ff4081">Synthetic POI at this stop</div><div><span class="pd-sel" data-person="${esc(poi.id)}">${esc(poi.name)}</span> <span class="pd-syn">SYNTHETIC</span> — ${poiHits.length} SS7/border hits near ${esc(s.city)}</div>`:''}`;
     }else if(p.type==='event'){
       const e=evById(p.id);if(!e)return '';
       const stops=(PD.data.delegations||[]).flatMap(d=>d.stops.filter(s=>(s.concurrent||[]).some(c=>c.eventId===e.id)).map(s=>({d,s})));
-      body=`<h4>${esc(e.host)}${e.synthetic?'<span class="pd-syn">SYNTHETIC</span>':''}</h4><div class="sub">PRC-linked event · ${esc(e.city)}, ${esc(e.country)} · ${esc(e.date)}</div>
+      body=`<h4>${esc(e.host)}${e.synthetic?'<span class="pd-syn">SYNTHETIC</span>':''}</h4><div class="sub">${PDL.linked} event · ${esc(e.city)}, ${esc(e.country)} · ${esc(e.date)}</div>
         <div>${e.url?`<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.headline)}</a>`:esc(e.headline)}${e.outlet?` <span style="color:var(--dim)">— ${esc(e.outlet)}</span>`:''}</div>
         <div class="sec">Concurrent delegation stops</div>${stops.length?`<ul>${stops.map(({d,s})=>`<li>${esc(d.label)} · #${s.seq} ${esc(s.city)} ${esc(s.date)}</li>`).join('')}</ul>`:'<div style="color:var(--dim)">No delegation stop within the window.</div>'}`;
     }else if(p.type==='rec'){
@@ -338,7 +339,7 @@
     const dels=visDel();
     const rows=dels.flatMap(d=>d.stops.map(s=>({d,s}))).sort((a,b)=>b.s.date.localeCompare(a.s.date));
     return `<div class="g-panel lp-wide"><div class="sec-head"><h3>Stops &amp; Concurrent Events</h3><span class="badge">${rows.length} STOPS</span></div>
-      <div class="pd-scroll" style="max-height:360px"><table class="pd-tbl"><thead><tr><th>Date</th><th>Delegation</th><th>Stop</th><th>Reported meetings</th><th>Concurrent PRC-linked events (±${PD.data?.windowDays??3} d)</th><th>Source</th></tr></thead><tbody>
+      <div class="pd-scroll" style="max-height:360px"><table class="pd-tbl"><thead><tr><th>Date</th><th>Delegation</th><th>Stop</th><th>Reported meetings</th><th>Concurrent ${PDL.linked} events (±${PD.data?.windowDays??3} d)</th><th>Source</th></tr></thead><tbody>
       ${rows.map(({d,s})=>`<tr class="${d.synthetic?'hl':''}"><td class="m">${esc(s.date)}</td><td><span class="pd-dot" style="display:inline-block;width:7px;height:7px;margin:0 4px 0 0;background:${colorOf(d)}"></span>${esc(d.label)}${d.synthetic?'<span class="pd-syn">SYN</span>':''}</td>
         <td><span class="pd-sel" data-stop="${esc(s.id)}" data-del="${esc(d.id)}">#${s.seq} ${esc(s.city)}</span><br><span style="color:var(--dim)">${esc(s.country)}</span></td><td>${(s.meetings||[]).map(esc).join('<br>')||'<span style="color:var(--dim)">—</span>'}</td>
         <td>${concHtml(s)||'<span style="color:var(--dim)">—</span>'}</td><td>${(s.sources||[]).slice(0,2).map(x=>x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2)">${esc(x.outlet||'link')}</a>`:esc(x.outlet||'')).join('<br>')}${s.sources?.length>2?`<br><span style="color:var(--dim)">+${s.sources.length-2}</span>`:''}</td></tr>`).join('')}
@@ -357,7 +358,7 @@
 
   // ── Wiring into the shared renderers ───────────────────────────────────────
   const _tc=tabCounts;
-  tabCounts=function(){let c;try{c=_tc()}catch{c={}}const d=PD.data;c.prcdel=d?{n:String(d.counts.overlaps||d.counts.delegations),cls:d.counts.overlaps?'hot':'',title:`${d.counts.delegations} delegations · ${d.counts.overlaps} concurrent PRC-linked events`}:null;return c};
+  tabCounts=function(){let c;try{c=_tc()}catch{c={}}const d=PD.data;c.prcdel=d?{n:String(d.counts.overlaps||d.counts.delegations),cls:d.counts.overlaps?'hot':'',title:`${d.counts.delegations} delegations · ${d.counts.overlaps} concurrent ${PDL.linked} events`}:null;return c};
   const _rl=renderLeftRail;
   renderLeftRail=function(){
     if(!active())return _rl();
@@ -418,8 +419,8 @@
 
   // PRC WATCH chip → this tab
   // The top bar is re-rendered on every sweep, so mark + handle the chip by delegation, not a one-time binding.
-  const isPrcChip=el=>el&&/PRC WATCH/.test(el.textContent);
-  const markChip=()=>document.querySelectorAll('.regime-chip').forEach(el=>{if(isPrcChip(el)&&!el.classList.contains('pd-link')){el.classList.add('pd-link');el.title='Open the Chinese Delegation Tracker'}});
+  const isPrcChip=el=>el&&/PRC WATCH|RUSSIA WATCH/.test(el.textContent);
+  const markChip=()=>document.querySelectorAll('.regime-chip').forEach(el=>{if(isPrcChip(el)&&!el.classList.contains('pd-link')){el.classList.add('pd-link');el.title='Open the '+PDL.tracker}});
   document.addEventListener('click',e=>{const c=e.target.closest('.regime-chip');if(isPrcChip(c)){e.preventDefault();setTab('prcdel')}});
   new MutationObserver(markChip).observe(document.body,{childList:true,subtree:true});
   markChip();
