@@ -102,6 +102,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .grid.no-map{grid-template-columns:240px 1fr}
 .grid.no-map #rightRail,.grid.no-map .map-region-bar,.grid.no-map .map-container,.grid.no-map #situationStrip{display:none !important}
 .grid.no-map .lower{margin-top:0}
+.grid.map-lite{grid-template-columns:240px 1fr}
+.grid.map-lite #rightRail,.grid.map-lite #situationStrip{display:none !important}
 .lower .g-panel.lp-wide{flex:1 1 100%;max-width:none}
 .lower .g-panel.lp-half{flex:1 1 calc(50% - 5px);max-width:none;min-width:280px}
 .lower .g-panel.lp-third{flex:1 1 calc(33.33% - 7px);max-width:none;min-width:260px}
@@ -1700,11 +1702,15 @@ function setTab(id, opts={}){
   applyTabLayout();
   renderTabbar();renderLeftRail();renderLower();renderRight();
   if(id==='situation'){renderSituationStrip();refreshMapViewport(changed && !isFlat);}
+  else if(mapTab(id))refreshMapViewport(changed && !isFlat);
   if(changed && !opts.keepScroll){const tb=document.getElementById('tabbar');if(tb)tb.scrollIntoView({behavior:'smooth',block:'start'});}
 }
+// Tabs that show the main map: Situation, plus any profile mapTabs (map without the Situation-only rails).
+function mapTab(id){return id==='situation'||(window.__CRUCIX_PROFILE__?.mapTabs||[]).includes(id)}
 function applyTabLayout(){
   const g=document.getElementById('grid');if(!g)return;
-  g.classList.toggle('no-map',currentTab!=='situation');
+  g.classList.toggle('no-map',!mapTab(currentTab));
+  g.classList.toggle('map-lite',currentTab!=='situation'&&mapTab(currentTab));
 }
 window.addEventListener('hashchange',()=>{const h=tabFromHash();if(h&&h!==currentTab)setTab(h);else if(h)syncHash(h);});
 
@@ -4657,7 +4663,7 @@ function showFrontLayer(lat,lon){
   if(rows){const act=activeLayerIds();const row=rows.find(r=>r.id==='front');
     if(row&&row.state!=='none'&&!act.has('front')){act.add('front');layerOverride=[...act];try{localStorage.setItem(LAYER_STORE,JSON.stringify(layerOverride))}catch{}renderMapLegend();replotMap();}}
   const go=()=>focusMapAt(Number.isFinite(lat)?lat:FRONT_CENTER.lat,Number.isFinite(lon)?lon:FRONT_CENTER.lon);
-  if(currentTab!=='situation'){setTab('situation',{keepScroll:true});setTimeout(go,350);} else go();
+  if(!mapTab(currentTab)){setTab('situation',{keepScroll:true});setTimeout(go,350);} else go();
 }
 function renderFrontPanel(){
   const f=D.frontlines||{};
