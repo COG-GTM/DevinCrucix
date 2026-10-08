@@ -11,6 +11,7 @@ primary_region = "iad"
   PORT = "3117"
   REFRESH_INTERVAL_MINUTES = "15"
   CRUCIX_PROFILE = "europe"
+  CJNG_GRAPH_REFRESH = "false"
 
 # Persistent data (ICIJ Offshore Leaks full index, OFAC SDN index, trails, targeting, ingest DB).
 # Create once:  fly volumes create crucix_europe_data --region iad --size 3 -a crucix-europe
