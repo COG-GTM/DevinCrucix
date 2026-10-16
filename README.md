@@ -115,6 +115,8 @@ fly secrets set CRUCIX_PASSWORD='your-access-code' CRUCIX_SESSION_SECRET=$(opens
 fly deploy
 ```
 
+Add `OPENSKY_CLIENT_ID` / `OPENSKY_CLIENT_SECRET` to the same `fly secrets set` for live OpenSky data. `fly.toml` pins `primary_region = "ewr"` because OpenSky's API is unreachable from Fly's `iad` egress (connections time out and the air layer degrades to ADS-B samples); if an existing machine is in `iad`, move it with `fly machine clone <id> --region ewr` then destroy the `iad` one.
+
 Setting `CRUCIX_PASSWORD` puts a login page in front of the dashboard and all `/api/*` routes (except `/api/health`). Failed attempts are rate-limited (5 per IP, 15-minute lockout). Leave it unset for local use. Anyone without the access code sees only the login page, so a deployment can stay private to whoever holds the code.
 
 ### Investigations tab & Typosquat Watch
