@@ -350,7 +350,8 @@ describe('dashboard wiring (static checks)', () => {
     assert.match(pop, /unverified, not control of territory/);
     assert.match(html, /HISTORICAL \\u00b7 START June 2020/);
   });
-  it('keeps the Cognition footer', () => {
-    assert.match(html, /Built with Devin &middot; <b>Cognition AI<\/b>/);
+  it('renders the footer without the external credit', () => {
+    assert.match(html, /<div class="foot"><span>CRUCIX MONITOR<\/span><span>Public OSINT only/);
+    assert.doesNotMatch(html, /Built with Devin &middot; <b>Cognition AI<\/b>/);
   });
 });
