@@ -267,7 +267,7 @@ function pushData() {
   const ds = { points: [], arcs: [], rings: [], labels: [], polygons: [], paths: [] };
   LAYERS.forEach(l => {
     const st = STATE.get(l.id); if (!st.on || !st.data) return;
-    Object.keys(ds).forEach(k => (st.data[k] || []).forEach(item => ds[k].push({ color: l.color, ...item, __layer: l.id })));
+    Object.keys(ds).forEach(k => (st.data[k] || []).forEach(item => ds[k].push({ color: l.color, ...item, __layer: l.id, __type: k, __raw: item })));
   });
   globe.pointsData(ds.points).arcsData(ds.arcs).ringsData(ds.rings).labelsData(ds.labels).polygonsData(ds.polygons).pathsData(ds.paths);
   const total = Object.values(ds).reduce((n, a) => n + a.length, 0);
@@ -276,10 +276,13 @@ function pushData() {
 }
 
 // ─── Selection ─────────────────────────────────────────────────────────────
-const featKey = d => JSON.stringify([d.head ?? null, d.text ?? null, d.label ?? null, d.meta ?? null, d.lat ?? d.startLat ?? null, d.lng ?? d.startLng ?? null]);
+// Identity = the layer's own object for that feature type (by reference, or structurally for re-fetched copies).
 function stillPresent(sel, data) {
-  const k = featKey(sel);
-  return ['points','arcs','rings','labels','polygons','paths'].some(t => (data?.[t] || []).some(it => featKey(it) === k));
+  const items = data?.[sel.__type];
+  if (!Array.isArray(items)) return false;
+  if (items.includes(sel.__raw)) return true;
+  const k = JSON.stringify(sel.__raw);
+  return items.some(it => JSON.stringify(it) === k);
 }
 // Arcs/paths have no single coordinate; use the start point so LOCATE ON MAP still works.
 const arcSel = d => select({ ...d, lat: d.startLat, lng: d.startLng });
