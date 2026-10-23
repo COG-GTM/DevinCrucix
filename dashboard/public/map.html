@@ -281,9 +281,11 @@ function stillPresent(sel, data) {
   const items = data?.[sel.__type];
   if (!Array.isArray(items)) return false;
   if (items.includes(sel.__raw)) return true;
-  const k = JSON.stringify(sel.__raw);
-  return items.some(it => JSON.stringify(it) === k);
+  const k = canon(sel.__raw);
+  return items.some(it => canon(it) === k);
 }
+// JSON with object keys sorted, so re-fetched copies compare equal regardless of key order.
+const canon = v => JSON.stringify(v, (_, x) => (x && typeof x === 'object' && !Array.isArray(x)) ? Object.fromEntries(Object.keys(x).sort().map(k => [k, x[k]])) : x);
 // Arcs/paths have no single coordinate; use the start point so LOCATE ON MAP still works.
 const arcSel = d => select({ ...d, lat: d.startLat, lng: d.startLng });
 const pathSel = d => select({ ...d, lat: d.pts?.[0]?.[0], lng: d.pts?.[0]?.[1] });
