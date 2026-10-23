@@ -271,7 +271,10 @@ function pushData() {
   });
   globe.pointsData(ds.points).arcsData(ds.arcs).ringsData(ds.rings).labelsData(ds.labels).polygonsData(ds.polygons).pathsData(ds.paths);
   const total = Object.values(ds).reduce((n, a) => n + a.length, 0);
-  document.getElementById('mapEmpty').hidden = total > 0;
+  const anyOn = LAYERS.some(l => STATE.get(l.id)?.on);
+  const empty = document.getElementById('mapEmpty');
+  empty.hidden = total > 0;
+  empty.querySelector('span').textContent = anyOn ? 'No features to display \u00b7 check the layer rail' : 'Blank canvas \u00b7 no layers on';
   document.querySelector('#featureCount .v').textContent = num(total);
 }
 
