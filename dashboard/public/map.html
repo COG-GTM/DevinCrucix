@@ -99,7 +99,7 @@ button.pill:hover,a.pill:hover{border-color:var(--border-bright);color:var(--tex
 /* FOOT */
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:6px 12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
 .foot b{color:var(--text);font-weight:600}
-@media (max-width:900px){.body{grid-template-columns:1fr}.rail{display:none}}
+@media (max-width:900px){.body{grid-template-columns:1fr;grid-template-rows:minmax(320px,1fr) auto}.map-container{order:1}.rail{order:2;max-height:40vh;overflow:auto}.g-panel.grow{flex:none;max-height:22vh}}
 </style>
 </head>
 <body>
@@ -160,14 +160,17 @@ const LAYERS = [];                 // registration order
 const STATE = new Map();           // id -> { on, data, count, error, loading, timer }
 let globe = null, selected = null;
 
+const ID_RE = /^[a-z0-9_-]{1,40}$/i;
+const COLOR_RE = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d.,\s%]+\))$/i;
+const safeColor = c => COLOR_RE.test(String(c || '')) ? c : '#5aa9ff';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => Number.isFinite(v) ? v.toLocaleString('en-US') : '0';
 
 window.CRUCIX_MAP = {
   registerLayer(def) {
-    if (!def || !def.id || !def.label || typeof def.fetch !== 'function') { console.warn('[map] bad layer', def); return; }
+    if (!def || !ID_RE.test(def.id || '') || !def.label || typeof def.fetch !== 'function') { console.warn('[map] bad layer (id must match [a-z0-9_-]{1,40})', def); return; }
     if (STATE.has(def.id)) { console.warn('[map] duplicate layer id', def.id); return; }
-    const layer = { color: '#5aa9ff', description: '', on: false, refreshMs: 0, ...def };
+    const layer = { description: '', on: false, refreshMs: 0, ...def, color: safeColor(def.color) };
     LAYERS.push(layer);
     STATE.set(layer.id, { on: false, data: null, count: 0, error: null, loading: false, timer: null });
     if (hashLayers() ? hashLayers().includes(layer.id) : layer.on) setLayer(layer.id, true, { silent: true });
@@ -182,7 +185,7 @@ function hashLayers() {
 }
 function writeHash() {
   const on = LAYERS.filter(l => STATE.get(l.id).on).map(l => l.id);
-  history.replaceState(null, '', on.length ? `#layers=${on.join(',')}` : location.pathname);
+  history.replaceState(null, '', `#layers=${on.join(',')}`);
 }
 
 function setLayer(id, on, opts = {}) {
@@ -269,11 +272,11 @@ function select(d) {
   const l = LAYERS.find(x => x.id === d.__layer);
   document.getElementById('selBadge').textContent = l ? l.label.toUpperCase() : '—';
   document.getElementById('selBody').innerHTML = `
-    <div class="sel-head" style="color:${esc(l?.color || 'var(--accent)')}">${esc(d.head || d.text || d.label || 'Feature')}</div>
+    <div class="sel-head" style="color:${l?.color || 'var(--accent)'}">${esc(d.head || d.text || d.label || 'Feature')}</div>
     <div class="sel-text">${esc(d.text && d.head ? d.text : (d.desc || ''))}</div>
     <div class="sel-meta">${esc(d.meta || '')}${Number.isFinite(d.lat) ? `<br>${d.lat.toFixed(3)}, ${d.lng.toFixed(3)}` : ''}</div>
     <div class="sel-actions">
-      ${Number.isFinite(d.lat) ? `<button class="pill primary" onclick="flyTo(${d.lat},${d.lng})">LOCATE ON MAP</button>` : ''}
+      ${Number.isFinite(d.lat) ? `<button class="pill primary" onclick="flyTo(selected.lat,selected.lng)">LOCATE ON MAP</button>` : ''}
       <button class="pill" onclick="clearSel()">CLEAR</button>
     </div>`;
 }
@@ -289,19 +292,19 @@ function renderAll() {
 
   document.getElementById('layersMenu').innerHTML = LAYERS.length ? LAYERS.map(l => {
     const st = STATE.get(l.id);
-    return `<div class="menu-row ${st.on ? 'on' : ''}" onclick="setLayer('${esc(l.id)}',${!st.on})"><span class="box">${st.on ? '&#x2713;' : ''}</span><span class="dot" style="background:${esc(l.color)}"></span><span class="lbl">${esc(l.label)}</span><span class="n">${st.on ? (st.loading ? '…' : st.error ? 'ERR' : num(st.count)) : ''}</span></div>`;
+    return `<div class="menu-row ${st.on ? 'on' : ''}" data-layer="${l.id}" data-on="${!st.on}"><span class="box">${st.on ? '&#x2713;' : ''}</span><span class="dot" style="background:${l.color}"></span><span class="lbl">${esc(l.label)}</span><span class="n">${st.on ? (st.loading ? '…' : st.error ? 'ERR' : num(st.count)) : ''}</span></div>`;
   }).join('') : `<div class="menu-empty">No layers registered.<br>Create <code>map-layers/&lt;id&gt;.js</code> from <code>_template.js</code>, then add it to <code>manifest.js</code>.</div>`;
 
   document.getElementById('layerList').innerHTML = on.length ? on.map(l => {
     const st = STATE.get(l.id);
     const cls = st.error ? 'err' : st.loading ? 'loading' : '';
     const count = st.error ? 'FAILED' : st.loading ? 'LOADING' : num(st.count);
-    return `<div class="layer-row ${cls}" onclick="setLayer('${esc(l.id)}',false)" title="Click to turn off"><span class="dot" style="background:${esc(l.color)}"></span><div class="meta"><div class="name">${esc(l.label)}</div><div class="desc">${esc(st.error || l.description)}</div></div><span class="count">${count}</span></div>`;
+    return `<div class="layer-row ${cls}" data-layer="${l.id}" data-on="false" title="Click to turn off"><span class="dot" style="background:${l.color}"></span><div class="meta"><div class="name">${esc(l.label)}</div><div class="desc">${esc(st.error || l.description)}</div></div><span class="count">${count}</span></div>`;
   }).join('') : `<div class="empty"><b>No layers on.</b><br>Open <b>LAYERS</b> above to turn one on${LAYERS.length ? '' : ', or register one in <code>map-layers/</code>'}.</div>`;
 
   document.getElementById('mapLegend').innerHTML = LAYERS.map(l => {
     const st = STATE.get(l.id);
-    return `<button class="lchip ${st.on ? 'on' : 'off'}" style="--lc:${esc(l.color)}" onclick="setLayer('${esc(l.id)}',${!st.on})"><span class="ldot"></span>${esc(l.label)}${st.on && !st.loading && !st.error ? ` <b>${num(st.count)}</b>` : ''}</button>`;
+    return `<button class="lchip ${st.on ? 'on' : 'off'}" style="--lc:${l.color}" data-layer="${l.id}" data-on="${!st.on}"><span class="ldot"></span>${esc(l.label)}${st.on && !st.loading && !st.error ? ` <b>${num(st.count)}</b>` : ''}</button>`;
   }).join('');
 
   if (globe) pushData();
@@ -310,7 +313,11 @@ function toggleMenu(force) {
   const m = document.getElementById('layersMenu');
   m.classList.toggle('open', force ?? !m.classList.contains('open'));
 }
-document.addEventListener('click', e => { if (!e.target.closest('.menu-wrap')) toggleMenu(false); });
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-layer]');
+  if (t) setLayer(t.dataset.layer, t.dataset.on === 'true');
+  if (!e.target.closest('.menu-wrap')) toggleMenu(false);
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { toggleMenu(false); clearSel(); } });
 
 function tickClock() {

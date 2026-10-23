@@ -1,6 +1,10 @@
 // Copy this file to <id>.js, fill it in, then add '<id>.js' to manifest.js.
 // Everything is frontend-only: a layer fetches from an existing /api/* route
-// (or any public URL) and returns Globe.gl datasets. No server changes needed.
+// and returns Globe.gl datasets. No server changes needed.
+// Fetch same-origin only: the server's CSP connect-src (lib/securityHeaders.mjs
+// CONNECT_HOSTS) blocks browser requests to other hosts. To plot an external
+// feed, proxy it through an existing /api/* route or allowlist the host there.
+// id: [a-z0-9_-], color: hex / rgb() / hsl() (anything else falls back to blue).
 CRUCIX_MAP.registerLayer({
   id: 'template',                 // unique, used in the URL hash (#layers=a,b)
   label: 'Template layer',        // shown in the Layers menu and legend
