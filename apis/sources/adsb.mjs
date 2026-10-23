@@ -30,7 +30,7 @@ const SENSITIVE_REGIONS = [
 ];
 
 // Known military aircraft types and ICAO type designators
-const MILITARY_TYPES = {
+export const MILITARY_TYPES = {
   // Reconnaissance / ISR
   'RC135': 'RC-135 Rivet Joint (SIGINT)',
   'E3CF':  'E-3 Sentry AWACS',

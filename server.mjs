@@ -51,6 +51,8 @@ import { queryArticles as borderArticles, loadRegistry as borderRegistry, TOPIC_
 import { collectSeismic } from './apis/sources/seismic.mjs';
 import { ingestGet, PROXY_PARAM_RE } from './apis/sources/borderingest.mjs';
 import { str, num, bool, oneOf, strArray, bounded, validateQuery, validateBody, validateParams } from './lib/validate.mjs';
+import { createMapRouter } from './lib/map/router.mjs';
+import { createMapLayers, startMapFeeds } from './lib/map/layers.mjs';
 import { computeNarcoEvents, loadNarcoEvents } from './lib/narco/pipeline.mjs';
 import { buildNarcoView, compactCluster } from './lib/narco/view.mjs';
 import { queryReleases as dojReleases, DISTRICTS as DOJ_DISTRICTS, CATEGORY_IDS as DOJ_CATEGORIES } from './apis/sources/doj.mjs';
@@ -1837,6 +1839,10 @@ function broadcast(data) {
   }
 }
 
+// === Map layer pack (dashboard/public/map.html) — /api/map/<layer>, see lib/map/layers.mjs ===
+const mapLayers = createMapLayers({ getCurrentData: () => currentData });
+app.use('/api/map', createMapRouter(mapLayers.layers));
+
 // Unknown /api/* → JSON 404 (never Express's HTML "Cannot GET").
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'not found' });
@@ -2096,6 +2102,7 @@ async function runMarketRefresh() {
 
 // === Startup ===
 async function start() {
+  startMapFeeds(mapLayers);
   const port = config.port;
 
   console.log(`

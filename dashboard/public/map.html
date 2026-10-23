@@ -332,6 +332,7 @@ renderAll();
 (window.CRUCIX_LAYER_FILES || []).forEach(f => {
   const s = document.createElement('script');
   s.src = `map-layers/${f}`;
+  s.async = false; // keep manifest order: dynamically inserted scripts are async by default
   s.onerror = () => { console.error('[map] could not load layer file', f); document.getElementById('footStatus').textContent = `Layer file failed to load: ${f}`; };
   document.body.appendChild(s);
 });

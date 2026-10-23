@@ -11,7 +11,7 @@ import { safeFetch } from '../utils/fetch.mjs';
 // The real power comes from running a persistent WebSocket listener
 
 // Key maritime chokepoints to monitor
-const CHOKEPOINTS = {
+export const CHOKEPOINTS = {
   straitOfHormuz: { label: 'Strait of Hormuz', lat: 26.5, lon: 56.5, note: '20% of world oil' },
   suezCanal: { label: 'Suez Canal', lat: 30.5, lon: 32.3, note: '12% of world trade' },
   straitOfGibraltar: { label: 'Strait of Gibraltar', lat: 36.0, lon: -5.7, note: 'Gateway to Mediterranean, ~10-20% global trade influence' },
