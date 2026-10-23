@@ -16,9 +16,10 @@ export const NAS_KINDS = {
   restricted: { label: 'Restricted ops (GA / PPR only)', color: '#b0bec5', rank: 1.5 },
   delay: { label: 'Arrival / departure delay', color: '#ffea00', rank: 1 },
 };
-// Closure NOTAMs that only bar some operators (transient GA, non-scheduled, prior-permission-required)
-// are not airport closures — commercial traffic continues.
-export const LIMITED_CLOSURE_RE = /\b(GA ACFT|TRANSIENT|NON ?SKED|PPR|EXC(EPT)?\b)/i;
+// Closure NOTAMs that only bar some operators ("AP CLSD TO NON SKED TRANSIENT GA ACFT EXC PPR") are not
+// airport closures — commercial traffic continues. The phrase must name the barred class right after
+// CLSD (TO); a bare EXC ("AP CLSD EXC EMERG ACFT") is still a full closure.
+export const LIMITED_CLOSURE_RE = /\bCLSD\s+(?:TO\s+)?(?:ALL\s+)?(?:NON\s?SKED|TRANSIENT|GA)\b/i;
 
 const tag = (xml, name) => { const m = xml.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i')); return m ? m[1].trim() : ''; };
 const all = (xml, name) => [...xml.matchAll(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, 'gi'))].map(m => m[1]);

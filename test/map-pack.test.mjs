@@ -87,6 +87,11 @@ describe('faanas', () => {
     assert.match(points[0].text, /^GROUND STOP/);
     const closed = nasPoints([{ airport: 'SFO', kind: 'closure', reason: 'AP CLSD', start: 'a', end: 'b' }, { airport: 'SFO', kind: 'ground_delay', reason: 'x', avg: '1', max: '2' }]).points[0];
     assert.equal(closed.severity, 'closure');
+    const xml = (r) => `<AIRPORT_STATUS_INFORMATION><Delay_type><Name>Airport Closures</Name><Airport_Closure_List><Airport><ARPT>SFO</ARPT><Reason>${r}</Reason><Start>a</Start><Reopen>b</Reopen></Airport></Airport_Closure_List></Delay_type></AIRPORT_STATUS_INFORMATION>`;
+    assert.equal(parseNas(xml('!SFO 10/001 SFO AD AP CLSD EXC EMERG ACFT')).events[0].kind, 'closure');
+    assert.equal(parseNas(xml('!SFO 10/001 SFO AD AP CLSD EXC GA ACFT')).events[0].kind, 'closure');
+    assert.equal(parseNas(xml('!SFO 10/001 SFO AD AP CLSD TO GA ACFT EXC PPR')).events[0].kind, 'restricted');
+    assert.equal(parseNas(xml('!SFO 10/001 SFO AD AP CLSD TO NON SKED TRANSIENT GA ACFT EXC 24HR PPR')).events[0].kind, 'restricted');
   });
 });
 
@@ -183,7 +188,13 @@ describe('aistankers', () => {
     const p0 = Date.parse('2026-10-23T19:00:00Z');
     h.ingest(pos(211111111), p0); h.ingest(stat(211111111, 80), p0 + 7 * 3600_000);
     assert.equal(h.tankers({ nowMs: p0 + 7 * 3600_000 }).length, 0);
-    h.expire(p0 + 7 * 3600_000); assert.equal(h.vessels.size, 0);
+    h.expire(p0 + 7 * 3600_000);
+    assert.equal(h.vessels.size, 1, 'fresh static data keeps the identity'); assert.equal(h.vessels.get('211111111').lat, null);
+    // the next position report is plotted immediately because the type survived
+    h.ingest(pos(211111111), p0 + 7 * 3600_000 + 60_000);
+    h.vessels.get('211111111').posAt = p0 + 7 * 3600_000 + 60_000;
+    assert.equal(h.tankers({ nowMs: p0 + 7 * 3600_000 + 60_000 }).length, 1);
+    h.expire(p0 + 14 * 3600_000); assert.equal(h.vessels.size, 0, 'everything stale → removed');
   });
 });
 
