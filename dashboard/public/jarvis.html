@@ -1550,6 +1550,7 @@ function renderTopbar(){
       ${renderHealthPill()}
       ${D.delta?.summary ? `<span class="meta-pill">${t('dashboard.delta','DELTA')} <span class="v">${D.delta.summary.direction==='risk-off'?'&#x25B2; '+t('dashboard.riskOff','RISK-OFF'):D.delta.summary.direction==='risk-on'?'&#x25BC; '+t('dashboard.riskOn','RISK-ON'):'&#x25C6; '+t('dashboard.mixed','MIXED')}</span></span>` : ''}
       <button class="ask-btn" id="askBtn" onclick="openAsk()" title="Ask CRUCIX — question the live data, cite the tab it came from" aria-label="Ask CRUCIX"><span class="ask-ico">&#x25C8;</span><span class="ask-label">${t('dashboard.askBtn','Ask CRUCIX')}</span></button>
+      <a class="guide-btn" href="map.html" title="Blank map canvas for building layers live" style="text-decoration:none">MAP</a>
       <button class="guide-btn" onclick="openGlossary()" title="${t('dashboard.guideBtn','What Signals Mean')}" aria-label="${t('dashboard.guideBtn','What Signals Mean')}">?</button>
       ${(() => {
         const dc = D.defcon || {};
