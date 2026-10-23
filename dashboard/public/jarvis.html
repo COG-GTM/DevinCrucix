@@ -2570,7 +2570,7 @@ const PANEL_CAPTIONS={
   'us–mexico border reporting':'Journalism about the border corridor: Border Watch feeds with place / topic spike detection, InSight Crime\u2019s organized-crime reporting and the Python ingestion service behind them. Reporting volume, not event data.',
   'us enforcement · doj & ofac':'What the U.S. government has put on the record: U.S. Attorney press releases from the south-west border districts and Treasury SDN entries under the narco programs. Charges are allegations until a plea or conviction is stated.',
   'prc tension index':'<b>Derived.</b> 1.5\u00d7 PRC aircraft (Taiwan Strait + SCS) + 8\u00d7 PRC-tagged GDELT headlines + 15\u00d7 PRC ISR airframes. HEIGHTENED &ge;40, ELEVATED &ge;70.',
-  'osint workbench':'Read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Handle sweeps send one request per platform (curated probes + the Sherlock manifest); nothing is sent to the subject. Blue values pivot.',
+  'osint workbench':'Read-only enrichment of one selector (domain, URL, IP, hash, email, handle, phone, wallet, company) from public sources. Handle sweeps send one request per platform (curated probes + the Sherlock manifest); nothing is sent to the subject. Blue values pivot within the workbench.',
   'case file':'Browser-local case state: every selector you pivoted into, its relations, notes and metadata. Lives in this browser only until exported.',
   'typosquat watch':'Look-alike domains for the watchlist, resolved via DNS each sweep. Registered is not the same as malicious.',
   'source health':'State of every feed this sweep. LIVE returned data; DEGRADED is partial or stale; NO KEY, OFF and FAILED returned nothing.',
@@ -8437,7 +8437,7 @@ function renderCaseTimeline(){
   return `<div class="inv-tl">${ev.map(e=>{const y=e.t.getUTCFullYear();const hdr=y!==year?`<div class="inv-tl-year">${y}</div>`:'';year=y;return `${hdr}<div class="inv-tl-row ${e.cls}"><span class="inv-tl-date">${e.t.toISOString().slice(0,10)}</span><span class="inv-tl-dot"></span><span class="inv-tl-text">${esc(e.label)}</span><span class="inv-tl-who">${invLink(e.who)}</span></div>`}).join('')}</div>`;
 }
 
-// ─── Toolkit: dorks, external pivots, media forensics ────────────────────────
+// ─── Toolkit: media forensics ────────────────────────
 function invDorks(){
   const d=INV.dossier; if(!d)return [];
   const q=d.target, Q=`"${q}"`;
@@ -8640,7 +8640,7 @@ function renderInvestigateEmpty(afterError){
       <div><div class="inv-sec-title"><span>2 · Prepare</span></div><div class="inv-hint">Pick the selector. Supported: ${(INV._status?.types||Object.keys(INV_SOURCES_BY_TYPE)).map(t=>esc((INV_TYPE_META[t]||{label:t}).label)).join(', ')}.</div></div>
       <div><div class="inv-sec-title"><span>3 · Collect</span></div><div class="inv-hint">One run fans out to every relevant keyless source in parallel; keyed providers (VirusTotal, Shodan, HIBP, NumVerify, OpenCorporates, OpenSanctions) light up when configured.</div></div>
       <div><div class="inv-sec-title"><span>4 · Analyze</span></div><div class="inv-hint">Click any blue value to pivot without losing context. The Case graph and Timeline views accumulate across pivots; risk flags are rule-based indicators.</div></div>
-      <div><div class="inv-sec-title"><span>5 · Report</span></div><div class="inv-hint">Export a Markdown report, JSON case bundle or SVG graph from the left rail. Toolkit view adds search dorks, external deep links and EXIF / GPS forensics.</div></div>
+      <div><div class="inv-sec-title"><span>5 · Report</span></div><div class="inv-hint">Export a Markdown report, JSON case bundle or SVG graph from the left rail. Toolkit view adds EXIF / GPS / hash media forensics.</div></div>
     </div>
     <div class="inv-sec-title" style="margin-top:8px"><span>Try a sample selector</span></div><div class="inv-chips">${samples.map(([t,v])=>`<span class="inv-chip" style="padding:3px 6px">${invTypeTag(t)} ${invLink(v)}</span>`).join('')}</div></div>`;
 }
