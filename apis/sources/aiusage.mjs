@@ -22,8 +22,11 @@ export function loadIndex() { return INDEX ||= JSON.parse(readFileSync(file, 'ut
 export function liveCountries(index = loadIndex(), max = LIVE_COUNTRIES_MAX) {
   const byIndex = [...index.countries].sort((a, b) => b.index - a.index).slice(0, max);
   const byShare = [...index.countries].sort((a, b) => (b.sharePct || 0) - (a.sharePct || 0)).slice(0, max);
+  // Interleave the two rankings so per-capita leaders (Monaco, Israel…) get slots alongside volume leaders (US, India…).
   const seen = new Set(); const out = [];
-  for (const c of [...byShare, ...byIndex]) if (c.a2 && !seen.has(c.a2) && out.length < max) { seen.add(c.a2); out.push(c.a2); }
+  for (let i = 0; i < max && out.length < max; i++) {
+    for (const c of [byShare[i], byIndex[i]]) if (c?.a2 && !seen.has(c.a2) && out.length < max) { seen.add(c.a2); out.push(c.a2); }
+  }
   return out;
 }
 
@@ -31,6 +34,7 @@ export function liveCountries(index = loadIndex(), max = LIVE_COUNTRIES_MAX) {
 export function normalizeRadarCountry(a2, domainResults = {}, servicesResult = null) {
   const ranks = {};
   for (const [dom, r] of Object.entries(domainResults)) {
+    if (r?.success === false) continue; // Cloudflare envelope: HTTP 200 with success:false is a failed lookup, not "unranked"
     const d = r?.result?.details_0;
     if (!d) continue;
     const rank = Number.isInteger(+d.rank) && +d.rank > 0 ? +d.rank : null;
@@ -38,8 +42,9 @@ export function normalizeRadarCountry(a2, domainResults = {}, servicesResult = n
     ranks[dom] = rank ?? bucket;
   }
   const best = Object.values(ranks).filter(Number.isFinite).sort((a, b) => a - b)[0] ?? null;
-  const services = (servicesResult?.result?.top_0 || []).map(s => s.service).filter(Boolean).slice(0, 5);
-  return { a2, ranks, bestRank: best, services };
+  const services = (servicesResult?.success === false ? [] : servicesResult?.result?.top_0 || []).map(s => s.service).filter(Boolean).slice(0, 5);
+  const failed = Object.values(domainResults).some(r => r?.success === false) || servicesResult?.success === false;
+  return { a2, ranks, bestRank: best, services, failed };
 }
 
 // Lower domain rank = AI sites are a larger share of that country's web traffic. 1..100 → hot.
@@ -60,11 +65,13 @@ export async function fetchRadarLive({ token = process.env.CLOUDFLARE_API_TOKEN,
       const domainResults = {};
       for (const dom of AI_DOMAINS) {
         const r = await fetchImpl(`${RADAR_BASE}/ranking/domain/${dom}?location=${a2}${dateQ}`, { timeout: 15000, retries: 0, headers });
-        if (r?.error) { failures++; continue; }
+        if (r?.error || r?.success === false) { failures++; continue; }
         domainResults[dom] = r;
       }
       const svc = await fetchImpl(`${RADAR_BASE}/ranking/internet_services/top?serviceCategory=Generative%20AI&location=${a2}&limit=5${dateQ}`, { timeout: 15000, retries: 0, headers });
-      out[a2] = normalizeRadarCountry(a2, domainResults, svc?.error ? null : svc);
+      const rec = normalizeRadarCountry(a2, domainResults, svc?.error || svc?.success === false ? null : svc);
+      // A country where every lookup failed is left out (so the UI shows "no live data"), not cached as "unranked".
+      if (Object.keys(domainResults).length || rec.services.length) out[a2] = rec; else failures++;
     }
   };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, countries.length) }, worker));

@@ -13,8 +13,12 @@ export const NAS_KINDS = {
   ground_stop: { label: 'Ground stop', color: '#ff1744', rank: 4 },
   closure: { label: 'Airport closure', color: '#d500f9', rank: 3 },
   ground_delay: { label: 'Ground delay program', color: '#ff9100', rank: 2 },
+  restricted: { label: 'Restricted ops (GA / PPR only)', color: '#b0bec5', rank: 1.5 },
   delay: { label: 'Arrival / departure delay', color: '#ffea00', rank: 1 },
 };
+// Closure NOTAMs that only bar some operators (transient GA, non-scheduled, prior-permission-required)
+// are not airport closures — commercial traffic continues.
+export const LIMITED_CLOSURE_RE = /\b(GA ACFT|TRANSIENT|NON ?SKED|PPR|EXC(EPT)?\b)/i;
 
 const tag = (xml, name) => { const m = xml.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i')); return m ? m[1].trim() : ''; };
 const all = (xml, name) => [...xml.matchAll(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, 'gi'))].map(m => m[1]);
@@ -33,7 +37,8 @@ export function parseNas(xml) {
   }
   for (const g of all(s, 'Airport')) {
     if (!/<ARPT>/i.test(g)) continue;
-    events.push({ airport: tag(g, 'ARPT'), kind: 'closure', reason: unesc(tag(g, 'Reason')).slice(0, 240), start: tag(g, 'Start'), end: tag(g, 'Reopen') });
+    const reason = unesc(tag(g, 'Reason')).slice(0, 240);
+    events.push({ airport: tag(g, 'ARPT'), kind: LIMITED_CLOSURE_RE.test(reason) ? 'restricted' : 'closure', reason, start: tag(g, 'Start'), end: tag(g, 'Reopen') });
   }
   return { updateTime: tag(s, 'Update_Time'), events: events.filter(e => e.airport) };
 }
@@ -50,6 +55,7 @@ export function nasPoints(events = []) {
     const lines = evs.map(e => e.kind === 'ground_delay' ? `GDP avg ${e.avg} (max ${e.max}) — ${e.reason}`
       : e.kind === 'ground_stop' ? `GROUND STOP until ${e.end || '?'} — ${e.reason}`
       : e.kind === 'delay' ? `${e.direction || 'Delay'} ${e.min}–${e.max} ${e.trend ? `(${e.trend.toLowerCase()})` : ''} — ${e.reason}`
+      : e.kind === 'restricted' ? `Restricted ops ${e.start || ''} → ${e.end || ''} — ${e.reason}`
       : `Closed ${e.start || ''} → ${e.end || ''} — ${e.reason}`);
     if (!a) { unplaced.push({ code, kind: worst.kind, summary: lines[0] }); continue; }
     points.push({

@@ -30,7 +30,9 @@ describe('faatfr', () => {
       { notam_id: '9/9999', type: 'VIP', facility: 'ZNY', state: 'NY', description: 'no shape yet', creation_date: '10/23/2026' },
     ];
     const out = normalizeTfrs(list, wfs);
-    assert.equal(out.polygons.length, 3);
+    assert.equal(out.polygons.length, 1, 'shapes whose NOTAM is not on the active list are expired, not drawn');
+    assert.equal(out.expiredShapes, 2);
+    assert.equal(out.verified, true);
     const p = out.polygons.find(x => x.id === '6/9169');
     assert.equal(p.type, 'SECURITY');
     assert.match(p.head, /TFR 6\/9169 · Security/);
@@ -40,10 +42,12 @@ describe('faatfr', () => {
     assert.equal(out.total, 2);
     assert.equal(out.byType.VIP, 1);
   });
-  it('falls back to the WFS LEGAL type when the TFR is not in the list', () => {
-    const out = normalizeTfrs([], fxJson('tfr-wfs.json'));
+  it('draws every shape as UNVERIFIED when the active list could not be fetched, none when it is empty', () => {
+    const out = normalizeTfrs([], fxJson('tfr-wfs.json'), { listOk: false });
     assert.equal(out.polygons.length, 3);
-    assert.ok(out.polygons.every(p => p.type && p.fill));
+    assert.ok(out.polygons.every(p => p.type && p.fill && /UNVERIFIED/.test(p.head)));
+    assert.equal(out.verified, false);
+    assert.equal(normalizeTfrs([], fxJson('tfr-wfs.json')).polygons.length, 0);
   });
 });
 
@@ -64,10 +68,13 @@ describe('faanas', () => {
     const parsed = parseNas(fx('nas-status.xml'));
     assert.ok(parsed.updateTime);
     const kinds = new Set(parsed.events.map(e => e.kind));
-    assert.ok(kinds.has('ground_delay') && kinds.has('delay') && kinds.has('closure'));
+    assert.ok(kinds.has('ground_delay') && kinds.has('delay') && kinds.has('restricted'));
     const san = parsed.events.filter(e => e.airport === 'SAN');
     assert.ok(san.length >= 2);
+    assert.ok(parsed.events.filter(e => e.kind === 'restricted').length >= 1, 'GA-only / PPR closure NOTAMs are restricted ops, not closures');
+    assert.equal(parsed.events.filter(e => e.kind === 'closure').length, 0);
     const { points, unplaced } = nasPoints(parsed.events);
+    assert.equal(points.find(p => p.airport === 'SAN').severity, 'ground_delay', 'the GDP outranks a GA-only restriction');
     const sfo = points.find(p => p.airport === 'SFO');
     assert.ok(sfo && Math.abs(sfo.lat - 37.62) < 0.1);
     assert.equal(sfo.severity, 'ground_delay');
@@ -78,6 +85,8 @@ describe('faanas', () => {
     const { points } = nasPoints([{ airport: 'SFO', kind: 'delay', reason: 'x', min: '1', max: '2' }, { airport: 'SFO', kind: 'ground_stop', reason: 'wx', end: '20:00' }]);
     assert.equal(points[0].severity, 'ground_stop');
     assert.match(points[0].text, /^GROUND STOP/);
+    const closed = nasPoints([{ airport: 'SFO', kind: 'closure', reason: 'AP CLSD', start: 'a', end: 'b' }, { airport: 'SFO', kind: 'ground_delay', reason: 'x', avg: '1', max: '2' }]).points[0];
+    assert.equal(closed.severity, 'closure');
   });
 });
 
@@ -166,9 +175,15 @@ describe('aistankers', () => {
     const f = new AisTankerFeed({ apiKey: '', WebSocketImpl: null }).start();
     assert.equal(f.state, 'no_key');
     const g = new AisTankerFeed({ apiKey: 'k', WebSocketImpl: null });
-    const t0 = Date.parse('2026-10-23T00:00:00Z');
+    const t0 = Date.parse('2026-10-23T19:00:00Z'); // = the fixture's position timestamp
     g.ingest(pos(211111111), t0); g.expire(t0 + 7 * 3600_000);
     assert.equal(g.vessels.size, 0);
+    // static messages keep arriving but the fix is old: the vessel is not plotted and is expired on posAt
+    const h = new AisTankerFeed({ apiKey: 'k', WebSocketImpl: null });
+    const p0 = Date.parse('2026-10-23T19:00:00Z');
+    h.ingest(pos(211111111), p0); h.ingest(stat(211111111, 80), p0 + 7 * 3600_000);
+    assert.equal(h.tankers({ nowMs: p0 + 7 * 3600_000 }).length, 0);
+    h.expire(p0 + 7 * 3600_000); assert.equal(h.vessels.size, 0);
   });
 });
 
@@ -197,6 +212,9 @@ describe('festivals', () => {
     assert.equal(ds.counts.live, 1);
     assert.match(ds.points[0].head, /LIVE NOW/);
     assert.equal(ds.points.length, 1 + majors.length);
+    // the same cached record after the event ended: no marker, no ring, status re-derived at request time
+    const later = festivalDatasets([{ id: 'e1', name: 'Fest', venue: 'V', start: '2026-10-23T18:00:00.000Z', end: '2026-10-24T04:00:00.000Z', status: 'live', lat: 1, lng: 2, acts: [], city: 'C', country: 'US' }], [], { nowMs: Date.parse('2026-10-24T05:00:00Z') });
+    assert.equal(later.points.length, 0); assert.equal(later.rings.length, 0); assert.equal(later.counts.live, 0);
   });
 });
 
@@ -207,6 +225,8 @@ describe('aiusage', () => {
       'claude.ai': { result: { details_0: { rank: null, bucket: '500' } } },
     }, { result: { top_0: [{ rank: 1, service: 'ChatGPT / OpenAI' }, { rank: 2, service: 'Claude / Anthropic' }] } });
     assert.deepEqual(r.ranks, { 'chatgpt.com': 53, 'claude.ai': 500 });
+    const bad = normalizeRadarCountry('XX', { 'chatgpt.com': { success: false, errors: [{ code: 1 }], result: null } }, { success: false, result: null });
+    assert.deepEqual(bad.ranks, {}); assert.equal(bad.failed, true); assert.deepEqual(bad.services, []);
     assert.equal(r.bestRank, 53);
     assert.deepEqual(r.services, ['ChatGPT / OpenAI', 'Claude / Anthropic']);
     assert.equal(liveScore(1), 100); assert.equal(liveScore(1000), 0); assert.equal(liveScore(null), 0);
@@ -221,7 +241,9 @@ describe('aiusage', () => {
     assert.equal(us.live.score, liveScore(53));
     assert.equal(p.countries.find(c => c.a2 === 'FR').live, null);
     assert.ok(p.countries[0].rank === 1 && p.countries[0].index >= p.countries[1].index);
-    assert.ok(liveCountries(idx).includes('US') && liveCountries(idx).length <= 60);
+    const lc = liveCountries(idx);
+    assert.ok(lc.includes('US') && lc.length <= 60 && new Set(lc).size === lc.length);
+    assert.ok(lc.includes('MC') && lc.includes('IL'), 'per-capita leaders get slots too');
   });
 });
 
@@ -245,7 +267,8 @@ test('/api/map routes', async (t) => {
     fetchNas: async () => { const p = parseNas(fx('nas-status.xml')); return { ...p, ...nasPoints(p.events) }; },
     fetchMilitary: async () => ({ provider: 'fixture', contacts: fxJson('adsb-mil.json').ac.map(a => normalizeAircraft(a, { military: true })).filter(Boolean), notes: [] }),
     fetchArea: async () => { throw new Error('area down'); },
-    fetchTicketmaster: async () => ({ events: normalizeTmPage(fxJson('ticketmaster-events.json'), Date.parse('2016-03-06T13:00:00Z')), notes: [] }),
+    // the recorded event is from 2016; shift it so it is live at request time (status is re-derived from start/end)
+    fetchTicketmaster: async () => ({ events: normalizeTmPage(fxJson('ticketmaster-events.json'), Date.parse('2016-03-06T13:00:00Z')).map(e => ({ ...e, start: new Date(Date.now() - 3600_000).toISOString(), end: new Date(Date.now() + 3600_000).toISOString() })), notes: [] }),
     fetchWikidataFestivals: async () => normalizeWikidata(fxJson('wikidata-festivals.json')),
     fetchRadarLive: async () => ({ countries: { US: normalizeRadarCountry('US', { 'chatgpt.com': { result: { details_0: { rank: 53 } } } }, null) }, notes: [] }),
   };
@@ -266,7 +289,7 @@ test('/api/map routes', async (t) => {
   await t.test('nofly: TFR + SUA + conflict polygons in one envelope', async () => {
     const { status, body } = await get('/api/map/nofly');
     assert.equal(status, 200); assert.equal(body.layer, 'nofly'); assert.equal(body.status, 'live');
-    assert.equal(body.counts.polygons, 3 + 2 + conflictPolygons().length);
+    assert.equal(body.counts.polygons, 1 + 2 + conflictPolygons().length);
     assert.equal(body.summary.conflict, 16);
     assert.ok(body.polygons.some(p => p.kind === 'conflict' && p.id === 'UA'));
   });

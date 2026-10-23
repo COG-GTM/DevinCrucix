@@ -8,7 +8,7 @@ CRUCIX_MAP.registerLayer({
   color: '#00e5ff',
   description: 'Country shading = Anthropic Economic Index per-capita AI usage tier (cyan = leading → purple = emerging). Points = US states. Click a country for live Cloudflare Radar AI rankings.',
   on: true,
-  refreshMs: 0,
+  refreshMs: 6 * 60 * 60 * 1000, // Radar rankings are daily; the server caches 6 h
   async fetch() {
     const [d, world] = await Promise.all([CRUCIX_LAYER_UTIL.api('/api/map/aiusage'), AI_WORLD || fetch('/geo/world-110m.geojson').then(r => { if (!r.ok) throw new Error(`geo HTTP ${r.status}`); return r.json(); })]);
     AI_WORLD = world;

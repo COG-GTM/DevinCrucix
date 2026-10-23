@@ -156,13 +156,16 @@ export class AisTankerFeed {
   }
   expire(nowMs = Date.now(), aggressive = false) {
     const limit = (aggressive ? 1 : EXPIRE_HOURS) * 3600_000;
-    for (const [k, v] of this.vessels) if (nowMs - v.seenAt > limit || (aggressive && !isTankerType(v.type) && nowMs - v.seenAt > 20 * 60_000)) this.vessels.delete(k);
+    for (const [k, v] of this.vessels) {
+      const last = v.posAt || v.seenAt; // a stream of static messages must not keep a stale fix alive
+      if (nowMs - last > limit || (aggressive && !isTankerType(v.type) && nowMs - v.seenAt > 20 * 60_000)) this.vessels.delete(k);
+    }
   }
   // Tankers with a position; `sanctions` is an OfacVesselIndex (optional).
   tankers({ sanctions = null, nowMs = Date.now() } = {}) {
     const out = [];
     for (const v of this.vessels.values()) {
-      if (!isTankerType(v.type) || v.lat === null) continue;
+      if (!isTankerType(v.type) || v.lat === null || nowMs - v.posAt > EXPIRE_HOURS * 3600_000) continue;
       const s = sanctions?.match({ mmsi: v.mmsi, imo: v.imo, name: v.name });
       out.push(s ? { ...v, sanction: { id: s.id, program: s.program, flag: s.flag, vesselType: s.vesselType } } : v);
     }

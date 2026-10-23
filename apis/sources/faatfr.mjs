@@ -23,24 +23,28 @@ const typeMeta = (t) => TFR_TYPES[String(t || '').toUpperCase()] || { label: t |
 
 export const notamIdOf = (key) => String(key || '').split('-')[0].trim();
 
-// Shapes + list → polygons (one per shape) and a list of TFRs without geometry.
-export function normalizeTfrs(list = [], wfs = {}) {
+// Shapes + list → polygons (one per shape) and a list of TFRs without geometry. GeoServer can still
+// serve shapes for expired NOTAMs, so when the active list was fetched (`listOk`) only shapes whose
+// NOTAM is on it are drawn; without a list every shape is drawn but labelled UNVERIFIED.
+export function normalizeTfrs(list = [], wfs = {}, { listOk = Array.isArray(list) } = {}) {
   const byId = new Map();
   for (const t of Array.isArray(list) ? list : []) if (t?.notam_id) byId.set(String(t.notam_id), t);
   const polygons = [];
   const drawn = new Set();
+  let expired = 0;
   for (const f of wfs?.features || []) {
     const p = f?.properties || {};
     const id = notamIdOf(p.NOTAM_KEY);
     const g = f.geometry;
     if (!g || !['Polygon', 'MultiPolygon'].includes(g.type)) continue;
     const row = byId.get(id);
+    if (listOk && !row) { expired++; continue; }
     const type = row?.type || p.LEGAL || '';
     const m = typeMeta(type);
     drawn.add(id);
     polygons.push({
       geometry: orientGeometry(g), fill: m.color, stroke: m.stroke,
-      head: `TFR ${id} · ${m.label}`,
+      head: `TFR ${id} · ${m.label}${listOk ? '' : ' · UNVERIFIED (active list unavailable)'}`,
       text: row?.description || p.TITLE || '',
       meta: [p.STATE || row?.state, p.CNS_LOCATION_ID || row?.facility ? `ARTCC ${p.CNS_LOCATION_ID || row?.facility}` : '', row?.creation_date ? `issued ${row.creation_date}` : '', `https://tfr.faa.gov/tfr3/?page=detail_${id.replace('/', '_')}`].filter(Boolean).join(' · '),
       kind: 'tfr', type: String(type).toUpperCase(), id,
@@ -49,7 +53,7 @@ export function normalizeTfrs(list = [], wfs = {}) {
   const noShape = [...byId.values()].filter(t => !drawn.has(String(t.notam_id))).map(t => ({ id: t.notam_id, type: t.type, state: t.state, description: t.description }));
   const byType = {};
   for (const t of byId.values()) byType[t.type || 'OTHER'] = (byType[t.type || 'OTHER'] || 0) + 1;
-  return { polygons, noShape, total: byId.size, byType };
+  return { polygons, noShape, total: byId.size, byType, expiredShapes: expired, verified: listOk };
 }
 
 export async function fetchTfrs({ fetchImpl = safeFetch } = {}) {
@@ -61,6 +65,6 @@ export async function fetchTfrs({ fetchImpl = safeFetch } = {}) {
   if (list?.error) notes.push(`TFR list: ${list.error}`);
   if (wfs?.error) notes.push(`TFR shapes: ${wfs.error}`);
   if (list?.error && wfs?.error) throw new Error(notes.join('; '));
-  const out = normalizeTfrs(Array.isArray(list) ? list : [], wfs?.error ? {} : wfs);
+  const out = normalizeTfrs(Array.isArray(list) ? list : [], wfs?.error ? {} : wfs, { listOk: Array.isArray(list) });
   return { ...out, notes, partial: notes.length > 0 };
 }

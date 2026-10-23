@@ -24,6 +24,8 @@ export function tmUrl(apiKey, { nowMs = Date.now(), page = 0, size = 200, keywor
   return `${TM_BASE}?${q}`;
 }
 
+export const eventStatus = (e, nowMs = Date.now()) => { const s = Date.parse(e.start), x = Date.parse(e.end); return nowMs >= s && nowMs <= x ? 'live' : nowMs < s ? 'upcoming' : 'ended'; };
+
 // Ticketmaster event → festival record (null when it has no coordinates).
 export function normalizeTmEvent(ev, nowMs = Date.now()) {
   const venue = ev?._embedded?.venues?.[0];
@@ -71,9 +73,13 @@ export function normalizeWikidata(json) {
 export function festivalDatasets(events = [], majors = [], { nowMs = Date.now() } = {}) {
   const points = [], rings = [];
   const seen = new Set();
-  for (const e of events) {
+  let liveN = 0, upcomingN = 0;
+  for (const raw of events) {
+    const e = { ...raw, status: eventStatus(raw, nowMs) }; // cached records go stale within the TTL; re-derive at request time
+    if (e.status === 'ended') continue;
     const k = `${e.name}|${e.venue}|${e.start.slice(0, 10)}`; if (seen.has(k)) continue; seen.add(k);
     const live = e.status === 'live';
+    if (live) liveN++; else upcomingN++;
     const hrs = Math.round((Date.parse(e.start) - nowMs) / 3600_000);
     points.push({
       lat: e.lat, lng: e.lng, size: live ? 0.5 : 0.3, alt: 0.012, color: live ? COLORS.live : COLORS.upcoming,
@@ -91,7 +97,7 @@ export function festivalDatasets(events = [], majors = [], { nowMs = Date.now() 
       meta: [f.country, `Wikidata ${f.id}`].filter(Boolean).join(' · '), kind: 'festival', status: 'major', id: f.id,
     });
   }
-  return { points, rings, counts: { live: events.filter(e => e.status === 'live').length, upcoming: events.filter(e => e.status === 'upcoming').length, major: majors.length } };
+  return { points, rings, counts: { live: liveN, upcoming: upcomingN, major: majors.length } };
 }
 
 export async function fetchTicketmaster(apiKey, { fetchImpl = safeFetch, nowMs = Date.now(), maxPages = 3 } = {}) {
