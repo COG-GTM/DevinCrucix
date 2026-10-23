@@ -95,6 +95,7 @@ button.pill:hover,a.pill:hover{border-color:var(--border-bright);color:var(--tex
 .map-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:4}
 .map-empty span{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);padding:8px 14px;border:1px dashed var(--border-bright);border-radius:5px;background:rgba(0,0,0,0.5)}
 .map-empty[hidden]{display:none}
+.sel-meta a{color:var(--text);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
 
 /* FOOT */
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:6px 12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
@@ -165,6 +166,8 @@ const COLOR_RE = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d.,\s%]+\))$/i;
 const safeColor = c => COLOR_RE.test(String(c || '')) ? c : '#5aa9ff';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => Number.isFinite(v) ? v.toLocaleString('en-US') : '0';
+// Escape, then turn bare https URLs into links (used for the Selected panel's meta line only).
+const linkify = s => esc(s).replace(/https?:\/\/[^\s<"']+/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`);
 
 window.CRUCIX_MAP = {
   registerLayer(def) {
@@ -274,7 +277,7 @@ function select(d) {
   document.getElementById('selBody').innerHTML = `
     <div class="sel-head" style="color:${l?.color || 'var(--accent)'}">${esc(d.head || d.text || d.label || 'Feature')}</div>
     <div class="sel-text">${esc(d.text && d.head ? d.text : (d.desc || ''))}</div>
-    <div class="sel-meta">${esc(d.meta || '')}${Number.isFinite(d.lat) ? `<br>${d.lat.toFixed(3)}, ${d.lng.toFixed(3)}` : ''}</div>
+    <div class="sel-meta">${linkify(d.meta || '')}${Number.isFinite(d.lat) ? `<br>${d.lat.toFixed(3)}, ${d.lng.toFixed(3)}` : ''}</div>
     <div class="sel-actions">
       ${Number.isFinite(d.lat) ? `<button class="pill primary" onclick="flyTo(selected.lat,selected.lng)">LOCATE ON MAP</button>` : ''}
       <button class="pill" onclick="clearSel()">CLEAR</button>
@@ -332,6 +335,7 @@ renderAll();
 (window.CRUCIX_LAYER_FILES || []).forEach(f => {
   const s = document.createElement('script');
   s.src = `map-layers/${f}`;
+  s.async = false; // keep manifest order: dynamically inserted scripts are async by default
   s.onerror = () => { console.error('[map] could not load layer file', f); document.getElementById('footStatus').textContent = `Layer file failed to load: ${f}`; };
   document.body.appendChild(s);
 });

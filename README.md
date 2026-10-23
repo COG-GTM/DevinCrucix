@@ -338,6 +338,21 @@ CRUCIX_SCAN_REPOS=        # comma-separated owner/repo allow-list that Scan may 
 
 Until they are set the panel shows **Not connected** with the variables to set, the Scan / Remediate buttons are disabled, and `POST /api/devinsec/scan` and `/remediate` answer `503` with the missing names. The token never reaches the browser; each launch asks for confirmation (scans consume ACUs) and is appended to `runs/devinsec-launches.json`.
 
+### Map layer pack (`/map.html`)
+
+`dashboard/public/map.html` is a blank globe that only draws what the files in `dashboard/public/map-layers/` register (one file per layer, listed in `manifest.js`). Because the page may only fetch same-origin, every live feed is proxied through `GET /api/map/<layer>` (`lib/map/layers.mjs`, `lib/map/router.mjs`). All routes answer the same envelope — `{ layer, status, fetchedAt, ageSec, ttlSec, source, notes[], counts, summary, ...datasets }` — where `status` is `live`, `stale` (upstream failed, last good copy served), `degraded` (one of several feeds failed) or `no_key`. The Layers rail shows that status per layer.
+
+| Layer | Route | Data | Key |
+|-------|-------|------|-----|
+| Aviation · military + airport status | `/api/map/aviation` | Military ADS-B from api.adsb.lol (fallback opendata.adsb.fi), FAA NAS airport ground stops / delays / closures, GPS-jamming cells from the last sweep | none |
+| Aviation · civil traffic | `/api/map/traffic?lat&lon&dist` | Every ADS-B contact within `dist` nm (≤ 250) of the map centre; the layer only asks when zoomed in | none |
+| No-fly zones | `/api/map/nofly` | FAA TFRs (tfr.faa.gov list + GeoServer shapes, 10 min), prohibited / restricted special-use airspace (FAA ArcGIS, daily), curated conflict-zone closures in `config/geo/conflict-airspace.json` (EASA CZIB / FAA SFAR, review monthly) | none |
+| Oil tankers · AIS | `/api/map/tankers` | aisstream.io WebSocket, AIS ship types 80–89 over the oil chokepoints (`apis/sources/aistankers.mjs`); hulls matched against the OFAC SDN vessel list (`apis/sources/ofacvessels.mjs`, daily); AIS gap > 45 min = "dark" | `AISSTREAM_API_KEY` (chokepoints only without it) |
+| Music festivals | `/api/map/festivals` | Ticketmaster Discovery (music · festival, −12 h → +72 h; *live now* is schedule-derived) plus major recurring festivals from Wikidata | `TICKETMASTER_API_KEY` (Wikidata only without it) |
+| AI usage · regions | `/api/map/aiusage` | Anthropic Economic Index per-country / US-state usage index (static, `config/geo/ai-usage-index.json`) joined client-side with `/geo/world-110m.geojson`; Cloudflare Radar daily rank of chatgpt.com / claude.ai and top generative-AI services per country | `CLOUDFLARE_API_TOKEN` (static index only without it) |
+
+The static files are produced by `node scripts/build-map-geo.mjs` (country polygons, large-airport coordinates, the AI usage index) and are checked in; re-run it when a new Economic Index release lands. Tests: `node --test test/map-pack.test.mjs`.
+
 ## Border Watch Ingestion (Python)
 
 `ingest/` is a standalone Python 3.10+ service that continuously collects, cleans, deduplicates and entity-extracts border-region reporting from English- and Spanish-language outlets, loads government/research datasets as historical baselines, and flags anomalies (e.g. a spike in violence reporting in a border county relative to its own history). The Node dashboard reads its JSON API and renders the **Border Watch** panel.
@@ -513,7 +528,9 @@ These three unlock the most valuable economic and satellite data. Each takes abo
 | Key | Source | How to Get |
 |-----|--------|------------|
 | `ACLED_EMAIL` + `ACLED_PASSWORD` | Armed conflict event data | [acleddata.com/register](https://acleddata.com/register/) — free, OAuth2 |
-| `AISSTREAM_API_KEY` | Maritime AIS vessel tracking | [aisstream.io](https://aisstream.io/) — free |
+| `AISSTREAM_API_KEY` | Maritime AIS vessel tracking + live oil-tanker map layer | [aisstream.io](https://aisstream.io/) — free |
+| `TICKETMASTER_API_KEY` | Map layer: music festivals live now / next 72 h | [developer.ticketmaster.com](https://developer.ticketmaster.com/) — free, 5k calls/day |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare Radar outages + map layer: live AI-usage rankings per country | [dash.cloudflare.com](https://dash.cloudflare.com/profile/api-tokens) — free, any token reads Radar |
 | `ADSB_API_KEY` | Unfiltered flight tracking | [RapidAPI](https://rapidapi.com/adsbexchange/api/adsbexchange-com1) — ~$10/mo |
 | `VIRUSTOTAL_API_KEY` | Investigate: domain/IP/hash reputation | [virustotal.com](https://www.virustotal.com/gui/join-us) — free |
 | `SHODAN_API_KEY` | Investigate: full host/service data | [account.shodan.io](https://account.shodan.io/) — free tier |
