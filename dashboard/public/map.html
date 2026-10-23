@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRUCIX — Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/globe.gl@2.33.0"></script>
+<script src="map-layers/manifest.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0b0c;--panel:rgba(20,21,24,0.88);--glass:rgba(24,25,28,0.72);
+  --border:rgba(255,255,255,0.08);--border-bright:rgba(255,255,255,0.22);
+  --text:#f2f3f4;--dim:#8b9096;--accent:#ffffff;--accent2:#d6dae0;--ok:#3ecf8e;
+  --warn:#ffb84c;--danger:#ff5f63;--mono:'IBM Plex Mono',monospace;--sans:'Space Grotesk',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
+#app{display:grid;grid-template-rows:auto 1fr auto;height:100vh;padding:10px 12px;gap:10px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border:1px solid var(--border);background:var(--panel);border-radius:8px;flex-wrap:wrap}
+.top-left,.top-right{display:flex;align-items:center;gap:10px}
+.brand{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:0.12em;text-transform:uppercase}
+.brand small{color:var(--dim);font-weight:500;margin-left:8px;letter-spacing:0.08em}
+.pill{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:0.06em;padding:5px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;cursor:default}
+.pill .v{color:var(--text);font-weight:500}
+button.pill,a.pill{cursor:pointer;text-decoration:none;transition:all .15s}
+button.pill:hover,a.pill:hover{border-color:var(--border-bright);color:var(--text)}
+.pill.primary{color:#0a0b0c;background:var(--accent);border-color:var(--accent);font-weight:600}
+.pill.primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.sev{display:inline-flex;align-items:center;gap:5px}
+.sev i{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* LAYERS MENU */
+.menu-wrap{position:relative}
+.menu{position:absolute;top:calc(100% + 6px);left:0;z-index:50;min-width:300px;max-height:60vh;overflow:auto;padding:6px;border:1px solid var(--border-bright);background:rgba(14,15,17,0.97);border-radius:8px;display:none}
+.menu.open{display:block}
+.menu-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:5px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.04em}
+.menu-row:hover{background:rgba(255,255,255,0.05)}
+.menu-row .box{width:14px;height:14px;border:1px solid var(--border-bright);border-radius:3px;display:flex;align-items:center;justify-content:center;flex:none;font-size:10px;color:#0a0b0c}
+.menu-row.on .box{background:var(--accent);border-color:var(--accent)}
+.menu-row .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.menu-row .lbl{flex:1;color:var(--text)}
+.menu-row .n{color:var(--dim)}
+.menu-empty{padding:14px 12px;font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.6;letter-spacing:0.04em}
+.menu-empty code{color:var(--text)}
+
+/* BODY */
+.body{display:grid;grid-template-columns:300px 1fr;gap:10px;min-height:0}
+.rail{display:flex;flex-direction:column;gap:10px;min-height:0}
+.g-panel{border:1px solid var(--border);background:var(--glass);border-radius:8px;padding:12px;position:relative;min-height:0}
+.g-panel.grow{flex:1;overflow:auto}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sec-head h3{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim)}
+.badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border:1px solid var(--border);border-radius:3px;color:var(--accent)}
+.empty{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7;letter-spacing:0.04em;padding:6px 0}
+.empty code{color:var(--text)}
+.empty b{color:var(--text);font-weight:600}
+.layer-row{display:flex;align-items:flex-start;gap:10px;padding:9px 8px;border:1px solid transparent;border-radius:5px;cursor:pointer}
+.layer-row:hover{border-color:var(--border);background:rgba(255,255,255,0.03)}
+.layer-row .dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex:none}
+.layer-row .meta{flex:1;min-width:0}
+.layer-row .name{font-size:12px;font-weight:500}
+.layer-row .desc{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px;line-height:1.45}
+.layer-row .count{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text)}
+.layer-row.err .count{color:var(--danger);font-size:9px}
+.layer-row.loading .count{color:var(--dim);font-size:9px}
+
+/* SELECTED */
+.sel-head{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.sel-text{font-size:12px;line-height:1.5;color:#c9ccd1}
+.sel-meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px;line-height:1.6}
+.sel-actions{display:flex;gap:6px;margin-top:10px}
+
+/* MAP */
+.map-container{position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:radial-gradient(ellipse at center,rgba(13,14,16,1),rgba(8,9,10,1));min-height:0}
+#globeViz{width:100%;height:100%;cursor:grab}
+#globeViz:active{cursor:grabbing}
+#globeViz canvas{outline:none}
+#globeViz .scene-tooltip{font-family:var(--mono)!important;font-size:10px!important;background:rgba(6,10,14,0.9)!important;border:1px solid rgba(255,255,255,0.3)!important;color:var(--text)!important;padding:4px 8px!important;letter-spacing:0.05em;border-radius:4px}
+.map-hint{position:absolute;top:8px;right:12px;font-family:var(--mono);font-size:9px;color:var(--dim);z-index:5;opacity:0.6;letter-spacing:0.05em}
+.map-controls{position:absolute;top:8px;left:12px;z-index:6;display:flex;flex-direction:column;gap:4px}
+.map-ctrl-btn{width:28px;height:28px;border:1px solid var(--border);background:rgba(0,0,0,0.6);color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--mono);border-radius:5px;transition:all .15s}
+.map-ctrl-btn:hover{color:var(--accent);border-color:var(--border-bright);background:rgba(255,255,255,0.06)}
+.map-legend{position:absolute;bottom:8px;left:8px;right:8px;display:flex;gap:4px;align-items:center;flex-wrap:wrap;z-index:5;font-family:var(--mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--dim)}
+.lchip{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid var(--border);background:rgba(0,0,0,0.62);color:var(--dim);font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;border-radius:5px;white-space:nowrap;transition:all .15s}
+.lchip .ldot{width:7px;height:7px;border-radius:50%;background:var(--lc);flex:none}
+.lchip b{font-weight:600;color:#c9ccd1}
+.lchip.on{border-color:var(--lc);color:#ebedf0;background:rgba(0,0,0,0.78)}
+.lchip.off{opacity:0.75}
+.lchip.off .ldot{background:transparent;border:1px solid var(--lc)}
+.lchip:hover{border-color:var(--accent);color:var(--accent)}
+.map-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:4}
+.map-empty span{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);padding:8px 14px;border:1px dashed var(--border-bright);border-radius:5px;background:rgba(0,0,0,0.5)}
+.map-empty[hidden]{display:none}
+
+/* FOOT */
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:6px 12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
+.foot b{color:var(--text);font-weight:600}
+@media (max-width:900px){html,body{overflow:auto}#app{height:auto;min-height:100vh}.body{grid-template-columns:1fr;grid-template-rows:55vh auto}.map-container{order:1}.rail{order:2}.g-panel.grow{flex:none;max-height:30vh}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="top-left">
+      <span class="brand">CRUCIX <small>MAP</small></span>
+      <div class="menu-wrap">
+        <button class="pill primary" id="layersBtn" onclick="toggleMenu()">LAYERS <span id="layersN">0</span> &#x25BE;</button>
+        <div class="menu" id="layersMenu"></div>
+      </div>
+      <span class="pill" id="featureCount"><span class="v">0</span> FEATURES</span>
+    </div>
+    <div class="top-right">
+      <span class="pill" id="clock"></span>
+      <button class="pill" onclick="refreshAll()" title="Re-fetch every enabled layer">REFRESH</button>
+      <a class="pill" href="/" title="Back to the monitor">&larr; MONITOR</a>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="rail">
+      <div class="g-panel grow">
+        <div class="sec-head"><h3>Layers</h3><span class="badge" id="layerBadge">0 ON</span></div>
+        <div id="layerList"></div>
+      </div>
+      <div class="g-panel" id="selPanel">
+        <div class="sec-head"><h3>Selected</h3><span class="badge" id="selBadge">&mdash;</span></div>
+        <div id="selBody"><div class="empty">Click a feature on the map to inspect it here.</div></div>
+      </div>
+    </div>
+
+    <div class="map-container" id="mapContainer">
+      <div id="globeViz"></div>
+      <div class="map-empty" id="mapEmpty"><span>Blank canvas &middot; no layers on</span></div>
+      <div class="map-hint">DRAG TO ROTATE &middot; SCROLL TO ZOOM</div>
+      <div class="map-controls">
+        <button class="map-ctrl-btn" onclick="mapZoom(1.5)" title="Zoom in">+</button>
+        <button class="map-ctrl-btn" onclick="mapZoom(0.67)" title="Zoom out">&minus;</button>
+        <button class="map-ctrl-btn" onclick="resetView()" title="Reset view" style="font-size:12px">&#x2302;</button>
+      </div>
+      <div class="map-legend" id="mapLegend"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>CRUCIX MAP &middot; <b id="footLayers">0</b> layers registered</span>
+    <span id="footStatus">Add a layer file in <b>dashboard/public/map-layers/</b> and list it in <b>manifest.js</b></span>
+    <span>Public OSINT only &middot; judgments are rule-based, not conclusions</span>
+  </div>
+</div>
+
+<script>
+// ─── Layer registry ────────────────────────────────────────────────────────
+// A layer is { id, label, color, description, on, refreshMs, fetch() -> datasets }.
+// Datasets: { points, arcs, rings, labels, polygons, paths } (any subset).
+const LAYERS = [];                 // registration order
+const STATE = new Map();           // id -> { on, data, count, error, loading, timer }
+let globe = null, selected = null;
+
+const ID_RE = /^[a-z0-9_-]{1,40}$/i;
+const COLOR_RE = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d.,\s%]+\))$/i;
+const safeColor = c => COLOR_RE.test(String(c || '')) ? c : '#5aa9ff';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => Number.isFinite(v) ? v.toLocaleString('en-US') : '0';
+
+window.CRUCIX_MAP = {
+  registerLayer(def) {
+    if (!def || !ID_RE.test(def.id || '') || !def.label || typeof def.fetch !== 'function') { console.warn('[map] bad layer (id must match [a-z0-9_-]{1,40})', def); return; }
+    if (STATE.has(def.id)) { console.warn('[map] duplicate layer id', def.id); return; }
+    const layer = { description: '', on: false, refreshMs: 0, ...def, color: safeColor(def.color) };
+    LAYERS.push(layer);
+    STATE.set(layer.id, { on: false, data: null, count: 0, error: null, loading: false, timer: null });
+    if (hashLayers() ? hashLayers().includes(layer.id) : layer.on) setLayer(layer.id, true, { silent: true });
+    renderAll();
+  },
+  setLayer, refreshLayer, layers: () => LAYERS.slice(),
+};
+
+function hashLayers() {
+  const m = location.hash.match(/layers=([^&]*)/);
+  return m ? m[1].split(',').filter(Boolean) : null;
+}
+function writeHash() {
+  const on = LAYERS.filter(l => STATE.get(l.id).on).map(l => l.id);
+  history.replaceState(null, '', `#layers=${on.join(',')}`);
+}
+
+function setLayer(id, on, opts = {}) {
+  const st = STATE.get(id); if (!st) return;
+  st.on = on;
+  if (on) { if (!st.data && !st.loading) refreshLayer(id); schedule(id); }
+  else { clearInterval(st.timer); st.timer = null; }
+  if (!opts.silent) { writeHash(); renderAll(); }
+}
+function schedule(id) {
+  const l = LAYERS.find(x => x.id === id), st = STATE.get(id);
+  clearInterval(st.timer);
+  if (l.refreshMs > 0) st.timer = setInterval(() => refreshLayer(id), l.refreshMs);
+}
+async function refreshLayer(id) {
+  const l = LAYERS.find(x => x.id === id), st = STATE.get(id);
+  st.loading = true; st.error = null; renderAll();
+  try {
+    const d = (await l.fetch()) || {};
+    st.data = d;
+    st.count = ['points','arcs','rings','labels','polygons','paths'].reduce((n, k) => n + (Array.isArray(d[k]) ? d[k].length : 0), 0);
+  } catch (e) {
+    st.error = e?.message || String(e); st.data = null; st.count = 0;
+    console.error('[map] layer failed', id, e);
+  }
+  st.loading = false;
+  renderAll();
+}
+function refreshAll() { LAYERS.forEach(l => { if (STATE.get(l.id).on) refreshLayer(l.id); }); }
+
+// ─── Globe (same Globe.gl setup as the monitor) ────────────────────────────
+function initGlobe() {
+  const el = document.getElementById('globeViz');
+  const { width, height } = el.getBoundingClientRect();
+  globe = Globe()
+    .width(width).height(height)
+    .globeImageUrl('//unpkg.com/three-globe@2.33.0/example/img/earth-night.jpg')
+    .bumpImageUrl('//unpkg.com/three-globe@2.33.0/example/img/earth-topology.png')
+    .backgroundImageUrl('').backgroundColor('rgba(0,0,0,0)')
+    .atmosphereColor('#ffffff').atmosphereAltitude(0.18)
+    .showGraticules(true)
+    .pointAltitude(d => d.alt || 0.01).pointRadius(d => d.size || 0.3).pointColor(d => d.color)
+    .pointLabel(d => `<b>${esc(d.head)}</b><br><span style="opacity:0.7">${esc(d.meta)}</span>`)
+    .onPointClick(d => select(d))
+    .onPointHover(d => { el.style.cursor = d ? 'pointer' : 'grab'; })
+    .arcColor(d => d.color).arcStroke(d => d.stroke || 0.4).arcDashLength(0.4).arcDashGap(0.2).arcDashAnimateTime(2000).arcAltitudeAutoScale(0.3)
+    .arcLabel(d => esc(d.label || ''))
+    .ringColor(d => t => (d.color || 'rgba(255,120,80,1)').replace(/,\s*[\d.]+\)$/, `,${1 - t})`))
+    .ringMaxRadius(d => d.maxR || 3).ringPropagationSpeed(d => d.speed || 2).ringRepeatPeriod(d => d.period || 800)
+    .labelText(d => d.text).labelSize(d => d.size || 0.4).labelColor(d => d.color || 'rgba(139,144,150,0.9)').labelDotRadius(0).labelAltitude(0.012).labelResolution(2)
+    .polygonsTransitionDuration(0).polygonGeoJsonGeometry(d => d.geometry).polygonCapColor(d => d.fill || 'rgba(255,255,255,0.08)')
+    .polygonSideColor(() => 'rgba(0,0,0,0)').polygonStrokeColor(d => d.stroke || 'rgba(255,255,255,0.4)').polygonAltitude(0.006)
+    .polygonLabel(d => `<b>${esc(d.head)}</b><br><span style="opacity:0.7">${esc(d.meta)}</span>`)
+    .onPolygonClick((d, ev, c) => select({ ...d, lat: c?.lat, lng: c?.lng }))
+    .pathTransitionDuration(0).pathPoints(d => d.pts).pathPointLat(p => p[0]).pathPointLng(p => p[1]).pathPointAlt(0.012)
+    .pathColor(d => d.color || 'rgba(255,255,255,0.6)').pathStroke(d => d.stroke || 0.6)
+    (el);
+  globe.renderer().setClearColor(0x000000, 0);
+  globe.scene().traverse(o => { if (o.material && o.type === 'Line') { o.material.color.set(0x3a3d42); o.material.opacity = 0.3; o.material.transparent = true; } });
+  const c = globe.controls(); c.autoRotate = true; c.autoRotateSpeed = 0.25; c.enableDamping = true;
+  c.addEventListener('start', () => { c.autoRotate = false; });
+  globe.pointOfView({ lat: 25, lng: 15, altitude: 2.2 }, 0);
+  new ResizeObserver(() => { const r = el.getBoundingClientRect(); globe.width(r.width).height(r.height); }).observe(document.getElementById('mapContainer'));
+}
+function mapZoom(f) { const p = globe.pointOfView(); globe.pointOfView({ altitude: p.altitude / f }, 300); }
+function resetView() { globe.pointOfView({ lat: 25, lng: 15, altitude: 2.2 }, 600); }
+function flyTo(lat, lng) { if (Number.isFinite(lat) && Number.isFinite(lng)) globe.pointOfView({ lat, lng, altitude: 0.9 }, 800); }
+
+function pushData() {
+  const ds = { points: [], arcs: [], rings: [], labels: [], polygons: [], paths: [] };
+  LAYERS.forEach(l => {
+    const st = STATE.get(l.id); if (!st.on || !st.data) return;
+    Object.keys(ds).forEach(k => (st.data[k] || []).forEach(item => ds[k].push({ color: l.color, ...item, __layer: l.id })));
+  });
+  globe.pointsData(ds.points).arcsData(ds.arcs).ringsData(ds.rings).labelsData(ds.labels).polygonsData(ds.polygons).pathsData(ds.paths);
+  const total = Object.values(ds).reduce((n, a) => n + a.length, 0);
+  document.getElementById('mapEmpty').hidden = total > 0;
+  document.querySelector('#featureCount .v').textContent = num(total);
+}
+
+// ─── Selection ─────────────────────────────────────────────────────────────
+function select(d) {
+  selected = d;
+  const l = LAYERS.find(x => x.id === d.__layer);
+  document.getElementById('selBadge').textContent = l ? l.label.toUpperCase() : '—';
+  document.getElementById('selBody').innerHTML = `
+    <div class="sel-head" style="color:${l?.color || 'var(--accent)'}">${esc(d.head || d.text || d.label || 'Feature')}</div>
+    <div class="sel-text">${esc(d.text && d.head ? d.text : (d.desc || ''))}</div>
+    <div class="sel-meta">${esc(d.meta || '')}${Number.isFinite(d.lat) ? `<br>${d.lat.toFixed(3)}, ${d.lng.toFixed(3)}` : ''}</div>
+    <div class="sel-actions">
+      ${Number.isFinite(d.lat) ? `<button class="pill primary" onclick="flyTo(selected.lat,selected.lng)">LOCATE ON MAP</button>` : ''}
+      <button class="pill" onclick="clearSel()">CLEAR</button>
+    </div>`;
+}
+function clearSel() { selected = null; document.getElementById('selBadge').textContent = '—'; document.getElementById('selBody').innerHTML = '<div class="empty">Click a feature on the map to inspect it here.</div>'; }
+
+// ─── Render ────────────────────────────────────────────────────────────────
+function renderAll() {
+  const on = LAYERS.filter(l => STATE.get(l.id).on);
+  document.getElementById('layersN').textContent = on.length;
+  document.getElementById('layerBadge').textContent = `${on.length} ON`;
+  document.getElementById('footLayers').textContent = LAYERS.length;
+  if (LAYERS.length) document.getElementById('footStatus').textContent = `${on.length} of ${LAYERS.length} layers on · ${on.filter(l => STATE.get(l.id).error).length} failing`;
+
+  document.getElementById('layersMenu').innerHTML = LAYERS.length ? LAYERS.map(l => {
+    const st = STATE.get(l.id);
+    return `<div class="menu-row ${st.on ? 'on' : ''}" data-layer="${l.id}" data-on="${!st.on}"><span class="box">${st.on ? '&#x2713;' : ''}</span><span class="dot" style="background:${l.color}"></span><span class="lbl">${esc(l.label)}</span><span class="n">${st.on ? (st.loading ? '…' : st.error ? 'ERR' : num(st.count)) : ''}</span></div>`;
+  }).join('') : `<div class="menu-empty">No layers registered.<br>Create <code>map-layers/&lt;id&gt;.js</code> from <code>_template.js</code>, then add it to <code>manifest.js</code>.</div>`;
+
+  document.getElementById('layerList').innerHTML = on.length ? on.map(l => {
+    const st = STATE.get(l.id);
+    const cls = st.error ? 'err' : st.loading ? 'loading' : '';
+    const count = st.error ? 'FAILED' : st.loading ? 'LOADING' : num(st.count);
+    return `<div class="layer-row ${cls}" data-layer="${l.id}" data-on="false" title="Click to turn off"><span class="dot" style="background:${l.color}"></span><div class="meta"><div class="name">${esc(l.label)}</div><div class="desc">${esc(st.error || l.description)}</div></div><span class="count">${count}</span></div>`;
+  }).join('') : `<div class="empty"><b>No layers on.</b><br>Open <b>LAYERS</b> above to turn one on${LAYERS.length ? '' : ', or register one in <code>map-layers/</code>'}.</div>`;
+
+  document.getElementById('mapLegend').innerHTML = LAYERS.map(l => {
+    const st = STATE.get(l.id);
+    return `<button class="lchip ${st.on ? 'on' : 'off'}" style="--lc:${l.color}" data-layer="${l.id}" data-on="${!st.on}"><span class="ldot"></span>${esc(l.label)}${st.on && !st.loading && !st.error ? ` <b>${num(st.count)}</b>` : ''}</button>`;
+  }).join('');
+
+  if (globe) pushData();
+}
+function toggleMenu(force) {
+  const m = document.getElementById('layersMenu');
+  m.classList.toggle('open', force ?? !m.classList.contains('open'));
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-layer]');
+  if (t) setLayer(t.dataset.layer, t.dataset.on === 'true');
+  if (!e.target.closest('.menu-wrap')) toggleMenu(false);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { toggleMenu(false); clearSel(); } });
+
+function tickClock() {
+  const d = new Date();
+  document.getElementById('clock').innerHTML = `${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase()} <span class="v">${d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})}</span>`;
+}
+tickClock(); setInterval(tickClock, 30000);
+
+// ─── Boot: globe first, then load the layer files listed in the manifest ───
+initGlobe();
+renderAll();
+(window.CRUCIX_LAYER_FILES || []).forEach(f => {
+  const s = document.createElement('script');
+  s.src = `map-layers/${f}`;
+  s.onerror = () => { console.error('[map] could not load layer file', f); document.getElementById('footStatus').textContent = `Layer file failed to load: ${f}`; };
+  document.body.appendChild(s);
+});
+</script>
+</body>
+</html>
