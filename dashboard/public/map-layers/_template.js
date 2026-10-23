@@ -5,6 +5,7 @@
 // CONNECT_HOSTS) blocks browser requests to other hosts. To plot an external
 // feed, proxy it through an existing /api/* route or allowlist the host there.
 // id: [a-z0-9_-], color: hex / rgb() / hsl() (anything else falls back to blue).
+// Points, polygons, arcs, labels and paths are click-to-inspect; rings are decorative (Globe.gl has no ring click).
 CRUCIX_MAP.registerLayer({
   id: 'template',                 // unique, used in the URL hash (#layers=a,b)
   label: 'Template layer',        // shown in the Layers menu and legend
