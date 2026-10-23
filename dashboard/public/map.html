@@ -99,7 +99,7 @@ button.pill:hover,a.pill:hover{border-color:var(--border-bright);color:var(--tex
 /* FOOT */
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:6px 12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim)}
 .foot b{color:var(--text);font-weight:600}
-@media (max-width:900px){.body{grid-template-columns:1fr;grid-template-rows:minmax(320px,1fr) auto}.map-container{order:1}.rail{order:2;max-height:40vh;overflow:auto}.g-panel.grow{flex:none;max-height:22vh}}
+@media (max-width:900px){html,body{overflow:auto}#app{height:auto;min-height:100vh}.body{grid-template-columns:1fr;grid-template-rows:55vh auto}.map-container{order:1}.rail{order:2}.g-panel.grow{flex:none;max-height:30vh}}
 </style>
 </head>
 <body>
