@@ -166,7 +166,9 @@ export function parseEnArticle(html, meta = {}) {
   const publishedDate = meta.date || (pubMatch ? isoDate(+pubMatch[1], +pubMatch[2] - 1, +pubMatch[3]) : null);
 
   const dateLine = (body.match(/1\s*\.\s*Date\s*:?\s*(.*?)(?=2\s*\.\s*PLA|$)/i) || [])[1] || '';
-  const actLine = (body.match(/2\s*\.\s*PLA activit(?:y|ies)\s*:?\s*(.*?)(?=\s*(?:3\s*\.|Keywords?|Share|Issuing|$))/i) || [])[1] || body;
+  const actLine = (body.match(/2\s*\.\s*PLA activit(?:y|ies)\s*[:：]?\s*(.*?)(?=\s*(?:3\s*\.|Keywords?|Share|Issuing|$))/i) || [])[1] || body;
+  // Balloon days carry a separate "3.PRC balloon activities：" section after the PLA paragraph.
+  const balloonLine = (body.match(/3\s*\.\s*(?:PRC\s+|PLA\s+)?balloon activit(?:y|ies)\s*[:：]?\s*(.*?)(?=\s*(?:4\s*\.|Keywords?|Share|Issuing|$))/i) || [])[1] || '';
   const window = parseWindow(dateLine, publishedDate);
   if (!window.end) problems.push('reporting window not parsed');
 
@@ -176,11 +178,14 @@ export function parseEnArticle(html, meta = {}) {
   if (planShips === null && /no\s+PLAN\s+(?:ship|vessel)/i.test(actLine)) planShips = 0;
   let officialShips = countOf(actLine, /(\d+)\s+official\s+(?:ship|vessel)s?/i);
   if (officialShips === null && /no\s+official\s+(?:ship|vessel)/i.test(actLine)) officialShips = 0;
-  const balloons = countOf(actLine, /(\d+)\s+(?:PRC\s+|PLA\s+)?balloons?/i);
+  let balloons = countOf(`${actLine} ${balloonLine}`, /(\d+)\s+(?:PRC\s+|PLA\s+)?balloons?/i);
+  if (balloons === null && /no\s+(?:PRC\s+|PLA\s+)?balloons?/i.test(`${actLine} ${balloonLine}`)) balloons = 0;
 
   let adizEntries = null;
   let sectors = [];
-  const adiz = actLine.match(/(\d+)\s+(?:out\s+of\s+(\d+)\s+)?sorties?\s+(?:entered|crossed\s+into|flew\s+into)\s+(?:Taiwan[\u2019']s\s+)?(.*?)\s*ADIZ/i);
+  // "3 out of 5 sorties entered Taiwan’s … ADIZ" or
+  // "13 out of 18 sorties crossed the median line of the Taiwan Strait and entered Taiwan’s … ADIZ"
+  const adiz = actLine.match(/(\d+)\s+(?:out\s+of\s+(\d+)\s+)?sorties?\s+(?:crossed\s+the\s+median\s+line(?:\s+of\s+the\s+Taiwan\s+Strait)?\s+and\s+)?(?:entered|crossed\s+into|flew\s+into)\s+(?:Taiwan[\u2019']s\s+)?(.*?)\s*ADIZ/i);
   if (adiz) {
     adizEntries = Number(adiz[1]);
     sectors = parseSectors(adiz[3]);
@@ -206,7 +211,7 @@ export function parseEnArticle(html, meta = {}) {
     planShips,
     officialShips,
     balloons,
-    activityText: text(actLine).slice(0, 400),
+    activityText: text(`${actLine}${balloonLine ? ' ' + balloonLine : ''}`).slice(0, 400),
     problems,
   };
 }
@@ -231,10 +236,12 @@ export function parseZhArticle(html, meta = {}) {
   const rocDate = body.match(/(\d{2,3})年(\d{1,2})月(\d{1,2})日（星期.）0?600時止/) || body.match(/至\s*(\d{2,3})年(\d{1,2})月(\d{1,2})日/);
   const publishedDate = meta.date || (rocDate ? isoDate(+rocDate[1] + 1911, +rocDate[2] - 1, +rocDate[3]) : null);
   const aircraft = countOf(body, /共機\s*(\d+)\s*架次/);
-  const adizEntries = countOf(body, /進入[^）]*?空域共\s*(\d+)\s*架次/) ?? countOf(body, /逾越中線[^）]*?(\d+)\s*架次/);
+  // "（進入西南及東部空域3架次）" / "（逾越中線進入北部、中部、西南及東部空域共13架次）"
+  const adizEntries = countOf(body, /進入[^）]*?空域共?\s*(\d+)\s*架次/) ?? countOf(body, /逾越中線[^）]*?(\d+)\s*架次/);
   const planShips = countOf(body, /共艦\s*(\d+)\s*艘/);
   const officialShips = countOf(body, /公務船\s*(\d+)\s*艘/);
-  const balloons = countOf(body, /(?:空飄)?氣球\s*(\d+)\s*枚/);
+  // "中共空飄氣球計偵獲1顆" (current) or "空飄氣球1枚" (older)
+  const balloons = countOf(body, /(?:空飄)?氣球[^。；]{0,12}?(\d+)\s*(?:枚|顆|個)/);
   return {
     publishedDate,
     articleUrl: meta.url || null,
@@ -350,6 +357,8 @@ export function buildResult({ enList, en, zh, sky, fetchedAt = new Date().toISOS
     cmp('aircraft', en.aircraft, zhPaired.aircraft);
     cmp('PLAN ships', en.planShips, zhPaired.planShips);
     cmp('official ships', en.officialShips, zhPaired.officialShips);
+    cmp('ADIZ entries', en.adizEntries, zhPaired.adizEntries);
+    cmp('balloons', en.balloons, zhPaired.balloons);
   }
 
   const bulletin = en ? {
