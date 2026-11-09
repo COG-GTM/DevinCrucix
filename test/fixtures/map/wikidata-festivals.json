@@ -1,0 +1,225 @@
+{
+"head": {
+"vars": [
+"item",
+"itemLabel",
+"coord",
+"visitors",
+"countryLabel",
+"start",
+"end"
+]
+},
+"results": {
+"bindings": [
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "950000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "900000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "800000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "750000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "700000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "650000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "500000"
+}
+},
+{
+"item": {
+"type": "uri",
+"value": "http://www.wikidata.org/entity/Q2322517"
+},
+"coord": {
+"datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+"type": "literal",
+"value": "Point(-3.36128 47.7456)"
+},
+"itemLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "Festival Interceltique de Lorient"
+},
+"countryLabel": {
+"xml:lang": "en",
+"type": "literal",
+"value": "France"
+},
+"visitors": {
+"datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+"type": "literal",
+"value": "350000"
+}
+}
+]
+}
+}
