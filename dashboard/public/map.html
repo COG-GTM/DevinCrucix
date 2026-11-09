@@ -161,7 +161,8 @@ const STATE = new Map();           // id -> { on, data, count, error, loading, t
 let globe = null, selected = null;
 
 const ID_RE = /^[a-z0-9_-]{1,40}$/i;
-const COLOR_RE = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d.,\s%]+\))$/i;
+const NUM = '\\d{1,3}(?:\\.\\d+)?%?';
+const COLOR_RE = new RegExp(`^(?:#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})|(?:rgb|hsl)a?\\( *${NUM}(?: *, *${NUM}){2}(?: *[,/] *(?:0|1|0?\\.\\d+))? *\\))$`, 'i');
 const safeColor = c => COLOR_RE.test(String(c || '')) ? c : '#5aa9ff';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => Number.isFinite(v) ? v.toLocaleString('en-US') : '0';
@@ -192,7 +193,7 @@ function setLayer(id, on, opts = {}) {
   const st = STATE.get(id); if (!st) return;
   st.on = on;
   if (on) { if (!st.data && !st.loading) refreshLayer(id); schedule(id); }
-  else { clearInterval(st.timer); st.timer = null; }
+  else { clearInterval(st.timer); st.timer = null; if (selected?.__layer === id) clearSel(); }
   if (!opts.silent) { writeHash(); renderAll(); }
 }
 function schedule(id) {
@@ -207,8 +208,10 @@ async function refreshLayer(id) {
     const d = (await l.fetch()) || {};
     st.data = d;
     st.count = ['points','arcs','rings','labels','polygons','paths'].reduce((n, k) => n + (Array.isArray(d[k]) ? d[k].length : 0), 0);
+    if (selected?.__layer === id && !stillPresent(selected, d)) clearSel();
   } catch (e) {
     st.error = e?.message || String(e); st.data = null; st.count = 0;
+    if (selected?.__layer === id) clearSel();
     console.error('[map] layer failed', id, e);
   }
   st.loading = false;
@@ -233,15 +236,21 @@ function initGlobe() {
     .onPointHover(d => { el.style.cursor = d ? 'pointer' : 'grab'; })
     .arcColor(d => d.color).arcStroke(d => d.stroke || 0.4).arcDashLength(0.4).arcDashGap(0.2).arcDashAnimateTime(2000).arcAltitudeAutoScale(0.3)
     .arcLabel(d => esc(d.label || ''))
+    .onArcClick(arcSel)
+    .onArcHover(d => { el.style.cursor = d ? 'pointer' : 'grab'; })
     .ringColor(d => t => (d.color || 'rgba(255,120,80,1)').replace(/,\s*[\d.]+\)$/, `,${1 - t})`))
     .ringMaxRadius(d => d.maxR || 3).ringPropagationSpeed(d => d.speed || 2).ringRepeatPeriod(d => d.period || 800)
     .labelText(d => d.text).labelSize(d => d.size || 0.4).labelColor(d => d.color || 'rgba(139,144,150,0.9)').labelDotRadius(0).labelAltitude(0.012).labelResolution(2)
+    .onLabelClick(d => select(d))
+    .onLabelHover(d => { el.style.cursor = d ? 'pointer' : 'grab'; })
     .polygonsTransitionDuration(0).polygonGeoJsonGeometry(d => d.geometry).polygonCapColor(d => d.fill || 'rgba(255,255,255,0.08)')
     .polygonSideColor(() => 'rgba(0,0,0,0)').polygonStrokeColor(d => d.stroke || 'rgba(255,255,255,0.4)').polygonAltitude(0.006)
     .polygonLabel(d => `<b>${esc(d.head)}</b><br><span style="opacity:0.7">${esc(d.meta)}</span>`)
     .onPolygonClick((d, ev, c) => select({ ...d, lat: c?.lat, lng: c?.lng }))
     .pathTransitionDuration(0).pathPoints(d => d.pts).pathPointLat(p => p[0]).pathPointLng(p => p[1]).pathPointAlt(0.012)
     .pathColor(d => d.color || 'rgba(255,255,255,0.6)').pathStroke(d => d.stroke || 0.6)
+    .onPathClick(pathSel)
+    .onPathHover(d => { el.style.cursor = d ? 'pointer' : 'grab'; })
     (el);
   globe.renderer().setClearColor(0x000000, 0);
   globe.scene().traverse(o => { if (o.material && o.type === 'Line') { o.material.color.set(0x3a3d42); o.material.opacity = 0.3; o.material.transparent = true; } });
@@ -258,15 +267,31 @@ function pushData() {
   const ds = { points: [], arcs: [], rings: [], labels: [], polygons: [], paths: [] };
   LAYERS.forEach(l => {
     const st = STATE.get(l.id); if (!st.on || !st.data) return;
-    Object.keys(ds).forEach(k => (st.data[k] || []).forEach(item => ds[k].push({ color: l.color, ...item, __layer: l.id })));
+    Object.keys(ds).forEach(k => (st.data[k] || []).forEach(item => ds[k].push({ color: l.color, ...item, __layer: l.id, __type: k, __raw: item })));
   });
   globe.pointsData(ds.points).arcsData(ds.arcs).ringsData(ds.rings).labelsData(ds.labels).polygonsData(ds.polygons).pathsData(ds.paths);
   const total = Object.values(ds).reduce((n, a) => n + a.length, 0);
-  document.getElementById('mapEmpty').hidden = total > 0;
+  const anyOn = LAYERS.some(l => STATE.get(l.id)?.on);
+  const empty = document.getElementById('mapEmpty');
+  empty.hidden = total > 0;
+  empty.querySelector('span').textContent = anyOn ? 'No features to display \u00b7 check the layer rail' : 'Blank canvas \u00b7 no layers on';
   document.querySelector('#featureCount .v').textContent = num(total);
 }
 
 // ─── Selection ─────────────────────────────────────────────────────────────
+// Identity = the layer's own object for that feature type (by reference, or structurally for re-fetched copies).
+function stillPresent(sel, data) {
+  const items = data?.[sel.__type];
+  if (!Array.isArray(items)) return false;
+  if (items.includes(sel.__raw)) return true;
+  const k = canon(sel.__raw);
+  return items.some(it => canon(it) === k);
+}
+// JSON with object keys sorted, so re-fetched copies compare equal regardless of key order.
+const canon = v => JSON.stringify(v, (_, x) => (x && typeof x === 'object' && !Array.isArray(x)) ? Object.fromEntries(Object.keys(x).sort().map(k => [k, x[k]])) : x);
+// Arcs/paths have no single coordinate; use the start point so LOCATE ON MAP still works.
+const arcSel = d => select({ ...d, lat: d.startLat, lng: d.startLng });
+const pathSel = d => select({ ...d, lat: d.pts?.[0]?.[0], lng: d.pts?.[0]?.[1] });
 function select(d) {
   selected = d;
   const l = LAYERS.find(x => x.id === d.__layer);
