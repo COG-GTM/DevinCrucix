@@ -580,6 +580,10 @@ app.get('/api/taiwan', (req, res) => {
   res.json(currentData.taiwan || { status: 'unavailable' });
 });
 
+// Chinese Delegation Tracker + SYNTHETIC scenario overlay (lib/prcdel/*)
+const prcdel = createPrcDelService({ root: ROOT, runsDir: RUNS_DIR });
+prcdel.register(app);
+
 app.get('/api/taiwan/geo', (req, res) => {
   if (!taiwanGeo) return res.status(404).json({ error: 'No China / Taiwan geometry yet' });
   res.set('Cache-Control', 'private, max-age=300');
@@ -1139,6 +1143,7 @@ import { RequirementsStore } from './lib/requirements/evaluate.mjs';
 import { SEVERITIES as RQ_SEVERITIES } from './lib/situation.mjs';
 import { ValidationError as RqValidationError } from './lib/validate.mjs';
 import { loadGazetteer as rqGazetteer } from './lib/narco/gazetteer.mjs';
+import { createPrcDelService } from './lib/prcdel/service.mjs';
 
 const rqHistory = new HistoryStore(RUNS_DIR);
 try {
@@ -2113,6 +2118,7 @@ async function start() {
   `);
 
   const server = app.listen(port);
+  prcdel.warm();
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {

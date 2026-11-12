@@ -1,0 +1,5 @@
+{
+  "_readme": "Analyst-entered delegation stops and PRC-linked events (real reporting you want on the map that the headline parser missed). Each stop: {leader?, category?, city, date YYYY-MM-DD, headline, url, outlet, meetings:[...]}. Each event: {city, date, host, headline, url, outlet}. City must be in lib/prcdel/gazetteer.mjs or give lat/lon/country/iso2.",
+  "stops": [],
+  "events": []
+}
