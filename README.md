@@ -71,8 +71,8 @@ It was built for anyone who wants to understand what's actually happening in the
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/calesthio/Crucix.git
-cd Crucix
+git clone https://github.com/COG-GTM/DevinCrucix.git
+cd DevinCrucix
 
 # 2. Install dependencies (just Express)
 npm install
@@ -90,15 +90,15 @@ npm run dev
 > ```
 > This bypasses npm's script runner, which can swallow errors on some systems (particularly PowerShell on Windows). You can also run `node diag.mjs` to diagnose the exact issue — it checks your Node version, tests each module import individually, and verifies port availability. See [Troubleshooting](#troubleshooting) for more.
 
-The dashboard opens automatically at `http://localhost:3117` and immediately begins its first intelligence sweep. This initial sweep queries all 27 sources in parallel and typically takes 30–60 seconds — the dashboard will appear empty until the sweep completes and pushes the first data update. After that, it auto-refreshes every 15 minutes via SSE (Server-Sent Events). No manual page refresh needed.
+The dashboard opens automatically at `http://localhost:3117` and immediately begins its first intelligence sweep. This initial sweep queries every source in parallel (78 at the time of writing; the startup log prints the count) and typically takes 30–60 seconds — the dashboard will appear empty until the sweep completes and pushes the first data update. After that, it auto-refreshes every 15 minutes via SSE (Server-Sent Events). No manual page refresh needed.
 
-**Requirements:** Node.js 22+ (uses native `fetch`, top-level `await`, ESM)
+**Requirements:** Node.js 22+ (uses native `fetch`, top-level `await`, ESM). The repo ships an `.nvmrc`, so `nvm use` picks the right version.
 
 ### Docker
 
 ```bash
-git clone https://github.com/calesthio/Crucix.git
-cd Crucix
+git clone https://github.com/COG-GTM/DevinCrucix.git
+cd DevinCrucix
 cp .env.example .env    # add your API keys
 docker compose up -d
 ```
@@ -344,7 +344,8 @@ Until they are set the panel shows **Not connected** with the variables to set, 
 
 ```bash
 cd ingest
-python -m venv .venv && . .venv/bin/activate
+python3 -m venv .venv && . .venv/bin/activate   # Debian/Ubuntu: needs the python3-venv package
+pip install --upgrade pip                         # older pip (e.g. 23.0 on Debian 12) fails to resolve lxml[html-clean]
 pip install -e '.[dev]'
 python -m spacy download xx_ent_wiki_sm   # multilingual NER model (optional; NER degrades gracefully without it)
 
