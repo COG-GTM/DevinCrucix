@@ -1,0 +1,65 @@
+// Crucix architecture. Edit this file, then re-render:
+//   dot -Tpng -Gdpi=150 docs/architecture/architecture.dot -o docs/architecture/architecture.png
+//   dot -Tsvg docs/architecture/architecture.dot -o docs/architecture/architecture.svg
+digraph crucix {
+  graph [rankdir=LR, fontname="DejaVu Sans", fontsize=12, nodesep=0.35, ranksep=0.7, pad=0.3,
+         label="Crucix architecture (master)", labelloc=t, fontsize=18];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, fillcolor="#f4f6f8", color="#5b6b7b"];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#5b6b7b"];
+
+  browser [label="Browser", shape=oval, fillcolor="#fff4d6"];
+  external [label="External OSINT / market /\nnews APIs and feeds", shape=cylinder, fillcolor="#fde2e2"];
+  alerts_out [label="Telegram / Discord", shape=oval, fillcolor="#fff4d6"];
+  llm_out [label="LLM provider\n(optional)", shape=oval, fillcolor="#fff4d6"];
+
+  subgraph cluster_ui {
+    label="dashboard/public/ (static, served by Express)"; style="rounded,dashed"; color="#3b7dd8";
+    loading [label="loading.html\nboot screen until first sweep"];
+    jarvis  [label="jarvis.html\nJarvis HUD dashboard"];
+    map     [label="map.html\nlive layer-building Globe.gl map"];
+    layers  [label="map-layers/\nmanifest.js (ships empty)\n_template.js (layer contract)\n<layer>.js → CRUCIX_MAP.registerLayer()"];
+    geo     [label="geo/\nGeoJSON assets"];
+  }
+
+  subgraph cluster_node {
+    label="Node.js process (server.mjs, port 3117)"; style="rounded"; color="#2e8b57";
+    server  [label="server.mjs\nExpress: security headers, optional\npassword gate, GET / , /api/*, /events (SSE)", fillcolor="#e3f4ea"];
+    sweep   [label="Sweep cycle\ninitial + every refreshIntervalMinutes", fillcolor="#e3f4ea"];
+    briefing[label="apis/briefing.mjs\nruns ~78 sources via Promise.allSettled"];
+    sources [label="apis/sources/*.mjs\nself-contained source adapters\n+ apis/utils (safeFetch, rss, robots)"];
+    inject  [label="dashboard/inject.mjs\nsynthesize() → dashboard data\n(or inject into static jarvis.html)"];
+    lib     [label="lib/\ndelta, alerts, llm, i18n, maplayers,\nsitrep, ask, targeting, finance, country\nviews, devinsec, sourcehealth, ..."];
+  }
+
+  config  [label="config/ + crucix.config.mjs (root)\nenv overrides, gazetteers, country profiles,\ngraph snapshots, sherlock data", shape=folder, fillcolor="#eeeaf8"];
+  locales [label="locales/\nen.json, fr.json", shape=folder, fillcolor="#eeeaf8"];
+  scripts [label="scripts/\ngraph + gazetteer builders,\nclean, sherlock, start-with-ingest.sh", shape=folder, fillcolor="#eeeaf8"];
+  runs    [label="runs/ (gitignored)\nlatest.json, memory, briefings", shape=cylinder, fillcolor="#eeeaf8"];
+
+  subgraph cluster_py {
+    label="ingest/ (Python Border Watch service)"; style="rounded"; color="#b8860b";
+    ingest [label="crucix_ingest\nfeed polling, extraction, NER,\ngeo/violence scoring, baselines\nJSON API on 127.0.0.1:3118", fillcolor="#fbf1dc"];
+  }
+
+  browser -> server [label="HTTP / SSE"];
+  server -> loading [label="GET / (no data yet)"];
+  server -> jarvis  [label="GET / (data ready,\nlocale injected)"];
+  jarvis -> map [label="link"];
+  map -> layers [label="loads files\nlisted in manifest"];
+  layers -> server [label="fetch same-origin /api/*", style=dashed];
+  jarvis -> server [label="/api/data, /events", style=dashed];
+  map -> geo [style=dotted];
+
+  server -> sweep;
+  sweep -> briefing -> sources -> external;
+  sources -> ingest [label="borderingest.mjs\n(read-only)"];
+  sweep -> inject -> lib;
+  sweep -> runs [label="persist"];
+  runs -> server [label="load latest.json\non boot", style=dashed];
+  lib -> alerts_out;
+  lib -> llm_out;
+  config -> server [style=dotted];
+  locales -> lib [label="i18n.mjs", style=dotted];
+  scripts -> config [label="build snapshots", style=dotted];
+  scripts -> ingest [label="Docker entrypoint", style=dotted];
+}
