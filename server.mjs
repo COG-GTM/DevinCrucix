@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import config from './crucix.config.mjs';
 import { getLocale, currentLanguage, getSupportedLocales } from './lib/i18n.mjs';
+import { createDashboardRenderer } from './lib/dashboard-html.mjs';
 import { fullBriefing } from './apis/briefing.mjs';
 import { collectQuick as yfinanceQuick } from './apis/sources/yfinance.mjs';
 import { synthesize, generateIdeas } from './dashboard/inject.mjs';
@@ -346,22 +347,14 @@ app.use(express.json());
 app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 app.use(express.static(join(ROOT, 'dashboard/public')));
 
+const renderDashboardHtml = createDashboardRenderer(join(ROOT, 'dashboard/public/jarvis.html'), getLocale);
+
 // Serve loading page until first sweep completes, then the dashboard with injected locale
 app.get('/', (req, res) => {
   if (!currentData) {
     res.sendFile(join(ROOT, 'dashboard/public/loading.html'));
   } else {
-    const htmlPath = join(ROOT, 'dashboard/public/jarvis.html');
-    let html = readFileSync(htmlPath, 'utf-8');
-
-    // Never ship an inject.mjs seed in server mode; the page renders only live data.
-    html = html.replace(/^let D = \{.*\};\s*$/m, 'let D = null;');
-
-    // Inject locale data into the HTML
-    const locale = getLocale();
-    const localeScript = `<script>window.__CRUCIX_LOCALE__ = ${JSON.stringify(locale).replace(/<\/script>/gi, '<\\/script>')};</script>`;
-    html = html.replace('</head>', `${localeScript}\n</head>`);
-    
+    const html = renderDashboardHtml();
     res.type('html').send(html);
   }
 });
