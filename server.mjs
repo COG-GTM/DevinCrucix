@@ -3,12 +3,13 @@
 // Serves the Jarvis dashboard, runs sweep cycle, pushes live updates via SSE
 
 import express from 'express';
-import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import config from './crucix.config.mjs';
 import { getLocale, currentLanguage, getSupportedLocales } from './lib/i18n.mjs';
+import { createDashboardRenderer } from './lib/dashboard-html.mjs';
 import { fullBriefing } from './apis/briefing.mjs';
 import { collectQuick as yfinanceQuick } from './apis/sources/yfinance.mjs';
 import { synthesize, generateIdeas } from './dashboard/inject.mjs';
@@ -346,34 +347,15 @@ app.use(express.json());
 app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 app.use(express.static(join(ROOT, 'dashboard/public')));
 
-// The rendered dashboard (~1 MB) is rebuilt only when jarvis.html changes on disk or the locale changes.
-const DASHBOARD_HTML_PATH = join(ROOT, 'dashboard/public/jarvis.html');
-let dashboardHtmlCache = null;
-function renderDashboardHtml() {
-  const { mtimeMs, size } = statSync(DASHBOARD_HTML_PATH);
-  const locale = getLocale();
-  const c = dashboardHtmlCache;
-  if (c && c.mtimeMs === mtimeMs && c.size === size && c.locale === locale) return c.html;
-
-  let html = readFileSync(DASHBOARD_HTML_PATH, 'utf-8');
-
-  // Never ship an inject.mjs seed in server mode; the page renders only live data.
-  html = html.replace(/^let D = \{.*\};\s*$/m, 'let D = null;');
-
-  // Inject locale data into the HTML
-  const localeScript = `<script>window.__CRUCIX_LOCALE__ = ${JSON.stringify(locale).replace(/<\/script>/gi, '<\\/script>')};</script>`;
-  html = html.replace('</head>', `${localeScript}\n</head>`);
-
-  dashboardHtmlCache = { mtimeMs, size, locale, html };
-  return html;
-}
+const renderDashboardHtml = createDashboardRenderer(join(ROOT, 'dashboard/public/jarvis.html'), getLocale);
 
 // Serve loading page until first sweep completes, then the dashboard with injected locale
 app.get('/', (req, res) => {
   if (!currentData) {
     res.sendFile(join(ROOT, 'dashboard/public/loading.html'));
   } else {
-    res.type('html').send(renderDashboardHtml());
+    const html = renderDashboardHtml();
+    res.type('html').send(html);
   }
 });
 
